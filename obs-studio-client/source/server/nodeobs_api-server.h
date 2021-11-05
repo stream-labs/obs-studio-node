@@ -21,7 +21,6 @@
 #include <io.h>
 #endif
 #include <iostream>
-#include <ipc-server.hpp>
 #include <math.h>
 #include <obs.h>
 #include <stdio.h>
@@ -98,11 +97,6 @@ class OBS_API
 		std::string crashserverurl);
 	static void OBS_API_destroyOBS_API();
 	static void SetWorkingDirectory(std::string path);
-	static void StopCrashHandler(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
 	static void InformCrashHandler(const int crash_id);
 	static std::vector<OBS_API::HotkeyInfo> QueryHotkeys();
 	static void ProcessHotkeyStatus(obs_hotkey_id hotkeyId, bool pressed);

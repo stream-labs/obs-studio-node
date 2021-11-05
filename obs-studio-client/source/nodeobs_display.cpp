@@ -17,7 +17,6 @@
 ******************************************************************************/
 
 #include "nodeobs_display.hpp"
-#include "controller.hpp"
 #include "error.hpp"
 #include "utility-v8.hpp"
 

@@ -20,7 +20,6 @@
 
 #include <algorithm>
 #include <iostream>
-#include <ipc-server.hpp>
 #include <map>
 #include <mutex>
 #include <obs.h>
@@ -131,7 +130,6 @@ class OBS_service
 	static void OBS_service_connectOutputSignals(signal_callback_t callbac, void* jsThread);
 	static void OBS_service_processReplayBufferHotkey();
 	static std::string OBS_service_getLastReplay();
-	static void Query(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
 
 	static void OBS_service_createVirtualWebcam(std::string name);
 	static void OBS_service_removeVirtualWebcam();

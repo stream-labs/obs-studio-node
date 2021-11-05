@@ -198,8 +198,8 @@ SET(osn-client_SOURCES
 	"source/utility.hpp"
 	"source/utility-v8.cpp"
 	"source/utility-v8.hpp"
-	"source/controller.cpp"
-	"source/controller.hpp"
+	"source/data-value.cpp"
+	"source/data-value.hpp"
 	"source/fader.cpp"
 	"source/fader.hpp"
 	"source/global.cpp"
@@ -358,16 +358,15 @@ set(PROJECT_INCLUDE_PATHS
 
 if(WIN32)
 	target_sources(obs_studio_client PUBLIC ${PROJECT_BINARY_DIR}/version.rc)
-	target_link_libraries(obs_studio_client lib-streamlabs-ipc ${LIBOBS_LIBRARIES} dwmapi.lib optimized crashpad StackWalker)
+	target_link_libraries(obs_studio_client ${LIBOBS_LIBRARIES} dwmapi.lib optimized crashpad StackWalker)
 else ()
-	target_link_libraries(obs_studio_client lib-streamlabs-ipc ${LIBOBS_LIBRARIES} ${COREFOUNDATION} ${COCOA} ${AVFOUNDATION} ${Security} ${Foundation} crashpad)
+	target_link_libraries(obs_studio_client ${LIBOBS_LIBRARIES} ${COREFOUNDATION} ${COCOA} ${AVFOUNDATION} ${Security} ${Foundation} crashpad)
 endif()
 
 target_include_directories(
 	obs_studio_client
 	PUBLIC
 		"${CMAKE_SOURCE_DIR}/source/"
-		"${CMAKE_SOURCE_DIR}/lib-streamlabs-ipc/include"
 		${PROJECT_INCLUDE_PATHS}
 		${LIBOBS_INCLUDE_DIRS}
 		"${stackwalker_SOURCE_DIR}/Main/StackWalker"

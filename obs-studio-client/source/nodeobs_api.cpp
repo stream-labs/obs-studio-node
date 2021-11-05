@@ -16,7 +16,6 @@
 
 ******************************************************************************/
 
-#include "controller.hpp"
 #include "error.hpp"
 #include "nodeobs_api.hpp"
 #include <sstream>

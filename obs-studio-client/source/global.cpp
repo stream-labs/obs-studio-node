@@ -18,9 +18,7 @@
 
 #include "global.hpp"
 #include <condition_variable>
-#include <ipc-value.hpp>
 #include <mutex>
-#include "controller.hpp"
 #include "error.hpp"
 #include "input.hpp"
 #include "scene.hpp"

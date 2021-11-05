@@ -1268,37 +1268,6 @@ void OBS_API::WaitCrashHandlerClose(bool waitBeforeClosing)
 	}
 }
 
-// void OBS_API::StopCrashHandler(
-//     void*                          data,
-//     const int64_t                  id,
-//     const std::vector<ipc::value>& args,
-//     std::vector<ipc::value>&       rval)
-// {
-// 	util::CrashManager::setAppState("shutdown");
-
-// 	blog(LOG_DEBUG, "OBS_API::StopCrashHandler called, objects allocated %d", bnum_allocs());
-
-// 	if (crash_handler_responce_thread) {
-// 		writeCrashHandler(unregisterProcess());
-
-// 		start_wait_acknowledge = std::chrono::high_resolution_clock::now();
-// 		crash_handler_timeout_activated = true;
-
-// 		if (crash_handler_responce_thread->joinable())
-// 			crash_handler_responce_thread->join();
-// 	} else {
-// 		writeCrashHandler(unregisterProcess());
-
-// 		// Waiting 1 sec to let crash handler process unregister command before continuing 
-// 		// with shutdown sequence. 
-// 		// Only for a case when it failed to create a pipe to recieve confirmation from crash handler.  
-// 		std::this_thread::sleep_for(std::chrono::seconds(1));
-// 	}
-
-// 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-// 	AUTO_DEBUG;
-// }
-
 void OBS_API::InformCrashHandler(const int crash_id)
 {
 	writeCrashHandler(crashedProcess(crash_id));

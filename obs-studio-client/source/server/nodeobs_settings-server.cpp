@@ -350,204 +350,204 @@ std::vector<SubCategory> OBS_settings::getGeneralSettings()
 {
 	std::vector<SubCategory> generalSettings;
 
-	std::vector<std::vector<std::pair<std::string, ipc::value>>> entries;
+	// std::vector<std::vector<std::pair<std::string, ipc::value>>> entries;
 
-	// Output
-	std::vector<std::pair<std::string, ipc::value>> warnBeforeStartingStream;
-	warnBeforeStartingStream.push_back(std::make_pair("name", ipc::value("WarnBeforeStartingStream")));
-	warnBeforeStartingStream.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
-	warnBeforeStartingStream.push_back(
-	    std::make_pair("description", ipc::value("Show confirmation dialog when starting streams")));
-	warnBeforeStartingStream.push_back(std::make_pair("subType", ipc::value("")));
-	warnBeforeStartingStream.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	warnBeforeStartingStream.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	warnBeforeStartingStream.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(warnBeforeStartingStream);
+	// // Output
+	// std::vector<std::pair<std::string, ipc::value>> warnBeforeStartingStream;
+	// warnBeforeStartingStream.push_back(std::make_pair("name", ipc::value("WarnBeforeStartingStream")));
+	// warnBeforeStartingStream.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
+	// warnBeforeStartingStream.push_back(
+	//     std::make_pair("description", ipc::value("Show confirmation dialog when starting streams")));
+	// warnBeforeStartingStream.push_back(std::make_pair("subType", ipc::value("")));
+	// warnBeforeStartingStream.push_back(std::make_pair("minVal", ipc::value((double)0)));
+	// warnBeforeStartingStream.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+	// warnBeforeStartingStream.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+	// entries.push_back(warnBeforeStartingStream);
 
-	std::vector<std::pair<std::string, ipc::value>> warnBeforeStoppingStream;
-	warnBeforeStoppingStream.push_back(std::make_pair("name", ipc::value("WarnBeforeStoppingStream")));
-	warnBeforeStoppingStream.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
-	warnBeforeStoppingStream.push_back(
-	    std::make_pair("description", ipc::value("Show confirmation dialog when stopping streams")));
-	warnBeforeStoppingStream.push_back(std::make_pair("subType", ipc::value("")));
-	warnBeforeStoppingStream.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	warnBeforeStoppingStream.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	warnBeforeStoppingStream.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(warnBeforeStoppingStream);
+	// std::vector<std::pair<std::string, ipc::value>> warnBeforeStoppingStream;
+	// warnBeforeStoppingStream.push_back(std::make_pair("name", ipc::value("WarnBeforeStoppingStream")));
+	// warnBeforeStoppingStream.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
+	// warnBeforeStoppingStream.push_back(
+	//     std::make_pair("description", ipc::value("Show confirmation dialog when stopping streams")));
+	// warnBeforeStoppingStream.push_back(std::make_pair("subType", ipc::value("")));
+	// warnBeforeStoppingStream.push_back(std::make_pair("minVal", ipc::value((double)0)));
+	// warnBeforeStoppingStream.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+	// warnBeforeStoppingStream.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+	// entries.push_back(warnBeforeStoppingStream);
 
-	std::vector<std::pair<std::string, ipc::value>> recordWhenStreaming;
-	recordWhenStreaming.push_back(std::make_pair("name", ipc::value("RecordWhenStreaming")));
-	recordWhenStreaming.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
-	recordWhenStreaming.push_back(std::make_pair("description", ipc::value("Automatically record when streaming")));
-	recordWhenStreaming.push_back(std::make_pair("subType", ipc::value("")));
-	recordWhenStreaming.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	recordWhenStreaming.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	recordWhenStreaming.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(recordWhenStreaming);
+	// std::vector<std::pair<std::string, ipc::value>> recordWhenStreaming;
+	// recordWhenStreaming.push_back(std::make_pair("name", ipc::value("RecordWhenStreaming")));
+	// recordWhenStreaming.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
+	// recordWhenStreaming.push_back(std::make_pair("description", ipc::value("Automatically record when streaming")));
+	// recordWhenStreaming.push_back(std::make_pair("subType", ipc::value("")));
+	// recordWhenStreaming.push_back(std::make_pair("minVal", ipc::value((double)0)));
+	// recordWhenStreaming.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+	// recordWhenStreaming.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+	// entries.push_back(recordWhenStreaming);
 
-	std::vector<std::pair<std::string, ipc::value>> keepRecordingWhenStreamStops;
-	keepRecordingWhenStreamStops.push_back(std::make_pair("name", ipc::value("KeepRecordingWhenStreamStops")));
-	keepRecordingWhenStreamStops.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
-	keepRecordingWhenStreamStops.push_back(
-	    std::make_pair("description", ipc::value("Keep recording when stream stops")));
-	keepRecordingWhenStreamStops.push_back(std::make_pair("subType", ipc::value("")));
-	keepRecordingWhenStreamStops.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	keepRecordingWhenStreamStops.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	keepRecordingWhenStreamStops.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(keepRecordingWhenStreamStops);
+	// std::vector<std::pair<std::string, ipc::value>> keepRecordingWhenStreamStops;
+	// keepRecordingWhenStreamStops.push_back(std::make_pair("name", ipc::value("KeepRecordingWhenStreamStops")));
+	// keepRecordingWhenStreamStops.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
+	// keepRecordingWhenStreamStops.push_back(
+	//     std::make_pair("description", ipc::value("Keep recording when stream stops")));
+	// keepRecordingWhenStreamStops.push_back(std::make_pair("subType", ipc::value("")));
+	// keepRecordingWhenStreamStops.push_back(std::make_pair("minVal", ipc::value((double)0)));
+	// keepRecordingWhenStreamStops.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+	// keepRecordingWhenStreamStops.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+	// entries.push_back(keepRecordingWhenStreamStops);
 
-	std::vector<std::pair<std::string, ipc::value>> replayBufferWhileStreaming;
-	replayBufferWhileStreaming.push_back(std::make_pair("name", ipc::value("ReplayBufferWhileStreaming")));
-	replayBufferWhileStreaming.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
-	replayBufferWhileStreaming.push_back(
-	    std::make_pair("description", ipc::value("Automatically start replay buffer when streaming")));
-	replayBufferWhileStreaming.push_back(std::make_pair("subType", ipc::value("")));
-	replayBufferWhileStreaming.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	replayBufferWhileStreaming.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	replayBufferWhileStreaming.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(replayBufferWhileStreaming);
+	// std::vector<std::pair<std::string, ipc::value>> replayBufferWhileStreaming;
+	// replayBufferWhileStreaming.push_back(std::make_pair("name", ipc::value("ReplayBufferWhileStreaming")));
+	// replayBufferWhileStreaming.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
+	// replayBufferWhileStreaming.push_back(
+	//     std::make_pair("description", ipc::value("Automatically start replay buffer when streaming")));
+	// replayBufferWhileStreaming.push_back(std::make_pair("subType", ipc::value("")));
+	// replayBufferWhileStreaming.push_back(std::make_pair("minVal", ipc::value((double)0)));
+	// replayBufferWhileStreaming.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+	// replayBufferWhileStreaming.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+	// entries.push_back(replayBufferWhileStreaming);
 
-	std::vector<std::pair<std::string, ipc::value>> keepReplayBufferStreamStops;
-	keepReplayBufferStreamStops.push_back(std::make_pair("name", ipc::value("KeepReplayBufferStreamStops")));
-	keepReplayBufferStreamStops.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
-	keepReplayBufferStreamStops.push_back(
-	    std::make_pair("description", ipc::value("Keep replay buffer active when stream stops")));
-	keepReplayBufferStreamStops.push_back(std::make_pair("subType", ipc::value("")));
-	keepReplayBufferStreamStops.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	keepReplayBufferStreamStops.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	keepReplayBufferStreamStops.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(keepReplayBufferStreamStops);
+	// std::vector<std::pair<std::string, ipc::value>> keepReplayBufferStreamStops;
+	// keepReplayBufferStreamStops.push_back(std::make_pair("name", ipc::value("KeepReplayBufferStreamStops")));
+	// keepReplayBufferStreamStops.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
+	// keepReplayBufferStreamStops.push_back(
+	//     std::make_pair("description", ipc::value("Keep replay buffer active when stream stops")));
+	// keepReplayBufferStreamStops.push_back(std::make_pair("subType", ipc::value("")));
+	// keepReplayBufferStreamStops.push_back(std::make_pair("minVal", ipc::value((double)0)));
+	// keepReplayBufferStreamStops.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+	// keepReplayBufferStreamStops.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+	// entries.push_back(keepReplayBufferStreamStops);
 
-	generalSettings.push_back(
-	    serializeSettingsData("Output", entries, ConfigManager::getInstance().getGlobal(), "BasicWindow", true, true));
-	entries.clear();
+	// generalSettings.push_back(
+	//     serializeSettingsData("Output", entries, ConfigManager::getInstance().getGlobal(), "BasicWindow", true, true));
+	// entries.clear();
 
-	// Source Alignement Snapping
-	std::vector<std::pair<std::string, ipc::value>> snappingEnabled;
-	snappingEnabled.push_back(std::make_pair("name", ipc::value("SnappingEnabled")));
-	snappingEnabled.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
-	snappingEnabled.push_back(std::make_pair("description", ipc::value("Enable")));
-	snappingEnabled.push_back(std::make_pair("subType", ipc::value("")));
-	snappingEnabled.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	snappingEnabled.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	snappingEnabled.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(snappingEnabled);
+	// // Source Alignement Snapping
+	// std::vector<std::pair<std::string, ipc::value>> snappingEnabled;
+	// snappingEnabled.push_back(std::make_pair("name", ipc::value("SnappingEnabled")));
+	// snappingEnabled.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
+	// snappingEnabled.push_back(std::make_pair("description", ipc::value("Enable")));
+	// snappingEnabled.push_back(std::make_pair("subType", ipc::value("")));
+	// snappingEnabled.push_back(std::make_pair("minVal", ipc::value((double)0)));
+	// snappingEnabled.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+	// snappingEnabled.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+	// entries.push_back(snappingEnabled);
 
-	std::vector<std::pair<std::string, ipc::value>> snapDistance;
-	snapDistance.push_back(std::make_pair("name", ipc::value("SnapDistance")));
-	snapDistance.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_DOUBLE")));
-	snapDistance.push_back(std::make_pair("description", ipc::value("Snap Sensitivity")));
-	snapDistance.push_back(std::make_pair("subType", ipc::value("")));
-	snapDistance.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	snapDistance.push_back(std::make_pair("maxVal", ipc::value((double)100)));
-	snapDistance.push_back(std::make_pair("stepVal", ipc::value((double)0.5)));
-	entries.push_back(snapDistance);
+	// std::vector<std::pair<std::string, ipc::value>> snapDistance;
+	// snapDistance.push_back(std::make_pair("name", ipc::value("SnapDistance")));
+	// snapDistance.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_DOUBLE")));
+	// snapDistance.push_back(std::make_pair("description", ipc::value("Snap Sensitivity")));
+	// snapDistance.push_back(std::make_pair("subType", ipc::value("")));
+	// snapDistance.push_back(std::make_pair("minVal", ipc::value((double)0)));
+	// snapDistance.push_back(std::make_pair("maxVal", ipc::value((double)100)));
+	// snapDistance.push_back(std::make_pair("stepVal", ipc::value((double)0.5)));
+	// entries.push_back(snapDistance);
 
-	std::vector<std::pair<std::string, ipc::value>> screenSnapping;
-	screenSnapping.push_back(std::make_pair("name", ipc::value("ScreenSnapping")));
-	screenSnapping.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
-	screenSnapping.push_back(std::make_pair("description", ipc::value("Snap Sources to edge of screen")));
-	screenSnapping.push_back(std::make_pair("subType", ipc::value("")));
-	screenSnapping.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	screenSnapping.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	screenSnapping.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(screenSnapping);
+	// std::vector<std::pair<std::string, ipc::value>> screenSnapping;
+	// screenSnapping.push_back(std::make_pair("name", ipc::value("ScreenSnapping")));
+	// screenSnapping.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
+	// screenSnapping.push_back(std::make_pair("description", ipc::value("Snap Sources to edge of screen")));
+	// screenSnapping.push_back(std::make_pair("subType", ipc::value("")));
+	// screenSnapping.push_back(std::make_pair("minVal", ipc::value((double)0)));
+	// screenSnapping.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+	// screenSnapping.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+	// entries.push_back(screenSnapping);
 
-	std::vector<std::pair<std::string, ipc::value>> sourceSnapping;
-	sourceSnapping.push_back(std::make_pair("name", ipc::value("SourceSnapping")));
-	sourceSnapping.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
-	sourceSnapping.push_back(std::make_pair("description", ipc::value("Snap Sources to other sources")));
-	sourceSnapping.push_back(std::make_pair("subType", ipc::value("")));
-	sourceSnapping.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	sourceSnapping.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	sourceSnapping.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(sourceSnapping);
+	// std::vector<std::pair<std::string, ipc::value>> sourceSnapping;
+	// sourceSnapping.push_back(std::make_pair("name", ipc::value("SourceSnapping")));
+	// sourceSnapping.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
+	// sourceSnapping.push_back(std::make_pair("description", ipc::value("Snap Sources to other sources")));
+	// sourceSnapping.push_back(std::make_pair("subType", ipc::value("")));
+	// sourceSnapping.push_back(std::make_pair("minVal", ipc::value((double)0)));
+	// sourceSnapping.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+	// sourceSnapping.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+	// entries.push_back(sourceSnapping);
 
-	std::vector<std::pair<std::string, ipc::value>> centerSnapping;
-	centerSnapping.push_back(std::make_pair("name", ipc::value("CenterSnapping")));
-	centerSnapping.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
-	centerSnapping.push_back(
-	    std::make_pair("description", ipc::value("Snap Sources to horizontal and vertical center")));
-	centerSnapping.push_back(std::make_pair("subType", ipc::value("")));
-	centerSnapping.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	centerSnapping.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	centerSnapping.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(centerSnapping);
+	// std::vector<std::pair<std::string, ipc::value>> centerSnapping;
+	// centerSnapping.push_back(std::make_pair("name", ipc::value("CenterSnapping")));
+	// centerSnapping.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
+	// centerSnapping.push_back(
+	//     std::make_pair("description", ipc::value("Snap Sources to horizontal and vertical center")));
+	// centerSnapping.push_back(std::make_pair("subType", ipc::value("")));
+	// centerSnapping.push_back(std::make_pair("minVal", ipc::value((double)0)));
+	// centerSnapping.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+	// centerSnapping.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+	// entries.push_back(centerSnapping);
 
-	generalSettings.push_back(serializeSettingsData(
-	    "Source Alignement Snapping", entries, ConfigManager::getInstance().getGlobal(), "BasicWindow", true, true));
-	entries.clear();
+	// generalSettings.push_back(serializeSettingsData(
+	//     "Source Alignement Snapping", entries, ConfigManager::getInstance().getGlobal(), "BasicWindow", true, true));
+	// entries.clear();
 
-	// Projectors
-	std::vector<std::pair<std::string, ipc::value>> hideProjectorCursor;
-	hideProjectorCursor.push_back(std::make_pair("name", ipc::value("HideProjectorCursor")));
-	hideProjectorCursor.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
-	hideProjectorCursor.push_back(std::make_pair("description", ipc::value("Hide cursor over projectors")));
-	hideProjectorCursor.push_back(std::make_pair("subType", ipc::value("")));
-	hideProjectorCursor.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	hideProjectorCursor.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	hideProjectorCursor.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(hideProjectorCursor);
+	// // Projectors
+	// std::vector<std::pair<std::string, ipc::value>> hideProjectorCursor;
+	// hideProjectorCursor.push_back(std::make_pair("name", ipc::value("HideProjectorCursor")));
+	// hideProjectorCursor.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
+	// hideProjectorCursor.push_back(std::make_pair("description", ipc::value("Hide cursor over projectors")));
+	// hideProjectorCursor.push_back(std::make_pair("subType", ipc::value("")));
+	// hideProjectorCursor.push_back(std::make_pair("minVal", ipc::value((double)0)));
+	// hideProjectorCursor.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+	// hideProjectorCursor.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+	// entries.push_back(hideProjectorCursor);
 
-	std::vector<std::pair<std::string, ipc::value>> projectorAlwaysOnTop;
-	projectorAlwaysOnTop.push_back(std::make_pair("name", ipc::value("ProjectorAlwaysOnTop")));
-	projectorAlwaysOnTop.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
-	projectorAlwaysOnTop.push_back(std::make_pair("description", ipc::value("Make projectors always on top")));
-	projectorAlwaysOnTop.push_back(std::make_pair("subType", ipc::value("")));
-	projectorAlwaysOnTop.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	projectorAlwaysOnTop.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	projectorAlwaysOnTop.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(projectorAlwaysOnTop);
+	// std::vector<std::pair<std::string, ipc::value>> projectorAlwaysOnTop;
+	// projectorAlwaysOnTop.push_back(std::make_pair("name", ipc::value("ProjectorAlwaysOnTop")));
+	// projectorAlwaysOnTop.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
+	// projectorAlwaysOnTop.push_back(std::make_pair("description", ipc::value("Make projectors always on top")));
+	// projectorAlwaysOnTop.push_back(std::make_pair("subType", ipc::value("")));
+	// projectorAlwaysOnTop.push_back(std::make_pair("minVal", ipc::value((double)0)));
+	// projectorAlwaysOnTop.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+	// projectorAlwaysOnTop.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+	// entries.push_back(projectorAlwaysOnTop);
 
-	std::vector<std::pair<std::string, ipc::value>> saveProjectors;
-	saveProjectors.push_back(std::make_pair("name", ipc::value("SaveProjectors")));
-	saveProjectors.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
-	saveProjectors.push_back(std::make_pair("description", ipc::value("Save projectors on exit")));
-	saveProjectors.push_back(std::make_pair("subType", ipc::value("")));
-	saveProjectors.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	saveProjectors.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	saveProjectors.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(saveProjectors);
+	// std::vector<std::pair<std::string, ipc::value>> saveProjectors;
+	// saveProjectors.push_back(std::make_pair("name", ipc::value("SaveProjectors")));
+	// saveProjectors.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
+	// saveProjectors.push_back(std::make_pair("description", ipc::value("Save projectors on exit")));
+	// saveProjectors.push_back(std::make_pair("subType", ipc::value("")));
+	// saveProjectors.push_back(std::make_pair("minVal", ipc::value((double)0)));
+	// saveProjectors.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+	// saveProjectors.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+	// entries.push_back(saveProjectors);
 
-	generalSettings.push_back(serializeSettingsData(
-	    "Projectors", entries, ConfigManager::getInstance().getGlobal(), "BasicWindow", true, true));
-	entries.clear();
+	// generalSettings.push_back(serializeSettingsData(
+	//     "Projectors", entries, ConfigManager::getInstance().getGlobal(), "BasicWindow", true, true));
+	// entries.clear();
 
-	// System Tray
-	std::vector<std::pair<std::string, ipc::value>> sysTrayEnabled;
-	sysTrayEnabled.push_back(std::make_pair("name", ipc::value("SysTrayEnabled")));
-	sysTrayEnabled.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
-	sysTrayEnabled.push_back(std::make_pair("description", ipc::value("Enable")));
-	sysTrayEnabled.push_back(std::make_pair("subType", ipc::value("")));
-	sysTrayEnabled.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	sysTrayEnabled.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	sysTrayEnabled.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(sysTrayEnabled);
+	// // System Tray
+	// std::vector<std::pair<std::string, ipc::value>> sysTrayEnabled;
+	// sysTrayEnabled.push_back(std::make_pair("name", ipc::value("SysTrayEnabled")));
+	// sysTrayEnabled.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
+	// sysTrayEnabled.push_back(std::make_pair("description", ipc::value("Enable")));
+	// sysTrayEnabled.push_back(std::make_pair("subType", ipc::value("")));
+	// sysTrayEnabled.push_back(std::make_pair("minVal", ipc::value((double)0)));
+	// sysTrayEnabled.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+	// sysTrayEnabled.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+	// entries.push_back(sysTrayEnabled);
 
-	std::vector<std::pair<std::string, ipc::value>> sysTrayWhenStarted;
-	sysTrayWhenStarted.push_back(std::make_pair("name", ipc::value("SysTrayWhenStarted")));
-	sysTrayWhenStarted.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
-	sysTrayWhenStarted.push_back(std::make_pair("description", ipc::value("Minimize to system tray when started")));
-	sysTrayWhenStarted.push_back(std::make_pair("subType", ipc::value("")));
-	sysTrayWhenStarted.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	sysTrayWhenStarted.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	sysTrayWhenStarted.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(sysTrayWhenStarted);
+	// std::vector<std::pair<std::string, ipc::value>> sysTrayWhenStarted;
+	// sysTrayWhenStarted.push_back(std::make_pair("name", ipc::value("SysTrayWhenStarted")));
+	// sysTrayWhenStarted.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
+	// sysTrayWhenStarted.push_back(std::make_pair("description", ipc::value("Minimize to system tray when started")));
+	// sysTrayWhenStarted.push_back(std::make_pair("subType", ipc::value("")));
+	// sysTrayWhenStarted.push_back(std::make_pair("minVal", ipc::value((double)0)));
+	// sysTrayWhenStarted.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+	// sysTrayWhenStarted.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+	// entries.push_back(sysTrayWhenStarted);
 
-	std::vector<std::pair<std::string, ipc::value>> sysTrayMinimizeToTray;
-	sysTrayMinimizeToTray.push_back(std::make_pair("name", ipc::value("SysTrayMinimizeToTray")));
-	sysTrayMinimizeToTray.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
-	sysTrayMinimizeToTray.push_back(
-	    std::make_pair("description", ipc::value("Always minimize to system tray instead of task bar")));
-	sysTrayMinimizeToTray.push_back(std::make_pair("subType", ipc::value("")));
-	sysTrayMinimizeToTray.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	sysTrayMinimizeToTray.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	sysTrayMinimizeToTray.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(sysTrayMinimizeToTray);
+	// std::vector<std::pair<std::string, ipc::value>> sysTrayMinimizeToTray;
+	// sysTrayMinimizeToTray.push_back(std::make_pair("name", ipc::value("SysTrayMinimizeToTray")));
+	// sysTrayMinimizeToTray.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
+	// sysTrayMinimizeToTray.push_back(
+	//     std::make_pair("description", ipc::value("Always minimize to system tray instead of task bar")));
+	// sysTrayMinimizeToTray.push_back(std::make_pair("subType", ipc::value("")));
+	// sysTrayMinimizeToTray.push_back(std::make_pair("minVal", ipc::value((double)0)));
+	// sysTrayMinimizeToTray.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+	// sysTrayMinimizeToTray.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+	// entries.push_back(sysTrayMinimizeToTray);
 
-	generalSettings.push_back(serializeSettingsData(
-	    "System Tray", entries, ConfigManager::getInstance().getGlobal(), "BasicWindow", true, true));
-	entries.clear();
+	// generalSettings.push_back(serializeSettingsData(
+	//     "System Tray", entries, ConfigManager::getInstance().getGlobal(), "BasicWindow", true, true));
+	// entries.clear();
 
 	return generalSettings;
 }
@@ -614,264 +614,264 @@ std::vector<SubCategory> OBS_settings::getStreamSettings()
 	std::vector<SubCategory> streamSettings;
 	SubCategory              service;
 
-	service.name = "Untitled";
+	// service.name = "Untitled";
 
-	Parameter streamType;
-	streamType.name    = "streamType";
-	streamType.type    = "OBS_PROPERTY_LIST";
-	streamType.subType = "OBS_COMBO_FORMAT_STRING";
+	// Parameter streamType;
+	// streamType.name    = "streamType";
+	// streamType.type    = "OBS_PROPERTY_LIST";
+	// streamType.subType = "OBS_COMBO_FORMAT_STRING";
 
-	int         index = 0;
-	const char* type;
+	// int         index = 0;
+	// const char* type;
 
-	uint32_t indexData = 0;
-	while (obs_enum_service_types(index++, &type)) {
-		std::string name = obs_service_get_display_name(type);
+	// uint32_t indexData = 0;
+	// while (obs_enum_service_types(index++, &type)) {
+	// 	std::string name = obs_service_get_display_name(type);
 
-		uint64_t          sizeName = name.length();
-		std::vector<char> sizeNameBuffer;
-		sizeNameBuffer.resize(sizeof(sizeName));
-		memcpy(sizeNameBuffer.data(), &sizeName, sizeof(sizeName));
+	// 	uint64_t          sizeName = name.length();
+	// 	std::vector<char> sizeNameBuffer;
+	// 	sizeNameBuffer.resize(sizeof(sizeName));
+	// 	memcpy(sizeNameBuffer.data(), &sizeName, sizeof(sizeName));
 
-		streamType.values.insert(streamType.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
-		streamType.values.insert(streamType.values.end(), name.begin(), name.end());
+	// 	streamType.values.insert(streamType.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
+	// 	streamType.values.insert(streamType.values.end(), name.begin(), name.end());
 
-		std::string value = type;
+	// 	std::string value = type;
 
-		uint64_t          sizeValue = value.length();
-		std::vector<char> sizeValueBuffer;
-		sizeValueBuffer.resize(sizeof(sizeValue));
-		memcpy(sizeValueBuffer.data(), &sizeValue, sizeof(sizeValue));
+	// 	uint64_t          sizeValue = value.length();
+	// 	std::vector<char> sizeValueBuffer;
+	// 	sizeValueBuffer.resize(sizeof(sizeValue));
+	// 	memcpy(sizeValueBuffer.data(), &sizeValue, sizeof(sizeValue));
 
-		streamType.values.insert(streamType.values.end(), sizeValueBuffer.begin(), sizeValueBuffer.end());
-		streamType.values.insert(streamType.values.end(), value.begin(), value.end());
-	}
+	// 	streamType.values.insert(streamType.values.end(), sizeValueBuffer.begin(), sizeValueBuffer.end());
+	// 	streamType.values.insert(streamType.values.end(), value.begin(), value.end());
+	// }
 
-	streamType.sizeOfValues = streamType.values.size();
-	streamType.countValues  = index - 1;
+	// streamType.sizeOfValues = streamType.values.size();
+	// streamType.countValues  = index - 1;
 
-	streamType.description = "Stream Type";
+	// streamType.description = "Stream Type";
 
-	const char* servType = obs_service_get_type(currentService);
-	streamType.currentValue.resize(strlen(servType));
-	memcpy(streamType.currentValue.data(), servType, strlen(servType));
-	streamType.sizeOfCurrentValue = strlen(servType);
+	// const char* servType = obs_service_get_type(currentService);
+	// streamType.currentValue.resize(strlen(servType));
+	// memcpy(streamType.currentValue.data(), servType, strlen(servType));
+	// streamType.sizeOfCurrentValue = strlen(servType);
 
-	streamType.visible = true;
-	streamType.enabled = isCategoryEnabled;
-	streamType.masked  = false;
+	// streamType.visible = true;
+	// streamType.enabled = isCategoryEnabled;
+	// streamType.masked  = false;
 
-	service.params.push_back(streamType);
-	service.paramsCount = service.params.size();
+	// service.params.push_back(streamType);
+	// service.paramsCount = service.params.size();
 
-	streamSettings.push_back(service);
+	// streamSettings.push_back(service);
 
-	SubCategory serviceConfiguration;
+	// SubCategory serviceConfiguration;
 
-	obs_properties_t* properties = obs_service_properties(currentService);
-	obs_property_t*   property   = obs_properties_first(properties);
-	obs_combo_format  format;
-	std::string       formatString;
+	// obs_properties_t* properties = obs_service_properties(currentService);
+	// obs_property_t*   property   = obs_properties_first(properties);
+	// obs_combo_format  format;
+	// std::string       formatString;
 
-	index                                  = 0;
-	uint32_t indexDataServiceConfiguration = 0;
+	// index                                  = 0;
+	// uint32_t indexDataServiceConfiguration = 0;
 
-	while (property) {
-		Parameter param;
+	// while (property) {
+	// 	Parameter param;
 
-		param.name = obs_property_name(property);
+	// 	param.name = obs_property_name(property);
 
-		std::vector<std::pair<std::string, void*>> values;
+	// 	std::vector<std::pair<std::string, void*>> values;
 
-		int count = (int)obs_property_list_item_count(property);
-		format = obs_property_list_format(property);
+	// 	int count = (int)obs_property_list_item_count(property);
+	// 	format = obs_property_list_format(property);
 
-		for (int i = 0; i < count; i++) {
-			//Value
-			if (format == OBS_COMBO_FORMAT_INT) {
-				std::string name = obs_property_list_item_name(property, i);
+	// 	for (int i = 0; i < count; i++) {
+	// 		//Value
+	// 		if (format == OBS_COMBO_FORMAT_INT) {
+	// 			std::string name = obs_property_list_item_name(property, i);
 
-				uint64_t          sizeName = name.length();
-				std::vector<char> sizeNameBuffer;
-				sizeNameBuffer.resize(sizeof(sizeName));
-				memcpy(sizeNameBuffer.data(), &sizeName, sizeof(sizeName));
+	// 			uint64_t          sizeName = name.length();
+	// 			std::vector<char> sizeNameBuffer;
+	// 			sizeNameBuffer.resize(sizeof(sizeName));
+	// 			memcpy(sizeNameBuffer.data(), &sizeName, sizeof(sizeName));
 
-				param.values.insert(param.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
-				param.values.insert(param.values.end(), name.begin(), name.end());
+	// 			param.values.insert(param.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
+	// 			param.values.insert(param.values.end(), name.begin(), name.end());
 
-				int64_t value = obs_property_list_item_int(property, i);
+	// 			int64_t value = obs_property_list_item_int(property, i);
 
-				std::vector<char> valueBuffer;
-				valueBuffer.resize(sizeof(value));
-				memcpy(valueBuffer.data(), &value, sizeof(value));
+	// 			std::vector<char> valueBuffer;
+	// 			valueBuffer.resize(sizeof(value));
+	// 			memcpy(valueBuffer.data(), &value, sizeof(value));
 
-				param.values.insert(param.values.end(), valueBuffer.begin(), valueBuffer.end());
+	// 			param.values.insert(param.values.end(), valueBuffer.begin(), valueBuffer.end());
 
-				formatString  = "OBS_PROPERTY_INT";
-				param.subType = "OBS_COMBO_FORMAT_INT";
-			} else if (format == OBS_COMBO_FORMAT_FLOAT) {
-				std::string name = obs_property_list_item_name(property, i);
+	// 			formatString  = "OBS_PROPERTY_INT";
+	// 			param.subType = "OBS_COMBO_FORMAT_INT";
+	// 		} else if (format == OBS_COMBO_FORMAT_FLOAT) {
+	// 			std::string name = obs_property_list_item_name(property, i);
 
-				uint64_t          sizeName = name.length();
-				std::vector<char> sizeNameBuffer;
-				sizeNameBuffer.resize(sizeof(sizeName));
-				memcpy(sizeNameBuffer.data(), &sizeName, sizeof(sizeName));
+	// 			uint64_t          sizeName = name.length();
+	// 			std::vector<char> sizeNameBuffer;
+	// 			sizeNameBuffer.resize(sizeof(sizeName));
+	// 			memcpy(sizeNameBuffer.data(), &sizeName, sizeof(sizeName));
 
-				param.values.insert(param.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
-				param.values.insert(param.values.end(), name.begin(), name.end());
+	// 			param.values.insert(param.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
+	// 			param.values.insert(param.values.end(), name.begin(), name.end());
 
-				double value = obs_property_list_item_float(property, i);
+	// 			double value = obs_property_list_item_float(property, i);
 
-				std::vector<char> valueBuffer;
-				valueBuffer.resize(sizeof(value));
-				memcpy(valueBuffer.data(), &value, sizeof(value));
+	// 			std::vector<char> valueBuffer;
+	// 			valueBuffer.resize(sizeof(value));
+	// 			memcpy(valueBuffer.data(), &value, sizeof(value));
 
-				param.values.insert(param.values.end(), valueBuffer.begin(), valueBuffer.end());
+	// 			param.values.insert(param.values.end(), valueBuffer.begin(), valueBuffer.end());
 
-				formatString  = "OBS_PROPERTY_DOUBLE";
-				param.subType = "OBS_COMBO_FORMAT_FLOAT";
-			} else if (format == OBS_COMBO_FORMAT_STRING) {
-				std::string name = obs_property_list_item_name(property, i);
+	// 			formatString  = "OBS_PROPERTY_DOUBLE";
+	// 			param.subType = "OBS_COMBO_FORMAT_FLOAT";
+	// 		} else if (format == OBS_COMBO_FORMAT_STRING) {
+	// 			std::string name = obs_property_list_item_name(property, i);
 
-				uint64_t          sizeName = name.length();
-				std::vector<char> sizeNameBuffer;
-				sizeNameBuffer.resize(sizeof(sizeName));
-				memcpy(sizeNameBuffer.data(), &sizeName, sizeof(sizeName));
+	// 			uint64_t          sizeName = name.length();
+	// 			std::vector<char> sizeNameBuffer;
+	// 			sizeNameBuffer.resize(sizeof(sizeName));
+	// 			memcpy(sizeNameBuffer.data(), &sizeName, sizeof(sizeName));
 
-				param.values.insert(param.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
-				param.values.insert(param.values.end(), name.begin(), name.end());
+	// 			param.values.insert(param.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
+	// 			param.values.insert(param.values.end(), name.begin(), name.end());
 
-				std::string value = obs_property_list_item_string(property, i);
-				uint64_t          sizeValue = value.length();
+	// 			std::string value = obs_property_list_item_string(property, i);
+	// 			uint64_t          sizeValue = value.length();
 
-				if (value[sizeValue-1] == '/') {
-					sizeValue--;
-					value.resize(sizeValue);
-				}
+	// 			if (value[sizeValue-1] == '/') {
+	// 				sizeValue--;
+	// 				value.resize(sizeValue);
+	// 			}
 
-				std::vector<char> sizeValueBuffer;
-				sizeValueBuffer.resize(sizeof(sizeValue));
-				memcpy(sizeValueBuffer.data(), &sizeValue, sizeof(sizeValue));
+	// 			std::vector<char> sizeValueBuffer;
+	// 			sizeValueBuffer.resize(sizeof(sizeValue));
+	// 			memcpy(sizeValueBuffer.data(), &sizeValue, sizeof(sizeValue));
 
-				param.values.insert(param.values.end(), sizeValueBuffer.begin(), sizeValueBuffer.end());
-				param.values.insert(param.values.end(), value.begin(), value.end());
+	// 			param.values.insert(param.values.end(), sizeValueBuffer.begin(), sizeValueBuffer.end());
+	// 			param.values.insert(param.values.end(), value.begin(), value.end());
 
-				formatString  = "OBS_PROPERTY_LIST";
-				param.subType = "OBS_COMBO_FORMAT_STRING";
-			} else {
-				std::cout << "INVALID FORMAT" << std::endl;
-			}
-		}
+	// 			formatString  = "OBS_PROPERTY_LIST";
+	// 			param.subType = "OBS_COMBO_FORMAT_STRING";
+	// 		} else {
+	// 			std::cout << "INVALID FORMAT" << std::endl;
+	// 		}
+	// 	}
 
-		param.sizeOfValues = param.values.size();
-		param.countValues  = count;
+	// 	param.sizeOfValues = param.values.size();
+	// 	param.countValues  = count;
 
-		if (count == 0) {
-			if (strcmp(obs_property_name(property), "key") == 0) {
-				const char* stream_key = obs_service_get_key(currentService);
-				formatString           = "OBS_PROPERTY_EDIT_TEXT";
+	// 	if (count == 0) {
+	// 		if (strcmp(obs_property_name(property), "key") == 0) {
+	// 			const char* stream_key = obs_service_get_key(currentService);
+	// 			formatString           = "OBS_PROPERTY_EDIT_TEXT";
 
-				if (stream_key == NULL)
-					stream_key = "";
+	// 			if (stream_key == NULL)
+	// 				stream_key = "";
 
-				param.currentValue.resize(strlen(stream_key));
-				memcpy(param.currentValue.data(), stream_key, strlen(stream_key));
-				param.sizeOfCurrentValue = strlen(stream_key);
-			}
-			if (strcmp(obs_property_name(property), "show_all") == 0) {
-				bool show_all = obs_data_get_bool(settings, "show_all");
-				formatString  = "OBS_PROPERTY_BOOL";
+	// 			param.currentValue.resize(strlen(stream_key));
+	// 			memcpy(param.currentValue.data(), stream_key, strlen(stream_key));
+	// 			param.sizeOfCurrentValue = strlen(stream_key);
+	// 		}
+	// 		if (strcmp(obs_property_name(property), "show_all") == 0) {
+	// 			bool show_all = obs_data_get_bool(settings, "show_all");
+	// 			formatString  = "OBS_PROPERTY_BOOL";
 
-				param.currentValue.resize(sizeof(show_all));
-				memcpy(param.currentValue.data(), &show_all, sizeof(show_all));
-				param.sizeOfCurrentValue = sizeof(show_all);
-			}
-			if (strcmp(obs_property_name(property), "server") == 0) {
-				const char* server = obs_service_get_url(currentService);
-				if (strcmp(obs_service_get_type(currentService), "rtmp_common") == 0) {
-					formatString = "OBS_PROPERTY_LIST";
-				} else {
-					formatString = "OBS_PROPERTY_EDIT_TEXT";
-				}
+	// 			param.currentValue.resize(sizeof(show_all));
+	// 			memcpy(param.currentValue.data(), &show_all, sizeof(show_all));
+	// 			param.sizeOfCurrentValue = sizeof(show_all);
+	// 		}
+	// 		if (strcmp(obs_property_name(property), "server") == 0) {
+	// 			const char* server = obs_service_get_url(currentService);
+	// 			if (strcmp(obs_service_get_type(currentService), "rtmp_common") == 0) {
+	// 				formatString = "OBS_PROPERTY_LIST";
+	// 			} else {
+	// 				formatString = "OBS_PROPERTY_EDIT_TEXT";
+	// 			}
 
-				if (server == NULL)
-					server = "";
+	// 			if (server == NULL)
+	// 				server = "";
 
-				param.currentValue.resize(strlen(server));
-				memcpy(param.currentValue.data(), server, strlen(server));
-				param.sizeOfCurrentValue = strlen(server);
-			}
-			if (strcmp(obs_property_name(property), "username") == 0) {
-				const char* username = obs_service_get_username(currentService);
-				formatString         = "OBS_PROPERTY_EDIT_TEXT";
+	// 			param.currentValue.resize(strlen(server));
+	// 			memcpy(param.currentValue.data(), server, strlen(server));
+	// 			param.sizeOfCurrentValue = strlen(server);
+	// 		}
+	// 		if (strcmp(obs_property_name(property), "username") == 0) {
+	// 			const char* username = obs_service_get_username(currentService);
+	// 			formatString         = "OBS_PROPERTY_EDIT_TEXT";
 
-				if (username == NULL)
-					username = "";
+	// 			if (username == NULL)
+	// 				username = "";
 
-				param.currentValue.resize(strlen(username));
-				memcpy(param.currentValue.data(), username, strlen(username));
-				param.sizeOfCurrentValue = strlen(username);
-			}
-			if (strcmp(obs_property_name(property), "password") == 0) {
-				const char* password = obs_service_get_password(currentService);
-				formatString         = "OBS_PROPERTY_EDIT_TEXT";
+	// 			param.currentValue.resize(strlen(username));
+	// 			memcpy(param.currentValue.data(), username, strlen(username));
+	// 			param.sizeOfCurrentValue = strlen(username);
+	// 		}
+	// 		if (strcmp(obs_property_name(property), "password") == 0) {
+	// 			const char* password = obs_service_get_password(currentService);
+	// 			formatString         = "OBS_PROPERTY_EDIT_TEXT";
 
-				if (password == NULL)
-					password = "";
+	// 			if (password == NULL)
+	// 				password = "";
 
-				param.currentValue.resize(strlen(password));
-				memcpy(param.currentValue.data(), password, strlen(password));
-				param.sizeOfCurrentValue = strlen(password);
-			}
-			if (strcmp(obs_property_name(property), "use_auth") == 0) {
-				bool use_auth = obs_data_get_bool(settings, "use_auth");
-				formatString  = "OBS_PROPERTY_BOOL";
+	// 			param.currentValue.resize(strlen(password));
+	// 			memcpy(param.currentValue.data(), password, strlen(password));
+	// 			param.sizeOfCurrentValue = strlen(password);
+	// 		}
+	// 		if (strcmp(obs_property_name(property), "use_auth") == 0) {
+	// 			bool use_auth = obs_data_get_bool(settings, "use_auth");
+	// 			formatString  = "OBS_PROPERTY_BOOL";
 
-				param.currentValue.resize(sizeof(use_auth));
-				memcpy(param.currentValue.data(), &use_auth, sizeof(use_auth));
-				param.sizeOfCurrentValue = sizeof(use_auth);
-			}
-		} else {
-			if (format == OBS_COMBO_FORMAT_INT) {
-				int64_t value = obs_data_get_int(settings, obs_property_name(property));
+	// 			param.currentValue.resize(sizeof(use_auth));
+	// 			memcpy(param.currentValue.data(), &use_auth, sizeof(use_auth));
+	// 			param.sizeOfCurrentValue = sizeof(use_auth);
+	// 		}
+	// 	} else {
+	// 		if (format == OBS_COMBO_FORMAT_INT) {
+	// 			int64_t value = obs_data_get_int(settings, obs_property_name(property));
 
-				param.currentValue.resize(sizeof(value));
-				memcpy(param.currentValue.data(), &value, sizeof(value));
-				param.sizeOfCurrentValue = sizeof(value);
-			} else if (format == OBS_COMBO_FORMAT_FLOAT) {
-				double value = obs_data_get_double(settings, obs_property_name(property));
+	// 			param.currentValue.resize(sizeof(value));
+	// 			memcpy(param.currentValue.data(), &value, sizeof(value));
+	// 			param.sizeOfCurrentValue = sizeof(value);
+	// 		} else if (format == OBS_COMBO_FORMAT_FLOAT) {
+	// 			double value = obs_data_get_double(settings, obs_property_name(property));
 
-				param.currentValue.resize(sizeof(value));
-				memcpy(param.currentValue.data(), &value, sizeof(value));
-				param.sizeOfCurrentValue = sizeof(value);
-			} else if (format == OBS_COMBO_FORMAT_STRING) {
-				currentServiceName = obs_data_get_string(settings, obs_property_name(property));
+	// 			param.currentValue.resize(sizeof(value));
+	// 			memcpy(param.currentValue.data(), &value, sizeof(value));
+	// 			param.sizeOfCurrentValue = sizeof(value);
+	// 		} else if (format == OBS_COMBO_FORMAT_STRING) {
+	// 			currentServiceName = obs_data_get_string(settings, obs_property_name(property));
 
-				param.currentValue.resize(strlen(currentServiceName));
-				memcpy(param.currentValue.data(), currentServiceName, strlen(currentServiceName));
-				param.sizeOfCurrentValue = strlen(currentServiceName);
-			}
-		}
+	// 			param.currentValue.resize(strlen(currentServiceName));
+	// 			memcpy(param.currentValue.data(), currentServiceName, strlen(currentServiceName));
+	// 			param.sizeOfCurrentValue = strlen(currentServiceName);
+	// 		}
+	// 	}
 
-		param.type        = formatString;
-		param.description = obs_property_description(property);
-		param.visible     = obs_property_visible(property);
-		param.enabled     = isCategoryEnabled;
+	// 	param.type        = formatString;
+	// 	param.description = obs_property_description(property);
+	// 	param.visible     = obs_property_visible(property);
+	// 	param.enabled     = isCategoryEnabled;
 
-		param.masked = formatString.compare("OBS_PROPERTY_EDIT_TEXT") == 0
-		               && obs_proprety_text_type(property) == OBS_TEXT_PASSWORD;
+	// 	param.masked = formatString.compare("OBS_PROPERTY_EDIT_TEXT") == 0
+	// 	               && obs_proprety_text_type(property) == OBS_TEXT_PASSWORD;
 
-		serviceConfiguration.params.push_back(param);
+	// 	serviceConfiguration.params.push_back(param);
 
-		index++;
-		obs_property_next(&property);
-	}
+	// 	index++;
+	// 	obs_property_next(&property);
+	// }
 
-	serviceConfiguration.name        = "Untitled";
-	serviceConfiguration.paramsCount = serviceConfiguration.params.size();
-	streamSettings.push_back(serviceConfiguration);
+	// serviceConfiguration.name        = "Untitled";
+	// serviceConfiguration.paramsCount = serviceConfiguration.params.size();
+	// streamSettings.push_back(serviceConfiguration);
 
-	obs_properties_destroy(properties);
+	// obs_properties_destroy(properties);
 
 	return streamSettings;
 }
@@ -1038,55 +1038,55 @@ static bool EncoderAvailable(const char* encoder)
 	return false;
 }
 
-void OBS_settings::getSimpleAvailableEncoders(std::vector<std::pair<std::string, ipc::value>>* encoders, bool recording)
-{
-	encoders->push_back(std::make_pair("Software (x264)", ipc::value(SIMPLE_ENCODER_X264)));
+// void OBS_settings::getSimpleAvailableEncoders(std::vector<std::pair<std::string, ipc::value>>* encoders, bool recording)
+// {
+// 	encoders->push_back(std::make_pair("Software (x264)", ipc::value(SIMPLE_ENCODER_X264)));
 
-	if (recording)
-		encoders->push_back(std::make_pair(
-		    "Software (x264 low CPU usage preset, increases file size)", ipc::value(SIMPLE_ENCODER_X264_LOWCPU)));
+// 	if (recording)
+// 		encoders->push_back(std::make_pair(
+// 		    "Software (x264 low CPU usage preset, increases file size)", ipc::value(SIMPLE_ENCODER_X264_LOWCPU)));
 
-	if (EncoderAvailable("obs_qsv11"))
-		encoders->push_back(std::make_pair("Hardware (QSV)", ipc::value(SIMPLE_ENCODER_QSV)));
+// 	if (EncoderAvailable("obs_qsv11"))
+// 		encoders->push_back(std::make_pair("Hardware (QSV)", ipc::value(SIMPLE_ENCODER_QSV)));
 
-	if (EncoderAvailable("ffmpeg_nvenc"))
-		encoders->push_back(std::make_pair("Hardware (NVENC)", ipc::value(SIMPLE_ENCODER_NVENC)));
+// 	if (EncoderAvailable("ffmpeg_nvenc"))
+// 		encoders->push_back(std::make_pair("Hardware (NVENC)", ipc::value(SIMPLE_ENCODER_NVENC)));
 
-	if (EncoderAvailable("amd_amf_h264"))
-		encoders->push_back(std::make_pair("Hardware (AMD)", ipc::value(SIMPLE_ENCODER_AMD)));
+// 	if (EncoderAvailable("amd_amf_h264"))
+// 		encoders->push_back(std::make_pair("Hardware (AMD)", ipc::value(SIMPLE_ENCODER_AMD)));
 
-	if (EncoderAvailable("jim_nvenc"))
-		encoders->push_back(std::make_pair("Hardware (NVENC) (new)", ipc::value(ENCODER_NEW_NVENC)));
+// 	if (EncoderAvailable("jim_nvenc"))
+// 		encoders->push_back(std::make_pair("Hardware (NVENC) (new)", ipc::value(ENCODER_NEW_NVENC)));
 
-	if (EncoderAvailable(APPLE_SOFTWARE_VIDEO_ENCODER))
-		encoders->push_back(std::make_pair("Apple VT H264 Software Encoder", ipc::value(APPLE_SOFTWARE_VIDEO_ENCODER)));
+// 	if (EncoderAvailable(APPLE_SOFTWARE_VIDEO_ENCODER))
+// 		encoders->push_back(std::make_pair("Apple VT H264 Software Encoder", ipc::value(APPLE_SOFTWARE_VIDEO_ENCODER)));
 
-	if (EncoderAvailable(APPLE_HARDWARE_VIDEO_ENCODER))
-		encoders->push_back(std::make_pair("Apple VT H264 Hardware Encoder", ipc::value(APPLE_HARDWARE_VIDEO_ENCODER)));
-}
+// 	if (EncoderAvailable(APPLE_HARDWARE_VIDEO_ENCODER))
+// 		encoders->push_back(std::make_pair("Apple VT H264 Hardware Encoder", ipc::value(APPLE_HARDWARE_VIDEO_ENCODER)));
+// }
 
-void OBS_settings::getAdvancedAvailableEncoders(std::vector<std::pair<std::string, ipc::value>>* streamEncoder)
-{
-	streamEncoder->push_back(std::make_pair("Software (x264)", ipc::value(ADVANCED_ENCODER_X264)));
+// void OBS_settings::getAdvancedAvailableEncoders(std::vector<std::pair<std::string, ipc::value>>* streamEncoder)
+// {
+// 	streamEncoder->push_back(std::make_pair("Software (x264)", ipc::value(ADVANCED_ENCODER_X264)));
 
-	if (EncoderAvailable("obs_qsv11"))
-		streamEncoder->push_back(std::make_pair("Hardware (QSV)", ipc::value(ADVANCED_ENCODER_QSV)));
+// 	if (EncoderAvailable("obs_qsv11"))
+// 		streamEncoder->push_back(std::make_pair("Hardware (QSV)", ipc::value(ADVANCED_ENCODER_QSV)));
 
-	if (EncoderAvailable("ffmpeg_nvenc"))
-		streamEncoder->push_back(std::make_pair("Hardware (NVENC)", ipc::value(ADVANCED_ENCODER_NVENC)));
+// 	if (EncoderAvailable("ffmpeg_nvenc"))
+// 		streamEncoder->push_back(std::make_pair("Hardware (NVENC)", ipc::value(ADVANCED_ENCODER_NVENC)));
 
-	if (EncoderAvailable("amd_amf_h264"))
-		streamEncoder->push_back(std::make_pair("AMD", ipc::value(ADVANCED_ENCODER_AMD)));
+// 	if (EncoderAvailable("amd_amf_h264"))
+// 		streamEncoder->push_back(std::make_pair("AMD", ipc::value(ADVANCED_ENCODER_AMD)));
 
-	if (EncoderAvailable("jim_nvenc"))
-		streamEncoder->push_back(std::make_pair("Hardware (NVENC) (new)", ipc::value(ENCODER_NEW_NVENC)));
+// 	if (EncoderAvailable("jim_nvenc"))
+// 		streamEncoder->push_back(std::make_pair("Hardware (NVENC) (new)", ipc::value(ENCODER_NEW_NVENC)));
 
-	if (EncoderAvailable(APPLE_SOFTWARE_VIDEO_ENCODER))
-		streamEncoder->push_back(std::make_pair("Apple VT H264 Software Encoder", ipc::value(APPLE_SOFTWARE_VIDEO_ENCODER)));
+// 	if (EncoderAvailable(APPLE_SOFTWARE_VIDEO_ENCODER))
+// 		streamEncoder->push_back(std::make_pair("Apple VT H264 Software Encoder", ipc::value(APPLE_SOFTWARE_VIDEO_ENCODER)));
 
-	if (EncoderAvailable(APPLE_HARDWARE_VIDEO_ENCODER))
-		streamEncoder->push_back(std::make_pair("Apple VT H264 Hardware Encoder", ipc::value(APPLE_HARDWARE_VIDEO_ENCODER)));
-}
+// 	if (EncoderAvailable(APPLE_HARDWARE_VIDEO_ENCODER))
+// 		streamEncoder->push_back(std::make_pair("Apple VT H264 Hardware Encoder", ipc::value(APPLE_HARDWARE_VIDEO_ENCODER)));
+// }
 
 #ifdef __APPLE__
 	std::string newValue;
@@ -1109,325 +1109,325 @@ void OBS_settings::getSimpleOutputSettings(
     config_t*                 config,
     bool                      isCategoryEnabled)
 {
-	std::vector<std::vector<std::pair<std::string, ipc::value>>> entries;
+// 	std::vector<std::vector<std::pair<std::string, ipc::value>>> entries;
 
-	//Streaming
+// 	//Streaming
 
-	//Video Bitrate
-	std::vector<std::pair<std::string, ipc::value>> vBitrate;
-	vBitrate.push_back(std::make_pair("name", ipc::value("VBitrate")));
-	vBitrate.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_INT")));
-	vBitrate.push_back(std::make_pair("description", ipc::value("Video Bitrate")));
-	vBitrate.push_back(std::make_pair("subType", ipc::value("")));
-	vBitrate.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	vBitrate.push_back(std::make_pair("maxVal", ipc::value((double)1000000)));
-	vBitrate.push_back(std::make_pair("stepVal", ipc::value((double)1)));
-	entries.push_back(vBitrate);
+// 	//Video Bitrate
+// 	std::vector<std::pair<std::string, ipc::value>> vBitrate;
+// 	vBitrate.push_back(std::make_pair("name", ipc::value("VBitrate")));
+// 	vBitrate.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_INT")));
+// 	vBitrate.push_back(std::make_pair("description", ipc::value("Video Bitrate")));
+// 	vBitrate.push_back(std::make_pair("subType", ipc::value("")));
+// 	vBitrate.push_back(std::make_pair("minVal", ipc::value((double)0)));
+// 	vBitrate.push_back(std::make_pair("maxVal", ipc::value((double)1000000)));
+// 	vBitrate.push_back(std::make_pair("stepVal", ipc::value((double)1)));
+// 	entries.push_back(vBitrate);
 
-	//Encoder
-	std::vector<std::pair<std::string, ipc::value>> streamEncoder;
-	streamEncoder.push_back(std::make_pair("name", ipc::value("StreamEncoder")));
-	streamEncoder.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
-	streamEncoder.push_back(std::make_pair("description", ipc::value("Encoder")));
-	streamEncoder.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
-	streamEncoder.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	streamEncoder.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	streamEncoder.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+// 	//Encoder
+// 	std::vector<std::pair<std::string, ipc::value>> streamEncoder;
+// 	streamEncoder.push_back(std::make_pair("name", ipc::value("StreamEncoder")));
+// 	streamEncoder.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
+// 	streamEncoder.push_back(std::make_pair("description", ipc::value("Encoder")));
+// 	streamEncoder.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
+// 	streamEncoder.push_back(std::make_pair("minVal", ipc::value((double)0)));
+// 	streamEncoder.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+// 	streamEncoder.push_back(std::make_pair("stepVal", ipc::value((double)0)));
 
-	getSimpleAvailableEncoders(&streamEncoder, false);
+// 	getSimpleAvailableEncoders(&streamEncoder, false);
 
-#ifdef __APPLE__
-	const char* sEncoder = config_get_string(config, "SimpleOutput", "StreamEncoder");
-	config_set_string(config, "SimpleOutput", "StreamEncoder", translate_macvth264_encoder(std::string(sEncoder)));
-	const char* rEncoder = config_get_string(config, "SimpleOutput", "RecEncoder");
-	config_set_string(config, "SimpleOutput", "RecEncoder", translate_macvth264_encoder(std::string(rEncoder)));
-#endif
+// #ifdef __APPLE__
+// 	const char* sEncoder = config_get_string(config, "SimpleOutput", "StreamEncoder");
+// 	config_set_string(config, "SimpleOutput", "StreamEncoder", translate_macvth264_encoder(std::string(sEncoder)));
+// 	const char* rEncoder = config_get_string(config, "SimpleOutput", "RecEncoder");
+// 	config_set_string(config, "SimpleOutput", "RecEncoder", translate_macvth264_encoder(std::string(rEncoder)));
+// #endif
 
-	entries.push_back(streamEncoder);
+// 	entries.push_back(streamEncoder);
 
-	//Audio Bitrate
-	std::vector<std::pair<std::string, ipc::value>> aBitrate;
-	aBitrate.push_back(std::make_pair("name", ipc::value("ABitrate")));
-	aBitrate.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
-	aBitrate.push_back(std::make_pair("description", ipc::value("Audio Bitrate")));
-	aBitrate.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
-	aBitrate.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	aBitrate.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	aBitrate.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+// 	//Audio Bitrate
+// 	std::vector<std::pair<std::string, ipc::value>> aBitrate;
+// 	aBitrate.push_back(std::make_pair("name", ipc::value("ABitrate")));
+// 	aBitrate.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
+// 	aBitrate.push_back(std::make_pair("description", ipc::value("Audio Bitrate")));
+// 	aBitrate.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
+// 	aBitrate.push_back(std::make_pair("minVal", ipc::value((double)0)));
+// 	aBitrate.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+// 	aBitrate.push_back(std::make_pair("stepVal", ipc::value((double)0)));
 
-	auto& bitrateMap = GetAACEncoderBitrateMap();
-	for (auto& entry : bitrateMap)
-		aBitrate.push_back(std::make_pair(std::to_string(entry.first), std::to_string(entry.first)));
-	entries.push_back(aBitrate);
+// 	auto& bitrateMap = GetAACEncoderBitrateMap();
+// 	for (auto& entry : bitrateMap)
+// 		aBitrate.push_back(std::make_pair(std::to_string(entry.first), std::to_string(entry.first)));
+// 	entries.push_back(aBitrate);
 
-	//Enable Advanced Encoder Settings
-	std::vector<std::pair<std::string, ipc::value>> useAdvanced;
-	useAdvanced.push_back(std::make_pair("name", ipc::value("UseAdvanced")));
-	useAdvanced.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
-	useAdvanced.push_back(std::make_pair("description", ipc::value("Enable Advanced Encoder Settings")));
-	useAdvanced.push_back(std::make_pair("subType", ipc::value("")));
-	useAdvanced.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	useAdvanced.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	useAdvanced.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(useAdvanced);
+// 	//Enable Advanced Encoder Settings
+// 	std::vector<std::pair<std::string, ipc::value>> useAdvanced;
+// 	useAdvanced.push_back(std::make_pair("name", ipc::value("UseAdvanced")));
+// 	useAdvanced.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
+// 	useAdvanced.push_back(std::make_pair("description", ipc::value("Enable Advanced Encoder Settings")));
+// 	useAdvanced.push_back(std::make_pair("subType", ipc::value("")));
+// 	useAdvanced.push_back(std::make_pair("minVal", ipc::value((double)0)));
+// 	useAdvanced.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+// 	useAdvanced.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+// 	entries.push_back(useAdvanced);
 
-	if (config_get_bool(config, "SimpleOutput", "UseAdvanced")) {
-		//Enforce streaming service bitrate limits
-		std::vector<std::pair<std::string, ipc::value>> enforceBitrate;
-		enforceBitrate.push_back(std::make_pair("name", ipc::value("EnforceBitrate")));
-		enforceBitrate.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
-		enforceBitrate.push_back(std::make_pair("description", ipc::value("Enforce streaming service bitrate limits")));
-		enforceBitrate.push_back(std::make_pair("subType", ipc::value("")));
-		enforceBitrate.push_back(std::make_pair("minVal", ipc::value((double)0)));
-		enforceBitrate.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-		enforceBitrate.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-		entries.push_back(enforceBitrate);
+// 	if (config_get_bool(config, "SimpleOutput", "UseAdvanced")) {
+// 		//Enforce streaming service bitrate limits
+// 		std::vector<std::pair<std::string, ipc::value>> enforceBitrate;
+// 		enforceBitrate.push_back(std::make_pair("name", ipc::value("EnforceBitrate")));
+// 		enforceBitrate.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
+// 		enforceBitrate.push_back(std::make_pair("description", ipc::value("Enforce streaming service bitrate limits")));
+// 		enforceBitrate.push_back(std::make_pair("subType", ipc::value("")));
+// 		enforceBitrate.push_back(std::make_pair("minVal", ipc::value((double)0)));
+// 		enforceBitrate.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+// 		enforceBitrate.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+// 		entries.push_back(enforceBitrate);
 
-		obs_data_t *settings = obs_service_get_settings(OBS_service::getService());
-		const char *serviceName = obs_data_get_string(settings, "service");
-		obs_data_release(settings);
+// 		obs_data_t *settings = obs_service_get_settings(OBS_service::getService());
+// 		const char *serviceName = obs_data_get_string(settings, "service");
+// 		obs_data_release(settings);
 
-		if (serviceName && strcmp(serviceName, "Twitch") == 0) {
-			bool soundtrackSourceExists = false;
-			obs_enum_sources(
-				[](void *param, obs_source_t *source) {
-					auto id = obs_source_get_id(source);
-					if(strcmp(id, "soundtrack_source") == 0) {
-						*reinterpret_cast<bool *>(param) = true;
-						return false;
-					}
-					return true;
-				},
-				&soundtrackSourceExists
-			);
-			std::string twitchVODDesc = "Twitch VOD Track (Uses Track 2).";
-			if (soundtrackSourceExists)
-				twitchVODDesc += " Remove Twitch Soundtrack in order to enable this.";
+// 		if (serviceName && strcmp(serviceName, "Twitch") == 0) {
+// 			bool soundtrackSourceExists = false;
+// 			obs_enum_sources(
+// 				[](void *param, obs_source_t *source) {
+// 					auto id = obs_source_get_id(source);
+// 					if(strcmp(id, "soundtrack_source") == 0) {
+// 						*reinterpret_cast<bool *>(param) = true;
+// 						return false;
+// 					}
+// 					return true;
+// 				},
+// 				&soundtrackSourceExists
+// 			);
+// 			std::string twitchVODDesc = "Twitch VOD Track (Uses Track 2).";
+// 			if (soundtrackSourceExists)
+// 				twitchVODDesc += " Remove Twitch Soundtrack in order to enable this.";
 
-			//Twitch VOD
-			std::vector<std::pair<std::string, ipc::value>> twitchVOD;
-			twitchVOD.push_back(std::make_pair("name", ipc::value("VodTrackEnabled")));
-			twitchVOD.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
-			twitchVOD.push_back(std::make_pair("description", ipc::value(twitchVODDesc.c_str())));
-			twitchVOD.push_back(std::make_pair("subType", ipc::value("")));
-			twitchVOD.push_back(std::make_pair("minVal", ipc::value((double)0)));
-			twitchVOD.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-			twitchVOD.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-			entries.push_back(twitchVOD);
-		}
+// 			//Twitch VOD
+// 			std::vector<std::pair<std::string, ipc::value>> twitchVOD;
+// 			twitchVOD.push_back(std::make_pair("name", ipc::value("VodTrackEnabled")));
+// 			twitchVOD.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
+// 			twitchVOD.push_back(std::make_pair("description", ipc::value(twitchVODDesc.c_str())));
+// 			twitchVOD.push_back(std::make_pair("subType", ipc::value("")));
+// 			twitchVOD.push_back(std::make_pair("minVal", ipc::value((double)0)));
+// 			twitchVOD.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+// 			twitchVOD.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+// 			entries.push_back(twitchVOD);
+// 		}
 
-		//Encoder Preset
-		const char* defaultPreset;
-		const char* encoder = config_get_string(config, "SimpleOutput", "StreamEncoder");
+// 		//Encoder Preset
+// 		const char* defaultPreset;
+// 		const char* encoder = config_get_string(config, "SimpleOutput", "StreamEncoder");
 
-		std::vector<std::pair<std::string, ipc::value>> preset;
+// 		std::vector<std::pair<std::string, ipc::value>> preset;
 
-		if (strcmp(encoder, SIMPLE_ENCODER_QSV) == 0 || strcmp(encoder, ADVANCED_ENCODER_QSV) == 0) {
-			preset.push_back(std::make_pair("name", ipc::value("QSVPreset")));
-			preset.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
-			preset.push_back(std::make_pair("description", ipc::value("Encoder Preset (higher = less CPU)")));
-			preset.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
-			preset.push_back(std::make_pair("minVal", ipc::value((double)0)));
-			preset.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-			preset.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-			preset.push_back(std::make_pair("Speed", ipc::value("speed")));
-			preset.push_back(std::make_pair("Balanced", ipc::value("balanced")));
-			preset.push_back(std::make_pair("Quality", ipc::value("quality")));
+// 		if (strcmp(encoder, SIMPLE_ENCODER_QSV) == 0 || strcmp(encoder, ADVANCED_ENCODER_QSV) == 0) {
+// 			preset.push_back(std::make_pair("name", ipc::value("QSVPreset")));
+// 			preset.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
+// 			preset.push_back(std::make_pair("description", ipc::value("Encoder Preset (higher = less CPU)")));
+// 			preset.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
+// 			preset.push_back(std::make_pair("minVal", ipc::value((double)0)));
+// 			preset.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+// 			preset.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+// 			preset.push_back(std::make_pair("Speed", ipc::value("speed")));
+// 			preset.push_back(std::make_pair("Balanced", ipc::value("balanced")));
+// 			preset.push_back(std::make_pair("Quality", ipc::value("quality")));
 
-			defaultPreset = "balanced";
-			// preset = curQSVPreset;
-			entries.push_back(preset);
-		} else if (
-		    strcmp(encoder, SIMPLE_ENCODER_NVENC) == 0 || strcmp(encoder, ADVANCED_ENCODER_NVENC) == 0
-		    || strcmp(encoder, ENCODER_NEW_NVENC) == 0) {
-			preset.push_back(std::make_pair("name", ipc::value("NVENCPreset")));
-			preset.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
-			preset.push_back(std::make_pair("description", ipc::value("Encoder Preset (higher = less CPU)")));
-			preset.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
-			preset.push_back(std::make_pair("minVal", ipc::value((double)0)));
-			preset.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-			preset.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+// 			defaultPreset = "balanced";
+// 			// preset = curQSVPreset;
+// 			entries.push_back(preset);
+// 		} else if (
+// 		    strcmp(encoder, SIMPLE_ENCODER_NVENC) == 0 || strcmp(encoder, ADVANCED_ENCODER_NVENC) == 0
+// 		    || strcmp(encoder, ENCODER_NEW_NVENC) == 0) {
+// 			preset.push_back(std::make_pair("name", ipc::value("NVENCPreset")));
+// 			preset.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
+// 			preset.push_back(std::make_pair("description", ipc::value("Encoder Preset (higher = less CPU)")));
+// 			preset.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
+// 			preset.push_back(std::make_pair("minVal", ipc::value((double)0)));
+// 			preset.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+// 			preset.push_back(std::make_pair("stepVal", ipc::value((double)0)));
 
-			obs_properties_t* props = obs_get_encoder_properties("ffmpeg_nvenc");
+// 			obs_properties_t* props = obs_get_encoder_properties("ffmpeg_nvenc");
 
-			obs_property_t* p   = obs_properties_get(props, "preset");
-			size_t          num = obs_property_list_item_count(p);
-			for (size_t i = 0; i < num; i++) {
-				const char* name = obs_property_list_item_name(p, i);
-				const char* val  = obs_property_list_item_string(p, i);
+// 			obs_property_t* p   = obs_properties_get(props, "preset");
+// 			size_t          num = obs_property_list_item_count(p);
+// 			for (size_t i = 0; i < num; i++) {
+// 				const char* name = obs_property_list_item_name(p, i);
+// 				const char* val  = obs_property_list_item_string(p, i);
 
-				/* bluray is for ideal bluray disc recording settings,
-				* not streaming */
-				if (strcmp(val, "bd") == 0)
-					continue;
-				/* lossless should of course not be used to stream */
-				if (astrcmp_n(val, "lossless", 8) == 0)
-					continue;
+// 				/* bluray is for ideal bluray disc recording settings,
+// 				* not streaming */
+// 				if (strcmp(val, "bd") == 0)
+// 					continue;
+// 				/* lossless should of course not be used to stream */
+// 				if (astrcmp_n(val, "lossless", 8) == 0)
+// 					continue;
 
-				preset.push_back(std::make_pair(name, ipc::value(val)));
-			}
+// 				preset.push_back(std::make_pair(name, ipc::value(val)));
+// 			}
 
-			obs_properties_destroy(props);
+// 			obs_properties_destroy(props);
 
-			defaultPreset = "default";
-			// preset = curNVENCPreset;
-			entries.push_back(preset);
-		} else if (strcmp(encoder, SIMPLE_ENCODER_AMD) == 0 || strcmp(encoder, ADVANCED_ENCODER_AMD) == 0) {
-			preset.push_back(std::make_pair("name", ipc::value("AMDPreset")));
-			preset.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
-			preset.push_back(std::make_pair("description", ipc::value("Encoder Preset (higher = less CPU)")));
-			preset.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
-			preset.push_back(std::make_pair("minVal", ipc::value((double)0)));
-			preset.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-			preset.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-			preset.push_back(std::make_pair("Speed", ipc::value("speed")));
-			preset.push_back(std::make_pair("Balanced", ipc::value("balanced")));
-			preset.push_back(std::make_pair("Quality", ipc::value("quality")));
+// 			defaultPreset = "default";
+// 			// preset = curNVENCPreset;
+// 			entries.push_back(preset);
+// 		} else if (strcmp(encoder, SIMPLE_ENCODER_AMD) == 0 || strcmp(encoder, ADVANCED_ENCODER_AMD) == 0) {
+// 			preset.push_back(std::make_pair("name", ipc::value("AMDPreset")));
+// 			preset.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
+// 			preset.push_back(std::make_pair("description", ipc::value("Encoder Preset (higher = less CPU)")));
+// 			preset.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
+// 			preset.push_back(std::make_pair("minVal", ipc::value((double)0)));
+// 			preset.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+// 			preset.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+// 			preset.push_back(std::make_pair("Speed", ipc::value("speed")));
+// 			preset.push_back(std::make_pair("Balanced", ipc::value("balanced")));
+// 			preset.push_back(std::make_pair("Quality", ipc::value("quality")));
 
-			defaultPreset = "balanced";
-			// preset = curAMDPreset;
-			entries.push_back(preset);
-		} else if (strcmp(encoder, APPLE_SOFTWARE_VIDEO_ENCODER) == 0 || strcmp(encoder, APPLE_HARDWARE_VIDEO_ENCODER) == 0) {
-			preset.push_back(std::make_pair("name", ipc::value("Profile")));
-			preset.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
-			preset.push_back(std::make_pair("description", ipc::value("")));
-			preset.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
-			preset.push_back(std::make_pair("minVal", ipc::value((double)0)));
-			preset.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-			preset.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-			preset.push_back(std::make_pair("(None)", ipc::value("")));
-			preset.push_back(std::make_pair("baseline", ipc::value("baseline")));
-			preset.push_back(std::make_pair("main", ipc::value("main")));
-			preset.push_back(std::make_pair("high", ipc::value("high")));
-			entries.push_back(preset);
-		} else {
-			preset.push_back(std::make_pair("name", ipc::value("Preset")));
-			preset.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
-			preset.push_back(std::make_pair("description", ipc::value("Encoder Preset (higher = less CPU)")));
-			preset.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
-			preset.push_back(std::make_pair("minVal", ipc::value((double)0)));
-			preset.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-			preset.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-			preset.push_back(std::make_pair("ultrafast", ipc::value("ultrafast")));
-			preset.push_back(std::make_pair("superfast", ipc::value("superfast")));
-			preset.push_back(std::make_pair("veryfast", ipc::value("veryfast")));
-			preset.push_back(std::make_pair("faster", ipc::value("faster")));
-			preset.push_back(std::make_pair("fast", ipc::value("fast")));
-			preset.push_back(std::make_pair("medium", ipc::value("medium")));
-			preset.push_back(std::make_pair("slow", ipc::value("slow")));
-			preset.push_back(std::make_pair("slower", ipc::value("slower")));
+// 			defaultPreset = "balanced";
+// 			// preset = curAMDPreset;
+// 			entries.push_back(preset);
+// 		} else if (strcmp(encoder, APPLE_SOFTWARE_VIDEO_ENCODER) == 0 || strcmp(encoder, APPLE_HARDWARE_VIDEO_ENCODER) == 0) {
+// 			preset.push_back(std::make_pair("name", ipc::value("Profile")));
+// 			preset.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
+// 			preset.push_back(std::make_pair("description", ipc::value("")));
+// 			preset.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
+// 			preset.push_back(std::make_pair("minVal", ipc::value((double)0)));
+// 			preset.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+// 			preset.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+// 			preset.push_back(std::make_pair("(None)", ipc::value("")));
+// 			preset.push_back(std::make_pair("baseline", ipc::value("baseline")));
+// 			preset.push_back(std::make_pair("main", ipc::value("main")));
+// 			preset.push_back(std::make_pair("high", ipc::value("high")));
+// 			entries.push_back(preset);
+// 		} else {
+// 			preset.push_back(std::make_pair("name", ipc::value("Preset")));
+// 			preset.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
+// 			preset.push_back(std::make_pair("description", ipc::value("Encoder Preset (higher = less CPU)")));
+// 			preset.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
+// 			preset.push_back(std::make_pair("minVal", ipc::value((double)0)));
+// 			preset.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+// 			preset.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+// 			preset.push_back(std::make_pair("ultrafast", ipc::value("ultrafast")));
+// 			preset.push_back(std::make_pair("superfast", ipc::value("superfast")));
+// 			preset.push_back(std::make_pair("veryfast", ipc::value("veryfast")));
+// 			preset.push_back(std::make_pair("faster", ipc::value("faster")));
+// 			preset.push_back(std::make_pair("fast", ipc::value("fast")));
+// 			preset.push_back(std::make_pair("medium", ipc::value("medium")));
+// 			preset.push_back(std::make_pair("slow", ipc::value("slow")));
+// 			preset.push_back(std::make_pair("slower", ipc::value("slower")));
 
-			defaultPreset = "veryfast";
-			// preset = curPreset;
-			entries.push_back(preset);
+// 			defaultPreset = "veryfast";
+// 			// preset = curPreset;
+// 			entries.push_back(preset);
 
-			//Custom Encoder Settings
-			std::vector<std::pair<std::string, ipc::value>> x264opts;
-			x264opts.push_back(std::make_pair("name", ipc::value("x264Settings")));
-			x264opts.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_EDIT_TEXT")));
-			x264opts.push_back(std::make_pair("description", ipc::value("Custom Encoder Settings")));
-			x264opts.push_back(std::make_pair("subType", ipc::value("")));
-			x264opts.push_back(std::make_pair("minVal", ipc::value((double)0)));
-			x264opts.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-			x264opts.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-			entries.push_back(x264opts);
-		}
-	}
+// 			//Custom Encoder Settings
+// 			std::vector<std::pair<std::string, ipc::value>> x264opts;
+// 			x264opts.push_back(std::make_pair("name", ipc::value("x264Settings")));
+// 			x264opts.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_EDIT_TEXT")));
+// 			x264opts.push_back(std::make_pair("description", ipc::value("Custom Encoder Settings")));
+// 			x264opts.push_back(std::make_pair("subType", ipc::value("")));
+// 			x264opts.push_back(std::make_pair("minVal", ipc::value((double)0)));
+// 			x264opts.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+// 			x264opts.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+// 			entries.push_back(x264opts);
+// 		}
+// 	}
 
-	outputSettings->push_back(
-	    serializeSettingsData("Streaming", entries, config, "SimpleOutput", true, isCategoryEnabled));
-	entries.clear();
+// 	outputSettings->push_back(
+// 	    serializeSettingsData("Streaming", entries, config, "SimpleOutput", true, isCategoryEnabled));
+// 	entries.clear();
 
-	//Recording
+// 	//Recording
 
-	//Recording Path
-	std::vector<std::pair<std::string, ipc::value>> filePath;
-	filePath.push_back(std::make_pair("name", ipc::value("FilePath")));
-	filePath.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_PATH")));
-	filePath.push_back(std::make_pair("description", ipc::value("Recording Path")));
-	filePath.push_back(std::make_pair("subType", ipc::value("")));
-	filePath.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	filePath.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	filePath.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(filePath);
+// 	//Recording Path
+// 	std::vector<std::pair<std::string, ipc::value>> filePath;
+// 	filePath.push_back(std::make_pair("name", ipc::value("FilePath")));
+// 	filePath.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_PATH")));
+// 	filePath.push_back(std::make_pair("description", ipc::value("Recording Path")));
+// 	filePath.push_back(std::make_pair("subType", ipc::value("")));
+// 	filePath.push_back(std::make_pair("minVal", ipc::value((double)0)));
+// 	filePath.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+// 	filePath.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+// 	entries.push_back(filePath);
 
-	//Generate File Name without Space
-	std::vector<std::pair<std::string, ipc::value>> fileNameWithoutSpace;
-	fileNameWithoutSpace.push_back(std::make_pair("name", ipc::value("FileNameWithoutSpace")));
-	fileNameWithoutSpace.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
-	fileNameWithoutSpace.push_back(std::make_pair("description", ipc::value("Generate File Name without Space")));
-	fileNameWithoutSpace.push_back(std::make_pair("subType", ipc::value("")));
-	fileNameWithoutSpace.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	fileNameWithoutSpace.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	fileNameWithoutSpace.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(fileNameWithoutSpace);
+// 	//Generate File Name without Space
+// 	std::vector<std::pair<std::string, ipc::value>> fileNameWithoutSpace;
+// 	fileNameWithoutSpace.push_back(std::make_pair("name", ipc::value("FileNameWithoutSpace")));
+// 	fileNameWithoutSpace.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
+// 	fileNameWithoutSpace.push_back(std::make_pair("description", ipc::value("Generate File Name without Space")));
+// 	fileNameWithoutSpace.push_back(std::make_pair("subType", ipc::value("")));
+// 	fileNameWithoutSpace.push_back(std::make_pair("minVal", ipc::value((double)0)));
+// 	fileNameWithoutSpace.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+// 	fileNameWithoutSpace.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+// 	entries.push_back(fileNameWithoutSpace);
 
-	//Recording Quality
-	std::vector<std::pair<std::string, ipc::value>> recQuality;
-	recQuality.push_back(std::make_pair("name", ipc::value("RecQuality")));
-	recQuality.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
-	recQuality.push_back(std::make_pair("description", ipc::value("Recording Quality")));
-	recQuality.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
-	recQuality.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	recQuality.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	recQuality.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	recQuality.push_back(std::make_pair("Same as stream", ipc::value("Stream")));
-	recQuality.push_back(std::make_pair("High Quality, Medium File Size", ipc::value("Small")));
-	recQuality.push_back(std::make_pair("Indistinguishable Quality, Large File Size", ipc::value("HQ")));
-	recQuality.push_back(std::make_pair("Lossless Quality, Tremendously Large File Size", ipc::value("Lossless")));
-	entries.push_back(recQuality);
+// 	//Recording Quality
+// 	std::vector<std::pair<std::string, ipc::value>> recQuality;
+// 	recQuality.push_back(std::make_pair("name", ipc::value("RecQuality")));
+// 	recQuality.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
+// 	recQuality.push_back(std::make_pair("description", ipc::value("Recording Quality")));
+// 	recQuality.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
+// 	recQuality.push_back(std::make_pair("minVal", ipc::value((double)0)));
+// 	recQuality.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+// 	recQuality.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+// 	recQuality.push_back(std::make_pair("Same as stream", ipc::value("Stream")));
+// 	recQuality.push_back(std::make_pair("High Quality, Medium File Size", ipc::value("Small")));
+// 	recQuality.push_back(std::make_pair("Indistinguishable Quality, Large File Size", ipc::value("HQ")));
+// 	recQuality.push_back(std::make_pair("Lossless Quality, Tremendously Large File Size", ipc::value("Lossless")));
+// 	entries.push_back(recQuality);
 
-	//Recording Format
-	std::vector<std::pair<std::string, ipc::value>> recFormat;
-	recFormat.push_back(std::make_pair("name", ipc::value("RecFormat")));
-	recFormat.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
-	recFormat.push_back(std::make_pair("description", ipc::value("Recording Format")));
-	recFormat.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
-	recFormat.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	recFormat.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	recFormat.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	recFormat.push_back(std::make_pair("flv", ipc::value("flv")));
-	recFormat.push_back(std::make_pair("mp4", ipc::value("mp4")));
-	recFormat.push_back(std::make_pair("mov", ipc::value("mov")));
-	recFormat.push_back(std::make_pair("mkv", ipc::value("mkv")));
-	recFormat.push_back(std::make_pair("ts", ipc::value("ts")));
-	recFormat.push_back(std::make_pair("m3u8", ipc::value("m3u8")));
-	entries.push_back(recFormat);
+// 	//Recording Format
+// 	std::vector<std::pair<std::string, ipc::value>> recFormat;
+// 	recFormat.push_back(std::make_pair("name", ipc::value("RecFormat")));
+// 	recFormat.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
+// 	recFormat.push_back(std::make_pair("description", ipc::value("Recording Format")));
+// 	recFormat.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
+// 	recFormat.push_back(std::make_pair("minVal", ipc::value((double)0)));
+// 	recFormat.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+// 	recFormat.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+// 	recFormat.push_back(std::make_pair("flv", ipc::value("flv")));
+// 	recFormat.push_back(std::make_pair("mp4", ipc::value("mp4")));
+// 	recFormat.push_back(std::make_pair("mov", ipc::value("mov")));
+// 	recFormat.push_back(std::make_pair("mkv", ipc::value("mkv")));
+// 	recFormat.push_back(std::make_pair("ts", ipc::value("ts")));
+// 	recFormat.push_back(std::make_pair("m3u8", ipc::value("m3u8")));
+// 	entries.push_back(recFormat);
 
-	//Rec Encoder
-	std::string currentRecQuality =
-	    config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecQuality");
+// 	//Rec Encoder
+// 	std::string currentRecQuality =
+// 	    config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecQuality");
 
-	if (currentRecQuality.compare("Small") == 0 || currentRecQuality.compare("HQ") == 0) {
-		std::vector<std::pair<std::string, ipc::value>> recEncoder;
-		recEncoder.push_back(std::make_pair("name", ipc::value("RecEncoder")));
-		recEncoder.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
-		recEncoder.push_back(std::make_pair("description", ipc::value("Encoder")));
-		recEncoder.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
-		recEncoder.push_back(std::make_pair("minVal", ipc::value((double)0)));
-		recEncoder.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-		recEncoder.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+// 	if (currentRecQuality.compare("Small") == 0 || currentRecQuality.compare("HQ") == 0) {
+// 		std::vector<std::pair<std::string, ipc::value>> recEncoder;
+// 		recEncoder.push_back(std::make_pair("name", ipc::value("RecEncoder")));
+// 		recEncoder.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
+// 		recEncoder.push_back(std::make_pair("description", ipc::value("Encoder")));
+// 		recEncoder.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
+// 		recEncoder.push_back(std::make_pair("minVal", ipc::value((double)0)));
+// 		recEncoder.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+// 		recEncoder.push_back(std::make_pair("stepVal", ipc::value((double)0)));
 
-		getSimpleAvailableEncoders(&recEncoder, true);
+// 		getSimpleAvailableEncoders(&recEncoder, true);
 
-		entries.push_back(recEncoder);
-	}
+// 		entries.push_back(recEncoder);
+// 	}
 
-	//Custom Muxer Settings
-	std::vector<std::pair<std::string, ipc::value>> muxerCustom;
-	muxerCustom.push_back(std::make_pair("name", ipc::value("MuxerCustom")));
-	muxerCustom.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_EDIT_TEXT")));
-	muxerCustom.push_back(std::make_pair("description", ipc::value("Custom Muxer Settings")));
-	muxerCustom.push_back(std::make_pair("subType", ipc::value("")));
-	muxerCustom.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	muxerCustom.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	muxerCustom.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(muxerCustom);
+// 	//Custom Muxer Settings
+// 	std::vector<std::pair<std::string, ipc::value>> muxerCustom;
+// 	muxerCustom.push_back(std::make_pair("name", ipc::value("MuxerCustom")));
+// 	muxerCustom.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_EDIT_TEXT")));
+// 	muxerCustom.push_back(std::make_pair("description", ipc::value("Custom Muxer Settings")));
+// 	muxerCustom.push_back(std::make_pair("subType", ipc::value("")));
+// 	muxerCustom.push_back(std::make_pair("minVal", ipc::value((double)0)));
+// 	muxerCustom.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+// 	muxerCustom.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+// 	entries.push_back(muxerCustom);
 
-	outputSettings->push_back(
-	    serializeSettingsData("Recording", entries, config, "SimpleOutput", true, isCategoryEnabled));
+// 	outputSettings->push_back(
+// 	    serializeSettingsData("Recording", entries, config, "SimpleOutput", true, isCategoryEnabled));
 
-	getReplayBufferSettings(outputSettings, config, false, isCategoryEnabled);
+// 	getReplayBufferSettings(outputSettings, config, false, isCategoryEnabled);
 }
 
 void OBS_settings::getEncoderSettings(
@@ -1672,351 +1672,351 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 	SubCategory                                                   streamingSettings;
 	std::vector<std::vector<std::pair<std::string, std::string>>> entries;
 
-	streamingSettings.name = "Streaming";
-
-	// Audio Track : list
-	Parameter trackIndex;
-	trackIndex.name        = "TrackIndex";
-	trackIndex.type        = "OBS_PROPERTY_LIST";
-	trackIndex.subType     = "OBS_COMBO_FORMAT_STRING";
-	trackIndex.description = "Audio Track";
-
-	std::vector<std::pair<std::string, std::string>> trackIndexValues;
-	trackIndexValues.push_back(std::make_pair("1", "1"));
-	trackIndexValues.push_back(std::make_pair("2", "2"));
-	trackIndexValues.push_back(std::make_pair("3", "3"));
-	trackIndexValues.push_back(std::make_pair("4", "4"));
-	trackIndexValues.push_back(std::make_pair("5", "5"));
-	trackIndexValues.push_back(std::make_pair("6", "6"));
-
-	for (int i = 0; i < trackIndexValues.size(); i++) {
-		std::string name = trackIndexValues.at(i).first;
-
-		uint64_t          sizeName = name.length();
-		std::vector<char> sizeNameBuffer;
-		sizeNameBuffer.resize(sizeof(sizeName));
-		memcpy(sizeNameBuffer.data(), &sizeName, sizeof(sizeName));
-
-		trackIndex.values.insert(trackIndex.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
-		trackIndex.values.insert(trackIndex.values.end(), name.begin(), name.end());
-
-		std::string value = trackIndexValues.at(i).second;
-
-		uint64_t          sizeValue = value.length();
-		std::vector<char> sizeValueBuffer;
-		sizeValueBuffer.resize(sizeof(sizeValue));
-		memcpy(sizeValueBuffer.data(), &sizeValue, sizeof(sizeValue));
-
-		trackIndex.values.insert(trackIndex.values.end(), sizeValueBuffer.begin(), sizeValueBuffer.end());
-		trackIndex.values.insert(trackIndex.values.end(), value.begin(), value.end());
-	}
-
-	trackIndex.sizeOfValues = trackIndex.values.size();
-	trackIndex.countValues  = trackIndexValues.size();
-
-	const char* trackIndexCurrentValue = config_get_string(config, "AdvOut", "TrackIndex");
-	if (trackIndexCurrentValue == NULL)
-		trackIndexCurrentValue = "";
-
-	trackIndex.currentValue.resize(strlen(trackIndexCurrentValue));
-	memcpy(trackIndex.currentValue.data(), trackIndexCurrentValue, strlen(trackIndexCurrentValue));
-	trackIndex.sizeOfCurrentValue = strlen(trackIndexCurrentValue);
-
-	trackIndex.visible = true;
-	trackIndex.enabled = isCategoryEnabled;
-	trackIndex.masked  = false;
-
-	streamingSettings.params.push_back(trackIndex);
-
-	obs_data_t *serviceSettings = obs_service_get_settings(OBS_service::getService());
-	const char *serviceName = obs_data_get_string(serviceSettings, "service");
-	obs_data_release(serviceSettings);
-
-	if (serviceName && strcmp(serviceName, "Twitch") == 0) {
-		bool soundtrackSourceExists = false;
-		obs_enum_sources(
-			[](void *param, obs_source_t *source) {
-				auto id = obs_source_get_id(source);
-				if(strcmp(id, "soundtrack_source") == 0) {
-					*reinterpret_cast<bool *>(param) = true;
-					return false;
-				}
-				return true;
-			},
-			&soundtrackSourceExists
-		);
-		std::string twitchVODDesc = "Twitch VOD";
-		if (soundtrackSourceExists)
-			twitchVODDesc += ". Remove Twitch Soundtrack in order to enable this.";
-
-		// Twitch VOD : boolean
-		Parameter twiwchVOD;
-		twiwchVOD.name        = "VodTrackEnabled";
-		twiwchVOD.type        = "OBS_PROPERTY_BOOL";
-		twiwchVOD.description = twitchVODDesc;
-
-		bool doTwiwchVOD = config_get_bool(config, "AdvOut", "VodTrackEnabled");
-
-		twiwchVOD.currentValue.resize(sizeof(doTwiwchVOD));
-		memcpy(twiwchVOD.currentValue.data(), &doTwiwchVOD, sizeof(doTwiwchVOD));
-		twiwchVOD.sizeOfCurrentValue = sizeof(doTwiwchVOD);
-
-		twiwchVOD.visible = true;
-		twiwchVOD.enabled = isCategoryEnabled;
-		twiwchVOD.masked  = false;
-
-		streamingSettings.params.push_back(twiwchVOD);
-
-		if (doTwiwchVOD) {
-			// Twitch Audio track: list
-			Parameter trackVODIndex;
-			trackVODIndex.name        = "VodTrackIndex";
-			trackVODIndex.type        = "OBS_PROPERTY_LIST";
-			trackVODIndex.subType     = "OBS_COMBO_FORMAT_STRING";
-			trackVODIndex.description = "Twitch VOD Track";
+// 	streamingSettings.name = "Streaming";
+
+// 	// Audio Track : list
+// 	Parameter trackIndex;
+// 	trackIndex.name        = "TrackIndex";
+// 	trackIndex.type        = "OBS_PROPERTY_LIST";
+// 	trackIndex.subType     = "OBS_COMBO_FORMAT_STRING";
+// 	trackIndex.description = "Audio Track";
+
+// 	std::vector<std::pair<std::string, std::string>> trackIndexValues;
+// 	trackIndexValues.push_back(std::make_pair("1", "1"));
+// 	trackIndexValues.push_back(std::make_pair("2", "2"));
+// 	trackIndexValues.push_back(std::make_pair("3", "3"));
+// 	trackIndexValues.push_back(std::make_pair("4", "4"));
+// 	trackIndexValues.push_back(std::make_pair("5", "5"));
+// 	trackIndexValues.push_back(std::make_pair("6", "6"));
+
+// 	for (int i = 0; i < trackIndexValues.size(); i++) {
+// 		std::string name = trackIndexValues.at(i).first;
+
+// 		uint64_t          sizeName = name.length();
+// 		std::vector<char> sizeNameBuffer;
+// 		sizeNameBuffer.resize(sizeof(sizeName));
+// 		memcpy(sizeNameBuffer.data(), &sizeName, sizeof(sizeName));
+
+// 		trackIndex.values.insert(trackIndex.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
+// 		trackIndex.values.insert(trackIndex.values.end(), name.begin(), name.end());
+
+// 		std::string value = trackIndexValues.at(i).second;
+
+// 		uint64_t          sizeValue = value.length();
+// 		std::vector<char> sizeValueBuffer;
+// 		sizeValueBuffer.resize(sizeof(sizeValue));
+// 		memcpy(sizeValueBuffer.data(), &sizeValue, sizeof(sizeValue));
+
+// 		trackIndex.values.insert(trackIndex.values.end(), sizeValueBuffer.begin(), sizeValueBuffer.end());
+// 		trackIndex.values.insert(trackIndex.values.end(), value.begin(), value.end());
+// 	}
+
+// 	trackIndex.sizeOfValues = trackIndex.values.size();
+// 	trackIndex.countValues  = trackIndexValues.size();
+
+// 	const char* trackIndexCurrentValue = config_get_string(config, "AdvOut", "TrackIndex");
+// 	if (trackIndexCurrentValue == NULL)
+// 		trackIndexCurrentValue = "";
+
+// 	trackIndex.currentValue.resize(strlen(trackIndexCurrentValue));
+// 	memcpy(trackIndex.currentValue.data(), trackIndexCurrentValue, strlen(trackIndexCurrentValue));
+// 	trackIndex.sizeOfCurrentValue = strlen(trackIndexCurrentValue);
+
+// 	trackIndex.visible = true;
+// 	trackIndex.enabled = isCategoryEnabled;
+// 	trackIndex.masked  = false;
+
+// 	streamingSettings.params.push_back(trackIndex);
+
+// 	obs_data_t *serviceSettings = obs_service_get_settings(OBS_service::getService());
+// 	const char *serviceName = obs_data_get_string(serviceSettings, "service");
+// 	obs_data_release(serviceSettings);
+
+// 	if (serviceName && strcmp(serviceName, "Twitch") == 0) {
+// 		bool soundtrackSourceExists = false;
+// 		obs_enum_sources(
+// 			[](void *param, obs_source_t *source) {
+// 				auto id = obs_source_get_id(source);
+// 				if(strcmp(id, "soundtrack_source") == 0) {
+// 					*reinterpret_cast<bool *>(param) = true;
+// 					return false;
+// 				}
+// 				return true;
+// 			},
+// 			&soundtrackSourceExists
+// 		);
+// 		std::string twitchVODDesc = "Twitch VOD";
+// 		if (soundtrackSourceExists)
+// 			twitchVODDesc += ". Remove Twitch Soundtrack in order to enable this.";
+
+// 		// Twitch VOD : boolean
+// 		Parameter twiwchVOD;
+// 		twiwchVOD.name        = "VodTrackEnabled";
+// 		twiwchVOD.type        = "OBS_PROPERTY_BOOL";
+// 		twiwchVOD.description = twitchVODDesc;
+
+// 		bool doTwiwchVOD = config_get_bool(config, "AdvOut", "VodTrackEnabled");
+
+// 		twiwchVOD.currentValue.resize(sizeof(doTwiwchVOD));
+// 		memcpy(twiwchVOD.currentValue.data(), &doTwiwchVOD, sizeof(doTwiwchVOD));
+// 		twiwchVOD.sizeOfCurrentValue = sizeof(doTwiwchVOD);
+
+// 		twiwchVOD.visible = true;
+// 		twiwchVOD.enabled = isCategoryEnabled;
+// 		twiwchVOD.masked  = false;
+
+// 		streamingSettings.params.push_back(twiwchVOD);
+
+// 		if (doTwiwchVOD) {
+// 			// Twitch Audio track: list
+// 			Parameter trackVODIndex;
+// 			trackVODIndex.name        = "VodTrackIndex";
+// 			trackVODIndex.type        = "OBS_PROPERTY_LIST";
+// 			trackVODIndex.subType     = "OBS_COMBO_FORMAT_STRING";
+// 			trackVODIndex.description = "Twitch VOD Track";
 
-			std::vector<std::pair<std::string, std::string>> trackVODIndexValues;
-			trackVODIndexValues.push_back(std::make_pair("1", "1"));
-			trackVODIndexValues.push_back(std::make_pair("2", "2"));
-			trackVODIndexValues.push_back(std::make_pair("3", "3"));
-			trackVODIndexValues.push_back(std::make_pair("4", "4"));
-			trackVODIndexValues.push_back(std::make_pair("5", "5"));
-			trackVODIndexValues.push_back(std::make_pair("6", "6"));
+// 			std::vector<std::pair<std::string, std::string>> trackVODIndexValues;
+// 			trackVODIndexValues.push_back(std::make_pair("1", "1"));
+// 			trackVODIndexValues.push_back(std::make_pair("2", "2"));
+// 			trackVODIndexValues.push_back(std::make_pair("3", "3"));
+// 			trackVODIndexValues.push_back(std::make_pair("4", "4"));
+// 			trackVODIndexValues.push_back(std::make_pair("5", "5"));
+// 			trackVODIndexValues.push_back(std::make_pair("6", "6"));
 
-			for (int i = 0; i < trackVODIndexValues.size(); i++) {
-				std::string name = trackVODIndexValues.at(i).first;
-
-				uint64_t          sizeName = name.length();
-				std::vector<char> sizeNameBuffer;
-				sizeNameBuffer.resize(sizeof(sizeName));
-				memcpy(sizeNameBuffer.data(), &sizeName, sizeof(sizeName));
+// 			for (int i = 0; i < trackVODIndexValues.size(); i++) {
+// 				std::string name = trackVODIndexValues.at(i).first;
+
+// 				uint64_t          sizeName = name.length();
+// 				std::vector<char> sizeNameBuffer;
+// 				sizeNameBuffer.resize(sizeof(sizeName));
+// 				memcpy(sizeNameBuffer.data(), &sizeName, sizeof(sizeName));
 
-				trackVODIndex.values.insert(trackVODIndex.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
-				trackVODIndex.values.insert(trackVODIndex.values.end(), name.begin(), name.end());
+// 				trackVODIndex.values.insert(trackVODIndex.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
+// 				trackVODIndex.values.insert(trackVODIndex.values.end(), name.begin(), name.end());
 
-				std::string value = trackVODIndexValues.at(i).second;
+// 				std::string value = trackVODIndexValues.at(i).second;
 
-				uint64_t          sizeValue = value.length();
-				std::vector<char> sizeValueBuffer;
-				sizeValueBuffer.resize(sizeof(sizeValue));
-				memcpy(sizeValueBuffer.data(), &sizeValue, sizeof(sizeValue));
+// 				uint64_t          sizeValue = value.length();
+// 				std::vector<char> sizeValueBuffer;
+// 				sizeValueBuffer.resize(sizeof(sizeValue));
+// 				memcpy(sizeValueBuffer.data(), &sizeValue, sizeof(sizeValue));
 
-				trackVODIndex.values.insert(trackVODIndex.values.end(), sizeValueBuffer.begin(), sizeValueBuffer.end());
-				trackVODIndex.values.insert(trackVODIndex.values.end(), value.begin(), value.end());
-			}
+// 				trackVODIndex.values.insert(trackVODIndex.values.end(), sizeValueBuffer.begin(), sizeValueBuffer.end());
+// 				trackVODIndex.values.insert(trackVODIndex.values.end(), value.begin(), value.end());
+// 			}
 
-			trackVODIndex.sizeOfValues = trackVODIndex.values.size();
-			trackVODIndex.countValues  = trackVODIndexValues.size();
+// 			trackVODIndex.sizeOfValues = trackVODIndex.values.size();
+// 			trackVODIndex.countValues  = trackVODIndexValues.size();
 
-			const char* trackVODIndexCurrentValue = config_get_string(config, "AdvOut", "VodTrackIndex");
-			if (trackVODIndexCurrentValue == NULL)
-				trackVODIndexCurrentValue = "";
+// 			const char* trackVODIndexCurrentValue = config_get_string(config, "AdvOut", "VodTrackIndex");
+// 			if (trackVODIndexCurrentValue == NULL)
+// 				trackVODIndexCurrentValue = "";
 
-			trackVODIndex.currentValue.resize(strlen(trackVODIndexCurrentValue));
-			memcpy(trackVODIndex.currentValue.data(), trackVODIndexCurrentValue, strlen(trackVODIndexCurrentValue));
-			trackVODIndex.sizeOfCurrentValue = strlen(trackVODIndexCurrentValue);
+// 			trackVODIndex.currentValue.resize(strlen(trackVODIndexCurrentValue));
+// 			memcpy(trackVODIndex.currentValue.data(), trackVODIndexCurrentValue, strlen(trackVODIndexCurrentValue));
+// 			trackVODIndex.sizeOfCurrentValue = strlen(trackVODIndexCurrentValue);
 
-			trackVODIndex.visible = true;
-			trackVODIndex.enabled = isCategoryEnabled;
-			trackVODIndex.masked  = false;
+// 			trackVODIndex.visible = true;
+// 			trackVODIndex.enabled = isCategoryEnabled;
+// 			trackVODIndex.masked  = false;
 
-			streamingSettings.params.push_back(trackVODIndex);
-		}
-	}
+// 			streamingSettings.params.push_back(trackVODIndex);
+// 		}
+// 	}
 
-	// Encoder : list
-	Parameter videoEncoders;
-	videoEncoders.name        = "Encoder";
-	videoEncoders.type        = "OBS_PROPERTY_LIST";
-	videoEncoders.description = "Encoder";
-	videoEncoders.subType     = "OBS_COMBO_FORMAT_STRING";
+// 	// Encoder : list
+// 	Parameter videoEncoders;
+// 	videoEncoders.name        = "Encoder";
+// 	videoEncoders.type        = "OBS_PROPERTY_LIST";
+// 	videoEncoders.description = "Encoder";
+// 	videoEncoders.subType     = "OBS_COMBO_FORMAT_STRING";
 
-	const char* encoderCurrentValue = config_get_string(config, "AdvOut", "Encoder");
-	if (encoderCurrentValue == NULL) {
-		encoderCurrentValue = "";
-	}
+// 	const char* encoderCurrentValue = config_get_string(config, "AdvOut", "Encoder");
+// 	if (encoderCurrentValue == NULL) {
+// 		encoderCurrentValue = "";
+// 	}
 
-#ifdef __APPLE__
-	encoderCurrentValue = translate_macvth264_encoder(std::string(encoderCurrentValue));
-	config_set_string(config, "AdvOut", "Encoder", encoderCurrentValue);
+// #ifdef __APPLE__
+// 	encoderCurrentValue = translate_macvth264_encoder(std::string(encoderCurrentValue));
+// 	config_set_string(config, "AdvOut", "Encoder", encoderCurrentValue);
 
-#endif
+// #endif
 
-	videoEncoders.currentValue.resize(strlen(encoderCurrentValue));
-	memcpy(videoEncoders.currentValue.data(), encoderCurrentValue, strlen(encoderCurrentValue));
-	videoEncoders.sizeOfCurrentValue = strlen(encoderCurrentValue);
+// 	videoEncoders.currentValue.resize(strlen(encoderCurrentValue));
+// 	memcpy(videoEncoders.currentValue.data(), encoderCurrentValue, strlen(encoderCurrentValue));
+// 	videoEncoders.sizeOfCurrentValue = strlen(encoderCurrentValue);
 
-	std::vector<std::pair<std::string, ipc::value>> encoderValues;
-	getAdvancedAvailableEncoders(&encoderValues);
+// 	std::vector<std::pair<std::string, ipc::value>> encoderValues;
+// 	getAdvancedAvailableEncoders(&encoderValues);
 
-	for (int i = 0; i < encoderValues.size(); i++) {
-		std::string name = encoderValues.at(i).first;
+// 	for (int i = 0; i < encoderValues.size(); i++) {
+// 		std::string name = encoderValues.at(i).first;
 
-		uint64_t          sizeName = name.length();
-		std::vector<char> sizeNameBuffer;
-		sizeNameBuffer.resize(sizeof(sizeName));
-		memcpy(sizeNameBuffer.data(), &sizeName, sizeof(sizeName));
+// 		uint64_t          sizeName = name.length();
+// 		std::vector<char> sizeNameBuffer;
+// 		sizeNameBuffer.resize(sizeof(sizeName));
+// 		memcpy(sizeNameBuffer.data(), &sizeName, sizeof(sizeName));
 
-		videoEncoders.values.insert(videoEncoders.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
-		videoEncoders.values.insert(videoEncoders.values.end(), name.begin(), name.end());
+// 		videoEncoders.values.insert(videoEncoders.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
+// 		videoEncoders.values.insert(videoEncoders.values.end(), name.begin(), name.end());
 
-		std::string value = encoderValues.at(i).second.value_str;
+// 		std::string value = encoderValues.at(i).second.value_str;
 
-		uint64_t          sizeValue = value.length();
-		std::vector<char> sizeValueBuffer;
-		sizeValueBuffer.resize(sizeof(sizeValue));
-		memcpy(sizeValueBuffer.data(), &sizeValue, sizeof(sizeValue));
+// 		uint64_t          sizeValue = value.length();
+// 		std::vector<char> sizeValueBuffer;
+// 		sizeValueBuffer.resize(sizeof(sizeValue));
+// 		memcpy(sizeValueBuffer.data(), &sizeValue, sizeof(sizeValue));
 
-		videoEncoders.values.insert(videoEncoders.values.end(), sizeValueBuffer.begin(), sizeValueBuffer.end());
-		videoEncoders.values.insert(videoEncoders.values.end(), value.begin(), value.end());
-	}
+// 		videoEncoders.values.insert(videoEncoders.values.end(), sizeValueBuffer.begin(), sizeValueBuffer.end());
+// 		videoEncoders.values.insert(videoEncoders.values.end(), value.begin(), value.end());
+// 	}
 
-	videoEncoders.sizeOfValues = videoEncoders.values.size();
-	videoEncoders.countValues  = encoderValues.size();
+// 	videoEncoders.sizeOfValues = videoEncoders.values.size();
+// 	videoEncoders.countValues  = encoderValues.size();
 
-	videoEncoders.visible = true;
-	videoEncoders.enabled = isCategoryEnabled;
-	videoEncoders.masked  = false;
+// 	videoEncoders.visible = true;
+// 	videoEncoders.enabled = isCategoryEnabled;
+// 	videoEncoders.masked  = false;
 
-	streamingSettings.params.push_back(videoEncoders);
+// 	streamingSettings.params.push_back(videoEncoders);
 
-	// Enforce streaming service encoder settings : boolean
-	Parameter applyServiceSettings;
-	applyServiceSettings.name        = "ApplyServiceSettings";
-	applyServiceSettings.type        = "OBS_PROPERTY_BOOL";
-	applyServiceSettings.description = "Enforce streaming service encoder settings";
+// 	// Enforce streaming service encoder settings : boolean
+// 	Parameter applyServiceSettings;
+// 	applyServiceSettings.name        = "ApplyServiceSettings";
+// 	applyServiceSettings.type        = "OBS_PROPERTY_BOOL";
+// 	applyServiceSettings.description = "Enforce streaming service encoder settings";
 
-	bool applyServiceSettingsValue = config_get_bool(config, "AdvOut", "ApplyServiceSettings");
+// 	bool applyServiceSettingsValue = config_get_bool(config, "AdvOut", "ApplyServiceSettings");
 
-	applyServiceSettings.currentValue.resize(sizeof(applyServiceSettingsValue));
-	memcpy(applyServiceSettings.currentValue.data(), &applyServiceSettingsValue, sizeof(applyServiceSettingsValue));
-	applyServiceSettings.sizeOfCurrentValue = sizeof(applyServiceSettingsValue);
+// 	applyServiceSettings.currentValue.resize(sizeof(applyServiceSettingsValue));
+// 	memcpy(applyServiceSettings.currentValue.data(), &applyServiceSettingsValue, sizeof(applyServiceSettingsValue));
+// 	applyServiceSettings.sizeOfCurrentValue = sizeof(applyServiceSettingsValue);
 
-	applyServiceSettings.visible = true;
-	applyServiceSettings.enabled = isCategoryEnabled;
-	applyServiceSettings.masked  = false;
-
-	streamingSettings.params.push_back(applyServiceSettings);
-
-	// Rescale Output : boolean
-	Parameter rescale;
-	rescale.name        = "Rescale";
-	rescale.type        = "OBS_PROPERTY_BOOL";
-	rescale.description = "Rescale Output";
-
-	bool doRescale = config_get_bool(config, "AdvOut", "Rescale");
-
-	rescale.currentValue.resize(sizeof(doRescale));
-	memcpy(rescale.currentValue.data(), &doRescale, sizeof(doRescale));
-	rescale.sizeOfCurrentValue = sizeof(doRescale);
-
-	rescale.visible = strcmp(encoderCurrentValue, ENCODER_NEW_NVENC) != 0;
-	rescale.enabled = isCategoryEnabled;
-	rescale.masked  = false;
-
-	streamingSettings.params.push_back(rescale);
-
-	if (doRescale) {
-		// Output Resolution : list
-		Parameter rescaleRes;
-		rescaleRes.name        = "RescaleRes";
-		rescaleRes.type        = "OBS_INPUT_RESOLUTION_LIST";
-		rescaleRes.description = "Output Resolution";
-		rescaleRes.subType     = "OBS_COMBO_FORMAT_STRING";
-
-		uint64_t base_cx = config_get_uint(config, "Video", "BaseCX");
-		uint64_t base_cy = config_get_uint(config, "Video", "BaseCY");
-
-		const char* outputResString = config_get_string(config, "AdvOut", "RescaleRes");
-
-		if (outputResString == NULL) {
-			outputResString = "1280x720";
-			config_set_string(config, "AdvOut", "RescaleRes", outputResString);
-			config_save_safe(config, "tmp", nullptr);
-		}
-
-		rescaleRes.currentValue.resize(strlen(outputResString));
-		memcpy(rescaleRes.currentValue.data(), outputResString, strlen(outputResString));
-		rescaleRes.sizeOfCurrentValue = strlen(outputResString);
-
-		std::vector<std::pair<uint64_t, uint64_t>> outputResolutions = getOutputResolutions(base_cx, base_cy);
-
-		uint32_t indexDataRescaleRes = 0;
-
-		for (int i = 0; i < outputResolutions.size(); i++) {
-			std::string outRes = ResString(outputResolutions.at(i).first, outputResolutions.at(i).second);
-
-			for (int j = 0; j < 2; j++) {
-				uint64_t          sizeRes = outRes.length();
-				std::vector<char> sizeNameBuffer;
-				sizeNameBuffer.resize(sizeof(sizeRes));
-				memcpy(sizeNameBuffer.data(), &sizeRes, sizeof(sizeRes));
-
-				rescaleRes.values.insert(rescaleRes.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
-				rescaleRes.values.insert(rescaleRes.values.end(), outRes.begin(), outRes.end());
-			}
-		}
-
-		rescaleRes.sizeOfValues = rescaleRes.values.size();
-		rescaleRes.countValues  = outputResolutions.size();
-
-		rescaleRes.visible = strcmp(encoderCurrentValue, ENCODER_NEW_NVENC) != 0;
-		rescaleRes.enabled = isCategoryEnabled;
-		rescaleRes.masked  = false;
-
-		streamingSettings.params.push_back(rescaleRes);
-	}
-
-	// Encoder settings
-	const char* encoderID = config_get_string(config, "AdvOut", "Encoder");
-	if (encoderID == NULL) {
-		encoderID = "obs_x264";
-		config_set_string(config, "AdvOut", "Encoder", encoderID);
-		config_save_safe(config, "tmp", nullptr);
-	}
-
-	struct stat buffer;
-
-	std::string streamName = ConfigManager::getInstance().getStream();
-	bool        fileExist  = (os_stat(streamName.c_str(), &buffer) == 0);
-
-	obs_data_t*    settings         = obs_encoder_defaults(encoderID);
-	obs_encoder_t* streamingEncoder = OBS_service::getStreamingEncoder();
-	obs_encoder_t* recordEncoder    = obs_output_get_video_encoder(OBS_service::getRecordingOutput());
-	obs_output_t*  streamOutput     = OBS_service::getStreamingOutput();
-	obs_output_t*  recordOutput     = OBS_service::getRecordingOutput();
-
-	/*
-		If the stream and recording outputs uses the same encoders, we need to check if both aren't active 
-		before recreating the stream encoder to prevent releasing it when it's still being used.
-		If they use differente encoders, just check for the stream output.
-	*/
-	bool streamOutputIsActive       = obs_output_active(streamOutput);
-	bool recOutputIsActive          = obs_output_active(recordOutput);
-	bool recStreamUsesSameEncoder   = streamingEncoder == recordEncoder;
-	bool recOutputBlockStreamOutput = !(!recStreamUsesSameEncoder || (recStreamUsesSameEncoder && !recOutputIsActive));
-
-	if ((!streamOutputIsActive && !recOutputBlockStreamOutput) || streamingEncoder == nullptr) {
-		if (!fileExist) {
-			streamingEncoder = obs_video_encoder_create(encoderID, "streaming_h264", nullptr, nullptr);
-			OBS_service::setStreamingEncoder(streamingEncoder);
-
-			if (!obs_data_save_json_safe(settings, streamName.c_str(), "tmp", "bak")) {
-				blog(LOG_WARNING, "Failed to save encoder %s", streamName.c_str());
-			}
-		} else {
-			obs_data_t* data = obs_data_create_from_json_file_safe(streamName.c_str(), "bak");
-			obs_data_apply(settings, data);
-			streamingEncoder = obs_video_encoder_create(encoderID, "streaming_h264", settings, nullptr);
-			OBS_service::setStreamingEncoder(streamingEncoder);
-		}
-
-	} else {
-		settings = obs_encoder_get_settings(streamingEncoder);
-	}
-
-	getEncoderSettings(streamingEncoder, settings, &(streamingSettings.params), index, isCategoryEnabled, false);
-	streamingSettings.paramsCount = streamingSettings.params.size();
+// 	applyServiceSettings.visible = true;
+// 	applyServiceSettings.enabled = isCategoryEnabled;
+// 	applyServiceSettings.masked  = false;
+
+// 	streamingSettings.params.push_back(applyServiceSettings);
+
+// 	// Rescale Output : boolean
+// 	Parameter rescale;
+// 	rescale.name        = "Rescale";
+// 	rescale.type        = "OBS_PROPERTY_BOOL";
+// 	rescale.description = "Rescale Output";
+
+// 	bool doRescale = config_get_bool(config, "AdvOut", "Rescale");
+
+// 	rescale.currentValue.resize(sizeof(doRescale));
+// 	memcpy(rescale.currentValue.data(), &doRescale, sizeof(doRescale));
+// 	rescale.sizeOfCurrentValue = sizeof(doRescale);
+
+// 	rescale.visible = strcmp(encoderCurrentValue, ENCODER_NEW_NVENC) != 0;
+// 	rescale.enabled = isCategoryEnabled;
+// 	rescale.masked  = false;
+
+// 	streamingSettings.params.push_back(rescale);
+
+// 	if (doRescale) {
+// 		// Output Resolution : list
+// 		Parameter rescaleRes;
+// 		rescaleRes.name        = "RescaleRes";
+// 		rescaleRes.type        = "OBS_INPUT_RESOLUTION_LIST";
+// 		rescaleRes.description = "Output Resolution";
+// 		rescaleRes.subType     = "OBS_COMBO_FORMAT_STRING";
+
+// 		uint64_t base_cx = config_get_uint(config, "Video", "BaseCX");
+// 		uint64_t base_cy = config_get_uint(config, "Video", "BaseCY");
+
+// 		const char* outputResString = config_get_string(config, "AdvOut", "RescaleRes");
+
+// 		if (outputResString == NULL) {
+// 			outputResString = "1280x720";
+// 			config_set_string(config, "AdvOut", "RescaleRes", outputResString);
+// 			config_save_safe(config, "tmp", nullptr);
+// 		}
+
+// 		rescaleRes.currentValue.resize(strlen(outputResString));
+// 		memcpy(rescaleRes.currentValue.data(), outputResString, strlen(outputResString));
+// 		rescaleRes.sizeOfCurrentValue = strlen(outputResString);
+
+// 		std::vector<std::pair<uint64_t, uint64_t>> outputResolutions = getOutputResolutions(base_cx, base_cy);
+
+// 		uint32_t indexDataRescaleRes = 0;
+
+// 		for (int i = 0; i < outputResolutions.size(); i++) {
+// 			std::string outRes = ResString(outputResolutions.at(i).first, outputResolutions.at(i).second);
+
+// 			for (int j = 0; j < 2; j++) {
+// 				uint64_t          sizeRes = outRes.length();
+// 				std::vector<char> sizeNameBuffer;
+// 				sizeNameBuffer.resize(sizeof(sizeRes));
+// 				memcpy(sizeNameBuffer.data(), &sizeRes, sizeof(sizeRes));
+
+// 				rescaleRes.values.insert(rescaleRes.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
+// 				rescaleRes.values.insert(rescaleRes.values.end(), outRes.begin(), outRes.end());
+// 			}
+// 		}
+
+// 		rescaleRes.sizeOfValues = rescaleRes.values.size();
+// 		rescaleRes.countValues  = outputResolutions.size();
+
+// 		rescaleRes.visible = strcmp(encoderCurrentValue, ENCODER_NEW_NVENC) != 0;
+// 		rescaleRes.enabled = isCategoryEnabled;
+// 		rescaleRes.masked  = false;
+
+// 		streamingSettings.params.push_back(rescaleRes);
+// 	}
+
+// 	// Encoder settings
+// 	const char* encoderID = config_get_string(config, "AdvOut", "Encoder");
+// 	if (encoderID == NULL) {
+// 		encoderID = "obs_x264";
+// 		config_set_string(config, "AdvOut", "Encoder", encoderID);
+// 		config_save_safe(config, "tmp", nullptr);
+// 	}
+
+// 	struct stat buffer;
+
+// 	std::string streamName = ConfigManager::getInstance().getStream();
+// 	bool        fileExist  = (os_stat(streamName.c_str(), &buffer) == 0);
+
+// 	obs_data_t*    settings         = obs_encoder_defaults(encoderID);
+// 	obs_encoder_t* streamingEncoder = OBS_service::getStreamingEncoder();
+// 	obs_encoder_t* recordEncoder    = obs_output_get_video_encoder(OBS_service::getRecordingOutput());
+// 	obs_output_t*  streamOutput     = OBS_service::getStreamingOutput();
+// 	obs_output_t*  recordOutput     = OBS_service::getRecordingOutput();
+
+// 	/*
+// 		If the stream and recording outputs uses the same encoders, we need to check if both aren't active 
+// 		before recreating the stream encoder to prevent releasing it when it's still being used.
+// 		If they use differente encoders, just check for the stream output.
+// 	*/
+// 	bool streamOutputIsActive       = obs_output_active(streamOutput);
+// 	bool recOutputIsActive          = obs_output_active(recordOutput);
+// 	bool recStreamUsesSameEncoder   = streamingEncoder == recordEncoder;
+// 	bool recOutputBlockStreamOutput = !(!recStreamUsesSameEncoder || (recStreamUsesSameEncoder && !recOutputIsActive));
+
+// 	if ((!streamOutputIsActive && !recOutputBlockStreamOutput) || streamingEncoder == nullptr) {
+// 		if (!fileExist) {
+// 			streamingEncoder = obs_video_encoder_create(encoderID, "streaming_h264", nullptr, nullptr);
+// 			OBS_service::setStreamingEncoder(streamingEncoder);
+
+// 			if (!obs_data_save_json_safe(settings, streamName.c_str(), "tmp", "bak")) {
+// 				blog(LOG_WARNING, "Failed to save encoder %s", streamName.c_str());
+// 			}
+// 		} else {
+// 			obs_data_t* data = obs_data_create_from_json_file_safe(streamName.c_str(), "bak");
+// 			obs_data_apply(settings, data);
+// 			streamingEncoder = obs_video_encoder_create(encoderID, "streaming_h264", settings, nullptr);
+// 			OBS_service::setStreamingEncoder(streamingEncoder);
+// 		}
+
+// 	} else {
+// 		settings = obs_encoder_get_settings(streamingEncoder);
+// 	}
+
+// 	getEncoderSettings(streamingEncoder, settings, &(streamingSettings.params), index, isCategoryEnabled, false);
+// 	streamingSettings.paramsCount = streamingSettings.params.size();
 	return streamingSettings;
 }
 
@@ -2025,325 +2025,325 @@ void OBS_settings::getStandardRecordingSettings(
     config_t*    config,
     bool         isCategoryEnabled)
 {
-	int index = 1;
+// 	int index = 1;
 
-	// Recording Path : file
-	Parameter recFilePath;
-	recFilePath.name        = "RecFilePath";
-	recFilePath.type        = "OBS_PROPERTY_PATH";
-	recFilePath.description = "Recording Path";
+// 	// Recording Path : file
+// 	Parameter recFilePath;
+// 	recFilePath.name        = "RecFilePath";
+// 	recFilePath.type        = "OBS_PROPERTY_PATH";
+// 	recFilePath.description = "Recording Path";
 
-	const char* RecFilePathCurrentValue = config_get_string(config, "AdvOut", "RecFilePath");
+// 	const char* RecFilePathCurrentValue = config_get_string(config, "AdvOut", "RecFilePath");
 
-	if (RecFilePathCurrentValue == NULL) {
-		std::string RecFilePathTextString = OBS_service::GetDefaultVideoSavePath();
-		const char* RecFilePathText       = RecFilePathTextString.c_str();
+// 	if (RecFilePathCurrentValue == NULL) {
+// 		std::string RecFilePathTextString = OBS_service::GetDefaultVideoSavePath();
+// 		const char* RecFilePathText       = RecFilePathTextString.c_str();
 
-		recFilePath.currentValue.resize(strlen(RecFilePathText));
-		memcpy(recFilePath.currentValue.data(), RecFilePathText, strlen(RecFilePathText));
-		recFilePath.sizeOfCurrentValue = strlen(RecFilePathText);
-	} else {
-		recFilePath.currentValue.resize(strlen(RecFilePathCurrentValue));
-		memcpy(recFilePath.currentValue.data(), RecFilePathCurrentValue, strlen(RecFilePathCurrentValue));
-		recFilePath.sizeOfCurrentValue = strlen(RecFilePathCurrentValue);
-	}
+// 		recFilePath.currentValue.resize(strlen(RecFilePathText));
+// 		memcpy(recFilePath.currentValue.data(), RecFilePathText, strlen(RecFilePathText));
+// 		recFilePath.sizeOfCurrentValue = strlen(RecFilePathText);
+// 	} else {
+// 		recFilePath.currentValue.resize(strlen(RecFilePathCurrentValue));
+// 		memcpy(recFilePath.currentValue.data(), RecFilePathCurrentValue, strlen(RecFilePathCurrentValue));
+// 		recFilePath.sizeOfCurrentValue = strlen(RecFilePathCurrentValue);
+// 	}
 
-	recFilePath.visible = true;
-	recFilePath.enabled = isCategoryEnabled;
-	recFilePath.masked  = false;
+// 	recFilePath.visible = true;
+// 	recFilePath.enabled = isCategoryEnabled;
+// 	recFilePath.masked  = false;
 
-	subCategoryParameters->params.push_back(recFilePath);
+// 	subCategoryParameters->params.push_back(recFilePath);
 
-	// Generate File Name without Space : boolean
-	Parameter recFileNameWithoutSpace;
-	recFileNameWithoutSpace.name        = "RecFileNameWithoutSpace";
-	recFileNameWithoutSpace.type        = "OBS_PROPERTY_BOOL";
-	recFileNameWithoutSpace.description = "Generate File Name without Space";
+// 	// Generate File Name without Space : boolean
+// 	Parameter recFileNameWithoutSpace;
+// 	recFileNameWithoutSpace.name        = "RecFileNameWithoutSpace";
+// 	recFileNameWithoutSpace.type        = "OBS_PROPERTY_BOOL";
+// 	recFileNameWithoutSpace.description = "Generate File Name without Space";
 
-	bool noSpace = config_get_bool(config, "AdvOut", "RecFileNameWithoutSpace");
-	recFileNameWithoutSpace.currentValue.resize(sizeof(noSpace));
-	memcpy(recFileNameWithoutSpace.currentValue.data(), &noSpace, sizeof(noSpace));
-	recFileNameWithoutSpace.sizeOfCurrentValue = sizeof(noSpace);
+// 	bool noSpace = config_get_bool(config, "AdvOut", "RecFileNameWithoutSpace");
+// 	recFileNameWithoutSpace.currentValue.resize(sizeof(noSpace));
+// 	memcpy(recFileNameWithoutSpace.currentValue.data(), &noSpace, sizeof(noSpace));
+// 	recFileNameWithoutSpace.sizeOfCurrentValue = sizeof(noSpace);
 
-	recFileNameWithoutSpace.visible = true;
-	recFileNameWithoutSpace.enabled = isCategoryEnabled;
-	recFileNameWithoutSpace.masked  = false;
+// 	recFileNameWithoutSpace.visible = true;
+// 	recFileNameWithoutSpace.enabled = isCategoryEnabled;
+// 	recFileNameWithoutSpace.masked  = false;
 
-	subCategoryParameters->params.push_back(recFileNameWithoutSpace);
+// 	subCategoryParameters->params.push_back(recFileNameWithoutSpace);
 
-	// Recording Format : list
-	Parameter recFormat;
-	recFormat.name        = "RecFormat";
-	recFormat.type        = "OBS_PROPERTY_LIST";
-	recFormat.description = "Recording Format";
-	recFormat.subType     = "OBS_COMBO_FORMAT_STRING";
+// 	// Recording Format : list
+// 	Parameter recFormat;
+// 	recFormat.name        = "RecFormat";
+// 	recFormat.type        = "OBS_PROPERTY_LIST";
+// 	recFormat.description = "Recording Format";
+// 	recFormat.subType     = "OBS_COMBO_FORMAT_STRING";
 
-	const char* recFormatCurrentValue = config_get_string(config, "AdvOut", "RecFormat");
-	if (recFormatCurrentValue == NULL)
-		recFormatCurrentValue = "";
+// 	const char* recFormatCurrentValue = config_get_string(config, "AdvOut", "RecFormat");
+// 	if (recFormatCurrentValue == NULL)
+// 		recFormatCurrentValue = "";
 
-	recFormat.currentValue.resize(strlen(recFormatCurrentValue));
-	memcpy(recFormat.currentValue.data(), recFormatCurrentValue, strlen(recFormatCurrentValue));
-	recFormat.sizeOfCurrentValue = strlen(recFormatCurrentValue);
+// 	recFormat.currentValue.resize(strlen(recFormatCurrentValue));
+// 	memcpy(recFormat.currentValue.data(), recFormatCurrentValue, strlen(recFormatCurrentValue));
+// 	recFormat.sizeOfCurrentValue = strlen(recFormatCurrentValue);
 
-	std::vector<std::pair<std::string, std::string>> recFormatValues;
-	recFormatValues.push_back(std::make_pair("flv", "flv"));
-	recFormatValues.push_back(std::make_pair("mp4", "mp4"));
-	recFormatValues.push_back(std::make_pair("mov", "mov"));
-	recFormatValues.push_back(std::make_pair("mkv", "mkv"));
-	recFormatValues.push_back(std::make_pair("ts", "ts"));
-	recFormatValues.push_back(std::make_pair("m3u8", "m3u8"));
+// 	std::vector<std::pair<std::string, std::string>> recFormatValues;
+// 	recFormatValues.push_back(std::make_pair("flv", "flv"));
+// 	recFormatValues.push_back(std::make_pair("mp4", "mp4"));
+// 	recFormatValues.push_back(std::make_pair("mov", "mov"));
+// 	recFormatValues.push_back(std::make_pair("mkv", "mkv"));
+// 	recFormatValues.push_back(std::make_pair("ts", "ts"));
+// 	recFormatValues.push_back(std::make_pair("m3u8", "m3u8"));
 
-	uint32_t indexDataRecFormat = 0;
+// 	uint32_t indexDataRecFormat = 0;
 
-	for (int i = 0; i < recFormatValues.size(); i++) {
-		std::string name = recFormatValues.at(i).first;
+// 	for (int i = 0; i < recFormatValues.size(); i++) {
+// 		std::string name = recFormatValues.at(i).first;
 
-		uint64_t          sizeName = name.length();
-		std::vector<char> sizeNameBuffer;
-		sizeNameBuffer.resize(sizeof(sizeName));
-		memcpy(sizeNameBuffer.data(), &sizeName, sizeof(sizeName));
+// 		uint64_t          sizeName = name.length();
+// 		std::vector<char> sizeNameBuffer;
+// 		sizeNameBuffer.resize(sizeof(sizeName));
+// 		memcpy(sizeNameBuffer.data(), &sizeName, sizeof(sizeName));
 
-		recFormat.values.insert(recFormat.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
-		recFormat.values.insert(recFormat.values.end(), name.begin(), name.end());
+// 		recFormat.values.insert(recFormat.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
+// 		recFormat.values.insert(recFormat.values.end(), name.begin(), name.end());
 
-		std::string value = recFormatValues.at(i).second;
+// 		std::string value = recFormatValues.at(i).second;
 
-		uint64_t          sizeValue = value.length();
-		std::vector<char> sizeValueBuffer;
-		sizeValueBuffer.resize(sizeof(sizeValue));
-		memcpy(sizeValueBuffer.data(), &sizeValue, sizeof(sizeValue));
+// 		uint64_t          sizeValue = value.length();
+// 		std::vector<char> sizeValueBuffer;
+// 		sizeValueBuffer.resize(sizeof(sizeValue));
+// 		memcpy(sizeValueBuffer.data(), &sizeValue, sizeof(sizeValue));
 
-		recFormat.values.insert(recFormat.values.end(), sizeValueBuffer.begin(), sizeValueBuffer.end());
-		recFormat.values.insert(recFormat.values.end(), value.begin(), value.end());
-	}
+// 		recFormat.values.insert(recFormat.values.end(), sizeValueBuffer.begin(), sizeValueBuffer.end());
+// 		recFormat.values.insert(recFormat.values.end(), value.begin(), value.end());
+// 	}
 
-	recFormat.sizeOfValues = recFormat.values.size();
-	recFormat.countValues  = recFormatValues.size();
+// 	recFormat.sizeOfValues = recFormat.values.size();
+// 	recFormat.countValues  = recFormatValues.size();
 
-	recFormat.visible = true;
-	recFormat.enabled = isCategoryEnabled;
-	recFormat.masked  = false;
+// 	recFormat.visible = true;
+// 	recFormat.enabled = isCategoryEnabled;
+// 	recFormat.masked  = false;
 
-	subCategoryParameters->params.push_back(recFormat);
+// 	subCategoryParameters->params.push_back(recFormat);
 
-	// Audio Track : list
+// 	// Audio Track : list
 
-	std::string recTracksDesc = std::string("Audio Track")
-	    + (IsMultitrackAudioSupported(recFormatCurrentValue) ? 
-		   "" : 
-		   " (Format FLV does not support multiple audio tracks per recording)");
+// 	std::string recTracksDesc = std::string("Audio Track")
+// 	    + (IsMultitrackAudioSupported(recFormatCurrentValue) ? 
+// 		   "" : 
+// 		   " (Format FLV does not support multiple audio tracks per recording)");
 	
-	Parameter recTracks;
-	recTracks.name        = "RecTracks";
-	recTracks.type        = "OBS_PROPERTY_BITMASK";
-	recTracks.description = recTracksDesc;
-	recTracks.subType     = "";
+// 	Parameter recTracks;
+// 	recTracks.name        = "RecTracks";
+// 	recTracks.type        = "OBS_PROPERTY_BITMASK";
+// 	recTracks.description = recTracksDesc;
+// 	recTracks.subType     = "";
 
-	uint64_t recTracksCurrentValue = config_get_uint(config, "AdvOut", "RecTracks");
+// 	uint64_t recTracksCurrentValue = config_get_uint(config, "AdvOut", "RecTracks");
 
-	recTracks.currentValue.resize(sizeof(recTracksCurrentValue));
-	memcpy(recTracks.currentValue.data(), &recTracksCurrentValue, sizeof(recTracksCurrentValue));
-	recTracks.sizeOfCurrentValue = sizeof(recTracksCurrentValue);
+// 	recTracks.currentValue.resize(sizeof(recTracksCurrentValue));
+// 	memcpy(recTracks.currentValue.data(), &recTracksCurrentValue, sizeof(recTracksCurrentValue));
+// 	recTracks.sizeOfCurrentValue = sizeof(recTracksCurrentValue);
 
-	recTracks.visible = true;
-	recTracks.enabled = IsMultitrackAudioSupported(recFormatCurrentValue);
-	recTracks.masked  = false;
+// 	recTracks.visible = true;
+// 	recTracks.enabled = IsMultitrackAudioSupported(recFormatCurrentValue);
+// 	recTracks.masked  = false;
 
-	subCategoryParameters->params.push_back(recTracks);
+// 	subCategoryParameters->params.push_back(recTracks);
 	
 
-	// Encoder : list
-	Parameter recEncoder;
-	recEncoder.name        = "RecEncoder";
-	recEncoder.type        = "OBS_PROPERTY_LIST";
-	recEncoder.description = "Recording";
-	recEncoder.subType     = "OBS_COMBO_FORMAT_STRING";
+// 	// Encoder : list
+// 	Parameter recEncoder;
+// 	recEncoder.name        = "RecEncoder";
+// 	recEncoder.type        = "OBS_PROPERTY_LIST";
+// 	recEncoder.description = "Recording";
+// 	recEncoder.subType     = "OBS_COMBO_FORMAT_STRING";
 
-	const char* recEncoderCurrentValue = config_get_string(config, "AdvOut", "RecEncoder");
-	if (!recEncoderCurrentValue)
-		recEncoderCurrentValue = "none";
+// 	const char* recEncoderCurrentValue = config_get_string(config, "AdvOut", "RecEncoder");
+// 	if (!recEncoderCurrentValue)
+// 		recEncoderCurrentValue = "none";
 
-#ifdef __APPLE__
-	recEncoderCurrentValue = translate_macvth264_encoder(std::string(recEncoderCurrentValue));
-	config_set_string(config, "AdvOut", "RecEncoder", recEncoderCurrentValue);
-#endif
+// #ifdef __APPLE__
+// 	recEncoderCurrentValue = translate_macvth264_encoder(std::string(recEncoderCurrentValue));
+// 	config_set_string(config, "AdvOut", "RecEncoder", recEncoderCurrentValue);
+// #endif
 
-	recEncoder.currentValue.resize(strlen(recEncoderCurrentValue));
-	memcpy(recEncoder.currentValue.data(), recEncoderCurrentValue, strlen(recEncoderCurrentValue));
-	recEncoder.sizeOfCurrentValue = strlen(recEncoderCurrentValue);
+// 	recEncoder.currentValue.resize(strlen(recEncoderCurrentValue));
+// 	memcpy(recEncoder.currentValue.data(), recEncoderCurrentValue, strlen(recEncoderCurrentValue));
+// 	recEncoder.sizeOfCurrentValue = strlen(recEncoderCurrentValue);
 
-	std::vector<std::pair<std::string, ipc::value>> Encoder;
-	Encoder.push_back(std::make_pair("Use stream encoder", ipc::value("none")));
-	getAdvancedAvailableEncoders(&Encoder);
+// 	std::vector<std::pair<std::string, ipc::value>> Encoder;
+// 	Encoder.push_back(std::make_pair("Use stream encoder", ipc::value("none")));
+// 	getAdvancedAvailableEncoders(&Encoder);
 
-	uint32_t indexDataRecEncoder = 0;
+// 	uint32_t indexDataRecEncoder = 0;
 
-	for (int i = 0; i < Encoder.size(); i++) {
-		std::string name = Encoder.at(i).first;
+// 	for (int i = 0; i < Encoder.size(); i++) {
+// 		std::string name = Encoder.at(i).first;
 
-		uint64_t          sizeName = name.length();
-		std::vector<char> sizeNameBuffer;
-		sizeNameBuffer.resize(sizeof(sizeName));
-		memcpy(sizeNameBuffer.data(), &sizeName, sizeof(sizeName));
+// 		uint64_t          sizeName = name.length();
+// 		std::vector<char> sizeNameBuffer;
+// 		sizeNameBuffer.resize(sizeof(sizeName));
+// 		memcpy(sizeNameBuffer.data(), &sizeName, sizeof(sizeName));
 
-		recEncoder.values.insert(recEncoder.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
-		recEncoder.values.insert(recEncoder.values.end(), name.begin(), name.end());
+// 		recEncoder.values.insert(recEncoder.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
+// 		recEncoder.values.insert(recEncoder.values.end(), name.begin(), name.end());
 
-		std::string value = Encoder.at(i).second.value_str;
+// 		std::string value = Encoder.at(i).second.value_str;
 
-		uint64_t          sizeValue = value.length();
-		std::vector<char> sizeValueBuffer;
-		sizeValueBuffer.resize(sizeof(sizeValue));
-		memcpy(sizeValueBuffer.data(), &sizeValue, sizeof(sizeValue));
+// 		uint64_t          sizeValue = value.length();
+// 		std::vector<char> sizeValueBuffer;
+// 		sizeValueBuffer.resize(sizeof(sizeValue));
+// 		memcpy(sizeValueBuffer.data(), &sizeValue, sizeof(sizeValue));
 
-		recEncoder.values.insert(recEncoder.values.end(), sizeValueBuffer.begin(), sizeValueBuffer.end());
-		recEncoder.values.insert(recEncoder.values.end(), value.begin(), value.end());
-	}
+// 		recEncoder.values.insert(recEncoder.values.end(), sizeValueBuffer.begin(), sizeValueBuffer.end());
+// 		recEncoder.values.insert(recEncoder.values.end(), value.begin(), value.end());
+// 	}
 
-	recEncoder.sizeOfValues = recEncoder.values.size();
-	recEncoder.countValues  = Encoder.size();
+// 	recEncoder.sizeOfValues = recEncoder.values.size();
+// 	recEncoder.countValues  = Encoder.size();
 
-	recEncoder.visible = true;
-	recEncoder.enabled = isCategoryEnabled;
-	recEncoder.masked  = false;
+// 	recEncoder.visible = true;
+// 	recEncoder.enabled = isCategoryEnabled;
+// 	recEncoder.masked  = false;
 
-	subCategoryParameters->params.push_back(recEncoder);
+// 	subCategoryParameters->params.push_back(recEncoder);
 
-	const char* streamEncoderCurrentValue = config_get_string(config, "AdvOut", "Encoder");
-	bool streamScaleAvailable  = strcmp(recEncoderCurrentValue, "none") != 0;
+// 	const char* streamEncoderCurrentValue = config_get_string(config, "AdvOut", "Encoder");
+// 	bool streamScaleAvailable  = strcmp(recEncoderCurrentValue, "none") != 0;
 
-	// Rescale Output : boolean
-	Parameter recRescale;
-	recRescale.name        = "RecRescale";
-	recRescale.type        = "OBS_PROPERTY_BOOL";
-	recRescale.description = "Rescale Output";
+// 	// Rescale Output : boolean
+// 	Parameter recRescale;
+// 	recRescale.name        = "RecRescale";
+// 	recRescale.type        = "OBS_PROPERTY_BOOL";
+// 	recRescale.description = "Rescale Output";
 
-	bool doRescale = config_get_bool(config, "AdvOut", "RecRescale");
+// 	bool doRescale = config_get_bool(config, "AdvOut", "RecRescale");
 
-	recRescale.currentValue.resize(sizeof(doRescale));
-	memcpy(recRescale.currentValue.data(), &doRescale, sizeof(doRescale));
-	recRescale.sizeOfCurrentValue = sizeof(doRescale);
+// 	recRescale.currentValue.resize(sizeof(doRescale));
+// 	memcpy(recRescale.currentValue.data(), &doRescale, sizeof(doRescale));
+// 	recRescale.sizeOfCurrentValue = sizeof(doRescale);
 
-	recRescale.visible = strcmp(recEncoderCurrentValue, ENCODER_NEW_NVENC) != 0 && streamScaleAvailable;
-	recRescale.enabled = isCategoryEnabled;
-	recRescale.masked  = false;
+// 	recRescale.visible = strcmp(recEncoderCurrentValue, ENCODER_NEW_NVENC) != 0 && streamScaleAvailable;
+// 	recRescale.enabled = isCategoryEnabled;
+// 	recRescale.masked  = false;
 
-	subCategoryParameters->params.push_back(recRescale);
+// 	subCategoryParameters->params.push_back(recRescale);
 
-	// Output Resolution : list
-	if (doRescale) {
-		// Output Resolution : list
-		Parameter recRescaleRes;
-		recRescaleRes.name        = "RecRescaleRes";
-		recRescaleRes.type        = "OBS_INPUT_RESOLUTION_LIST";
-		recRescaleRes.description = "Output Resolution";
-		recRescaleRes.subType     = "OBS_COMBO_FORMAT_STRING";
+// 	// Output Resolution : list
+// 	if (doRescale) {
+// 		// Output Resolution : list
+// 		Parameter recRescaleRes;
+// 		recRescaleRes.name        = "RecRescaleRes";
+// 		recRescaleRes.type        = "OBS_INPUT_RESOLUTION_LIST";
+// 		recRescaleRes.description = "Output Resolution";
+// 		recRescaleRes.subType     = "OBS_COMBO_FORMAT_STRING";
 
-		uint64_t base_cx = config_get_uint(config, "Video", "BaseCX");
-		uint64_t base_cy = config_get_uint(config, "Video", "BaseCY");
+// 		uint64_t base_cx = config_get_uint(config, "Video", "BaseCX");
+// 		uint64_t base_cy = config_get_uint(config, "Video", "BaseCY");
 
-		const char* outputResString = config_get_string(config, "AdvOut", "RecRescaleRes");
+// 		const char* outputResString = config_get_string(config, "AdvOut", "RecRescaleRes");
 
-		if (outputResString == NULL) {
-			outputResString = "1280x720";
-			config_set_string(config, "AdvOut", "RecRescaleRes", outputResString);
-			config_save_safe(config, "tmp", nullptr);
-		}
+// 		if (outputResString == NULL) {
+// 			outputResString = "1280x720";
+// 			config_set_string(config, "AdvOut", "RecRescaleRes", outputResString);
+// 			config_save_safe(config, "tmp", nullptr);
+// 		}
 
-		recRescaleRes.currentValue.resize(strlen(outputResString));
-		memcpy(recRescaleRes.currentValue.data(), outputResString, strlen(outputResString));
-		recRescaleRes.sizeOfCurrentValue = strlen(outputResString);
+// 		recRescaleRes.currentValue.resize(strlen(outputResString));
+// 		memcpy(recRescaleRes.currentValue.data(), outputResString, strlen(outputResString));
+// 		recRescaleRes.sizeOfCurrentValue = strlen(outputResString);
 
-		std::vector<std::pair<uint64_t, uint64_t>> outputResolutions = getOutputResolutions(base_cx, base_cy);
+// 		std::vector<std::pair<uint64_t, uint64_t>> outputResolutions = getOutputResolutions(base_cx, base_cy);
 
-		uint32_t indexDataRecRescaleRes = 0;
+// 		uint32_t indexDataRecRescaleRes = 0;
 
-		for (int i = 0; i < outputResolutions.size(); i++) {
-			std::string outRes = ResString(outputResolutions.at(i).first, outputResolutions.at(i).second);
+// 		for (int i = 0; i < outputResolutions.size(); i++) {
+// 			std::string outRes = ResString(outputResolutions.at(i).first, outputResolutions.at(i).second);
 
-			for (int j = 0; j < 2; j++) {
-				uint64_t          sizeRes = outRes.length();
-				std::vector<char> sizeNameBuffer;
-				sizeNameBuffer.resize(sizeof(sizeRes));
-				memcpy(sizeNameBuffer.data(), &sizeRes, sizeof(sizeRes));
+// 			for (int j = 0; j < 2; j++) {
+// 				uint64_t          sizeRes = outRes.length();
+// 				std::vector<char> sizeNameBuffer;
+// 				sizeNameBuffer.resize(sizeof(sizeRes));
+// 				memcpy(sizeNameBuffer.data(), &sizeRes, sizeof(sizeRes));
 
-				recRescaleRes.values.insert(recRescaleRes.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
-				recRescaleRes.values.insert(recRescaleRes.values.end(), outRes.begin(), outRes.end());
-			}
-		}
+// 				recRescaleRes.values.insert(recRescaleRes.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
+// 				recRescaleRes.values.insert(recRescaleRes.values.end(), outRes.begin(), outRes.end());
+// 			}
+// 		}
 
-		recRescaleRes.sizeOfValues = recRescaleRes.values.size();
-		recRescaleRes.countValues  = outputResolutions.size();
+// 		recRescaleRes.sizeOfValues = recRescaleRes.values.size();
+// 		recRescaleRes.countValues  = outputResolutions.size();
 
-		recRescaleRes.visible = strcmp(recEncoderCurrentValue, ENCODER_NEW_NVENC) != 0 && streamScaleAvailable;
-		recRescaleRes.enabled = isCategoryEnabled;
-		recRescaleRes.masked  = false;
+// 		recRescaleRes.visible = strcmp(recEncoderCurrentValue, ENCODER_NEW_NVENC) != 0 && streamScaleAvailable;
+// 		recRescaleRes.enabled = isCategoryEnabled;
+// 		recRescaleRes.masked  = false;
 
-		subCategoryParameters->params.push_back(recRescaleRes);
-	}
+// 		subCategoryParameters->params.push_back(recRescaleRes);
+// 	}
 
-	// Custom Muxer Settings : edit_text
-	Parameter recMuxerCustom;
-	recMuxerCustom.name        = "RecMuxerCustom";
-	recMuxerCustom.type        = "OBS_PROPERTY_EDIT_TEXT";
-	recMuxerCustom.description = "Custom Muxer Settings";
+// 	// Custom Muxer Settings : edit_text
+// 	Parameter recMuxerCustom;
+// 	recMuxerCustom.name        = "RecMuxerCustom";
+// 	recMuxerCustom.type        = "OBS_PROPERTY_EDIT_TEXT";
+// 	recMuxerCustom.description = "Custom Muxer Settings";
 
-	const char* RecMuxerCustomCurrentValue = config_get_string(config, "AdvOut", "RecMuxerCustom");
-	if (RecMuxerCustomCurrentValue == NULL)
-		RecMuxerCustomCurrentValue = "";
+// 	const char* RecMuxerCustomCurrentValue = config_get_string(config, "AdvOut", "RecMuxerCustom");
+// 	if (RecMuxerCustomCurrentValue == NULL)
+// 		RecMuxerCustomCurrentValue = "";
 
-	recMuxerCustom.currentValue.resize(strlen(RecMuxerCustomCurrentValue));
-	memcpy(recMuxerCustom.currentValue.data(), RecMuxerCustomCurrentValue, strlen(RecMuxerCustomCurrentValue));
-	recMuxerCustom.sizeOfCurrentValue = strlen(RecMuxerCustomCurrentValue);
+// 	recMuxerCustom.currentValue.resize(strlen(RecMuxerCustomCurrentValue));
+// 	memcpy(recMuxerCustom.currentValue.data(), RecMuxerCustomCurrentValue, strlen(RecMuxerCustomCurrentValue));
+// 	recMuxerCustom.sizeOfCurrentValue = strlen(RecMuxerCustomCurrentValue);
 
-	recMuxerCustom.visible = true;
-	recMuxerCustom.enabled = isCategoryEnabled;
-	recMuxerCustom.masked  = false;
+// 	recMuxerCustom.visible = true;
+// 	recMuxerCustom.enabled = isCategoryEnabled;
+// 	recMuxerCustom.masked  = false;
 
-	subCategoryParameters->params.push_back(recMuxerCustom);
+// 	subCategoryParameters->params.push_back(recMuxerCustom);
 
-	// Encoder settings
-	struct stat buffer;
+// 	// Encoder settings
+// 	struct stat buffer;
 
-	bool fileExist = (os_stat(ConfigManager::getInstance().getRecord().c_str(), &buffer) == 0);
+// 	bool fileExist = (os_stat(ConfigManager::getInstance().getRecord().c_str(), &buffer) == 0);
 
-	obs_data_t*    settings = obs_encoder_defaults(recEncoderCurrentValue);
-	obs_encoder_t* recordingEncoder;
+// 	obs_data_t*    settings = obs_encoder_defaults(recEncoderCurrentValue);
+// 	obs_encoder_t* recordingEncoder;
 
-	recordingEncoder           = OBS_service::getRecordingEncoder();
-	obs_output_t* recordOutput = OBS_service::getRecordingOutput();
+// 	recordingEncoder           = OBS_service::getRecordingEncoder();
+// 	obs_output_t* recordOutput = OBS_service::getRecordingOutput();
 
-	if (recordOutput == NULL)
-		return;
+// 	if (recordOutput == NULL)
+// 		return;
 
-	if (obs_output_active(recordOutput)) {
-		settings = obs_encoder_get_settings(recordingEncoder);
-	} else if (!recordingEncoder || (recordingEncoder && !obs_encoder_active(recordingEncoder))) {
-		if (!fileExist) {
-			recordingEncoder = obs_video_encoder_create(recEncoderCurrentValue, "recording_h264", nullptr, nullptr);
-			OBS_service::setRecordingEncoder(recordingEncoder);
+// 	if (obs_output_active(recordOutput)) {
+// 		settings = obs_encoder_get_settings(recordingEncoder);
+// 	} else if (!recordingEncoder || (recordingEncoder && !obs_encoder_active(recordingEncoder))) {
+// 		if (!fileExist) {
+// 			recordingEncoder = obs_video_encoder_create(recEncoderCurrentValue, "recording_h264", nullptr, nullptr);
+// 			OBS_service::setRecordingEncoder(recordingEncoder);
 
-			if (!obs_data_save_json_safe(settings, ConfigManager::getInstance().getRecord().c_str(), "tmp", "bak")) {
-				blog(LOG_WARNING, "Failed to save encoder %s", ConfigManager::getInstance().getRecord().c_str());
-			}
-		} else if (strcmp(recEncoderCurrentValue, "none") != 0) {
-			obs_data_t* data =
-			    obs_data_create_from_json_file_safe(ConfigManager::getInstance().getRecord().c_str(), "bak");
-			obs_data_apply(settings, data);
-			recordingEncoder = obs_video_encoder_create(recEncoderCurrentValue, "recording_h264", settings, nullptr);
-			OBS_service::setRecordingEncoder(recordingEncoder);
-		}
-	} else {
-		settings = obs_encoder_get_settings(recordingEncoder);
-	}
+// 			if (!obs_data_save_json_safe(settings, ConfigManager::getInstance().getRecord().c_str(), "tmp", "bak")) {
+// 				blog(LOG_WARNING, "Failed to save encoder %s", ConfigManager::getInstance().getRecord().c_str());
+// 			}
+// 		} else if (strcmp(recEncoderCurrentValue, "none") != 0) {
+// 			obs_data_t* data =
+// 			    obs_data_create_from_json_file_safe(ConfigManager::getInstance().getRecord().c_str(), "bak");
+// 			obs_data_apply(settings, data);
+// 			recordingEncoder = obs_video_encoder_create(recEncoderCurrentValue, "recording_h264", settings, nullptr);
+// 			OBS_service::setRecordingEncoder(recordingEncoder);
+// 		}
+// 	} else {
+// 		settings = obs_encoder_get_settings(recordingEncoder);
+// 	}
 
-	if (strcmp(recEncoderCurrentValue, "none")) {
-		getEncoderSettings(
-		    recordingEncoder, settings, &(subCategoryParameters->params), index, isCategoryEnabled, true);
-	}
+// 	if (strcmp(recEncoderCurrentValue, "none")) {
+// 		getEncoderSettings(
+// 		    recordingEncoder, settings, &(subCategoryParameters->params), index, isCategoryEnabled, true);
+// 	}
 
-	subCategoryParameters->paramsCount = subCategoryParameters->params.size();
+// 	subCategoryParameters->paramsCount = subCategoryParameters->params.size();
 }
 
 SubCategory OBS_settings::getAdvancedOutputRecordingSettings(config_t* config, bool isCategoryEnabled)
@@ -2425,190 +2425,190 @@ void OBS_settings::getAdvancedOutputAudioSettings(
     config_t*                 config,
     bool                      isCategoryEnabled)
 {
-	std::vector<std::vector<std::pair<std::string, ipc::value>>> entries;
-	uint32_t initialSettingsIndex = outputSettings->size();
+	// std::vector<std::vector<std::pair<std::string, ipc::value>>> entries;
+	// uint32_t initialSettingsIndex = outputSettings->size();
 
-	auto& bitrateMap = GetAACEncoderBitrateMap();
-	UpdateAudioSettings(true);
+	// auto& bitrateMap = GetAACEncoderBitrateMap();
+	// UpdateAudioSettings(true);
 
-	// Track 1
-	std::vector<std::pair<std::string, ipc::value>> Track1Bitrate;
-	Track1Bitrate.push_back(std::make_pair("name", ipc::value("Track1Bitrate")));
-	Track1Bitrate.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
-	Track1Bitrate.push_back(std::make_pair("description", ipc::value("Audio Bitrate")));
-	Track1Bitrate.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
-	Track1Bitrate.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	Track1Bitrate.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	Track1Bitrate.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+	// // Track 1
+	// std::vector<std::pair<std::string, ipc::value>> Track1Bitrate;
+	// Track1Bitrate.push_back(std::make_pair("name", ipc::value("Track1Bitrate")));
+	// Track1Bitrate.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
+	// Track1Bitrate.push_back(std::make_pair("description", ipc::value("Audio Bitrate")));
+	// Track1Bitrate.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
+	// Track1Bitrate.push_back(std::make_pair("minVal", ipc::value((double)0)));
+	// Track1Bitrate.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+	// Track1Bitrate.push_back(std::make_pair("stepVal", ipc::value((double)0)));
 
-	for (auto& entry : bitrateMap)
-		Track1Bitrate.push_back(std::make_pair(std::to_string(entry.first), std::to_string(entry.first)));
+	// for (auto& entry : bitrateMap)
+	// 	Track1Bitrate.push_back(std::make_pair(std::to_string(entry.first), std::to_string(entry.first)));
 
-	entries.push_back(Track1Bitrate);
+	// entries.push_back(Track1Bitrate);
 
-	std::vector<std::pair<std::string, ipc::value>> Track1Name;
-	Track1Name.push_back(std::make_pair("name", ipc::value("Track1Name")));
-	Track1Name.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_EDIT_TEXT")));
-	Track1Name.push_back(std::make_pair("description", ipc::value("Name")));
-	Track1Name.push_back(std::make_pair("subType", ipc::value("")));
-	Track1Name.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	Track1Name.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	Track1Name.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(Track1Name);
+	// std::vector<std::pair<std::string, ipc::value>> Track1Name;
+	// Track1Name.push_back(std::make_pair("name", ipc::value("Track1Name")));
+	// Track1Name.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_EDIT_TEXT")));
+	// Track1Name.push_back(std::make_pair("description", ipc::value("Name")));
+	// Track1Name.push_back(std::make_pair("subType", ipc::value("")));
+	// Track1Name.push_back(std::make_pair("minVal", ipc::value((double)0)));
+	// Track1Name.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+	// Track1Name.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+	// entries.push_back(Track1Name);
 
-	outputSettings->push_back(
-	    serializeSettingsData("Audio - Track 1", entries, config, "AdvOut", true, isCategoryEnabled));
-	entries.clear();
+	// outputSettings->push_back(
+	//     serializeSettingsData("Audio - Track 1", entries, config, "AdvOut", true, isCategoryEnabled));
+	// entries.clear();
 
-	// Track 2
-	std::vector<std::pair<std::string, ipc::value>> Track2Bitrate;
-	Track2Bitrate.push_back(std::make_pair("name", ipc::value("Track2Bitrate")));
-	Track2Bitrate.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
-	Track2Bitrate.push_back(std::make_pair("description", ipc::value("Audio Bitrate")));
-	Track2Bitrate.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
-	Track2Bitrate.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	Track2Bitrate.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	Track2Bitrate.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+	// // Track 2
+	// std::vector<std::pair<std::string, ipc::value>> Track2Bitrate;
+	// Track2Bitrate.push_back(std::make_pair("name", ipc::value("Track2Bitrate")));
+	// Track2Bitrate.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
+	// Track2Bitrate.push_back(std::make_pair("description", ipc::value("Audio Bitrate")));
+	// Track2Bitrate.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
+	// Track2Bitrate.push_back(std::make_pair("minVal", ipc::value((double)0)));
+	// Track2Bitrate.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+	// Track2Bitrate.push_back(std::make_pair("stepVal", ipc::value((double)0)));
 
-	for (auto& entry : bitrateMap)
-		Track2Bitrate.push_back(std::make_pair(std::to_string(entry.first), std::to_string(entry.first)));
+	// for (auto& entry : bitrateMap)
+	// 	Track2Bitrate.push_back(std::make_pair(std::to_string(entry.first), std::to_string(entry.first)));
 
-	entries.push_back(Track2Bitrate);
+	// entries.push_back(Track2Bitrate);
 
-	std::vector<std::pair<std::string, ipc::value>> Track2Name;
-	Track2Name.push_back(std::make_pair("name", ipc::value("Track2Name")));
-	Track2Name.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_EDIT_TEXT")));
-	Track2Name.push_back(std::make_pair("description", ipc::value("Name")));
-	Track2Name.push_back(std::make_pair("subType", ipc::value("")));
-	Track2Name.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	Track2Name.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	Track2Name.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(Track2Name);
+	// std::vector<std::pair<std::string, ipc::value>> Track2Name;
+	// Track2Name.push_back(std::make_pair("name", ipc::value("Track2Name")));
+	// Track2Name.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_EDIT_TEXT")));
+	// Track2Name.push_back(std::make_pair("description", ipc::value("Name")));
+	// Track2Name.push_back(std::make_pair("subType", ipc::value("")));
+	// Track2Name.push_back(std::make_pair("minVal", ipc::value((double)0)));
+	// Track2Name.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+	// Track2Name.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+	// entries.push_back(Track2Name);
 
-	outputSettings->push_back(
-	    serializeSettingsData("Audio - Track 2", entries, config, "AdvOut", true, isCategoryEnabled));
-	entries.clear();
+	// outputSettings->push_back(
+	//     serializeSettingsData("Audio - Track 2", entries, config, "AdvOut", true, isCategoryEnabled));
+	// entries.clear();
 
-	// Track 3
-	std::vector<std::pair<std::string, ipc::value>> Track3Bitrate;
-	Track3Bitrate.push_back(std::make_pair("name", ipc::value("Track3Bitrate")));
-	Track3Bitrate.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
-	Track3Bitrate.push_back(std::make_pair("description", ipc::value("Audio Bitrate")));
-	Track3Bitrate.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
-	Track3Bitrate.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	Track3Bitrate.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	Track3Bitrate.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+	// // Track 3
+	// std::vector<std::pair<std::string, ipc::value>> Track3Bitrate;
+	// Track3Bitrate.push_back(std::make_pair("name", ipc::value("Track3Bitrate")));
+	// Track3Bitrate.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
+	// Track3Bitrate.push_back(std::make_pair("description", ipc::value("Audio Bitrate")));
+	// Track3Bitrate.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
+	// Track3Bitrate.push_back(std::make_pair("minVal", ipc::value((double)0)));
+	// Track3Bitrate.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+	// Track3Bitrate.push_back(std::make_pair("stepVal", ipc::value((double)0)));
 
-	for (auto& entry : bitrateMap)
-		Track3Bitrate.push_back(std::make_pair(std::to_string(entry.first), std::to_string(entry.first)));
+	// for (auto& entry : bitrateMap)
+	// 	Track3Bitrate.push_back(std::make_pair(std::to_string(entry.first), std::to_string(entry.first)));
 
-	entries.push_back(Track3Bitrate);
+	// entries.push_back(Track3Bitrate);
 
-	std::vector<std::pair<std::string, ipc::value>> Track3Name;
-	Track3Name.push_back(std::make_pair("name", ipc::value("Track3Name")));
-	Track3Name.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_EDIT_TEXT")));
-	Track3Name.push_back(std::make_pair("description", ipc::value("Name")));
-	Track3Name.push_back(std::make_pair("subType", ipc::value("")));
-	Track3Name.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	Track3Name.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	Track3Name.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(Track3Name);
+	// std::vector<std::pair<std::string, ipc::value>> Track3Name;
+	// Track3Name.push_back(std::make_pair("name", ipc::value("Track3Name")));
+	// Track3Name.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_EDIT_TEXT")));
+	// Track3Name.push_back(std::make_pair("description", ipc::value("Name")));
+	// Track3Name.push_back(std::make_pair("subType", ipc::value("")));
+	// Track3Name.push_back(std::make_pair("minVal", ipc::value((double)0)));
+	// Track3Name.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+	// Track3Name.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+	// entries.push_back(Track3Name);
 
-	outputSettings->push_back(
-	    serializeSettingsData("Audio - Track 3", entries, config, "AdvOut", true, isCategoryEnabled));
-	entries.clear();
+	// outputSettings->push_back(
+	//     serializeSettingsData("Audio - Track 3", entries, config, "AdvOut", true, isCategoryEnabled));
+	// entries.clear();
 
-	// Track 4
-	std::vector<std::pair<std::string, ipc::value>> Track4Bitrate;
-	Track4Bitrate.push_back(std::make_pair("name", ipc::value("Track4Bitrate")));
-	Track4Bitrate.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
-	Track4Bitrate.push_back(std::make_pair("description", ipc::value("Audio Bitrate")));
-	Track4Bitrate.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
-	Track4Bitrate.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	Track4Bitrate.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	Track4Bitrate.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+	// // Track 4
+	// std::vector<std::pair<std::string, ipc::value>> Track4Bitrate;
+	// Track4Bitrate.push_back(std::make_pair("name", ipc::value("Track4Bitrate")));
+	// Track4Bitrate.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
+	// Track4Bitrate.push_back(std::make_pair("description", ipc::value("Audio Bitrate")));
+	// Track4Bitrate.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
+	// Track4Bitrate.push_back(std::make_pair("minVal", ipc::value((double)0)));
+	// Track4Bitrate.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+	// Track4Bitrate.push_back(std::make_pair("stepVal", ipc::value((double)0)));
 
-	for (auto& entry : bitrateMap)
-		Track4Bitrate.push_back(std::make_pair(std::to_string(entry.first), std::to_string(entry.first)));
+	// for (auto& entry : bitrateMap)
+	// 	Track4Bitrate.push_back(std::make_pair(std::to_string(entry.first), std::to_string(entry.first)));
 
-	entries.push_back(Track4Bitrate);
+	// entries.push_back(Track4Bitrate);
 
-	std::vector<std::pair<std::string, ipc::value>> Track4Name;
-	Track4Name.push_back(std::make_pair("name", ipc::value("Track4Name")));
-	Track4Name.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_EDIT_TEXT")));
-	Track4Name.push_back(std::make_pair("description", ipc::value("Name")));
-	Track4Name.push_back(std::make_pair("subType", ipc::value("")));
-	Track4Name.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	Track4Name.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	Track4Name.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(Track4Name);
+	// std::vector<std::pair<std::string, ipc::value>> Track4Name;
+	// Track4Name.push_back(std::make_pair("name", ipc::value("Track4Name")));
+	// Track4Name.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_EDIT_TEXT")));
+	// Track4Name.push_back(std::make_pair("description", ipc::value("Name")));
+	// Track4Name.push_back(std::make_pair("subType", ipc::value("")));
+	// Track4Name.push_back(std::make_pair("minVal", ipc::value((double)0)));
+	// Track4Name.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+	// Track4Name.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+	// entries.push_back(Track4Name);
 
-	outputSettings->push_back(
-	    serializeSettingsData("Audio - Track 4", entries, config, "AdvOut", true, isCategoryEnabled));
-	entries.clear();
+	// outputSettings->push_back(
+	//     serializeSettingsData("Audio - Track 4", entries, config, "AdvOut", true, isCategoryEnabled));
+	// entries.clear();
 
-	// Track 5
-	std::vector<std::pair<std::string, ipc::value>> Track5Bitrate;
-	Track5Bitrate.push_back(std::make_pair("name", ipc::value("Track5Bitrate")));
-	Track5Bitrate.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
-	Track5Bitrate.push_back(std::make_pair("description", ipc::value("Audio Bitrate")));
-	Track5Bitrate.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
-	Track5Bitrate.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	Track5Bitrate.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	Track5Bitrate.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+	// // Track 5
+	// std::vector<std::pair<std::string, ipc::value>> Track5Bitrate;
+	// Track5Bitrate.push_back(std::make_pair("name", ipc::value("Track5Bitrate")));
+	// Track5Bitrate.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
+	// Track5Bitrate.push_back(std::make_pair("description", ipc::value("Audio Bitrate")));
+	// Track5Bitrate.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
+	// Track5Bitrate.push_back(std::make_pair("minVal", ipc::value((double)0)));
+	// Track5Bitrate.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+	// Track5Bitrate.push_back(std::make_pair("stepVal", ipc::value((double)0)));
 
-	for (auto& entry : bitrateMap)
-		Track5Bitrate.push_back(std::make_pair(std::to_string(entry.first), std::to_string(entry.first)));
+	// for (auto& entry : bitrateMap)
+	// 	Track5Bitrate.push_back(std::make_pair(std::to_string(entry.first), std::to_string(entry.first)));
 
-	entries.push_back(Track5Bitrate);
+	// entries.push_back(Track5Bitrate);
 
-	std::vector<std::pair<std::string, ipc::value>> Track5Name;
-	Track5Name.push_back(std::make_pair("name", ipc::value("Track5Name")));
-	Track5Name.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_EDIT_TEXT")));
-	Track5Name.push_back(std::make_pair("description", ipc::value("Name")));
-	Track5Name.push_back(std::make_pair("subType", ipc::value("")));
-	Track5Name.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	Track5Name.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	Track5Name.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(Track5Name);
+	// std::vector<std::pair<std::string, ipc::value>> Track5Name;
+	// Track5Name.push_back(std::make_pair("name", ipc::value("Track5Name")));
+	// Track5Name.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_EDIT_TEXT")));
+	// Track5Name.push_back(std::make_pair("description", ipc::value("Name")));
+	// Track5Name.push_back(std::make_pair("subType", ipc::value("")));
+	// Track5Name.push_back(std::make_pair("minVal", ipc::value((double)0)));
+	// Track5Name.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+	// Track5Name.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+	// entries.push_back(Track5Name);
 
-	outputSettings->push_back(
-	    serializeSettingsData("Audio - Track 5", entries, config, "AdvOut", true, isCategoryEnabled));
-	entries.clear();
+	// outputSettings->push_back(
+	//     serializeSettingsData("Audio - Track 5", entries, config, "AdvOut", true, isCategoryEnabled));
+	// entries.clear();
 
-	// Track 6
-	std::vector<std::pair<std::string, ipc::value>> Track6Bitrate;
-	Track6Bitrate.push_back(std::make_pair("name", ipc::value("Track6Bitrate")));
-	Track6Bitrate.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
-	Track6Bitrate.push_back(std::make_pair("description", ipc::value("Audio Bitrate")));
-	Track6Bitrate.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
-	Track6Bitrate.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	Track6Bitrate.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	Track6Bitrate.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+	// // Track 6
+	// std::vector<std::pair<std::string, ipc::value>> Track6Bitrate;
+	// Track6Bitrate.push_back(std::make_pair("name", ipc::value("Track6Bitrate")));
+	// Track6Bitrate.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
+	// Track6Bitrate.push_back(std::make_pair("description", ipc::value("Audio Bitrate")));
+	// Track6Bitrate.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
+	// Track6Bitrate.push_back(std::make_pair("minVal", ipc::value((double)0)));
+	// Track6Bitrate.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+	// Track6Bitrate.push_back(std::make_pair("stepVal", ipc::value((double)0)));
 
-	for (auto& entry : bitrateMap)
-		Track6Bitrate.push_back(std::make_pair(std::to_string(entry.first), std::to_string(entry.first)));
+	// for (auto& entry : bitrateMap)
+	// 	Track6Bitrate.push_back(std::make_pair(std::to_string(entry.first), std::to_string(entry.first)));
 
-	entries.push_back(Track6Bitrate);
+	// entries.push_back(Track6Bitrate);
 
-	std::vector<std::pair<std::string, ipc::value>> Track6Name;
-	Track6Name.push_back(std::make_pair("name", ipc::value("Track6Name")));
-	Track6Name.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_EDIT_TEXT")));
-	Track6Name.push_back(std::make_pair("description", ipc::value("Name")));
-	Track6Name.push_back(std::make_pair("subType", ipc::value("")));
-	Track6Name.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	Track6Name.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	Track6Name.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+	// std::vector<std::pair<std::string, ipc::value>> Track6Name;
+	// Track6Name.push_back(std::make_pair("name", ipc::value("Track6Name")));
+	// Track6Name.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_EDIT_TEXT")));
+	// Track6Name.push_back(std::make_pair("description", ipc::value("Name")));
+	// Track6Name.push_back(std::make_pair("subType", ipc::value("")));
+	// Track6Name.push_back(std::make_pair("minVal", ipc::value((double)0)));
+	// Track6Name.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+	// Track6Name.push_back(std::make_pair("stepVal", ipc::value((double)0)));
 
-	entries.push_back(Track6Name);
+	// entries.push_back(Track6Name);
 
-	outputSettings->push_back(
-	    serializeSettingsData("Audio - Track 6", entries, config, "AdvOut", true, isCategoryEnabled));
-	entries.clear();
+	// outputSettings->push_back(
+	//     serializeSettingsData("Audio - Track 6", entries, config, "AdvOut", true, isCategoryEnabled));
+	// entries.clear();
 
-	// Save the audio config
-	currentAudioSettings =
-	    std::vector<SubCategory>(outputSettings->begin() + initialSettingsIndex, outputSettings->end());
+	// // Save the audio config
+	// currentAudioSettings =
+	//     std::vector<SubCategory>(outputSettings->begin() + initialSettingsIndex, outputSettings->end());
 }
 
 void OBS_settings::getReplayBufferSettings(
@@ -2617,47 +2617,47 @@ void OBS_settings::getReplayBufferSettings(
     bool                      advanced,
     bool                      isCategoryEnabled)
 {
-	std::vector<std::vector<std::pair<std::string, ipc::value>>> entries;
+	// std::vector<std::vector<std::pair<std::string, ipc::value>>> entries;
 
-	std::vector<std::pair<std::string, ipc::value>> RecRB;
-	RecRB.push_back(std::make_pair("name", ipc::value("RecRB")));
-	RecRB.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
-	RecRB.push_back(std::make_pair("description", ipc::value("Enable Replay Buffer")));
-	RecRB.push_back(std::make_pair("subType", ipc::value("")));
-	RecRB.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	RecRB.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	RecRB.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(RecRB);
+	// std::vector<std::pair<std::string, ipc::value>> RecRB;
+	// RecRB.push_back(std::make_pair("name", ipc::value("RecRB")));
+	// RecRB.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
+	// RecRB.push_back(std::make_pair("description", ipc::value("Enable Replay Buffer")));
+	// RecRB.push_back(std::make_pair("subType", ipc::value("")));
+	// RecRB.push_back(std::make_pair("minVal", ipc::value((double)0)));
+	// RecRB.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+	// RecRB.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+	// entries.push_back(RecRB);
 
-	bool currentRecRb = config_get_bool(config, advanced ? "AdvOut" : "SimpleOutput", "RecRB");
+	// bool currentRecRb = config_get_bool(config, advanced ? "AdvOut" : "SimpleOutput", "RecRB");
 
-	if (currentRecRb) {
-		std::vector<std::pair<std::string, ipc::value>> RecRBTime;
-		RecRBTime.push_back(std::make_pair("name", ipc::value("RecRBTime")));
-		RecRBTime.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_INT")));
-		RecRBTime.push_back(std::make_pair("description", ipc::value("Maximum Replay Time (Seconds)")));
-		RecRBTime.push_back(std::make_pair("subType", ipc::value("")));
-		RecRBTime.push_back(std::make_pair("minVal", ipc::value((double)0)));
-		RecRBTime.push_back(std::make_pair("maxVal", ipc::value((double)21599)));
-		RecRBTime.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-		entries.push_back(RecRBTime);
-	}
+	// if (currentRecRb) {
+	// 	std::vector<std::pair<std::string, ipc::value>> RecRBTime;
+	// 	RecRBTime.push_back(std::make_pair("name", ipc::value("RecRBTime")));
+	// 	RecRBTime.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_INT")));
+	// 	RecRBTime.push_back(std::make_pair("description", ipc::value("Maximum Replay Time (Seconds)")));
+	// 	RecRBTime.push_back(std::make_pair("subType", ipc::value("")));
+	// 	RecRBTime.push_back(std::make_pair("minVal", ipc::value((double)0)));
+	// 	RecRBTime.push_back(std::make_pair("maxVal", ipc::value((double)21599)));
+	// 	RecRBTime.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+	// 	entries.push_back(RecRBTime);
+	// }
 
-	if (obs_get_multiple_rendering()) {
-		std::vector<std::pair<std::string, ipc::value>> replayBufferUseStreamOutput;
-		replayBufferUseStreamOutput.push_back(std::make_pair("name", ipc::value("replayBufferUseStreamOutput")));
-		replayBufferUseStreamOutput.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
-		replayBufferUseStreamOutput.push_back(std::make_pair("description", ipc::value("Use stream output")));
-		replayBufferUseStreamOutput.push_back(std::make_pair("subType", ipc::value("")));
-		replayBufferUseStreamOutput.push_back(std::make_pair("minVal", ipc::value((double)0)));
-		replayBufferUseStreamOutput.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-		replayBufferUseStreamOutput.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-		entries.push_back(replayBufferUseStreamOutput);
-	}
+	// if (obs_get_multiple_rendering()) {
+	// 	std::vector<std::pair<std::string, ipc::value>> replayBufferUseStreamOutput;
+	// 	replayBufferUseStreamOutput.push_back(std::make_pair("name", ipc::value("replayBufferUseStreamOutput")));
+	// 	replayBufferUseStreamOutput.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
+	// 	replayBufferUseStreamOutput.push_back(std::make_pair("description", ipc::value("Use stream output")));
+	// 	replayBufferUseStreamOutput.push_back(std::make_pair("subType", ipc::value("")));
+	// 	replayBufferUseStreamOutput.push_back(std::make_pair("minVal", ipc::value((double)0)));
+	// 	replayBufferUseStreamOutput.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+	// 	replayBufferUseStreamOutput.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+	// 	entries.push_back(replayBufferUseStreamOutput);
+	// }
 
-	outputSettings->push_back(serializeSettingsData(
-	    "Replay Buffer", entries, config, advanced ? "AdvOut" : "SimpleOutput", true, isCategoryEnabled));
-	entries.clear();
+	// outputSettings->push_back(serializeSettingsData(
+	//     "Replay Buffer", entries, config, advanced ? "AdvOut" : "SimpleOutput", true, isCategoryEnabled));
+	// entries.clear();
 }
 
 void OBS_settings::getAdvancedOutputSettings(
@@ -2684,41 +2684,41 @@ std::vector<SubCategory> OBS_settings::getOutputSettings(CategoryTypes& type)
 {
 	std::vector<SubCategory> outputSettings;
 
-	bool isCategoryEnabled = !OBS_service::isStreamingOutputActive() && !OBS_service::isRecordingOutputActive()
-	                         && !OBS_service::isReplayBufferOutputActive();
+	// bool isCategoryEnabled = !OBS_service::isStreamingOutputActive() && !OBS_service::isRecordingOutputActive()
+	//                          && !OBS_service::isReplayBufferOutputActive();
 
-	std::vector<std::vector<std::pair<std::string, ipc::value>>> entries;
+	// std::vector<std::vector<std::pair<std::string, ipc::value>>> entries;
 
-	//Output mode
-	std::vector<std::pair<std::string, ipc::value>> outputMode;
+	// //Output mode
+	// std::vector<std::pair<std::string, ipc::value>> outputMode;
 
-	outputMode.push_back(std::make_pair("name", ipc::value("Mode")));
-	outputMode.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
-	outputMode.push_back(std::make_pair("description", ipc::value("Output Mode")));
-	outputMode.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
-	outputMode.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	outputMode.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	outputMode.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	outputMode.push_back(std::make_pair("Simple", ipc::value("Simple")));
-	outputMode.push_back(std::make_pair("Advanced", ipc::value("Advanced")));
-	entries.push_back(outputMode);
+	// outputMode.push_back(std::make_pair("name", ipc::value("Mode")));
+	// outputMode.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
+	// outputMode.push_back(std::make_pair("description", ipc::value("Output Mode")));
+	// outputMode.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
+	// outputMode.push_back(std::make_pair("minVal", ipc::value((double)0)));
+	// outputMode.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+	// outputMode.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+	// outputMode.push_back(std::make_pair("Simple", ipc::value("Simple")));
+	// outputMode.push_back(std::make_pair("Advanced", ipc::value("Advanced")));
+	// entries.push_back(outputMode);
 
-	outputSettings.push_back(serializeSettingsData(
-	    "Untitled", entries, ConfigManager::getInstance().getBasic(), "Output", true, isCategoryEnabled));
-	entries.clear();
+	// outputSettings.push_back(serializeSettingsData(
+	//     "Untitled", entries, ConfigManager::getInstance().getBasic(), "Output", true, isCategoryEnabled));
+	// entries.clear();
 
-	const char* currentOutputMode = config_get_string(ConfigManager::getInstance().getBasic(), "Output", "Mode");
+	// const char* currentOutputMode = config_get_string(ConfigManager::getInstance().getBasic(), "Output", "Mode");
 
-	if (currentOutputMode == NULL) {
-		currentOutputMode = "Simple";
-	}
+	// if (currentOutputMode == NULL) {
+	// 	currentOutputMode = "Simple";
+	// }
 
-	if (strcmp(currentOutputMode, "Advanced") == 0) {
-		getAdvancedOutputSettings(&outputSettings, ConfigManager::getInstance().getBasic(), isCategoryEnabled);
-		type = NODEOBS_CATEGORY_TAB;
-	} else {
-		getSimpleOutputSettings(&outputSettings, ConfigManager::getInstance().getBasic(), isCategoryEnabled);
-	}
+	// if (strcmp(currentOutputMode, "Advanced") == 0) {
+	// 	getAdvancedOutputSettings(&outputSettings, ConfigManager::getInstance().getBasic(), isCategoryEnabled);
+	// 	type = NODEOBS_CATEGORY_TAB;
+	// } else {
+	// 	getSimpleOutputSettings(&outputSettings, ConfigManager::getInstance().getBasic(), isCategoryEnabled);
+	// }
 
 	return outputSettings;
 }
@@ -3178,197 +3178,197 @@ std::vector<SubCategory> OBS_settings::getVideoSettings()
 {
 	std::vector<SubCategory> videoSettings;
 
-	bool isCategoryEnabled = !OBS_service::isStreamingOutputActive() && !OBS_service::isRecordingOutputActive()
-	                         && !OBS_service::isReplayBufferOutputActive();
+	// bool isCategoryEnabled = !OBS_service::isStreamingOutputActive() && !OBS_service::isRecordingOutputActive()
+	//                          && !OBS_service::isReplayBufferOutputActive();
 
-	std::vector<std::vector<std::pair<std::string, ipc::value>>> entries;
+	// std::vector<std::vector<std::pair<std::string, ipc::value>>> entries;
 
-	//Base (Canvas) Resolution
-	std::vector<std::pair<std::string, ipc::value>> baseResolution;
-	baseResolution.push_back(std::make_pair("name", ipc::value("Base")));
-	baseResolution.push_back(std::make_pair("type", ipc::value("OBS_INPUT_RESOLUTION_LIST")));
-	baseResolution.push_back(std::make_pair("description", ipc::value("Base (Canvas) Resolution")));
-	baseResolution.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
-	baseResolution.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	baseResolution.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	baseResolution.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+	// //Base (Canvas) Resolution
+	// std::vector<std::pair<std::string, ipc::value>> baseResolution;
+	// baseResolution.push_back(std::make_pair("name", ipc::value("Base")));
+	// baseResolution.push_back(std::make_pair("type", ipc::value("OBS_INPUT_RESOLUTION_LIST")));
+	// baseResolution.push_back(std::make_pair("description", ipc::value("Base (Canvas) Resolution")));
+	// baseResolution.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
+	// baseResolution.push_back(std::make_pair("minVal", ipc::value((double)0)));
+	// baseResolution.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+	// baseResolution.push_back(std::make_pair("stepVal", ipc::value((double)0)));
 
-	uint64_t base_cx = config_get_uint(ConfigManager::getInstance().getBasic(), "Video", "BaseCX");
-	uint64_t base_cy = config_get_uint(ConfigManager::getInstance().getBasic(), "Video", "BaseCY");
+	// uint64_t base_cx = config_get_uint(ConfigManager::getInstance().getBasic(), "Video", "BaseCX");
+	// uint64_t base_cy = config_get_uint(ConfigManager::getInstance().getBasic(), "Video", "BaseCY");
 
-	std::string baseResolutionString = ResString(base_cx, base_cy);
+	// std::string baseResolutionString = ResString(base_cx, base_cy);
 
-	baseResolution.push_back(std::make_pair("1920x1080", ipc::value("1920x1080")));
-	baseResolution.push_back(std::make_pair("1280x720", ipc::value("1280x720")));
+	// baseResolution.push_back(std::make_pair("1920x1080", ipc::value("1920x1080")));
+	// baseResolution.push_back(std::make_pair("1280x720", ipc::value("1280x720")));
 
-	std::vector<std::pair<uint32_t, uint32_t>> resolutions =
-		OBS_API::availableResolutions();
+	// std::vector<std::pair<uint32_t, uint32_t>> resolutions =
+	// 	OBS_API::availableResolutions();
 
-	// Fill available display resolutions
-	for (int i = 0; i < resolutions.size(); i++) {
-		std::string baseResolutionString;
-		baseResolutionString = std::to_string(resolutions.at(i).first);
-		baseResolutionString += "x";
-		baseResolutionString += std::to_string(resolutions.at(i).second);
+	// // Fill available display resolutions
+	// for (int i = 0; i < resolutions.size(); i++) {
+	// 	std::string baseResolutionString;
+	// 	baseResolutionString = std::to_string(resolutions.at(i).first);
+	// 	baseResolutionString += "x";
+	// 	baseResolutionString += std::to_string(resolutions.at(i).second);
 
-		std::pair<std::string, std::string> newBaseResolution =
-		    std::make_pair(baseResolutionString.c_str(), baseResolutionString.c_str());
+	// 	std::pair<std::string, std::string> newBaseResolution =
+	// 	    std::make_pair(baseResolutionString.c_str(), baseResolutionString.c_str());
 
-		std::vector<std::pair<std::string, ipc::value>>::iterator it = std::find_if(
-		    baseResolution.begin(),
-		    baseResolution.end(),
-		    [&baseResolutionString](const std::pair<std::string, ipc::value> value) {
-			    return (value.second.value_str.compare(baseResolutionString) == 0);
-		    });
+	// 	std::vector<std::pair<std::string, ipc::value>>::iterator it = std::find_if(
+	// 	    baseResolution.begin(),
+	// 	    baseResolution.end(),
+	// 	    [&baseResolutionString](const std::pair<std::string, ipc::value> value) {
+	// 		    return (value.second.value_str.compare(baseResolutionString) == 0);
+	// 	    });
 
-		if (baseResolution.size() == 7 || it == baseResolution.end()) {
-			baseResolution.push_back(newBaseResolution);
-		}
-	}
+	// 	if (baseResolution.size() == 7 || it == baseResolution.end()) {
+	// 		baseResolution.push_back(newBaseResolution);
+	// 	}
+	// }
 
-	// Set the current base resolution selected by the user
-	std::pair<std::string, std::string> newBaseResolution = std::make_pair("currentValue", baseResolutionString);
+	// // Set the current base resolution selected by the user
+	// std::pair<std::string, std::string> newBaseResolution = std::make_pair("currentValue", baseResolutionString);
 
-	//Check if the current resolution is in the available ones
-	std::vector<std::pair<std::string, ipc::value>>::iterator it = std::find_if(
-	    baseResolution.begin(),
-	    baseResolution.end(),
-	    [&baseResolutionString](const std::pair<std::string, ipc::value> value) {
-		    return (value.second.value_str.compare(baseResolutionString) == 0);
-	    });
+	// //Check if the current resolution is in the available ones
+	// std::vector<std::pair<std::string, ipc::value>>::iterator it = std::find_if(
+	//     baseResolution.begin(),
+	//     baseResolution.end(),
+	//     [&baseResolutionString](const std::pair<std::string, ipc::value> value) {
+	// 	    return (value.second.value_str.compare(baseResolutionString) == 0);
+	//     });
 
-	if (it == baseResolution.end()) {
-		baseResolution.push_back(std::make_pair(baseResolutionString, ipc::value(baseResolutionString)));
-	}
+	// if (it == baseResolution.end()) {
+	// 	baseResolution.push_back(std::make_pair(baseResolutionString, ipc::value(baseResolutionString)));
+	// }
 
-	int indexFirstValue = 7;
-	baseResolution.insert(baseResolution.begin() + indexFirstValue, newBaseResolution);
+	// int indexFirstValue = 7;
+	// baseResolution.insert(baseResolution.begin() + indexFirstValue, newBaseResolution);
 
-	entries.push_back(baseResolution);
+	// entries.push_back(baseResolution);
 
-	std::vector<std::pair<std::string, ipc::value>> outputResolution;
-	outputResolution.push_back(std::make_pair("name", ipc::value("Output")));
-	outputResolution.push_back(std::make_pair("type", ipc::value("OBS_INPUT_RESOLUTION_LIST")));
-	outputResolution.push_back(std::make_pair("description", ipc::value("Output (Scaled) Resolution")));
-	outputResolution.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
-	outputResolution.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	outputResolution.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	outputResolution.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+	// std::vector<std::pair<std::string, ipc::value>> outputResolution;
+	// outputResolution.push_back(std::make_pair("name", ipc::value("Output")));
+	// outputResolution.push_back(std::make_pair("type", ipc::value("OBS_INPUT_RESOLUTION_LIST")));
+	// outputResolution.push_back(std::make_pair("description", ipc::value("Output (Scaled) Resolution")));
+	// outputResolution.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
+	// outputResolution.push_back(std::make_pair("minVal", ipc::value((double)0)));
+	// outputResolution.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+	// outputResolution.push_back(std::make_pair("stepVal", ipc::value((double)0)));
 
-	uint64_t out_cx = config_get_uint(ConfigManager::getInstance().getBasic(), "Video", "OutputCX");
-	uint64_t out_cy = config_get_uint(ConfigManager::getInstance().getBasic(), "Video", "OutputCY");
+	// uint64_t out_cx = config_get_uint(ConfigManager::getInstance().getBasic(), "Video", "OutputCX");
+	// uint64_t out_cy = config_get_uint(ConfigManager::getInstance().getBasic(), "Video", "OutputCY");
 
-	std::string outputResString = ResString(out_cx, out_cy);
+	// std::string outputResString = ResString(out_cx, out_cy);
 
-	outputResolution.push_back(std::make_pair("currentValue", ipc::value(outputResString)));
+	// outputResolution.push_back(std::make_pair("currentValue", ipc::value(outputResString)));
 
-	std::vector<std::pair<uint64_t, uint64_t>> outputResolutions = getOutputResolutions(base_cx, base_cy);
+	// std::vector<std::pair<uint64_t, uint64_t>> outputResolutions = getOutputResolutions(base_cx, base_cy);
 
-	for (int i = 0; i < outputResolutions.size(); i++) {
-		std::string outRes = ResString(outputResolutions.at(i).first, outputResolutions.at(i).second);
-		outputResolution.push_back(std::make_pair(outRes, outRes));
-	}
+	// for (int i = 0; i < outputResolutions.size(); i++) {
+	// 	std::string outRes = ResString(outputResolutions.at(i).first, outputResolutions.at(i).second);
+	// 	outputResolution.push_back(std::make_pair(outRes, outRes));
+	// }
 
-	entries.push_back(outputResolution);
+	// entries.push_back(outputResolution);
 
-	//Downscale Filter
-	std::vector<std::pair<std::string, ipc::value>> scaleType;
-	scaleType.push_back(std::make_pair("name", ipc::value("ScaleType")));
-	scaleType.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
-	scaleType.push_back(std::make_pair("description", ipc::value("Downscale Filter")));
-	scaleType.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
-	scaleType.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	scaleType.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	scaleType.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	scaleType.push_back(std::make_pair("Bilinear (Fastest, but blurry if scaling)", ipc::value("bilinear")));
-	scaleType.push_back(std::make_pair("Bicubic (Sharpened scaling, 16 samples)", ipc::value("bicubic")));
-	scaleType.push_back(std::make_pair("Lanczos (Sharpened scaling, 32 samples)", ipc::value("lanczos")));
-	entries.push_back(scaleType);
+	// //Downscale Filter
+	// std::vector<std::pair<std::string, ipc::value>> scaleType;
+	// scaleType.push_back(std::make_pair("name", ipc::value("ScaleType")));
+	// scaleType.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
+	// scaleType.push_back(std::make_pair("description", ipc::value("Downscale Filter")));
+	// scaleType.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
+	// scaleType.push_back(std::make_pair("minVal", ipc::value((double)0)));
+	// scaleType.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+	// scaleType.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+	// scaleType.push_back(std::make_pair("Bilinear (Fastest, but blurry if scaling)", ipc::value("bilinear")));
+	// scaleType.push_back(std::make_pair("Bicubic (Sharpened scaling, 16 samples)", ipc::value("bicubic")));
+	// scaleType.push_back(std::make_pair("Lanczos (Sharpened scaling, 32 samples)", ipc::value("lanczos")));
+	// entries.push_back(scaleType);
 
-	//FPS Type
-	std::vector<std::pair<std::string, ipc::value>> fpsType;
-	fpsType.push_back(std::make_pair("name", ipc::value("FPSType")));
-	fpsType.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
-	fpsType.push_back(std::make_pair("description", ipc::value("FPS Type")));
-	fpsType.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
-	fpsType.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	fpsType.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	fpsType.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+	// //FPS Type
+	// std::vector<std::pair<std::string, ipc::value>> fpsType;
+	// fpsType.push_back(std::make_pair("name", ipc::value("FPSType")));
+	// fpsType.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
+	// fpsType.push_back(std::make_pair("description", ipc::value("FPS Type")));
+	// fpsType.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
+	// fpsType.push_back(std::make_pair("minVal", ipc::value((double)0)));
+	// fpsType.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+	// fpsType.push_back(std::make_pair("stepVal", ipc::value((double)0)));
 
-	uint64_t fpsTypeValue = config_get_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSType");
+	// uint64_t fpsTypeValue = config_get_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSType");
 
-	if (fpsTypeValue == 0) {
-		fpsType.push_back(std::make_pair("currentValue", ipc::value("Common FPS Values")));
-		fpsType.push_back(std::make_pair("Common FPS Values", ipc::value("Common FPS Values")));
-		fpsType.push_back(std::make_pair("Integer FPS Value", ipc::value("Integer FPS Value")));
-		fpsType.push_back(std::make_pair("Fractional FPS Value", ipc::value("Fractional FPS Value")));
-		entries.push_back(fpsType);
+	// if (fpsTypeValue == 0) {
+	// 	fpsType.push_back(std::make_pair("currentValue", ipc::value("Common FPS Values")));
+	// 	fpsType.push_back(std::make_pair("Common FPS Values", ipc::value("Common FPS Values")));
+	// 	fpsType.push_back(std::make_pair("Integer FPS Value", ipc::value("Integer FPS Value")));
+	// 	fpsType.push_back(std::make_pair("Fractional FPS Value", ipc::value("Fractional FPS Value")));
+	// 	entries.push_back(fpsType);
 
-		//Common FPS Values
-		std::vector<std::pair<std::string, ipc::value>> fpsCommon;
-		fpsCommon.push_back(std::make_pair("name", ipc::value("FPSCommon")));
-		fpsCommon.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
-		fpsCommon.push_back(std::make_pair("description", ipc::value("Common FPS Values")));
-		fpsCommon.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
-		fpsCommon.push_back(std::make_pair("minVal", ipc::value((double)0)));
-		fpsCommon.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-		fpsCommon.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-		fpsCommon.push_back(std::make_pair("10", ipc::value("10")));
-		fpsCommon.push_back(std::make_pair("20", ipc::value("20")));
-		fpsCommon.push_back(std::make_pair("24 NTSC", ipc::value("24 NTSC")));
-		fpsCommon.push_back(std::make_pair("29.97", ipc::value("29.97")));
-		fpsCommon.push_back(std::make_pair("30", ipc::value("30")));
-		fpsCommon.push_back(std::make_pair("48", ipc::value("48")));
-		fpsCommon.push_back(std::make_pair("59.94", ipc::value("59.94")));
-		fpsCommon.push_back(std::make_pair("60", ipc::value("60")));
-		entries.push_back(fpsCommon);
-	} else if (fpsTypeValue == 1) {
-		fpsType.push_back(std::make_pair("currentValue", ipc::value("Integer FPS Value")));
-		fpsType.push_back(std::make_pair("Common FPS Values", ipc::value("Common FPS Values")));
-		fpsType.push_back(std::make_pair("Integer FPS Value", ipc::value("Integer FPS Value")));
-		fpsType.push_back(std::make_pair("Fractional FPS Value", ipc::value("Fractional FPS Value")));
-		entries.push_back(fpsType);
+	// 	//Common FPS Values
+	// 	std::vector<std::pair<std::string, ipc::value>> fpsCommon;
+	// 	fpsCommon.push_back(std::make_pair("name", ipc::value("FPSCommon")));
+	// 	fpsCommon.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
+	// 	fpsCommon.push_back(std::make_pair("description", ipc::value("Common FPS Values")));
+	// 	fpsCommon.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
+	// 	fpsCommon.push_back(std::make_pair("minVal", ipc::value((double)0)));
+	// 	fpsCommon.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+	// 	fpsCommon.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+	// 	fpsCommon.push_back(std::make_pair("10", ipc::value("10")));
+	// 	fpsCommon.push_back(std::make_pair("20", ipc::value("20")));
+	// 	fpsCommon.push_back(std::make_pair("24 NTSC", ipc::value("24 NTSC")));
+	// 	fpsCommon.push_back(std::make_pair("29.97", ipc::value("29.97")));
+	// 	fpsCommon.push_back(std::make_pair("30", ipc::value("30")));
+	// 	fpsCommon.push_back(std::make_pair("48", ipc::value("48")));
+	// 	fpsCommon.push_back(std::make_pair("59.94", ipc::value("59.94")));
+	// 	fpsCommon.push_back(std::make_pair("60", ipc::value("60")));
+	// 	entries.push_back(fpsCommon);
+	// } else if (fpsTypeValue == 1) {
+	// 	fpsType.push_back(std::make_pair("currentValue", ipc::value("Integer FPS Value")));
+	// 	fpsType.push_back(std::make_pair("Common FPS Values", ipc::value("Common FPS Values")));
+	// 	fpsType.push_back(std::make_pair("Integer FPS Value", ipc::value("Integer FPS Value")));
+	// 	fpsType.push_back(std::make_pair("Fractional FPS Value", ipc::value("Fractional FPS Value")));
+	// 	entries.push_back(fpsType);
 
-		std::vector<std::pair<std::string, ipc::value>> fpsInt;
-		fpsInt.push_back(std::make_pair("name", ipc::value("FPSInt")));
-		fpsInt.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_UINT")));
-		fpsInt.push_back(std::make_pair("description", ipc::value("Integer FPS Value")));
-		fpsInt.push_back(std::make_pair("subType", ipc::value("")));
-		fpsInt.push_back(std::make_pair("minVal", ipc::value((double)0)));
-		fpsInt.push_back(std::make_pair("maxVal", ipc::value((double)120)));
-		fpsInt.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-		entries.push_back(fpsInt);
-	} else if (fpsTypeValue == 2) {
-		fpsType.push_back(std::make_pair("currentValue", ipc::value("Fractional FPS Value")));
-		fpsType.push_back(std::make_pair("Common FPS Values", ipc::value("Common FPS Values")));
-		fpsType.push_back(std::make_pair("Integer FPS Value", ipc::value("Integer FPS Value")));
-		fpsType.push_back(std::make_pair("Fractional FPS Value", ipc::value("Fractional FPS Value")));
-		entries.push_back(fpsType);
+	// 	std::vector<std::pair<std::string, ipc::value>> fpsInt;
+	// 	fpsInt.push_back(std::make_pair("name", ipc::value("FPSInt")));
+	// 	fpsInt.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_UINT")));
+	// 	fpsInt.push_back(std::make_pair("description", ipc::value("Integer FPS Value")));
+	// 	fpsInt.push_back(std::make_pair("subType", ipc::value("")));
+	// 	fpsInt.push_back(std::make_pair("minVal", ipc::value((double)0)));
+	// 	fpsInt.push_back(std::make_pair("maxVal", ipc::value((double)120)));
+	// 	fpsInt.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+	// 	entries.push_back(fpsInt);
+	// } else if (fpsTypeValue == 2) {
+	// 	fpsType.push_back(std::make_pair("currentValue", ipc::value("Fractional FPS Value")));
+	// 	fpsType.push_back(std::make_pair("Common FPS Values", ipc::value("Common FPS Values")));
+	// 	fpsType.push_back(std::make_pair("Integer FPS Value", ipc::value("Integer FPS Value")));
+	// 	fpsType.push_back(std::make_pair("Fractional FPS Value", ipc::value("Fractional FPS Value")));
+	// 	entries.push_back(fpsType);
 
-		std::vector<std::pair<std::string, ipc::value>> fpsNum;
-		fpsNum.push_back(std::make_pair("name", ipc::value("FPSNum")));
-		fpsNum.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_UINT")));
-		fpsNum.push_back(std::make_pair("description", ipc::value("FPSNum")));
-		fpsNum.push_back(std::make_pair("subType", ipc::value("")));
-		fpsNum.push_back(std::make_pair("minVal", ipc::value((double)0)));
-		fpsNum.push_back(std::make_pair("maxVal", ipc::value((double)1000000)));
-		fpsNum.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-		entries.push_back(fpsNum);
+	// 	std::vector<std::pair<std::string, ipc::value>> fpsNum;
+	// 	fpsNum.push_back(std::make_pair("name", ipc::value("FPSNum")));
+	// 	fpsNum.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_UINT")));
+	// 	fpsNum.push_back(std::make_pair("description", ipc::value("FPSNum")));
+	// 	fpsNum.push_back(std::make_pair("subType", ipc::value("")));
+	// 	fpsNum.push_back(std::make_pair("minVal", ipc::value((double)0)));
+	// 	fpsNum.push_back(std::make_pair("maxVal", ipc::value((double)1000000)));
+	// 	fpsNum.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+	// 	entries.push_back(fpsNum);
 
-		std::vector<std::pair<std::string, ipc::value>> fpsDen;
-		fpsDen.push_back(std::make_pair("name", ipc::value("FPSDen")));
-		fpsDen.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_UINT")));
-		fpsDen.push_back(std::make_pair("description", ipc::value("FPSDen")));
-		fpsDen.push_back(std::make_pair("subType", ipc::value("")));
-		fpsDen.push_back(std::make_pair("minVal", ipc::value((double)0)));
-		fpsDen.push_back(std::make_pair("maxVal", ipc::value((double)1000000)));
-		fpsDen.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-		entries.push_back(fpsDen);
-	}
+	// 	std::vector<std::pair<std::string, ipc::value>> fpsDen;
+	// 	fpsDen.push_back(std::make_pair("name", ipc::value("FPSDen")));
+	// 	fpsDen.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_UINT")));
+	// 	fpsDen.push_back(std::make_pair("description", ipc::value("FPSDen")));
+	// 	fpsDen.push_back(std::make_pair("subType", ipc::value("")));
+	// 	fpsDen.push_back(std::make_pair("minVal", ipc::value((double)0)));
+	// 	fpsDen.push_back(std::make_pair("maxVal", ipc::value((double)1000000)));
+	// 	fpsDen.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+	// 	entries.push_back(fpsDen);
+	// }
 
-	videoSettings.push_back(serializeSettingsData(
-	    "Untitled", entries, ConfigManager::getInstance().getBasic(), "Video", true, isCategoryEnabled));
-	entries.clear();
+	// videoSettings.push_back(serializeSettingsData(
+	//     "Untitled", entries, ConfigManager::getInstance().getBasic(), "Video", true, isCategoryEnabled));
+	// entries.clear();
 
 	return videoSettings;
 }
@@ -3521,385 +3521,385 @@ std::vector<SubCategory> OBS_settings::getAdvancedSettings()
 {
 	std::vector<SubCategory> advancedSettings;
 
-	std::vector<std::vector<std::pair<std::string, ipc::value>>> entries;
+// 	std::vector<std::vector<std::pair<std::string, ipc::value>>> entries;
 
-#if _WIN32
-	//General
+// #if _WIN32
+// 	//General
 
-	//Process Priority
-	std::vector<std::pair<std::string, ipc::value>> processPriority;
-	processPriority.push_back(std::make_pair("name", ipc::value("ProcessPriority")));
-	processPriority.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
-	processPriority.push_back(std::make_pair("description", ipc::value("Process Priority")));
-	processPriority.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
-	processPriority.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	processPriority.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	processPriority.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	processPriority.push_back(std::make_pair("High", ipc::value("High")));
-	processPriority.push_back(std::make_pair("Above Normal", ipc::value("AboveNormal")));
-	processPriority.push_back(std::make_pair("Normal", ipc::value("Normal")));
-	processPriority.push_back(std::make_pair("Below Normal", ipc::value("BelowNormal")));
-	processPriority.push_back(std::make_pair("Idle", ipc::value("Idle")));
+// 	//Process Priority
+// 	std::vector<std::pair<std::string, ipc::value>> processPriority;
+// 	processPriority.push_back(std::make_pair("name", ipc::value("ProcessPriority")));
+// 	processPriority.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
+// 	processPriority.push_back(std::make_pair("description", ipc::value("Process Priority")));
+// 	processPriority.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
+// 	processPriority.push_back(std::make_pair("minVal", ipc::value((double)0)));
+// 	processPriority.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+// 	processPriority.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+// 	processPriority.push_back(std::make_pair("High", ipc::value("High")));
+// 	processPriority.push_back(std::make_pair("Above Normal", ipc::value("AboveNormal")));
+// 	processPriority.push_back(std::make_pair("Normal", ipc::value("Normal")));
+// 	processPriority.push_back(std::make_pair("Below Normal", ipc::value("BelowNormal")));
+// 	processPriority.push_back(std::make_pair("Idle", ipc::value("Idle")));
 
-	const char* processPriorityCurrentValue =
-	    config_get_string(ConfigManager::getInstance().getGlobal(), "General", "ProcessPriority");
+// 	const char* processPriorityCurrentValue =
+// 	    config_get_string(ConfigManager::getInstance().getGlobal(), "General", "ProcessPriority");
 
-	if (processPriorityCurrentValue == NULL) {
-		processPriorityCurrentValue = "Normal";
-		config_set_string(
-		    ConfigManager::getInstance().getGlobal(), "General", "ProcessPriority", processPriorityCurrentValue);
-	}
+// 	if (processPriorityCurrentValue == NULL) {
+// 		processPriorityCurrentValue = "Normal";
+// 		config_set_string(
+// 		    ConfigManager::getInstance().getGlobal(), "General", "ProcessPriority", processPriorityCurrentValue);
+// 	}
 
-	OBS_API::SetProcessPriority(processPriorityCurrentValue);
+// 	OBS_API::SetProcessPriority(processPriorityCurrentValue);
 
-	entries.push_back(processPriority);
+// 	entries.push_back(processPriority);
 
-	advancedSettings.push_back(
-	    serializeSettingsData("General", entries, ConfigManager::getInstance().getGlobal(), "General", true, true));
-	entries.clear();
+// 	advancedSettings.push_back(
+// 	    serializeSettingsData("General", entries, ConfigManager::getInstance().getGlobal(), "General", true, true));
+// 	entries.clear();
 
-#endif
-	//Video
-	const char* videoColorFormat = config_get_string(ConfigManager::getInstance().getBasic(), "Video", "ColorFormat");
-	const char* videoColorSpace  = config_get_string(ConfigManager::getInstance().getBasic(), "Video", "ColorSpace");
-	const char* videoColorRange  = config_get_string(ConfigManager::getInstance().getBasic(), "Video", "ColorRange");
+// #endif
+// 	//Video
+// 	const char* videoColorFormat = config_get_string(ConfigManager::getInstance().getBasic(), "Video", "ColorFormat");
+// 	const char* videoColorSpace  = config_get_string(ConfigManager::getInstance().getBasic(), "Video", "ColorSpace");
+// 	const char* videoColorRange  = config_get_string(ConfigManager::getInstance().getBasic(), "Video", "ColorRange");
 
-	//Color Format
-	std::vector<std::pair<std::string, ipc::value>> colorFormat;
-	colorFormat.push_back(std::make_pair("name", ipc::value("ColorFormat")));
-	colorFormat.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
-	colorFormat.push_back(std::make_pair("description", ipc::value("Color Format")));
-	colorFormat.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
-	colorFormat.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	colorFormat.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	colorFormat.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	colorFormat.push_back(std::make_pair("NV12", ipc::value("NV12")));
-	colorFormat.push_back(std::make_pair("I420", ipc::value("I420")));
-	colorFormat.push_back(std::make_pair("I444", ipc::value("I444")));
-	colorFormat.push_back(std::make_pair("RGB", ipc::value("RGB")));
-	entries.push_back(colorFormat);
+// 	//Color Format
+// 	std::vector<std::pair<std::string, ipc::value>> colorFormat;
+// 	colorFormat.push_back(std::make_pair("name", ipc::value("ColorFormat")));
+// 	colorFormat.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
+// 	colorFormat.push_back(std::make_pair("description", ipc::value("Color Format")));
+// 	colorFormat.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
+// 	colorFormat.push_back(std::make_pair("minVal", ipc::value((double)0)));
+// 	colorFormat.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+// 	colorFormat.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+// 	colorFormat.push_back(std::make_pair("NV12", ipc::value("NV12")));
+// 	colorFormat.push_back(std::make_pair("I420", ipc::value("I420")));
+// 	colorFormat.push_back(std::make_pair("I444", ipc::value("I444")));
+// 	colorFormat.push_back(std::make_pair("RGB", ipc::value("RGB")));
+// 	entries.push_back(colorFormat);
 
-	//YUV Color Space
-	std::vector<std::pair<std::string, ipc::value>> colorSpace;
-	colorSpace.push_back(std::make_pair("name", ipc::value("ColorSpace")));
-	colorSpace.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
-	colorSpace.push_back(std::make_pair("description", ipc::value("YUV Color Space")));
-	colorSpace.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
-	colorSpace.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	colorSpace.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	colorSpace.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	colorSpace.push_back(std::make_pair("601", ipc::value("601")));
-	colorSpace.push_back(std::make_pair("709", ipc::value("709")));
-	entries.push_back(colorSpace);
+// 	//YUV Color Space
+// 	std::vector<std::pair<std::string, ipc::value>> colorSpace;
+// 	colorSpace.push_back(std::make_pair("name", ipc::value("ColorSpace")));
+// 	colorSpace.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
+// 	colorSpace.push_back(std::make_pair("description", ipc::value("YUV Color Space")));
+// 	colorSpace.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
+// 	colorSpace.push_back(std::make_pair("minVal", ipc::value((double)0)));
+// 	colorSpace.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+// 	colorSpace.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+// 	colorSpace.push_back(std::make_pair("601", ipc::value("601")));
+// 	colorSpace.push_back(std::make_pair("709", ipc::value("709")));
+// 	entries.push_back(colorSpace);
 
-	//YUV Color Range
-	std::vector<std::pair<std::string, ipc::value>> colorRange;
-	colorRange.push_back(std::make_pair("name", ipc::value("ColorRange")));
-	colorRange.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
-	colorRange.push_back(std::make_pair("description", ipc::value("YUV Color Range")));
-	colorRange.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
-	colorRange.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	colorRange.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	colorRange.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	colorRange.push_back(std::make_pair("Partial", ipc::value("Partial")));
-	colorRange.push_back(std::make_pair("Full", ipc::value("Full")));
-	entries.push_back(colorRange);
+// 	//YUV Color Range
+// 	std::vector<std::pair<std::string, ipc::value>> colorRange;
+// 	colorRange.push_back(std::make_pair("name", ipc::value("ColorRange")));
+// 	colorRange.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
+// 	colorRange.push_back(std::make_pair("description", ipc::value("YUV Color Range")));
+// 	colorRange.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
+// 	colorRange.push_back(std::make_pair("minVal", ipc::value((double)0)));
+// 	colorRange.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+// 	colorRange.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+// 	colorRange.push_back(std::make_pair("Partial", ipc::value("Partial")));
+// 	colorRange.push_back(std::make_pair("Full", ipc::value("Full")));
+// 	entries.push_back(colorRange);
 
-	//GPU Render
-	std::vector<std::pair<std::string, ipc::value>> forceGPUAsRenderDevice;
-	forceGPUAsRenderDevice.push_back(std::make_pair("name", ipc::value("ForceGPUAsRenderDevice")));
-	forceGPUAsRenderDevice.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
-	forceGPUAsRenderDevice.push_back(std::make_pair("description", ipc::value("Force GPU as render device")));
-	forceGPUAsRenderDevice.push_back(std::make_pair("subType", ipc::value("")));
-	forceGPUAsRenderDevice.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	forceGPUAsRenderDevice.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	forceGPUAsRenderDevice.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(forceGPUAsRenderDevice);
+// 	//GPU Render
+// 	std::vector<std::pair<std::string, ipc::value>> forceGPUAsRenderDevice;
+// 	forceGPUAsRenderDevice.push_back(std::make_pair("name", ipc::value("ForceGPUAsRenderDevice")));
+// 	forceGPUAsRenderDevice.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
+// 	forceGPUAsRenderDevice.push_back(std::make_pair("description", ipc::value("Force GPU as render device")));
+// 	forceGPUAsRenderDevice.push_back(std::make_pair("subType", ipc::value("")));
+// 	forceGPUAsRenderDevice.push_back(std::make_pair("minVal", ipc::value((double)0)));
+// 	forceGPUAsRenderDevice.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+// 	forceGPUAsRenderDevice.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+// 	entries.push_back(forceGPUAsRenderDevice);
 
-	advancedSettings.push_back(serializeSettingsData(
-	    "Video",
-	    entries,
-	    ConfigManager::getInstance().getBasic(),
-	    "Video",
-	    true,
-	    !OBS_service::isStreamingOutputActive()));
-	entries.clear();
+// 	advancedSettings.push_back(serializeSettingsData(
+// 	    "Video",
+// 	    entries,
+// 	    ConfigManager::getInstance().getBasic(),
+// 	    "Video",
+// 	    true,
+// 	    !OBS_service::isStreamingOutputActive()));
+// 	entries.clear();
 
-	//Audio
-	const char* monDevName =
-	    config_get_string(ConfigManager::getInstance().getBasic(), "Audio", "MonitoringDeviceName");
-	const char* monDevId = config_get_string(ConfigManager::getInstance().getBasic(), "Audio", "MonitoringDeviceId");
+// 	//Audio
+// 	const char* monDevName =
+// 	    config_get_string(ConfigManager::getInstance().getBasic(), "Audio", "MonitoringDeviceName");
+// 	const char* monDevId = config_get_string(ConfigManager::getInstance().getBasic(), "Audio", "MonitoringDeviceId");
 
-	//Audio Monitoring Device
-	std::vector<std::pair<std::string, ipc::value>>* monitoringDevice =
-	    new std::vector<std::pair<std::string, ipc::value>>();
+// 	//Audio Monitoring Device
+// 	std::vector<std::pair<std::string, ipc::value>>* monitoringDevice =
+// 	    new std::vector<std::pair<std::string, ipc::value>>();
 
-	monitoringDevice->push_back(std::make_pair("name", ipc::value("MonitoringDeviceName")));
-	monitoringDevice->push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
-	monitoringDevice->push_back(std::make_pair("description", ipc::value("Audio Monitoring Device")));
-	monitoringDevice->push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
-	monitoringDevice->push_back(std::make_pair("minVal", ipc::value((double)0)));
-	monitoringDevice->push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	monitoringDevice->push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	monitoringDevice->push_back(std::make_pair("currentValue", ipc::value(monDevName)));
-	monitoringDevice->push_back(std::make_pair("Default", ipc::value("Default")));
+// 	monitoringDevice->push_back(std::make_pair("name", ipc::value("MonitoringDeviceName")));
+// 	monitoringDevice->push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
+// 	monitoringDevice->push_back(std::make_pair("description", ipc::value("Audio Monitoring Device")));
+// 	monitoringDevice->push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
+// 	monitoringDevice->push_back(std::make_pair("minVal", ipc::value((double)0)));
+// 	monitoringDevice->push_back(std::make_pair("maxVal", ipc::value((double)0)));
+// 	monitoringDevice->push_back(std::make_pair("stepVal", ipc::value((double)0)));
+// 	monitoringDevice->push_back(std::make_pair("currentValue", ipc::value(monDevName)));
+// 	monitoringDevice->push_back(std::make_pair("Default", ipc::value("Default")));
 
-	auto enum_devices = [](void* param, const char* name, const char* id) {
-		std::vector<std::pair<std::string, ipc::value>>* monitoringDevice =
-		    (std::vector<std::pair<std::string, ipc::value>>*)param;
-		monitoringDevice->push_back(std::make_pair(name, ipc::value(name)));
-		return true;
-	};
-	obs_enum_audio_monitoring_devices(enum_devices, monitoringDevice);
-	entries.push_back(*monitoringDevice);
+// 	auto enum_devices = [](void* param, const char* name, const char* id) {
+// 		std::vector<std::pair<std::string, ipc::value>>* monitoringDevice =
+// 		    (std::vector<std::pair<std::string, ipc::value>>*)param;
+// 		monitoringDevice->push_back(std::make_pair(name, ipc::value(name)));
+// 		return true;
+// 	};
+// 	obs_enum_audio_monitoring_devices(enum_devices, monitoringDevice);
+// 	entries.push_back(*monitoringDevice);
 
-#if defined(_WIN32)
-	//Windows audio ducking
-	std::vector<std::pair<std::string, ipc::value>> disableAudioDucking;
-	disableAudioDucking.push_back(std::make_pair("name", ipc::value("DisableAudioDucking")));
-	disableAudioDucking.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
-	disableAudioDucking.push_back(std::make_pair("description", ipc::value("Disable Windows audio ducking")));
-	disableAudioDucking.push_back(std::make_pair("subType", ipc::value("")));
-	disableAudioDucking.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	disableAudioDucking.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	disableAudioDucking.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(disableAudioDucking);
-#endif
+// #if defined(_WIN32)
+// 	//Windows audio ducking
+// 	std::vector<std::pair<std::string, ipc::value>> disableAudioDucking;
+// 	disableAudioDucking.push_back(std::make_pair("name", ipc::value("DisableAudioDucking")));
+// 	disableAudioDucking.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
+// 	disableAudioDucking.push_back(std::make_pair("description", ipc::value("Disable Windows audio ducking")));
+// 	disableAudioDucking.push_back(std::make_pair("subType", ipc::value("")));
+// 	disableAudioDucking.push_back(std::make_pair("minVal", ipc::value((double)0)));
+// 	disableAudioDucking.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+// 	disableAudioDucking.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+// 	entries.push_back(disableAudioDucking);
+// #endif
 
-	advancedSettings.push_back(
-	    serializeSettingsData("Audio", entries, ConfigManager::getInstance().getBasic(), "Audio", true, true));
-	entries.clear();
+// 	advancedSettings.push_back(
+// 	    serializeSettingsData("Audio", entries, ConfigManager::getInstance().getBasic(), "Audio", true, true));
+// 	entries.clear();
 
-	//Recording
+// 	//Recording
 
-	//Filename Formatting
-	std::vector<std::pair<std::string, ipc::value>> filenameFormatting;
-	filenameFormatting.push_back(std::make_pair("name", ipc::value("FilenameFormatting")));
-	filenameFormatting.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_EDIT_TEXT")));
-	filenameFormatting.push_back(std::make_pair("description", ipc::value("Filename Formatting")));
-	filenameFormatting.push_back(std::make_pair("subType", ipc::value("")));
-	filenameFormatting.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	filenameFormatting.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	filenameFormatting.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(filenameFormatting);
+// 	//Filename Formatting
+// 	std::vector<std::pair<std::string, ipc::value>> filenameFormatting;
+// 	filenameFormatting.push_back(std::make_pair("name", ipc::value("FilenameFormatting")));
+// 	filenameFormatting.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_EDIT_TEXT")));
+// 	filenameFormatting.push_back(std::make_pair("description", ipc::value("Filename Formatting")));
+// 	filenameFormatting.push_back(std::make_pair("subType", ipc::value("")));
+// 	filenameFormatting.push_back(std::make_pair("minVal", ipc::value((double)0)));
+// 	filenameFormatting.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+// 	filenameFormatting.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+// 	entries.push_back(filenameFormatting);
 
-	//Overwrite if file exists
-	std::vector<std::pair<std::string, ipc::value>> overwriteIfExists;
-	overwriteIfExists.push_back(std::make_pair("name", ipc::value("OverwriteIfExists")));
-	overwriteIfExists.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
-	overwriteIfExists.push_back(std::make_pair("description", ipc::value("Overwrite if file exists")));
-	overwriteIfExists.push_back(std::make_pair("subType", ipc::value("")));
-	overwriteIfExists.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	overwriteIfExists.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	overwriteIfExists.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(overwriteIfExists);
+// 	//Overwrite if file exists
+// 	std::vector<std::pair<std::string, ipc::value>> overwriteIfExists;
+// 	overwriteIfExists.push_back(std::make_pair("name", ipc::value("OverwriteIfExists")));
+// 	overwriteIfExists.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
+// 	overwriteIfExists.push_back(std::make_pair("description", ipc::value("Overwrite if file exists")));
+// 	overwriteIfExists.push_back(std::make_pair("subType", ipc::value("")));
+// 	overwriteIfExists.push_back(std::make_pair("minVal", ipc::value((double)0)));
+// 	overwriteIfExists.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+// 	overwriteIfExists.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+// 	entries.push_back(overwriteIfExists);
 
-	advancedSettings.push_back(
-	    serializeSettingsData("Recording", entries, ConfigManager::getInstance().getBasic(), "Output", true, true));
-	entries.clear();
+// 	advancedSettings.push_back(
+// 	    serializeSettingsData("Recording", entries, ConfigManager::getInstance().getBasic(), "Output", true, true));
+// 	entries.clear();
 
-	//Replay Buffer Filename Prefix
-	std::vector<std::pair<std::string, ipc::value>> recRBPrefix;
-	recRBPrefix.push_back(std::make_pair("name", ipc::value("RecRBPrefix")));
-	recRBPrefix.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_EDIT_TEXT")));
-	recRBPrefix.push_back(std::make_pair("description", ipc::value("Replay Buffer Filename Prefix")));
-	recRBPrefix.push_back(std::make_pair("subType", ipc::value("")));
-	recRBPrefix.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	recRBPrefix.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	recRBPrefix.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(recRBPrefix);
+// 	//Replay Buffer Filename Prefix
+// 	std::vector<std::pair<std::string, ipc::value>> recRBPrefix;
+// 	recRBPrefix.push_back(std::make_pair("name", ipc::value("RecRBPrefix")));
+// 	recRBPrefix.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_EDIT_TEXT")));
+// 	recRBPrefix.push_back(std::make_pair("description", ipc::value("Replay Buffer Filename Prefix")));
+// 	recRBPrefix.push_back(std::make_pair("subType", ipc::value("")));
+// 	recRBPrefix.push_back(std::make_pair("minVal", ipc::value((double)0)));
+// 	recRBPrefix.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+// 	recRBPrefix.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+// 	entries.push_back(recRBPrefix);
 
-	//Replay Buffer Filename Suffix
-	std::vector<std::pair<std::string, ipc::value>> recRBSuffix;
-	recRBSuffix.push_back(std::make_pair("name", ipc::value("RecRBSuffix")));
-	recRBSuffix.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_EDIT_TEXT")));
-	recRBSuffix.push_back(std::make_pair("description", ipc::value("Replay Buffer Filename Suffix")));
-	recRBSuffix.push_back(std::make_pair("subType", ipc::value("")));
-	recRBSuffix.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	recRBSuffix.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	recRBSuffix.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(recRBSuffix);
+// 	//Replay Buffer Filename Suffix
+// 	std::vector<std::pair<std::string, ipc::value>> recRBSuffix;
+// 	recRBSuffix.push_back(std::make_pair("name", ipc::value("RecRBSuffix")));
+// 	recRBSuffix.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_EDIT_TEXT")));
+// 	recRBSuffix.push_back(std::make_pair("description", ipc::value("Replay Buffer Filename Suffix")));
+// 	recRBSuffix.push_back(std::make_pair("subType", ipc::value("")));
+// 	recRBSuffix.push_back(std::make_pair("minVal", ipc::value((double)0)));
+// 	recRBSuffix.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+// 	recRBSuffix.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+// 	entries.push_back(recRBSuffix);
 
-	advancedSettings.push_back(serializeSettingsData(
-	    "Replay Buffer", entries, ConfigManager::getInstance().getBasic(), "SimpleOutput", true, true));
-	entries.clear();
+// 	advancedSettings.push_back(serializeSettingsData(
+// 	    "Replay Buffer", entries, ConfigManager::getInstance().getBasic(), "SimpleOutput", true, true));
+// 	entries.clear();
 
-	//Stream Delay
+// 	//Stream Delay
 
-	//Enable
-	std::vector<std::pair<std::string, ipc::value>> delayEnable;
-	delayEnable.push_back(std::make_pair("name", ipc::value("DelayEnable")));
-	delayEnable.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
-	delayEnable.push_back(std::make_pair("description", ipc::value("Enable")));
-	delayEnable.push_back(std::make_pair("subType", ipc::value("")));
-	delayEnable.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	delayEnable.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	delayEnable.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(delayEnable);
+// 	//Enable
+// 	std::vector<std::pair<std::string, ipc::value>> delayEnable;
+// 	delayEnable.push_back(std::make_pair("name", ipc::value("DelayEnable")));
+// 	delayEnable.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
+// 	delayEnable.push_back(std::make_pair("description", ipc::value("Enable")));
+// 	delayEnable.push_back(std::make_pair("subType", ipc::value("")));
+// 	delayEnable.push_back(std::make_pair("minVal", ipc::value((double)0)));
+// 	delayEnable.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+// 	delayEnable.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+// 	entries.push_back(delayEnable);
 
-	//Duration (seconds)
-	std::vector<std::pair<std::string, ipc::value>> delaySec;
-	delaySec.push_back(std::make_pair("name", ipc::value("DelaySec")));
-	delaySec.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_INT")));
-	delaySec.push_back(std::make_pair("description", ipc::value("Duration (seconds)")));
-	delaySec.push_back(std::make_pair("subType", ipc::value("")));
-	delaySec.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	delaySec.push_back(std::make_pair("maxVal", ipc::value((double)1800)));
-	delaySec.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(delaySec);
+// 	//Duration (seconds)
+// 	std::vector<std::pair<std::string, ipc::value>> delaySec;
+// 	delaySec.push_back(std::make_pair("name", ipc::value("DelaySec")));
+// 	delaySec.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_INT")));
+// 	delaySec.push_back(std::make_pair("description", ipc::value("Duration (seconds)")));
+// 	delaySec.push_back(std::make_pair("subType", ipc::value("")));
+// 	delaySec.push_back(std::make_pair("minVal", ipc::value((double)0)));
+// 	delaySec.push_back(std::make_pair("maxVal", ipc::value((double)1800)));
+// 	delaySec.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+// 	entries.push_back(delaySec);
 
-	//Preserved cutoff point (increase delay) when reconnecting
-	std::vector<std::pair<std::string, ipc::value>> delayPreserve;
-	delayPreserve.push_back(std::make_pair("name", ipc::value("DelayPreserve")));
-	delayPreserve.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
-	delayPreserve.push_back(
-	    std::make_pair("description", ipc::value("Preserved cutoff point (increase delay) when reconnecting")));
-	delayPreserve.push_back(std::make_pair("subType", ipc::value("")));
-	delayPreserve.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	delayPreserve.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	delayPreserve.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(delayPreserve);
+// 	//Preserved cutoff point (increase delay) when reconnecting
+// 	std::vector<std::pair<std::string, ipc::value>> delayPreserve;
+// 	delayPreserve.push_back(std::make_pair("name", ipc::value("DelayPreserve")));
+// 	delayPreserve.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
+// 	delayPreserve.push_back(
+// 	    std::make_pair("description", ipc::value("Preserved cutoff point (increase delay) when reconnecting")));
+// 	delayPreserve.push_back(std::make_pair("subType", ipc::value("")));
+// 	delayPreserve.push_back(std::make_pair("minVal", ipc::value((double)0)));
+// 	delayPreserve.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+// 	delayPreserve.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+// 	entries.push_back(delayPreserve);
 
-	advancedSettings.push_back(
-	    serializeSettingsData("Stream Delay", entries, ConfigManager::getInstance().getBasic(), "Output", true, true));
-	entries.clear();
+// 	advancedSettings.push_back(
+// 	    serializeSettingsData("Stream Delay", entries, ConfigManager::getInstance().getBasic(), "Output", true, true));
+// 	entries.clear();
 
-	//Automatically Reconnect
+// 	//Automatically Reconnect
 
-	//Enable
-	std::vector<std::pair<std::string, ipc::value>> reconnect;
-	reconnect.push_back(std::make_pair("name", ipc::value("Reconnect")));
-	reconnect.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
-	reconnect.push_back(std::make_pair("description", ipc::value("Enable")));
-	reconnect.push_back(std::make_pair("subType", ipc::value("")));
-	reconnect.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	reconnect.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	reconnect.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(reconnect);
+// 	//Enable
+// 	std::vector<std::pair<std::string, ipc::value>> reconnect;
+// 	reconnect.push_back(std::make_pair("name", ipc::value("Reconnect")));
+// 	reconnect.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
+// 	reconnect.push_back(std::make_pair("description", ipc::value("Enable")));
+// 	reconnect.push_back(std::make_pair("subType", ipc::value("")));
+// 	reconnect.push_back(std::make_pair("minVal", ipc::value((double)0)));
+// 	reconnect.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+// 	reconnect.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+// 	entries.push_back(reconnect);
 
-	//Retry Delay (seconds)
-	std::vector<std::pair<std::string, ipc::value>> retryDelay;
-	retryDelay.push_back(std::make_pair("name", ipc::value("RetryDelay")));
-	retryDelay.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_INT")));
-	retryDelay.push_back(std::make_pair("description", ipc::value("Retry Delay (seconds)")));
-	retryDelay.push_back(std::make_pair("subType", ipc::value("")));
-	retryDelay.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	retryDelay.push_back(std::make_pair("maxVal", ipc::value((double)30)));
-	retryDelay.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(retryDelay);
+// 	//Retry Delay (seconds)
+// 	std::vector<std::pair<std::string, ipc::value>> retryDelay;
+// 	retryDelay.push_back(std::make_pair("name", ipc::value("RetryDelay")));
+// 	retryDelay.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_INT")));
+// 	retryDelay.push_back(std::make_pair("description", ipc::value("Retry Delay (seconds)")));
+// 	retryDelay.push_back(std::make_pair("subType", ipc::value("")));
+// 	retryDelay.push_back(std::make_pair("minVal", ipc::value((double)0)));
+// 	retryDelay.push_back(std::make_pair("maxVal", ipc::value((double)30)));
+// 	retryDelay.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+// 	entries.push_back(retryDelay);
 
-	//Maximum Retries
-	std::vector<std::pair<std::string, ipc::value>> maxRetries;
-	maxRetries.push_back(std::make_pair("name", ipc::value("MaxRetries")));
-	maxRetries.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_INT")));
-	maxRetries.push_back(std::make_pair("description", ipc::value("Maximum Retries")));
-	maxRetries.push_back(std::make_pair("subType", ipc::value("")));
-	maxRetries.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	maxRetries.push_back(std::make_pair("maxVal", ipc::value((double)10000)));
-	maxRetries.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(maxRetries);
+// 	//Maximum Retries
+// 	std::vector<std::pair<std::string, ipc::value>> maxRetries;
+// 	maxRetries.push_back(std::make_pair("name", ipc::value("MaxRetries")));
+// 	maxRetries.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_INT")));
+// 	maxRetries.push_back(std::make_pair("description", ipc::value("Maximum Retries")));
+// 	maxRetries.push_back(std::make_pair("subType", ipc::value("")));
+// 	maxRetries.push_back(std::make_pair("minVal", ipc::value((double)0)));
+// 	maxRetries.push_back(std::make_pair("maxVal", ipc::value((double)10000)));
+// 	maxRetries.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+// 	entries.push_back(maxRetries);
 
-	advancedSettings.push_back(serializeSettingsData(
-	    "Automatically Reconnect", entries, ConfigManager::getInstance().getBasic(), "Output", true, true));
-	entries.clear();
+// 	advancedSettings.push_back(serializeSettingsData(
+// 	    "Automatically Reconnect", entries, ConfigManager::getInstance().getBasic(), "Output", true, true));
+// 	entries.clear();
 
-	//Network
+// 	//Network
 
-	//Bind to IP
-	std::vector<std::pair<std::string, ipc::value>> bindIP;
-	bindIP.push_back(std::make_pair("name", ipc::value("BindIP")));
-	bindIP.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
-	bindIP.push_back(std::make_pair("description", ipc::value("Bind to IP")));
-	bindIP.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
-	bindIP.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	bindIP.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	bindIP.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+// 	//Bind to IP
+// 	std::vector<std::pair<std::string, ipc::value>> bindIP;
+// 	bindIP.push_back(std::make_pair("name", ipc::value("BindIP")));
+// 	bindIP.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
+// 	bindIP.push_back(std::make_pair("description", ipc::value("Bind to IP")));
+// 	bindIP.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
+// 	bindIP.push_back(std::make_pair("minVal", ipc::value((double)0)));
+// 	bindIP.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+// 	bindIP.push_back(std::make_pair("stepVal", ipc::value((double)0)));
 
-	obs_properties_t* ppts = obs_get_output_properties("rtmp_output");
-	obs_property_t*   p    = obs_properties_get(ppts, "bind_ip");
+// 	obs_properties_t* ppts = obs_get_output_properties("rtmp_output");
+// 	obs_property_t*   p    = obs_properties_get(ppts, "bind_ip");
 
-	size_t count = obs_property_list_item_count(p);
-	for (size_t i = 0; i < count; i++) {
-		const char* name = obs_property_list_item_name(p, i);
-		const char* val  = obs_property_list_item_string(p, i);
+// 	size_t count = obs_property_list_item_count(p);
+// 	for (size_t i = 0; i < count; i++) {
+// 		const char* name = obs_property_list_item_name(p, i);
+// 		const char* val  = obs_property_list_item_string(p, i);
 
-		bindIP.push_back(std::make_pair(name, ipc::value(val)));
-	}
+// 		bindIP.push_back(std::make_pair(name, ipc::value(val)));
+// 	}
 
-	entries.push_back(bindIP);
+// 	entries.push_back(bindIP);
 
-	//Enable dynamic bitrate
-	std::vector<std::pair<std::string, ipc::value>> dynamicBitrate;
-	dynamicBitrate.push_back(std::make_pair("name", ipc::value("DynamicBitrate")));
-	dynamicBitrate.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
-	dynamicBitrate.push_back(
-	    std::make_pair("description", ipc::value("Dynamically change bitrate when dropping frames while streaming")));
-	dynamicBitrate.push_back(std::make_pair("subType", ipc::value("")));
-	dynamicBitrate.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	dynamicBitrate.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	dynamicBitrate.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(dynamicBitrate);
+// 	//Enable dynamic bitrate
+// 	std::vector<std::pair<std::string, ipc::value>> dynamicBitrate;
+// 	dynamicBitrate.push_back(std::make_pair("name", ipc::value("DynamicBitrate")));
+// 	dynamicBitrate.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
+// 	dynamicBitrate.push_back(
+// 	    std::make_pair("description", ipc::value("Dynamically change bitrate when dropping frames while streaming")));
+// 	dynamicBitrate.push_back(std::make_pair("subType", ipc::value("")));
+// 	dynamicBitrate.push_back(std::make_pair("minVal", ipc::value((double)0)));
+// 	dynamicBitrate.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+// 	dynamicBitrate.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+// 	entries.push_back(dynamicBitrate);
 
-#ifdef WIN32
-	//Enable new networking code
-	std::vector<std::pair<std::string, ipc::value>> newSocketLoopEnable;
-	newSocketLoopEnable.push_back(std::make_pair("name", ipc::value("NewSocketLoopEnable")));
-	newSocketLoopEnable.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
-	newSocketLoopEnable.push_back(std::make_pair("description", ipc::value("Enable new networking code")));
-	newSocketLoopEnable.push_back(std::make_pair("subType", ipc::value("")));
-	newSocketLoopEnable.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	newSocketLoopEnable.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	newSocketLoopEnable.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(newSocketLoopEnable);
+// #ifdef WIN32
+// 	//Enable new networking code
+// 	std::vector<std::pair<std::string, ipc::value>> newSocketLoopEnable;
+// 	newSocketLoopEnable.push_back(std::make_pair("name", ipc::value("NewSocketLoopEnable")));
+// 	newSocketLoopEnable.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
+// 	newSocketLoopEnable.push_back(std::make_pair("description", ipc::value("Enable new networking code")));
+// 	newSocketLoopEnable.push_back(std::make_pair("subType", ipc::value("")));
+// 	newSocketLoopEnable.push_back(std::make_pair("minVal", ipc::value((double)0)));
+// 	newSocketLoopEnable.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+// 	newSocketLoopEnable.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+// 	entries.push_back(newSocketLoopEnable);
 
-	//Low latency mode
-	std::vector<std::pair<std::string, ipc::value>> lowLatencyEnable;
-	lowLatencyEnable.push_back(std::make_pair("name", ipc::value("LowLatencyEnable")));
-	lowLatencyEnable.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
-	lowLatencyEnable.push_back(std::make_pair("description", ipc::value("Low latency mode")));
-	lowLatencyEnable.push_back(std::make_pair("subType", ipc::value("")));
-	lowLatencyEnable.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	lowLatencyEnable.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	lowLatencyEnable.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(lowLatencyEnable);
-#endif
+// 	//Low latency mode
+// 	std::vector<std::pair<std::string, ipc::value>> lowLatencyEnable;
+// 	lowLatencyEnable.push_back(std::make_pair("name", ipc::value("LowLatencyEnable")));
+// 	lowLatencyEnable.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
+// 	lowLatencyEnable.push_back(std::make_pair("description", ipc::value("Low latency mode")));
+// 	lowLatencyEnable.push_back(std::make_pair("subType", ipc::value("")));
+// 	lowLatencyEnable.push_back(std::make_pair("minVal", ipc::value((double)0)));
+// 	lowLatencyEnable.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+// 	lowLatencyEnable.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+// 	entries.push_back(lowLatencyEnable);
+// #endif
 
-	advancedSettings.push_back(
-	    serializeSettingsData("Network", entries, ConfigManager::getInstance().getBasic(), "Output", true, true));
-	entries.clear();
+// 	advancedSettings.push_back(
+// 	    serializeSettingsData("Network", entries, ConfigManager::getInstance().getBasic(), "Output", true, true));
+// 	entries.clear();
 
-	obs_properties_destroy(ppts);
+// 	obs_properties_destroy(ppts);
 
-	//Sources
-	std::vector<std::pair<std::string, ipc::value>> browserHWAccel;
-	browserHWAccel.push_back(std::make_pair("name", ipc::value("browserHWAccel")));
-	browserHWAccel.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
-	browserHWAccel.push_back(
-	    std::make_pair("description", ipc::value("Enable Browser Source Hardware Acceleration (requires a restart)")));
-	browserHWAccel.push_back(std::make_pair("subType", ipc::value("")));
-	browserHWAccel.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	browserHWAccel.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	browserHWAccel.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(browserHWAccel);
+// 	//Sources
+// 	std::vector<std::pair<std::string, ipc::value>> browserHWAccel;
+// 	browserHWAccel.push_back(std::make_pair("name", ipc::value("browserHWAccel")));
+// 	browserHWAccel.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
+// 	browserHWAccel.push_back(
+// 	    std::make_pair("description", ipc::value("Enable Browser Source Hardware Acceleration (requires a restart)")));
+// 	browserHWAccel.push_back(std::make_pair("subType", ipc::value("")));
+// 	browserHWAccel.push_back(std::make_pair("minVal", ipc::value((double)0)));
+// 	browserHWAccel.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+// 	browserHWAccel.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+// 	entries.push_back(browserHWAccel);
 
-	advancedSettings.push_back(
-	    serializeSettingsData("Sources", entries, ConfigManager::getInstance().getGlobal(), "General", true, true));
-	entries.clear();
+// 	advancedSettings.push_back(
+// 	    serializeSettingsData("Sources", entries, ConfigManager::getInstance().getGlobal(), "General", true, true));
+// 	entries.clear();
 
-	//Media Files
-	std::vector<std::pair<std::string, ipc::value>> fileCaching;
-	fileCaching.push_back(std::make_pair("name", ipc::value("fileCaching")));
-	fileCaching.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
-	fileCaching.push_back(std::make_pair("description", ipc::value("Enable media file caching")));
-	fileCaching.push_back(std::make_pair("subType", ipc::value("")));
-	fileCaching.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	fileCaching.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	fileCaching.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	entries.push_back(fileCaching);
+// 	//Media Files
+// 	std::vector<std::pair<std::string, ipc::value>> fileCaching;
+// 	fileCaching.push_back(std::make_pair("name", ipc::value("fileCaching")));
+// 	fileCaching.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
+// 	fileCaching.push_back(std::make_pair("description", ipc::value("Enable media file caching")));
+// 	fileCaching.push_back(std::make_pair("subType", ipc::value("")));
+// 	fileCaching.push_back(std::make_pair("minVal", ipc::value((double)0)));
+// 	fileCaching.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+// 	fileCaching.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+// 	entries.push_back(fileCaching);
 
-	advancedSettings.push_back(
-	    serializeSettingsData("Media Files", entries, ConfigManager::getInstance().getGlobal(), "General", true, true));
-	entries.clear();
+// 	advancedSettings.push_back(
+// 	    serializeSettingsData("Media Files", entries, ConfigManager::getInstance().getGlobal(), "General", true, true));
+// 	entries.clear();
 
 	return advancedSettings;
 }

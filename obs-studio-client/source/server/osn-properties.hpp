@@ -17,7 +17,6 @@
 ******************************************************************************/
 
 #pragma once
-#include <ipc-server.hpp>
 #include "obs.h"
 
 namespace obs
