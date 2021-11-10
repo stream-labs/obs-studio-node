@@ -22,7 +22,6 @@
 #include <cstdlib>
 #include <string>
 #include <vector>
-#include <ipc.hpp>
 #include <mutex>
 #include <queue>
 #include <thread>
@@ -56,7 +55,7 @@ namespace util
 		void Configure();
 		void OpenConsole();
 
-		static void IPCValuesToData(const std::vector<ipc::value>&, nlohmann::json&);
+		// static void IPCValuesToData(const std::vector<ipc::value>&, nlohmann::json&);
 		static void AddWarning(const std::string& warning);
 		static void AddBreadcrumb(const nlohmann::json& message);
 		static void AddBreadcrumb(const std::string& message);
@@ -69,8 +68,8 @@ namespace util
 		// Return our global instance of the metrics provider, it's always valid
 		static MetricsProvider* const GetMetricsProvider();
 
-		static void ProcessPreServerCall(std::string cname, std::string fname, const std::vector<ipc::value>& args);
-		static void ProcessPostServerCall(std::string cname, std::string fname, const std::vector<ipc::value>& args);
+		// static void ProcessPreServerCall(std::string cname, std::string fname, const std::vector<ipc::value>& args);
+		// static void ProcessPostServerCall(std::string cname, std::string fname, const std::vector<ipc::value>& args);
 
 		static void SetVersionName(std::string name);
 		static void SetReportServerUrl(std::string url);

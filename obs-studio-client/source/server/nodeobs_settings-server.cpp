@@ -50,24 +50,24 @@ static std::string ResString(uint64_t cx, uint64_t cy)
 OBS_settings::OBS_settings() {}
 OBS_settings::~OBS_settings() {}
 
-struct GetSettingsInfo OBS_settings::OBS_settings_getSettings(std::string category)
-{
-	CategoryTypes            type         = NODEOBS_CATEGORY_LIST;
-	std::vector<SubCategory> settings     = getSettings(category, type);
-	std::vector<char>        binaryValue;
+// struct GetSettingsInfo OBS_settings::OBS_settings_getSettings(std::string category)
+// {
+// 	CategoryTypes            type         = NODEOBS_CATEGORY_LIST;
+// 	std::vector<SubCategory> settings     = getSettings(category, type);
+// 	std::vector<char>        binaryValue;
 
-	for (int i = 0; i < settings.size(); i++) {
-		std::vector<char> serializedBuf = settings.at(i).serialize();
-		binaryValue.insert(binaryValue.end(), serializedBuf.begin(), serializedBuf.end());
-	}
+// 	for (int i = 0; i < settings.size(); i++) {
+// 		std::vector<char> serializedBuf = settings.at(i).serialize();
+// 		binaryValue.insert(binaryValue.end(), serializedBuf.begin(), serializedBuf.end());
+// 	}
 
-	return {
-		settings.size(),
-		binaryValue.size(),
-		binaryValue,
-		type
-	};
-}
+// 	return {
+// 		settings.size(),
+// 		binaryValue.size(),
+// 		binaryValue,
+// 		type
+// 	};
+// }
 
 void UpdateAudioSettings(bool saveOnlyIfLimitApplied)
 {
@@ -222,129 +222,129 @@ void OBS_settings::OBS_settings_saveSettings(
 	saveSettings(category, settings);
 }
 
-SubCategory OBS_settings::serializeSettingsData(
-    const std::string &                                           nameSubCategory,
-    std::vector<std::vector<std::pair<std::string, ipc::value>>>& entries,
-    config_t*                                                    config,
-    const std::string &                                          section,
-    bool                                                         isVisible,
-    bool                                                         isEnabled)
-{
-	SubCategory sc;
+// SubCategory OBS_settings::serializeSettingsData(
+//     const std::string &                                           nameSubCategory,
+//     std::vector<std::vector<std::pair<std::string, ipc::value>>>& entries,
+//     config_t*                                                    config,
+//     const std::string &                                          section,
+//     bool                                                         isVisible,
+//     bool                                                         isEnabled)
+// {
+// 	SubCategory sc;
 
-	for (int i = 0; i < entries.size(); i++) {
-		Parameter param;
+// 	for (int i = 0; i < entries.size(); i++) {
+// 		Parameter param;
 
-		param.name        = entries.at(i).at(0).second.value_str;
-		param.type        = entries.at(i).at(1).second.value_str;
-		param.description = entries.at(i).at(2).second.value_str;
-		param.subType     = entries.at(i).at(3).second.value_str;
-		param.minVal      = entries.at(i).at(4).second.value_union.fp64;
-		param.maxVal      = entries.at(i).at(5).second.value_union.fp64;
-		param.stepVal     = entries.at(i).at(6).second.value_union.fp64;
+// 		param.name        = entries.at(i).at(0).second.value_str;
+// 		param.type        = entries.at(i).at(1).second.value_str;
+// 		param.description = entries.at(i).at(2).second.value_str;
+// 		param.subType     = entries.at(i).at(3).second.value_str;
+// 		param.minVal      = entries.at(i).at(4).second.value_union.fp64;
+// 		param.maxVal      = entries.at(i).at(5).second.value_union.fp64;
+// 		param.stepVal     = entries.at(i).at(6).second.value_union.fp64;
 
-		std::string currentValueParam;
-		if (entries.at(i).size() > 7) {
-			currentValueParam = entries.at(i).at(7).first.c_str();
-		}
+// 		std::string currentValueParam;
+// 		if (entries.at(i).size() > 7) {
+// 			currentValueParam = entries.at(i).at(7).first.c_str();
+// 		}
 
-		// Current value
-		if (!currentValueParam.empty() && currentValueParam.compare("currentValue") == 0) {
-			const char* currentValue = entries.at(i).at(7).second.value_str.c_str();
-			param.currentValue.resize(strlen(currentValue));
-			std::memcpy(param.currentValue.data(), currentValue, strlen(currentValue));
-			param.sizeOfCurrentValue = strlen(currentValue);
-			entries.at(i).erase(entries.at(i).begin() + 7);
-		} else {
-			if (param.type.compare("OBS_PROPERTY_LIST") == 0 || param.type.compare("OBS_PROPERTY_PATH") == 0
-			    || param.type.compare("OBS_PROPERTY_EDIT_PATH") == 0
-			    || param.type.compare("OBS_PROPERTY_EDIT_TEXT") == 0) {
-				const char* currentValue = config_get_string(config, section.c_str(), param.name.c_str());
+// 		// Current value
+// 		if (!currentValueParam.empty() && currentValueParam.compare("currentValue") == 0) {
+// 			const char* currentValue = entries.at(i).at(7).second.value_str.c_str();
+// 			param.currentValue.resize(strlen(currentValue));
+// 			std::memcpy(param.currentValue.data(), currentValue, strlen(currentValue));
+// 			param.sizeOfCurrentValue = strlen(currentValue);
+// 			entries.at(i).erase(entries.at(i).begin() + 7);
+// 		} else {
+// 			if (param.type.compare("OBS_PROPERTY_LIST") == 0 || param.type.compare("OBS_PROPERTY_PATH") == 0
+// 			    || param.type.compare("OBS_PROPERTY_EDIT_PATH") == 0
+// 			    || param.type.compare("OBS_PROPERTY_EDIT_TEXT") == 0) {
+// 				const char* currentValue = config_get_string(config, section.c_str(), param.name.c_str());
 
-				if (currentValue != NULL) {
-					param.currentValue.resize(strlen(currentValue));
-					std::memcpy(param.currentValue.data(), currentValue, strlen(currentValue));
-					param.sizeOfCurrentValue = strlen(currentValue);
+// 				if (currentValue != NULL) {
+// 					param.currentValue.resize(strlen(currentValue));
+// 					std::memcpy(param.currentValue.data(), currentValue, strlen(currentValue));
+// 					param.sizeOfCurrentValue = strlen(currentValue);
 
-				} else {
-					param.sizeOfCurrentValue = 0;
-				}
-			} else if (param.type.compare("OBS_PROPERTY_INT") == 0) {
-				int64_t val = config_get_int(config, section.c_str(), param.name.c_str());
+// 				} else {
+// 					param.sizeOfCurrentValue = 0;
+// 				}
+// 			} else if (param.type.compare("OBS_PROPERTY_INT") == 0) {
+// 				int64_t val = config_get_int(config, section.c_str(), param.name.c_str());
 
-				param.currentValue.resize(sizeof(val));
-				memcpy(param.currentValue.data(), &val, sizeof(val));
-				param.sizeOfCurrentValue = sizeof(val);
-			} else if (param.type.compare("OBS_PROPERTY_UINT") == 0) {
-				uint64_t val = config_get_uint(config, section.c_str(), param.name.c_str());
+// 				param.currentValue.resize(sizeof(val));
+// 				memcpy(param.currentValue.data(), &val, sizeof(val));
+// 				param.sizeOfCurrentValue = sizeof(val);
+// 			} else if (param.type.compare("OBS_PROPERTY_UINT") == 0) {
+// 				uint64_t val = config_get_uint(config, section.c_str(), param.name.c_str());
 
-				param.currentValue.resize(sizeof(val));
-				memcpy(param.currentValue.data(), &val, sizeof(val));
-				param.sizeOfCurrentValue = sizeof(val);
-			} else if (param.type.compare("OBS_PROPERTY_BOOL") == 0) {
-				bool val = config_get_bool(config, section.c_str(), param.name.c_str());
+// 				param.currentValue.resize(sizeof(val));
+// 				memcpy(param.currentValue.data(), &val, sizeof(val));
+// 				param.sizeOfCurrentValue = sizeof(val);
+// 			} else if (param.type.compare("OBS_PROPERTY_BOOL") == 0) {
+// 				bool val = config_get_bool(config, section.c_str(), param.name.c_str());
 
-				param.currentValue.resize(sizeof(val));
-				memcpy(param.currentValue.data(), &val, sizeof(val));
-				param.sizeOfCurrentValue = sizeof(val);
-			} else if (param.type.compare("OBS_PROPERTY_DOUBLE") == 0) {
-				double val = config_get_double(config, section.c_str(), param.name.c_str());
+// 				param.currentValue.resize(sizeof(val));
+// 				memcpy(param.currentValue.data(), &val, sizeof(val));
+// 				param.sizeOfCurrentValue = sizeof(val);
+// 			} else if (param.type.compare("OBS_PROPERTY_DOUBLE") == 0) {
+// 				double val = config_get_double(config, section.c_str(), param.name.c_str());
 
-				param.currentValue.resize(sizeof(val));
-				memcpy(param.currentValue.data(), &val, sizeof(val));
-				param.sizeOfCurrentValue = sizeof(val);
-			}
-		}
+// 				param.currentValue.resize(sizeof(val));
+// 				memcpy(param.currentValue.data(), &val, sizeof(val));
+// 				param.sizeOfCurrentValue = sizeof(val);
+// 			}
+// 		}
 
-		// Values
-		if (entries.at(i).size() > 7) {
-			for (int j = 7; j < entries.at(i).size(); j++) {
-				std::string name = entries.at(i).at(j).first;
+// 		// Values
+// 		if (entries.at(i).size() > 7) {
+// 			for (int j = 7; j < entries.at(i).size(); j++) {
+// 				std::string name = entries.at(i).at(j).first;
 
-				uint64_t          sizeName = name.length();
-				std::vector<char> sizeNameBuffer;
-				sizeNameBuffer.resize(sizeof(sizeName));
-				memcpy(sizeNameBuffer.data(), &sizeName, sizeof(sizeName));
+// 				uint64_t          sizeName = name.length();
+// 				std::vector<char> sizeNameBuffer;
+// 				sizeNameBuffer.resize(sizeof(sizeName));
+// 				memcpy(sizeNameBuffer.data(), &sizeName, sizeof(sizeName));
 
-				param.values.insert(param.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
-				param.values.insert(param.values.end(), name.begin(), name.end());
+// 				param.values.insert(param.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
+// 				param.values.insert(param.values.end(), name.begin(), name.end());
 
-				std::string value = entries.at(i).at(j).second.value_str;
+// 				std::string value = entries.at(i).at(j).second.value_str;
 
-				uint64_t          sizeValue = value.length();
-				std::vector<char> sizeValueBuffer;
-				sizeValueBuffer.resize(sizeof(sizeValue));
-				memcpy(sizeValueBuffer.data(), &sizeValue, sizeof(sizeValue));
+// 				uint64_t          sizeValue = value.length();
+// 				std::vector<char> sizeValueBuffer;
+// 				sizeValueBuffer.resize(sizeof(sizeValue));
+// 				memcpy(sizeValueBuffer.data(), &sizeValue, sizeof(sizeValue));
 
-				param.values.insert(param.values.end(), sizeValueBuffer.begin(), sizeValueBuffer.end());
-				param.values.insert(param.values.end(), value.begin(), value.end());
-			}
+// 				param.values.insert(param.values.end(), sizeValueBuffer.begin(), sizeValueBuffer.end());
+// 				param.values.insert(param.values.end(), value.begin(), value.end());
+// 			}
 
-			param.sizeOfValues = param.values.size();
-			param.countValues  = entries.at(i).size() - 7;
-		}
+// 			param.sizeOfValues = param.values.size();
+// 			param.countValues  = entries.at(i).size() - 7;
+// 		}
 
-		if (param.name.compare("RecFormat") == 0 && section.compare("SimpleOutput") == 0) {
-			const char* quality = config_get_string(config, "SimpleOutput", "RecQuality");
+// 		if (param.name.compare("RecFormat") == 0 && section.compare("SimpleOutput") == 0) {
+// 			const char* quality = config_get_string(config, "SimpleOutput", "RecQuality");
 
-			if (quality && strcmp(quality, "Lossless") == 0)
-				param.visible = false;
-			else
-				param.visible = isVisible;
-		} else {
-			param.visible = isVisible;
-		}
+// 			if (quality && strcmp(quality, "Lossless") == 0)
+// 				param.visible = false;
+// 			else
+// 				param.visible = isVisible;
+// 		} else {
+// 			param.visible = isVisible;
+// 		}
 
-		param.enabled = isEnabled;
-		param.masked  = false;
+// 		param.enabled = isEnabled;
+// 		param.masked  = false;
 
-		sc.params.push_back(param);
-	}
+// 		sc.params.push_back(param);
+// 	}
 
-	sc.paramsCount = sc.params.size();
-	sc.name        = nameSubCategory;
-	return sc;
-}
+// 	sc.paramsCount = sc.params.size();
+// 	sc.name        = nameSubCategory;
+// 	return sc;
+// }
 
 std::vector<SubCategory> OBS_settings::getGeneralSettings()
 {
@@ -1430,240 +1430,240 @@ void OBS_settings::getSimpleOutputSettings(
 // 	getReplayBufferSettings(outputSettings, config, false, isCategoryEnabled);
 }
 
-void OBS_settings::getEncoderSettings(
-    const obs_encoder_t*    encoder,
-    obs_data_t*             settings,
-    std::vector<Parameter>* subCategoryParameters,
-    int                     index,
-    bool                    isCategoryEnabled,
-    bool                    recordEncoder)
-{
-	obs_properties_t* encoderProperties = obs_encoder_properties(encoder);
-	obs_property_t*   property          = obs_properties_first(encoderProperties);
+// void OBS_settings::getEncoderSettings(
+//     const obs_encoder_t*    encoder,
+//     obs_data_t*             settings,
+//     std::vector<Parameter>* subCategoryParameters,
+//     int                     index,
+//     bool                    isCategoryEnabled,
+//     bool                    recordEncoder)
+// {
+// 	obs_properties_t* encoderProperties = obs_encoder_properties(encoder);
+// 	obs_property_t*   property          = obs_properties_first(encoderProperties);
 
-	Parameter param;
-	while (property) {
-		param.name                     = obs_property_name(property);
-		obs_property_type typeProperty = obs_property_get_type(property);
+// 	Parameter param;
+// 	while (property) {
+// 		param.name                     = obs_property_name(property);
+// 		obs_property_type typeProperty = obs_property_get_type(property);
 
-		switch (typeProperty) {
-		case OBS_PROPERTY_BOOL: {
-			param.type        = "OBS_PROPERTY_BOOL";
-			param.description = obs_property_description(property);
+// 		switch (typeProperty) {
+// 		case OBS_PROPERTY_BOOL: {
+// 			param.type        = "OBS_PROPERTY_BOOL";
+// 			param.description = obs_property_description(property);
 
-			bool value = obs_data_get_bool(settings, param.name.c_str());
+// 			bool value = obs_data_get_bool(settings, param.name.c_str());
 
-			param.currentValue.resize(sizeof(value));
-			memcpy(param.currentValue.data(), &value, sizeof(value));
-			param.sizeOfCurrentValue = sizeof(value);
+// 			param.currentValue.resize(sizeof(value));
+// 			memcpy(param.currentValue.data(), &value, sizeof(value));
+// 			param.sizeOfCurrentValue = sizeof(value);
 
-			break;
-		}
-		case OBS_PROPERTY_INT: {
-			param.type        = "OBS_PROPERTY_INT";
-			param.description = obs_property_description(property);
+// 			break;
+// 		}
+// 		case OBS_PROPERTY_INT: {
+// 			param.type        = "OBS_PROPERTY_INT";
+// 			param.description = obs_property_description(property);
 
-			int64_t value = obs_data_get_int(settings, param.name.c_str());
+// 			int64_t value = obs_data_get_int(settings, param.name.c_str());
 
-			param.currentValue.resize(sizeof(value));
-			memcpy(param.currentValue.data(), &value, sizeof(value));
-			param.sizeOfCurrentValue = sizeof(value);
+// 			param.currentValue.resize(sizeof(value));
+// 			memcpy(param.currentValue.data(), &value, sizeof(value));
+// 			param.sizeOfCurrentValue = sizeof(value);
 
-			param.minVal  = obs_property_int_min(property);
-			param.maxVal  = obs_property_int_max(property);
-			param.stepVal = obs_property_int_step(property);
-			break;
-		}
-		case OBS_PROPERTY_FLOAT: {
-			param.type        = "OBS_PROPERTY_DOUBLE";
-			param.description = obs_property_description(property);
+// 			param.minVal  = obs_property_int_min(property);
+// 			param.maxVal  = obs_property_int_max(property);
+// 			param.stepVal = obs_property_int_step(property);
+// 			break;
+// 		}
+// 		case OBS_PROPERTY_FLOAT: {
+// 			param.type        = "OBS_PROPERTY_DOUBLE";
+// 			param.description = obs_property_description(property);
 
-			double value = obs_data_get_double(settings, param.name.c_str());
+// 			double value = obs_data_get_double(settings, param.name.c_str());
 
-			param.currentValue.resize(sizeof(value));
-			memcpy(param.currentValue.data(), &value, sizeof(value));
-			param.sizeOfCurrentValue = sizeof(value);
+// 			param.currentValue.resize(sizeof(value));
+// 			memcpy(param.currentValue.data(), &value, sizeof(value));
+// 			param.sizeOfCurrentValue = sizeof(value);
 
-			param.minVal  = obs_property_float_min(property);
-			param.maxVal  = obs_property_float_max(property);
-			param.stepVal = obs_property_float_step(property);
-			break;
-		}
-		case OBS_PROPERTY_TEXT: {
-			param.type        = "OBS_PROPERTY_TEXT";
-			param.description = obs_property_description(property);
+// 			param.minVal  = obs_property_float_min(property);
+// 			param.maxVal  = obs_property_float_max(property);
+// 			param.stepVal = obs_property_float_step(property);
+// 			break;
+// 		}
+// 		case OBS_PROPERTY_TEXT: {
+// 			param.type        = "OBS_PROPERTY_TEXT";
+// 			param.description = obs_property_description(property);
 
-			const char* currentValue = obs_data_get_string(settings, param.name.c_str());
+// 			const char* currentValue = obs_data_get_string(settings, param.name.c_str());
 
-			if (currentValue == NULL) {
-				currentValue = "";
-			}
+// 			if (currentValue == NULL) {
+// 				currentValue = "";
+// 			}
 
-			param.currentValue.resize(strlen(currentValue));
-			memcpy(param.currentValue.data(), currentValue, strlen(currentValue));
-			param.sizeOfCurrentValue = strlen(currentValue);
-			break;
-		}
-		case OBS_PROPERTY_PATH: {
-			param.type        = "OBS_PROPERTY_PATH";
-			param.description = obs_property_description(property);
+// 			param.currentValue.resize(strlen(currentValue));
+// 			memcpy(param.currentValue.data(), currentValue, strlen(currentValue));
+// 			param.sizeOfCurrentValue = strlen(currentValue);
+// 			break;
+// 		}
+// 		case OBS_PROPERTY_PATH: {
+// 			param.type        = "OBS_PROPERTY_PATH";
+// 			param.description = obs_property_description(property);
 
-			const char* currentValue = obs_data_get_string(settings, param.name.c_str());
+// 			const char* currentValue = obs_data_get_string(settings, param.name.c_str());
 
-			if (currentValue == NULL) {
-				currentValue = "";
-			}
+// 			if (currentValue == NULL) {
+// 				currentValue = "";
+// 			}
 
-			param.currentValue.resize(strlen(currentValue));
-			memcpy(param.currentValue.data(), currentValue, strlen(currentValue));
-			param.sizeOfCurrentValue = strlen(currentValue);
+// 			param.currentValue.resize(strlen(currentValue));
+// 			memcpy(param.currentValue.data(), currentValue, strlen(currentValue));
+// 			param.sizeOfCurrentValue = strlen(currentValue);
 
-			break;
-		}
-		case OBS_PROPERTY_LIST: {
-			param.type        = "OBS_PROPERTY_LIST";
-			param.description = obs_property_description(property);
+// 			break;
+// 		}
+// 		case OBS_PROPERTY_LIST: {
+// 			param.type        = "OBS_PROPERTY_LIST";
+// 			param.description = obs_property_description(property);
 
-			obs_combo_format format = obs_property_list_format(property);
+// 			obs_combo_format format = obs_property_list_format(property);
 
-			if (format == OBS_COMBO_FORMAT_INT) {
-				int64_t value = obs_data_get_int(settings, param.name.c_str());
-				param.currentValue.resize(sizeof(value));
-				memcpy(param.currentValue.data(), &value, sizeof(value));
-				param.sizeOfCurrentValue = sizeof(value);
+// 			if (format == OBS_COMBO_FORMAT_INT) {
+// 				int64_t value = obs_data_get_int(settings, param.name.c_str());
+// 				param.currentValue.resize(sizeof(value));
+// 				memcpy(param.currentValue.data(), &value, sizeof(value));
+// 				param.sizeOfCurrentValue = sizeof(value);
 
-				param.minVal  = obs_property_int_min(property);
-				param.maxVal  = obs_property_int_max(property);
-				param.stepVal = obs_property_int_step(property);
-			} else if (format == OBS_COMBO_FORMAT_FLOAT) {
-				double value = obs_data_get_double(settings, param.name.c_str());
-				param.currentValue.resize(sizeof(value));
-				memcpy(param.currentValue.data(), &value, sizeof(value));
-				param.sizeOfCurrentValue = sizeof(value);
+// 				param.minVal  = obs_property_int_min(property);
+// 				param.maxVal  = obs_property_int_max(property);
+// 				param.stepVal = obs_property_int_step(property);
+// 			} else if (format == OBS_COMBO_FORMAT_FLOAT) {
+// 				double value = obs_data_get_double(settings, param.name.c_str());
+// 				param.currentValue.resize(sizeof(value));
+// 				memcpy(param.currentValue.data(), &value, sizeof(value));
+// 				param.sizeOfCurrentValue = sizeof(value);
 
-				param.minVal  = obs_property_float_min(property);
-				param.maxVal  = obs_property_float_max(property);
-				param.stepVal = obs_property_float_step(property);
-			} else if (format == OBS_COMBO_FORMAT_STRING) {
-				const char* currentValue = obs_data_get_string(settings, param.name.c_str());
+// 				param.minVal  = obs_property_float_min(property);
+// 				param.maxVal  = obs_property_float_max(property);
+// 				param.stepVal = obs_property_float_step(property);
+// 			} else if (format == OBS_COMBO_FORMAT_STRING) {
+// 				const char* currentValue = obs_data_get_string(settings, param.name.c_str());
 
-				if (currentValue == NULL) {
-					currentValue = "";
-				}
+// 				if (currentValue == NULL) {
+// 					currentValue = "";
+// 				}
 
-				param.currentValue.resize(strlen(currentValue));
-				memcpy(param.currentValue.data(), currentValue, strlen(currentValue));
-				param.sizeOfCurrentValue = strlen(currentValue);
-			}
+// 				param.currentValue.resize(strlen(currentValue));
+// 				memcpy(param.currentValue.data(), currentValue, strlen(currentValue));
+// 				param.sizeOfCurrentValue = strlen(currentValue);
+// 			}
 
-			int count = (int)obs_property_list_item_count(property);
+// 			int count = (int)obs_property_list_item_count(property);
 
-			param.values.clear();
+// 			param.values.clear();
 
-			for (int i = 0; i < count; i++) {
-				// Name
-				std::string itemName = obs_property_list_item_name(property, i);
+// 			for (int i = 0; i < count; i++) {
+// 				// Name
+// 				std::string itemName = obs_property_list_item_name(property, i);
 
-				if (format == OBS_COMBO_FORMAT_INT) {
-					param.subType = "OBS_COMBO_FORMAT_INT";
+// 				if (format == OBS_COMBO_FORMAT_INT) {
+// 					param.subType = "OBS_COMBO_FORMAT_INT";
 
-					uint64_t          sizeName = itemName.length();
-					std::vector<char> sizeNameBuffer;
-					sizeNameBuffer.resize(sizeof(sizeName));
-					memcpy(sizeNameBuffer.data(), &sizeName, sizeof(sizeName));
+// 					uint64_t          sizeName = itemName.length();
+// 					std::vector<char> sizeNameBuffer;
+// 					sizeNameBuffer.resize(sizeof(sizeName));
+// 					memcpy(sizeNameBuffer.data(), &sizeName, sizeof(sizeName));
 
-					param.values.insert(param.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
-					param.values.insert(param.values.end(), itemName.begin(), itemName.end());
+// 					param.values.insert(param.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
+// 					param.values.insert(param.values.end(), itemName.begin(), itemName.end());
 
-					int64_t value = obs_property_list_item_int(property, i);
+// 					int64_t value = obs_property_list_item_int(property, i);
 
-					std::vector<char> valueBuffer;
-					valueBuffer.resize(sizeof(uint64_t));
-					memcpy(valueBuffer.data(), &value, sizeof(value));
+// 					std::vector<char> valueBuffer;
+// 					valueBuffer.resize(sizeof(uint64_t));
+// 					memcpy(valueBuffer.data(), &value, sizeof(value));
 
-					param.values.insert(param.values.end(), valueBuffer.begin(), valueBuffer.end());
-				} else if (format == OBS_COMBO_FORMAT_FLOAT) {
-					param.subType = "OBS_COMBO_FORMAT_FLOAT";
+// 					param.values.insert(param.values.end(), valueBuffer.begin(), valueBuffer.end());
+// 				} else if (format == OBS_COMBO_FORMAT_FLOAT) {
+// 					param.subType = "OBS_COMBO_FORMAT_FLOAT";
 
-					uint64_t          sizeName = itemName.length();
-					std::vector<char> sizeNameBuffer;
-					sizeNameBuffer.resize(sizeof(sizeName));
-					memcpy(sizeNameBuffer.data(), &sizeName, sizeof(sizeName));
+// 					uint64_t          sizeName = itemName.length();
+// 					std::vector<char> sizeNameBuffer;
+// 					sizeNameBuffer.resize(sizeof(sizeName));
+// 					memcpy(sizeNameBuffer.data(), &sizeName, sizeof(sizeName));
 
-					param.values.insert(param.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
-					param.values.insert(param.values.end(), itemName.begin(), itemName.end());
+// 					param.values.insert(param.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
+// 					param.values.insert(param.values.end(), itemName.begin(), itemName.end());
 
-					double value = obs_property_list_item_float(property, i);
+// 					double value = obs_property_list_item_float(property, i);
 
-					std::vector<char> valueBuffer;
-					valueBuffer.resize(sizeof(value));
-					memcpy(valueBuffer.data(), &value, sizeof(value));
+// 					std::vector<char> valueBuffer;
+// 					valueBuffer.resize(sizeof(value));
+// 					memcpy(valueBuffer.data(), &value, sizeof(value));
 
-					param.values.insert(param.values.end(), valueBuffer.begin(), valueBuffer.end());
-				} else if (format == OBS_COMBO_FORMAT_STRING) {
-					param.subType = "OBS_COMBO_FORMAT_STRING";
+// 					param.values.insert(param.values.end(), valueBuffer.begin(), valueBuffer.end());
+// 				} else if (format == OBS_COMBO_FORMAT_STRING) {
+// 					param.subType = "OBS_COMBO_FORMAT_STRING";
 
-					uint64_t          sizeName = itemName.length();
-					std::vector<char> sizeNameBuffer;
-					sizeNameBuffer.resize(sizeof(sizeName));
-					memcpy(sizeNameBuffer.data(), &sizeName, sizeof(sizeName));
+// 					uint64_t          sizeName = itemName.length();
+// 					std::vector<char> sizeNameBuffer;
+// 					sizeNameBuffer.resize(sizeof(sizeName));
+// 					memcpy(sizeNameBuffer.data(), &sizeName, sizeof(sizeName));
 
-					param.values.insert(param.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
-					param.values.insert(param.values.end(), itemName.begin(), itemName.end());
+// 					param.values.insert(param.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
+// 					param.values.insert(param.values.end(), itemName.begin(), itemName.end());
 
-					std::string value = obs_property_list_item_string(property, i);
+// 					std::string value = obs_property_list_item_string(property, i);
 
-					uint64_t          sizeValue = value.length();
-					std::vector<char> sizeValueBuffer;
-					sizeValueBuffer.resize(sizeof(sizeValue));
-					memcpy(sizeValueBuffer.data(), &sizeValue, sizeof(sizeValue));
+// 					uint64_t          sizeValue = value.length();
+// 					std::vector<char> sizeValueBuffer;
+// 					sizeValueBuffer.resize(sizeof(sizeValue));
+// 					memcpy(sizeValueBuffer.data(), &sizeValue, sizeof(sizeValue));
 
-					param.values.insert(param.values.end(), sizeValueBuffer.begin(), sizeValueBuffer.end());
-					param.values.insert(param.values.end(), value.begin(), value.end());
-				}
-			}
+// 					param.values.insert(param.values.end(), sizeValueBuffer.begin(), sizeValueBuffer.end());
+// 					param.values.insert(param.values.end(), value.begin(), value.end());
+// 				}
+// 			}
 
-			param.sizeOfValues = param.values.size();
-			param.countValues  = count;
+// 			param.sizeOfValues = param.values.size();
+// 			param.countValues  = count;
 
-			break;
-		}
-		case OBS_PROPERTY_EDITABLE_LIST: {
-			param.type        = "OBS_PROPERTY_EDITABLE_LIST";
-			param.description = obs_property_description(property);
+// 			break;
+// 		}
+// 		case OBS_PROPERTY_EDITABLE_LIST: {
+// 			param.type        = "OBS_PROPERTY_EDITABLE_LIST";
+// 			param.description = obs_property_description(property);
 
-			const char* currentValue = obs_data_get_string(settings, param.name.c_str());
+// 			const char* currentValue = obs_data_get_string(settings, param.name.c_str());
 
-			if (currentValue == NULL)
-				currentValue = "";
+// 			if (currentValue == NULL)
+// 				currentValue = "";
 
-			param.currentValue.resize(strlen(currentValue));
-			memcpy(param.currentValue.data(), currentValue, strlen(currentValue));
-			param.sizeOfCurrentValue = strlen(currentValue);
+// 			param.currentValue.resize(strlen(currentValue));
+// 			memcpy(param.currentValue.data(), currentValue, strlen(currentValue));
+// 			param.sizeOfCurrentValue = strlen(currentValue);
 
-			break;
-		}
-		}
-		param.visible = obs_property_visible(property);
+// 			break;
+// 		}
+// 		}
+// 		param.visible = obs_property_visible(property);
 
-		bool isEnabled = obs_property_enabled(property);
-		if (!isCategoryEnabled)
-			isEnabled = isCategoryEnabled;
+// 		bool isEnabled = obs_property_enabled(property);
+// 		if (!isCategoryEnabled)
+// 			isEnabled = isCategoryEnabled;
 
-		param.enabled = isEnabled;
-		param.masked  = false;
+// 		param.enabled = isEnabled;
+// 		param.masked  = false;
 
-		if (recordEncoder) {
-			param.name.insert(0, "Rec");
-		}
+// 		if (recordEncoder) {
+// 			param.name.insert(0, "Rec");
+// 		}
 
-		subCategoryParameters->push_back(param);
+// 		subCategoryParameters->push_back(param);
 
-		obs_property_next(&property);
-	}
+// 		obs_property_next(&property);
+// 	}
 
-	obs_properties_destroy(encoderProperties);
-}
+// 	obs_properties_destroy(encoderProperties);
+// }
 
 SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, bool isCategoryEnabled)
 {
@@ -2680,48 +2680,48 @@ void OBS_settings::getAdvancedOutputSettings(
 	getReplayBufferSettings(outputSettings, config, true, isCategoryEnabled);
 }
 
-std::vector<SubCategory> OBS_settings::getOutputSettings(CategoryTypes& type)
-{
-	std::vector<SubCategory> outputSettings;
+// std::vector<SubCategory> OBS_settings::getOutputSettings(CategoryTypes& type)
+// {
+// 	std::vector<SubCategory> outputSettings;
 
-	// bool isCategoryEnabled = !OBS_service::isStreamingOutputActive() && !OBS_service::isRecordingOutputActive()
-	//                          && !OBS_service::isReplayBufferOutputActive();
+// 	bool isCategoryEnabled = !OBS_service::isStreamingOutputActive() && !OBS_service::isRecordingOutputActive()
+// 	                         && !OBS_service::isReplayBufferOutputActive();
 
-	// std::vector<std::vector<std::pair<std::string, ipc::value>>> entries;
+// 	std::vector<std::vector<std::pair<std::string, ipc::value>>> entries;
 
-	// //Output mode
-	// std::vector<std::pair<std::string, ipc::value>> outputMode;
+// 	//Output mode
+// 	std::vector<std::pair<std::string, ipc::value>> outputMode;
 
-	// outputMode.push_back(std::make_pair("name", ipc::value("Mode")));
-	// outputMode.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
-	// outputMode.push_back(std::make_pair("description", ipc::value("Output Mode")));
-	// outputMode.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
-	// outputMode.push_back(std::make_pair("minVal", ipc::value((double)0)));
-	// outputMode.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-	// outputMode.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	// outputMode.push_back(std::make_pair("Simple", ipc::value("Simple")));
-	// outputMode.push_back(std::make_pair("Advanced", ipc::value("Advanced")));
-	// entries.push_back(outputMode);
+// 	outputMode.push_back(std::make_pair("name", ipc::value("Mode")));
+// 	outputMode.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
+// 	outputMode.push_back(std::make_pair("description", ipc::value("Output Mode")));
+// 	outputMode.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
+// 	outputMode.push_back(std::make_pair("minVal", ipc::value((double)0)));
+// 	outputMode.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+// 	outputMode.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+// 	outputMode.push_back(std::make_pair("Simple", ipc::value("Simple")));
+// 	outputMode.push_back(std::make_pair("Advanced", ipc::value("Advanced")));
+// 	entries.push_back(outputMode);
 
-	// outputSettings.push_back(serializeSettingsData(
-	//     "Untitled", entries, ConfigManager::getInstance().getBasic(), "Output", true, isCategoryEnabled));
-	// entries.clear();
+// 	outputSettings.push_back(serializeSettingsData(
+// 	    "Untitled", entries, ConfigManager::getInstance().getBasic(), "Output", true, isCategoryEnabled));
+// 	entries.clear();
 
-	// const char* currentOutputMode = config_get_string(ConfigManager::getInstance().getBasic(), "Output", "Mode");
+// 	const char* currentOutputMode = config_get_string(ConfigManager::getInstance().getBasic(), "Output", "Mode");
 
-	// if (currentOutputMode == NULL) {
-	// 	currentOutputMode = "Simple";
-	// }
+// 	if (currentOutputMode == NULL) {
+// 		currentOutputMode = "Simple";
+// 	}
 
-	// if (strcmp(currentOutputMode, "Advanced") == 0) {
-	// 	getAdvancedOutputSettings(&outputSettings, ConfigManager::getInstance().getBasic(), isCategoryEnabled);
-	// 	type = NODEOBS_CATEGORY_TAB;
-	// } else {
-	// 	getSimpleOutputSettings(&outputSettings, ConfigManager::getInstance().getBasic(), isCategoryEnabled);
-	// }
+// 	if (strcmp(currentOutputMode, "Advanced") == 0) {
+// 		getAdvancedOutputSettings(&outputSettings, ConfigManager::getInstance().getBasic(), isCategoryEnabled);
+// 		type = NODEOBS_CATEGORY_TAB;
+// 	} else {
+// 		getSimpleOutputSettings(&outputSettings, ConfigManager::getInstance().getBasic(), isCategoryEnabled);
+// 	}
 
-	return outputSettings;
-}
+// 	return outputSettings;
+// }
 
 void OBS_settings::saveSimpleOutputSettings(std::vector<SubCategory> settings)
 {
@@ -3159,20 +3159,20 @@ void OBS_settings::saveAudioSettings(std::vector<SubCategory> audioSettings)
 	config_save_safe(ConfigManager::getInstance().getBasic(), "tmp", nullptr);
 }
 
-std::vector<std::pair<uint64_t, uint64_t>> OBS_settings::getOutputResolutions(uint64_t base_cx, uint64_t base_cy)
-{
-	std::vector<std::pair<uint64_t, uint64_t>> outputResolutions;
-	for (size_t idx = 0; idx < numVals; idx++) {
-		uint64_t outDownscaleCX = uint64_t(double(base_cx) / vals[idx]);
-		uint64_t outDownscaleCY = uint64_t(double(base_cy) / vals[idx]);
+// std::vector<std::pair<uint64_t, uint64_t>> OBS_settings::getOutputResolutions(uint64_t base_cx, uint64_t base_cy)
+// {
+// 	std::vector<std::pair<uint64_t, uint64_t>> outputResolutions;
+// 	for (size_t idx = 0; idx < numVals; idx++) {
+// 		uint64_t outDownscaleCX = uint64_t(double(base_cx) / vals[idx]);
+// 		uint64_t outDownscaleCY = uint64_t(double(base_cy) / vals[idx]);
 
-		outDownscaleCX &= 0xFFFFFFFE;
-		outDownscaleCY &= 0xFFFFFFFE;
+// 		outDownscaleCX &= 0xFFFFFFFE;
+// 		outDownscaleCY &= 0xFFFFFFFE;
 
-		outputResolutions.push_back(std::make_pair(outDownscaleCX, outDownscaleCY));
-	}
-	return outputResolutions;
-}
+// 		outputResolutions.push_back(std::make_pair(outDownscaleCX, outDownscaleCY));
+// 	}
+// 	return outputResolutions;
+// }
 
 std::vector<SubCategory> OBS_settings::getVideoSettings()
 {
@@ -3971,26 +3971,26 @@ void OBS_settings::saveAdvancedSettings(std::vector<SubCategory> advancedSetting
 	MemoryManager::GetInstance().updateSourcesCache();
 }
 
-std::vector<SubCategory> OBS_settings::getSettings(std::string nameCategory, CategoryTypes& type)
-{
-	std::vector<SubCategory> settings;
+// std::vector<SubCategory> OBS_settings::getSettings(std::string nameCategory, CategoryTypes& type)
+// {
+// 	std::vector<SubCategory> settings;
 
-	if (nameCategory.compare("General") == 0) {
-		settings = getGeneralSettings();
-	} else if (nameCategory.compare("Stream") == 0) {
-		settings = getStreamSettings();
-	} else if (nameCategory.compare("Output") == 0) {
-		settings = getOutputSettings(type);
-	} else if (nameCategory.compare("Audio") == 0) {
-		settings = getAudioSettings();
-	} else if (nameCategory.compare("Video") == 0) {
-		settings = getVideoSettings();
-	} else if (nameCategory.compare("Advanced") == 0) {
-		settings = getAdvancedSettings();
-	}
+// 	if (nameCategory.compare("General") == 0) {
+// 		settings = getGeneralSettings();
+// 	} else if (nameCategory.compare("Stream") == 0) {
+// 		settings = getStreamSettings();
+// 	} else if (nameCategory.compare("Output") == 0) {
+// 		settings = getOutputSettings(type);
+// 	} else if (nameCategory.compare("Audio") == 0) {
+// 		settings = getAudioSettings();
+// 	} else if (nameCategory.compare("Video") == 0) {
+// 		settings = getVideoSettings();
+// 	} else if (nameCategory.compare("Advanced") == 0) {
+// 		settings = getAdvancedSettings();
+// 	}
 
-	return settings;
-}
+// 	return settings;
+// }
 
 bool OBS_settings::saveSettings(std::string nameCategory, std::vector<SubCategory> settings)
 {

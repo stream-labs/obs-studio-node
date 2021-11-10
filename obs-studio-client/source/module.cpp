@@ -20,7 +20,6 @@
 #include <mutex>
 #include <string>
 #include "error.hpp"
-#include "ipc-value.hpp"
 #include "shared.hpp"
 #include "utility.hpp"
 #include "module.hpp"

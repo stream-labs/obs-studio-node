@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.NodeObs = exports.getSourcesSize = exports.createSources = exports.addItems = exports.EDelayFlags = exports.IPC = exports.ModuleFactory = exports.AudioFactory = exports.FaderFactory = exports.VolmeterFactory = exports.DisplayFactory = exports.TransitionFactory = exports.FilterFactory = exports.SceneFactory = exports.InputFactory = exports.ServiceFactory = exports.VideoEncoderFactory = exports.AudioEncoderFactory = exports.OutputFactory = exports.Video = exports.Global = exports.DefaultPluginDataPath = exports.DefaultPluginPath = exports.DefaultDataPath = exports.DefaultBinPath = exports.DefaultDrawPluginPath = exports.DefaultOpenGLPath = exports.DefaultD3D11Path = void 0;
 const obs = require('./obs_studio_client.node');
 const path = require("path");
 const fs = require("fs");
@@ -10,8 +11,8 @@ exports.DefaultBinPath = path.resolve(__dirname);
 exports.DefaultDataPath = path.resolve(__dirname, `data`);
 exports.DefaultPluginPath = path.resolve(__dirname, `obs-plugins`);
 exports.DefaultPluginDataPath = path.resolve(__dirname, `data/obs-plugins/%module%`);
-;
 exports.Global = obs.Global;
+exports.Video = obs.Video;
 exports.OutputFactory = obs.Output;
 exports.AudioEncoderFactory = obs.AudioEncoder;
 exports.VideoEncoderFactory = obs.VideoEncoder;
@@ -24,7 +25,6 @@ exports.DisplayFactory = obs.Display;
 exports.VolmeterFactory = obs.Volmeter;
 exports.FaderFactory = obs.Fader;
 exports.AudioFactory = obs.Audio;
-exports.Video = obs.Video;
 exports.ModuleFactory = obs.Module;
 exports.IPC = obs.IPC;
 var EDelayFlags;
@@ -56,7 +56,7 @@ function createSources(sources) {
                 newSource.muted = (source.muted != null) ? source.muted : false;
                 newSource.volume = (source.volume != null) ? source.volume : 1;
                 newSource.syncOffset =
-                (source.syncOffset != null) ? source.syncOffset : {sec: 0, nsec: 0};
+                    (source.syncOffset != null) ? source.syncOffset : { sec: 0, nsec: 0 };
             }
             items.push(newSource);
             const filters = source.filters;
@@ -84,15 +84,5 @@ function getSourcesSize(sourcesNames) {
         });
     }
     return sourcesSize;
-}
-exports.getSourcesSize = getSourcesSize;
-if (fs.existsSync(path.resolve(__dirname, `obs64`).replace('app.asar', 'app.asar.unpacked'))) {
-    obs.IPC.setServerPath(path.resolve(__dirname, `obs64`).replace('app.asar', 'app.asar.unpacked'), path.resolve(__dirname).replace('app.asar', 'app.asar.unpacked'));
-}
-else if (fs.existsSync(path.resolve(__dirname, `obs64.exe`).replace('app.asar', 'app.asar.unpacked'))) {
-    obs.IPC.setServerPath(path.resolve(__dirname, `obs64.exe`).replace('app.asar', 'app.asar.unpacked'), path.resolve(__dirname).replace('app.asar', 'app.asar.unpacked'));
-}
-else {
-    obs.IPC.setServerPath(path.resolve(__dirname, `obs32.exe`).replace('app.asar', 'app.asar.unpacked'), path.resolve(__dirname).replace('app.asar', 'app.asar.unpacked'));
 }
 exports.NodeObs = obs;

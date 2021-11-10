@@ -20,10 +20,8 @@
 #include <condition_variable>
 #include <mutex>
 #include <string>
-#include "controller.hpp"
 #include "error.hpp"
 #include "input.hpp"
-#include "ipc-value.hpp"
 #include "sceneitem.hpp"
 #include "shared.hpp"
 #include "utility.hpp"

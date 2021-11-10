@@ -17,7 +17,6 @@
 ******************************************************************************/
 
 #include "nodeobs_service.hpp"
-#include "controller.hpp"
 #include "error.hpp"
 #include "utility-v8.hpp"
 
@@ -223,77 +222,77 @@ Napi::Value service::OBS_service_stopVirtualWebcam(const Napi::CallbackInfo& inf
 }
 
 Napi::Value service::OBS_service_installVirtualCamPlugin(const Napi::CallbackInfo& info) {
-#ifdef WIN32
-	std::wstring pathToRegFile = L"/s /n /i:\"1\" \"" + utfWorkingDir;
-	pathToRegFile += L"\\obs-virtualsource.dll\"";
-	SHELLEXECUTEINFO ShExecInfo = {0};
-	ShExecInfo.cbSize = sizeof(SHELLEXECUTEINFO);
-	ShExecInfo.fMask = SEE_MASK_NOCLOSEPROCESS;
-	ShExecInfo.hwnd = NULL;
-	ShExecInfo.lpVerb = L"runas";
-	ShExecInfo.lpFile = L"regsvr32.exe";
-	ShExecInfo.lpParameters = pathToRegFile.c_str();
-	ShExecInfo.lpDirectory = NULL;
-	ShExecInfo.nShow = SW_HIDE;
-	ShExecInfo.hInstApp = NULL;
-	ShellExecuteEx(&ShExecInfo);
-	WaitForSingleObject(ShExecInfo.hProcess, INFINITE);
-	CloseHandle(ShExecInfo.hProcess);
+// #ifdef WIN32
+// 	std::wstring pathToRegFile = L"/s /n /i:\"1\" \"" + utfWorkingDir;
+// 	pathToRegFile += L"\\obs-virtualsource.dll\"";
+// 	SHELLEXECUTEINFO ShExecInfo = {0};
+// 	ShExecInfo.cbSize = sizeof(SHELLEXECUTEINFO);
+// 	ShExecInfo.fMask = SEE_MASK_NOCLOSEPROCESS;
+// 	ShExecInfo.hwnd = NULL;
+// 	ShExecInfo.lpVerb = L"runas";
+// 	ShExecInfo.lpFile = L"regsvr32.exe";
+// 	ShExecInfo.lpParameters = pathToRegFile.c_str();
+// 	ShExecInfo.lpDirectory = NULL;
+// 	ShExecInfo.nShow = SW_HIDE;
+// 	ShExecInfo.hInstApp = NULL;
+// 	ShellExecuteEx(&ShExecInfo);
+// 	WaitForSingleObject(ShExecInfo.hProcess, INFINITE);
+// 	CloseHandle(ShExecInfo.hProcess);
 
-	std::wstring pathToRegFile32 = L"/s /n /i:\"1\" \"" + utfWorkingDir;
-	pathToRegFile32 += L"\\data\\obs-plugins\\obs-virtualoutput\\obs-virtualsource_32bit\\obs-virtualsource.dll\"";
-	SHELLEXECUTEINFO ShExecInfob = {0};
-	ShExecInfob.cbSize = sizeof(SHELLEXECUTEINFO);
-	ShExecInfob.fMask = SEE_MASK_NOCLOSEPROCESS;
-	ShExecInfob.hwnd = NULL;
-	ShExecInfob.lpVerb = L"runas";
-	ShExecInfob.lpFile = L"regsvr32.exe";
-	ShExecInfob.lpParameters = pathToRegFile32.c_str();
-	ShExecInfob.lpDirectory = NULL;
-	ShExecInfob.nShow = SW_HIDE;
-	ShExecInfob.hInstApp = NULL;
-	ShellExecuteEx(&ShExecInfob);
-	WaitForSingleObject(ShExecInfob.hProcess, INFINITE);
-	CloseHandle(ShExecInfob.hProcess);
-#elif __APPLE__
-	g_util_osx->installPlugin();
-#endif
+// 	std::wstring pathToRegFile32 = L"/s /n /i:\"1\" \"" + utfWorkingDir;
+// 	pathToRegFile32 += L"\\data\\obs-plugins\\obs-virtualoutput\\obs-virtualsource_32bit\\obs-virtualsource.dll\"";
+// 	SHELLEXECUTEINFO ShExecInfob = {0};
+// 	ShExecInfob.cbSize = sizeof(SHELLEXECUTEINFO);
+// 	ShExecInfob.fMask = SEE_MASK_NOCLOSEPROCESS;
+// 	ShExecInfob.hwnd = NULL;
+// 	ShExecInfob.lpVerb = L"runas";
+// 	ShExecInfob.lpFile = L"regsvr32.exe";
+// 	ShExecInfob.lpParameters = pathToRegFile32.c_str();
+// 	ShExecInfob.lpDirectory = NULL;
+// 	ShExecInfob.nShow = SW_HIDE;
+// 	ShExecInfob.hInstApp = NULL;
+// 	ShellExecuteEx(&ShExecInfob);
+// 	WaitForSingleObject(ShExecInfob.hProcess, INFINITE);
+// 	CloseHandle(ShExecInfob.hProcess);
+// #elif __APPLE__
+// 	g_util_osx->installPlugin();
+// #endif
 	return info.Env().Undefined();
 }
 
 Napi::Value service::OBS_service_uninstallVirtualCamPlugin(const Napi::CallbackInfo& info) {
 #ifdef WIN32
-	std::wstring pathToRegFile = L"/u \"" + utfWorkingDir;
-	pathToRegFile += L"\\obs-virtualsource.dll\"";
-	SHELLEXECUTEINFO ShExecInfo = {0};
-	ShExecInfo.cbSize = sizeof(SHELLEXECUTEINFO);
-	ShExecInfo.fMask = SEE_MASK_NOCLOSEPROCESS;
-	ShExecInfo.hwnd = NULL;
-	ShExecInfo.lpVerb = L"runas";
-	ShExecInfo.lpFile = L"regsvr32.exe";
-	ShExecInfo.lpParameters = pathToRegFile.c_str();
-	ShExecInfo.lpDirectory = NULL;
-	ShExecInfo.nShow = SW_HIDE;
-	ShExecInfo.hInstApp = NULL;
-	ShellExecuteEx(&ShExecInfo);
-	WaitForSingleObject(ShExecInfo.hProcess, INFINITE);
-	CloseHandle(ShExecInfo.hProcess);
+	// std::wstring pathToRegFile = L"/u \"" + utfWorkingDir;
+	// pathToRegFile += L"\\obs-virtualsource.dll\"";
+	// SHELLEXECUTEINFO ShExecInfo = {0};
+	// ShExecInfo.cbSize = sizeof(SHELLEXECUTEINFO);
+	// ShExecInfo.fMask = SEE_MASK_NOCLOSEPROCESS;
+	// ShExecInfo.hwnd = NULL;
+	// ShExecInfo.lpVerb = L"runas";
+	// ShExecInfo.lpFile = L"regsvr32.exe";
+	// ShExecInfo.lpParameters = pathToRegFile.c_str();
+	// ShExecInfo.lpDirectory = NULL;
+	// ShExecInfo.nShow = SW_HIDE;
+	// ShExecInfo.hInstApp = NULL;
+	// ShellExecuteEx(&ShExecInfo);
+	// WaitForSingleObject(ShExecInfo.hProcess, INFINITE);
+	// CloseHandle(ShExecInfo.hProcess);
 
-	std::wstring pathToRegFile32 = L"/u \"" + utfWorkingDir;
-	pathToRegFile32 += L"\\data\\obs-plugins\\obs-virtualoutput\\obs-virtualsource_32bit\\obs-virtualsource.dll\"";
-	SHELLEXECUTEINFO ShExecInfob = {0};
-	ShExecInfob.cbSize = sizeof(SHELLEXECUTEINFO);
-	ShExecInfob.fMask = SEE_MASK_NOCLOSEPROCESS;
-	ShExecInfob.hwnd = NULL;
-	ShExecInfob.lpVerb = L"runas";
-	ShExecInfob.lpFile = L"regsvr32.exe";
-	ShExecInfob.lpParameters = pathToRegFile32.c_str();
-	ShExecInfob.lpDirectory = NULL;
-	ShExecInfob.nShow = SW_HIDE;
-	ShExecInfob.hInstApp = NULL;
-	ShellExecuteEx(&ShExecInfob);
-	WaitForSingleObject(ShExecInfob.hProcess, INFINITE);
-	CloseHandle(ShExecInfob.hProcess);
+	// std::wstring pathToRegFile32 = L"/u \"" + utfWorkingDir;
+	// pathToRegFile32 += L"\\data\\obs-plugins\\obs-virtualoutput\\obs-virtualsource_32bit\\obs-virtualsource.dll\"";
+	// SHELLEXECUTEINFO ShExecInfob = {0};
+	// ShExecInfob.cbSize = sizeof(SHELLEXECUTEINFO);
+	// ShExecInfob.fMask = SEE_MASK_NOCLOSEPROCESS;
+	// ShExecInfob.hwnd = NULL;
+	// ShExecInfob.lpVerb = L"runas";
+	// ShExecInfob.lpFile = L"regsvr32.exe";
+	// ShExecInfob.lpParameters = pathToRegFile32.c_str();
+	// ShExecInfob.lpDirectory = NULL;
+	// ShExecInfob.nShow = SW_HIDE;
+	// ShExecInfob.hInstApp = NULL;
+	// ShellExecuteEx(&ShExecInfob);
+	// WaitForSingleObject(ShExecInfob.hProcess, INFINITE);
+	// CloseHandle(ShExecInfob.hProcess);
 #elif __APPLE__
 	g_util_osx->uninstallPlugin();
 #endif

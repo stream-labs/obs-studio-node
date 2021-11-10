@@ -17,7 +17,6 @@
 ******************************************************************************/
 
 #include "osn-video.hpp"
-#include <ipc-server.hpp>
 #include <obs.h>
 #include "error.hpp"
 #include "shared-server.hpp"

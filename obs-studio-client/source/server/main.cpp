@@ -22,7 +22,6 @@
 #include <ipc-class.hpp>
 #include <ipc.hpp>
 #include <ipc-function.hpp>
-#include <ipc-server.hpp>
 #include <memory>
 #include <thread>
 #include <vector>

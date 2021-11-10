@@ -32,6 +32,13 @@ export declare const enum EVideoCodes {
     CurrentlyActive = -4,
     ModuleNotFound = -5
 }
+export declare const enum EHotkeyObjectType {
+    Frontend = 0,
+    Source = 1,
+    Output = 2,
+    Encoder = 3,
+    Service = 4
+}
 export declare const enum EDeinterlaceMode {
     Disable = 0,
     Discard = 1,
@@ -236,16 +243,18 @@ export declare const enum EOutputCode {
     Error = -4,
     Disconnected = -5,
     Unsupported = -6,
-    NoSpace = -7
+    NoSpace = -7,
+    EncoderError = -8,
+    OutdatedDriver = -65
 }
 export declare const enum ECategoryTypes {
     NODEOBS_CATEGORY_LIST = 0,
-	NODEOBS_CATEGORY_TAB = 1
+    NODEOBS_CATEGORY_TAB = 1
 }
 export declare const enum ERenderingMode {
     OBS_MAIN_RENDERING = 0,
-	OBS_STREAMING_RENDERING = 1,
-	OBS_RECORDING_RENDERING = 2
+    OBS_STREAMING_RENDERING = 1,
+    OBS_RECORDING_RENDERING = 2
 }
 export declare const Global: IGlobal;
 export declare const Video: IVideo;
@@ -313,12 +322,6 @@ export interface IDisplayInit {
     height: number;
     format: EColorFormat;
     zsformat: EZStencilFormat;
-}
-export interface IIPC {
-    setServerPath(binaryPath: string, workingDirectoryPath?: string): void;
-    connect(uri: string): void;
-    host(uri: string): void;
-    disconnect(): void;
 }
 export interface IGlobal {
     startup(locale: string, path?: string): void;
@@ -495,21 +498,21 @@ export interface IInputFactory extends IFactoryTypes {
     fromName(name: string): IInput;
     getPublicSources(): IInput[];
 }
-export const enum EInteractionFlags {
-    None         = 0,
-    CapsKey      = 1,
-    ShiftKey     = 1 << 1,
-    ControlKey   = 1 << 2,
-    AltKey       = 1 << 3,
-    MouseLeft    = 1 << 4,
-    MouseMiddle  = 1 << 5,
-    MouseRight   = 1 << 6,
-    CommandKey   = 1 << 7,
-    Numlock_Key  = 1 << 8,
-    IsKeyPad     = 1 << 9,
-    IsLeft       = 1 << 10,
-    IsRight      = 1 << 11
-};
+export declare const enum EInteractionFlags {
+    None = 0,
+    CapsKey = 1,
+    ShiftKey = 2,
+    ControlKey = 4,
+    AltKey = 8,
+    MouseLeft = 16,
+    MouseMiddle = 32,
+    MouseRight = 64,
+    CommandKey = 128,
+    Numlock_Key = 256,
+    IsKeyPad = 512,
+    IsLeft = 1024,
+    IsRight = 2048
+}
 export declare const enum EMouseButtonType {
     Left = 0,
     Middle = 1,
@@ -526,6 +529,16 @@ export interface IKeyEvent {
     nativeModifiers: number;
     nativeScancode: number;
     nativeVkey: number;
+}
+export interface ISceneItemInfo {
+    name: string;
+    crop: ICropInfo;
+    scaleX: number;
+    scaleY: number;
+    visible: boolean;
+    x: number;
+    y: number;
+    rotation: number;
 }
 export interface IInput extends ISource {
     volume: number;
@@ -557,7 +570,7 @@ export interface ISceneFactory {
 }
 export interface IScene extends ISource {
     duplicate(name: string, type: ESceneDupType): IScene;
-    add(source: IInput): ISceneItem;
+    add(source: IInput, transform?: ISceneItemInfo): ISceneItem;
     readonly source: IInput;
     moveItem(oldIndex: number, newIndex: number): void;
     orderItems(order: number[]): void;
@@ -671,9 +684,8 @@ export interface IDisplay {
 }
 export interface IVideo {
     readonly skippedFrames: number;
-    readonly encodedFrames: number;	
+    readonly encodedFrames: number;
 }
-
 export interface IAudio {
 }
 export interface IAudioFactory {
@@ -697,22 +709,16 @@ export interface IModule {
     dataPath(): string;
     status(): number;
 }
-export interface ISceneItemInfo {
-    name: string;
-    crop: ICropInfo;
-    scaleX: number;
-    scaleY: number;
-    visible: boolean;
-    x: number;
-    y: number;
-    rotation: number;
-}
 export declare function addItems(scene: IScene, sceneItems: ISceneItemInfo[]): ISceneItem[];
 export interface FilterInfo {
     name: string;
     type: string;
     settings: ISettings;
     enabled: boolean;
+}
+export interface SyncOffset {
+    sec: number;
+    nsec: number;
 }
 export interface SourceInfo {
     filters: FilterInfo[];
@@ -721,6 +727,7 @@ export interface SourceInfo {
     settings: ISettings;
     type: string;
     volume: number;
+    syncOffset: SyncOffset;
 }
 export declare function createSources(sources: SourceInfo[]): IInput[];
 export interface ISourceSize {

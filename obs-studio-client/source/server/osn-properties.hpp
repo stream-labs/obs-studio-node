@@ -18,6 +18,7 @@
 
 #pragma once
 #include "obs.h"
+#include <string>
 
 namespace obs
 {

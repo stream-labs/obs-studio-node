@@ -25,7 +25,6 @@
 #include <vector>
 #include "gs-vertexbuffer.h"
 #include "obs.h"
-#include "ipc-server.hpp"
 
 
 #if defined(_WIN32)
@@ -35,6 +34,8 @@
 #include <Dwmapi.h>
 #include <versionhelpers.h>
 #include <windows.h>
+#include <functional>
+#include <mutex>
 EXTERN_C IMAGE_DOS_HEADER __ImageBase;
 #define HINST_THISCOMPONENT ((HINSTANCE)&__ImageBase)
 
@@ -43,8 +44,6 @@ EXTERN_C IMAGE_DOS_HEADER __ImageBase;
 #elif defined(__linux__) || defined(__FreeBSD__)
 
 #endif
-
-extern ipc::server* g_srv;
 
 namespace OBS
 {

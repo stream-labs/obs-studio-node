@@ -19,7 +19,6 @@
 #include "fader.hpp"
 #include <iterator>
 #include <vector>
-#include "controller.hpp"
 #include "error.hpp"
 #include "input.hpp"
 #include "shared.hpp"
@@ -39,8 +38,6 @@ Napi::Object osn::Fader::Init(Napi::Env env, Napi::Object exports) {
 			InstanceMethod("destroy", &osn::Fader::Destroy),
 			InstanceMethod("attach", &osn::Fader::Attach),
 			InstanceMethod("detach", &osn::Fader::Detach),
-			InstanceMethod("addCallback", &osn::Fader::AddCallback),
-			InstanceMethod("removeCallback", &osn::Fader::RemoveCallback),
 
 			InstanceAccessor("db", &osn::Fader::GetDeziBel, &osn::Fader::SetDezibel),
 			InstanceAccessor("deflection", &osn::Fader::GetDeflection, &osn::Fader::SetDeflection),
@@ -141,15 +138,5 @@ Napi::Value osn::Fader::Detach(const Napi::CallbackInfo& info)
 {
 	obs::Fader::Detach(this->uid);
 
-	return info.Env().Undefined();
-}
-
-Napi::Value osn::Fader::AddCallback(const Napi::CallbackInfo& info)
-{
-	return info.Env().Undefined();
-}
-
-Napi::Value osn::Fader::RemoveCallback(const Napi::CallbackInfo& info)
-{
 	return info.Env().Undefined();
 }

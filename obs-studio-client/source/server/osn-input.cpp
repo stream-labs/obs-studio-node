@@ -18,7 +18,6 @@
 
 #include "osn-Input.hpp"
 #include <iostream>
-#include <ipc-server.hpp>
 #include <memory>
 #include <obs.h>
 #include "error.hpp"

@@ -27,12 +27,6 @@
 
 #include "nodeobs_audio_encoders.h"
 
-enum CategoryTypes : uint32_t
-{
-	NODEOBS_CATEGORY_LIST = 0,
-	NODEOBS_CATEGORY_TAB = 1
-};
-
 struct Parameter
 {
 	std::string       name;
@@ -166,7 +160,7 @@ class OBS_settings
 	OBS_settings();
 	~OBS_settings();
 
-	static struct GetSettingsInfo OBS_settings_getSettings(std::string category);
+	// static struct GetSettingsInfo OBS_settings_getSettings(std::string category);
 	static void OBS_settings_saveSettings(
 	    std::string       category,
 		uint32_t          subCategoriesCount,
@@ -181,13 +175,13 @@ class OBS_settings
 
 	private:
 	// Exposed methods to the frontend
-	static std::vector<SubCategory> getSettings(std::string nameCategory, CategoryTypes&);
+	// static std::vector<SubCategory> getSettings(std::string nameCategory, CategoryTypes&);
 	static bool                     saveSettings(std::string nameCategory, std::vector<SubCategory> settings);
 
 	// Get each category
 	static std::vector<SubCategory> getGeneralSettings();
 	static std::vector<SubCategory> getStreamSettings();
-	static std::vector<SubCategory> getOutputSettings(CategoryTypes&);
+	// static std::vector<SubCategory> getOutputSettings(CategoryTypes&);
 	static std::vector<SubCategory> getAudioSettings();
 	static std::vector<SubCategory> getVideoSettings();
 	static std::vector<SubCategory> getAdvancedSettings();
@@ -200,13 +194,13 @@ class OBS_settings
 	static void saveVideoSettings(std::vector<SubCategory> videoSettings);
 	static void saveAdvancedSettings(std::vector<SubCategory> advancedSettings);
 
-	static SubCategory serializeSettingsData(
-	    const std::string &                                           nameSubCategory,
-	    std::vector<std::vector<std::pair<std::string, ipc::value>>>& entries,
-	    config_t*                                                     config,
-	    const std::string &                                           section,
-	    bool                                                          isVisible,
-	    bool                                                          isEnabled);
+	// static SubCategory serializeSettingsData(
+	//     const std::string &                                           nameSubCategory,
+	//     std::vector<std::vector<std::pair<std::string, ipc::value>>>& entries,
+	//     config_t*                                                     config,
+	//     const std::string &                                           section,
+	//     bool                                                          isVisible,
+	//     bool                                                          isEnabled);
 
 	/****** Get Output Settings ******/
 
@@ -250,14 +244,14 @@ class OBS_settings
 	static void saveAdvancedOutputSettings(std::vector<SubCategory> settings);
 
 	//Utility functions
-	static void getSimpleAvailableEncoders(std::vector<std::pair<std::string, ipc::value>>* streamEncode, bool recording);
-	static void getAdvancedAvailableEncoders(std::vector<std::pair<std::string, ipc::value>>* streamEncode);
-	static std::vector<std::pair<uint64_t, uint64_t>> getOutputResolutions(uint64_t base_cx, uint64_t base_cy);
-	static void                                  getEncoderSettings(
-	                                     const obs_encoder_t*    encoder,
-	                                     obs_data_t*             settings,
-	                                     std::vector<Parameter>* subCategoryParameters,
-	                                     int                     index,
-	                                     bool                    isCategoryEnabled,
-	                                     bool                    recordEncoder);
+	// static void getSimpleAvailableEncoders(std::vector<std::pair<std::string, ipc::value>>* streamEncode, bool recording);
+	// static void getAdvancedAvailableEncoders(std::vector<std::pair<std::string, ipc::value>>* streamEncode);
+	// static std::vector<std::pair<uint64_t, uint64_t>> getOutputResolutions(uint64_t base_cx, uint64_t base_cy);
+	// static void                                  getEncoderSettings(
+	//                                      const obs_encoder_t*    encoder,
+	//                                      obs_data_t*             settings,
+	//                                      std::vector<Parameter>* subCategoryParameters,
+	//                                      int                     index,
+	//                                      bool                    isCategoryEnabled,
+	//                                      bool                    recordEncoder);
 };

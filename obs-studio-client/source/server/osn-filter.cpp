@@ -17,7 +17,6 @@
 ******************************************************************************/
 
 #include "osn-Filter.hpp"
-#include <ipc-server.hpp>
 #include <memory>
 #include <obs.h>
 #include "error.hpp"

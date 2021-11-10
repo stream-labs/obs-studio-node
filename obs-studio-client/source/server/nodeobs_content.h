@@ -47,8 +47,6 @@ class OBS_content
 	OBS_content();
 	~OBS_content();
 
-	static void Register(ipc::server&);
-
 	static void OBS_content_createDisplay(uint64_t windowHandle, std::string key, int32_t displayMode);
 	static void OBS_content_destroyDisplay(std::string key);
 	static void OBS_content_shutdownDisplays();
@@ -62,9 +60,9 @@ class OBS_content
 	static void OBS_content_setOutlineColor(std::string key, uint32_t r, uint32_t g, uint32_t b, uint32_t a);
 	static void OBS_content_setShouldDrawUI(std::string key, bool drawUI);
 	static void OBS_content_setDrawGuideLines(std::string key, bool drawGuideLines);
-	static void OBS_content_createIOSurface(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
+	// static void OBS_content_createIOSurface(
+	//     void*                          data,
+	//     const int64_t                  id,
+	//     const std::vector<ipc::value>& args,
+	//     std::vector<ipc::value>&       rval);
 };

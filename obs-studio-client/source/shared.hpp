@@ -38,7 +38,7 @@
 #endif
 
 extern std::queue<std::function<void(Napi::Object)>>* initializerFunctions;
-extern std::wstring utfWorkingDir;
+// extern std::wstring utfWorkingDir;
 
 #ifdef __APPLE__
 	extern UtilInt* g_util_osx;

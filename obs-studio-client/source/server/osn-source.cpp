@@ -17,10 +17,6 @@
 ******************************************************************************/
 
 #include "osn-source.hpp"
-#include <ipc-class.hpp>
-#include <ipc-function.hpp>
-#include <ipc-server.hpp>
-#include <ipc-value.hpp>
 #include <map>
 #include <memory>
 #include <obs-data.h>
@@ -28,7 +24,6 @@
 #include <obs.hpp>
 #include "error.hpp"
 #include "obs-property.hpp"
-#include "osn-common.hpp"
 #include "shared-server.hpp"
 #include "callback-manager.h"
 #include "memory-manager.h"

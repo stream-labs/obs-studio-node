@@ -17,7 +17,6 @@
 ******************************************************************************/
 
 #pragma once
-#include <ipc-server.hpp>
 #include <memory>
 #include "obs.h"
 #include "utility-server.hpp"
@@ -57,15 +56,5 @@ namespace obs
 		static float_t SetMultiplier(uint64_t uid, float_t mul);
 		static void Attach(uint64_t uid_fader, obs_source_t* source);
 		static void Detach(uint64_t uid);
-		static void AddCallback(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void RemoveCallback(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
 	};
 } // namespace osn

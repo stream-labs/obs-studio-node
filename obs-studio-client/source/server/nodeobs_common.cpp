@@ -34,7 +34,6 @@ std::string                          sourceSelected;
 bool                                 firstDisplayCreation = true;
 
 std::thread* windowMessage = NULL;
-ipc::server* g_srv;
 bool displayCreated = false;
 
 /* A lot of the sceneitem functionality is a lazy copy-pasta from the Qt UI. */
@@ -421,33 +420,33 @@ void OBS_content::OBS_content_setDrawGuideLines(std::string key, bool drawGuideL
 	it->second->SetDrawGuideLines(drawGuideLines);
 }
 
-void OBS_content::OBS_content_createIOSurface(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-#ifdef __APPLE__
-	// Find Display
-	auto it = displays.find(args[0].value_str);
-	if (it == displays.end()) {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
-		rval.push_back(ipc::value("Display key is not valid!"));
-		return;
-	}
-	if (it->second->m_display == nullptr) {
-		return;
-	}
+// void OBS_content::OBS_content_createIOSurface(
+//     void*                          data,
+//     const int64_t                  id,
+//     const std::vector<ipc::value>& args,
+//     std::vector<ipc::value>&       rval)
+// {
+// #ifdef __APPLE__
+// 	// Find Display
+// 	auto it = displays.find(args[0].value_str);
+// 	if (it == displays.end()) {
+// 		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
+// 		rval.push_back(ipc::value("Display key is not valid!"));
+// 		return;
+// 	}
+// 	if (it->second->m_display == nullptr) {
+// 		return;
+// 	}
 
-	uint32_t surfaceID =
-		obs_display_create_iosurface(it->second->m_display, 
-			it->second->GetSize().first,
-			it->second->GetSize().second);
+// 	uint32_t surfaceID =
+// 		obs_display_create_iosurface(it->second->m_display, 
+// 			it->second->GetSize().first,
+// 			it->second->GetSize().second);
 
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	rval.push_back(ipc::value((uint32_t)surfaceID));
-#elif WIN32
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-#endif
-	AUTO_DEBUG;
-}
+// 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+// 	rval.push_back(ipc::value((uint32_t)surfaceID));
+// #elif WIN32
+// 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+// #endif
+// 	AUTO_DEBUG;
+// }

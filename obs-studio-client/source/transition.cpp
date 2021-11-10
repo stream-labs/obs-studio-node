@@ -20,9 +20,7 @@
 #include <condition_variable>
 #include <mutex>
 #include <string>
-#include "controller.hpp"
 #include "error.hpp"
-#include "ipc-value.hpp"
 #include "shared.hpp"
 #include "utility.hpp"
 #include "server/osn-transition.hpp"
@@ -116,11 +114,7 @@ Napi::Value osn::Transition::Create(const Napi::CallbackInfo& info)
 		settings = stringify.Call(json, { setobj }).As<Napi::String>();
 	}
 
-	auto params = std::vector<ipc::value>{ipc::value(type), ipc::value(name)};
 	std::string settings_str = settings.Utf8Value();
-	if (settings_str.size() != 0)
-		params.push_back(ipc::value(settings_str));
-
 	auto source = obs::Transition::Create(type, name, settings_str);
 
     auto instance =
@@ -146,11 +140,7 @@ Napi::Value osn::Transition::CreatePrivate(const Napi::CallbackInfo& info)
 		settings = stringify.Call(json, { setobj }).As<Napi::String>();
 	}
 
-	auto params = std::vector<ipc::value>{ipc::value(type), ipc::value(name)};
 	std::string settings_str = settings.Utf8Value();
-	if (settings_str.size() != 0)
-		params.push_back(ipc::value(settings_str));
-
 	auto source = obs::Transition::CreatePrivate(type, name, settings_str);
 
     auto instance =

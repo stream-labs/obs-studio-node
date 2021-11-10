@@ -22,7 +22,6 @@
 
 #include <fstream>
 #include <string>
-#include "controller.hpp"
 #include "fader.hpp"
 #include "filter.hpp"
 #include "global.hpp"
@@ -91,7 +90,6 @@ Napi::Object main_node(Napi::Env env, Napi::Object exports) {
 	g_util_osx->init();
 #endif
 	osn::Fader::Init(env, exports);
-	Controller::Init(env, exports);
 	api::Init(env, exports);
 	osn::Input::Init(env, exports);
 	osn::Properties::Init(env, exports);

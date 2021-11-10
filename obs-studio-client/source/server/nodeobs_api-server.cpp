@@ -120,8 +120,6 @@ void OBS_API::SetWorkingDirectory(std::string path)
 {
 	g_moduleDirectory = path;
 	replaceAll(g_moduleDirectory, "\\", "/");
-
-	AUTO_DEBUG;
 }
 
 #ifdef _WIN32
@@ -791,7 +789,6 @@ int OBS_API::OBS_API_initAPI(
 		util::CrashManager::GetMetricsProvider()->BlameUser();
 
 		blog(LOG_INFO, "Error returning now");
-		AUTO_DEBUG;
 		return videoError;
 #endif
 	}
@@ -857,7 +854,6 @@ void OBS_API::OBS_API_destroyOBS_API()
 	obs::Source::finalize_global_signals();
 	/* END INJECT obs::Source::Manager */
 	destroyOBS_API();
-	AUTO_DEBUG;
 }
 
 std::vector<OBS_API::HotkeyInfo> OBS_API::QueryHotkeys()
@@ -959,7 +955,6 @@ std::vector<OBS_API::HotkeyInfo> OBS_API::QueryHotkeys()
 	    },
 	    &hotkeyInfos);
 
-	AUTO_DEBUG;
 	return hotkeyInfos;
 }
 
@@ -967,15 +962,12 @@ void OBS_API::ProcessHotkeyStatus(obs_hotkey_id hotkeyId, bool pressed)
 {
 	// TODO: Check if the hotkey ID is valid
 	obs_hotkey_trigger_routed_callback(hotkeyId, pressed);
-
-	AUTO_DEBUG;
 }
 
 void OBS_API::SetUsername(std::string a_username)
 {
 	username = a_username;
 	util::CrashManager::SetUsername(username);
-	AUTO_DEBUG;
 }
 
 void OBS_API::SetProcessPriority(const char* priority)

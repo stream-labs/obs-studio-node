@@ -426,44 +426,6 @@ export interface IDisplayInit {
     zsformat: EZStencilFormat;
 }
 
-/** 
- * Namespace representing the global libobs functionality
- */
-
-export interface IIPC {
-    /**
-     * Set the path and optionally working directory for the IPC server binary.
-     * @param binaryPath - Path to the binary file to be executed
-     * @param workingDirectoryPath - Path to the directory where it is executed in.
-	 * @throws SyntaxError if an invalid number of parameters is given.
-	 * @throws TypeError if a parameter is of invalid type.
-     */
-	setServerPath(binaryPath: string, workingDirectoryPath?: string): void;
-	
-    /**
-     * Connect to an existing server.
-     * @param uri - URI for the server.
-	 * @throws SyntaxError if an invalid number of parameters is given.
-	 * @throws TypeError if a parameter is of invalid type.
-	 * @throws Error if it failed to connect.
-     */
-	connect(uri: string): void;
-	
-    /**
-     * Hosts a new server and connects to it.
-     * @param uri - URI for the server.
-	 * @throws SyntaxError if an invalid number of parameters is given.
-	 * @throws TypeError if a parameter is of invalid type.
-	 * @throws Error if it failed to host and connect.
-     */
-	host(uri: string): void;
-	
-    /**
-     * Disconnect from a server.
-     */
-	disconnect(): void;
-}
- 
 export interface IGlobal {
     /**
      * Initializes libobs global context
@@ -1651,14 +1613,4 @@ export function getSourcesSize(sourcesNames: string[]): ISourceSize[] {
     return sourcesSize;
 }
 
-// Initialization and other stuff which needs local data.
-if (fs.existsSync(path.resolve(__dirname, `obs64`).replace('app.asar', 'app.asar.unpacked'))) {
-    obs.IPC.setServerPath(path.resolve(__dirname, `obs64`).replace('app.asar', 'app.asar.unpacked'), path.resolve(__dirname).replace('app.asar', 'app.asar.unpacked'));
-}
-else if (fs.existsSync(path.resolve(__dirname, `obs64.exe`).replace('app.asar', 'app.asar.unpacked'))) {
-    obs.IPC.setServerPath(path.resolve(__dirname, `obs64.exe`).replace('app.asar', 'app.asar.unpacked'), path.resolve(__dirname).replace('app.asar', 'app.asar.unpacked'));
-}
-else {
-    obs.IPC.setServerPath(path.resolve(__dirname, `obs32.exe`).replace('app.asar', 'app.asar.unpacked'), path.resolve(__dirname).replace('app.asar', 'app.asar.unpacked'));
-}
 export const NodeObs = obs;

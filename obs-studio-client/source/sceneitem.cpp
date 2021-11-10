@@ -20,10 +20,8 @@
 #include <mutex>
 #include <string>
 
-#include "controller.hpp"
 #include "error.hpp"
 #include "input.hpp"
-#include "ipc-value.hpp"
 #include "scene.hpp"
 #include "sceneitem.hpp"
 #include "shared.hpp"

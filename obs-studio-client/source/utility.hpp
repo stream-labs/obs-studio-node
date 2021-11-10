@@ -79,56 +79,56 @@
 #define dstr(s) #s
 #define vstr(s) dstr(s)
 
-static bool ValidateResponse(const Napi::CallbackInfo& info, std::vector<ipc::value>& response)
-{
-	if (response.size() == 0) {
-		Napi::Error::New(info.Env(), "Failed to make IPC call, verify IPC status.").ThrowAsJavaScriptException();
-		return false;
-	}
+// static bool ValidateResponse(const Napi::CallbackInfo& info, std::vector<ipc::value>& response)
+// {
+// 	if (response.size() == 0) {
+// 		Napi::Error::New(info.Env(), "Failed to make IPC call, verify IPC status.").ThrowAsJavaScriptException();
+// 		return false;
+// 	}
 
-	if ((response.size() == 1) && (response[0].type == ipc::type::Null)) {
-		Napi::Error::New(info.Env(), response[0].value_str).ThrowAsJavaScriptException();
-		return false;
-	}
+// 	if ((response.size() == 1) && (response[0].type == ipc::type::Null)) {
+// 		Napi::Error::New(info.Env(), response[0].value_str).ThrowAsJavaScriptException();
+// 		return false;
+// 	}
 
-	// Check if we had an error
-	ErrorCode error = (ErrorCode)response[0].value_union.ui64;
-	if (error != ErrorCode::Ok) {
+// 	// Check if we had an error
+// 	ErrorCode error = (ErrorCode)response[0].value_union.ui64;
+// 	if (error != ErrorCode::Ok) {
 
-		// Check if there is an error message to show
-		if (response.size() == 1) {
-			Napi::Error::New(info.Env(), "Error without description.").ThrowAsJavaScriptException();
-			return false;
-		}
+// 		// Check if there is an error message to show
+// 		if (response.size() == 1) {
+// 			Napi::Error::New(info.Env(), "Error without description.").ThrowAsJavaScriptException();
+// 			return false;
+// 		}
 
-		if (error == ErrorCode::InvalidReference) {
-			Napi::Error::New(info.Env(), response[1].value_str).ThrowAsJavaScriptException();
-			return false;
-		}
+// 		if (error == ErrorCode::InvalidReference) {
+// 			Napi::Error::New(info.Env(), response[1].value_str).ThrowAsJavaScriptException();
+// 			return false;
+// 		}
 
-		if (error != ErrorCode::Ok) {
-			Napi::Error::New(info.Env(), response[1].value_str).ThrowAsJavaScriptException();
-			return false;
-		}
-	}
+// 		if (error != ErrorCode::Ok) {
+// 			Napi::Error::New(info.Env(), response[1].value_str).ThrowAsJavaScriptException();
+// 			return false;
+// 		}
+// 	}
 
-	if (!response.size()) {
-		Napi::Error::New(info.Env(), "Failed to make IPC call, verify IPC status.").ThrowAsJavaScriptException();
-		return false;
-	}
+// 	if (!response.size()) {
+// 		Napi::Error::New(info.Env(), "Failed to make IPC call, verify IPC status.").ThrowAsJavaScriptException();
+// 		return false;
+// 	}
 
-	return true;
-}
+// 	return true;
+// }
 
-static FORCE_INLINE std::shared_ptr<ipc::client> GetConnection(const Napi::CallbackInfo& info)
-{
-	auto conn = Controller::GetInstance().GetConnection();
-	if (!conn) {
-		Napi::Error::New(info.Env(), "Failed to obtain IPC connection.").ThrowAsJavaScriptException();
-		exit(1);
-	}
-	return conn;
-}
+// static FORCE_INLINE std::shared_ptr<ipc::client> GetConnection(const Napi::CallbackInfo& info)
+// {
+// 	auto conn = Controller::GetInstance().GetConnection();
+// 	if (!conn) {
+// 		Napi::Error::New(info.Env(), "Failed to obtain IPC connection.").ThrowAsJavaScriptException();
+// 		exit(1);
+// 	}
+// 	return conn;
+// }
 
 namespace utility
 {
@@ -184,4 +184,4 @@ std::string  from_utf16_wide_to_utf8(const wchar_t* from, size_t length = -1);
 std::wstring from_utf8_to_utf16_wide(const char* from, size_t length = -1);
 
 //write detected possible reason of abnormal app close to a file used to submit statistics 
-void ipc_freez_callback(bool freez_detected, std::string app_state_path);
+// void ipc_freez_callback(bool freez_detected, std::string app_state_path);

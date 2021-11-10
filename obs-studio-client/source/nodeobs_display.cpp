@@ -201,19 +201,20 @@ Napi::Value display::OBS_content_setDrawGuideLines(const Napi::CallbackInfo& inf
 
 Napi::Value display::OBS_content_createIOSurface(const Napi::CallbackInfo& info)
 {
-	std::string key = info[0].ToString().Utf8Value();
+	// std::string key = info[0].ToString().Utf8Value();
 
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
+	// auto conn = GetConnection(info);
+	// if (!conn)
+	// 	return info.Env().Undefined();
 
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Display", "OBS_content_createIOSurface", {ipc::value(key)});
+	// std::vector<ipc::value> response =
+	//     conn->call_synchronous_helper("Display", "OBS_content_createIOSurface", {ipc::value(key)});
 
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
+	// if (!ValidateResponse(info, response))
+	// 	return info.Env().Undefined();
 
-	return Napi::Number::New(info.Env(), response[1].value_union.ui32);
+	// return Napi::Number::New(info.Env(), response[1].value_union.ui32);
+	return Napi::Number::New(info.Env(), 0);
 }
 
 void display::Init(Napi::Env env, Napi::Object exports)

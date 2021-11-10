@@ -29,43 +29,43 @@
 std::mutex                             sources_sizes_mtx;
 std::map<std::string, SourceSizeInfo*> sources;
 
-void CallbackManager::GlobalQuery(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-	// if (!sources.empty()) {
-	// 	sources_sizes_mtx.lock();
-	// 	uint32_t size = 0;
+// void CallbackManager::GlobalQuery(
+//     void*                          data,
+//     const int64_t                  id,
+//     const std::vector<ipc::value>& args,
+//     std::vector<ipc::value>&       rval)
+// {
+// 	// if (!sources.empty()) {
+// 	// 	sources_sizes_mtx.lock();
+// 	// 	uint32_t size = 0;
 
-	// 	for (auto item : sources) {
-	// 		SourceSizeInfo* si = item.second;
-	// 		// See if width or height changed here
-	// 		uint32_t newWidth  = obs_source_get_width(si->source);
-	// 		uint32_t newHeight = obs_source_get_height(si->source);
-	// 		uint32_t newFlags  = obs_source_get_output_flags(si->source);
+// 	// 	for (auto item : sources) {
+// 	// 		SourceSizeInfo* si = item.second;
+// 	// 		// See if width or height changed here
+// 	// 		uint32_t newWidth  = obs_source_get_width(si->source);
+// 	// 		uint32_t newHeight = obs_source_get_height(si->source);
+// 	// 		uint32_t newFlags  = obs_source_get_output_flags(si->source);
 
-	// 		if (si->width != newWidth || si->height != newHeight || si->flags != newFlags) {
-	// 			si->width = newWidth;
-	// 			si->height = newHeight;
-	// 			si->flags  = newFlags;
+// 	// 		if (si->width != newWidth || si->height != newHeight || si->flags != newFlags) {
+// 	// 			si->width = newWidth;
+// 	// 			si->height = newHeight;
+// 	// 			si->flags  = newFlags;
 
-	// 			rval.push_back(ipc::value(obs_source_get_name(si->source)));
-	// 			rval.push_back(ipc::value(si->width));
-	// 			rval.push_back(ipc::value(si->height));
-	// 			rval.push_back(ipc::value(si->flags));
+// 	// 			rval.push_back(ipc::value(obs_source_get_name(si->source)));
+// 	// 			rval.push_back(ipc::value(si->width));
+// 	// 			rval.push_back(ipc::value(si->height));
+// 	// 			rval.push_back(ipc::value(si->flags));
 
-	// 			size++;
-	// 		}
-	// 	}
+// 	// 			size++;
+// 	// 		}
+// 	// 	}
 
-	// 	rval.insert(rval.begin() + 1, ipc::value(size));
-	// 	sources_sizes_mtx.unlock();
-	// } else {
-	// 	rval.insert(rval.begin() + 1, ipc::value((uint32_t)0));
-	// }
-}
+// 	// 	rval.insert(rval.begin() + 1, ipc::value(size));
+// 	// 	sources_sizes_mtx.unlock();
+// 	// } else {
+// 	// 	rval.insert(rval.begin() + 1, ipc::value((uint32_t)0));
+// 	// }
+// }
 
 void CallbackManager::addSource(obs_source_t* source)
 {

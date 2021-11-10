@@ -157,21 +157,3 @@ void obs::Fader::Detach(uint64_t uid)
 
 	obs_fader_detach_source(fader);
 }
-
-void obs::Fader::AddCallback(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-	//!FIXME!
-}
-
-void obs::Fader::RemoveCallback(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-	//!FIXME!
-}

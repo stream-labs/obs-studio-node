@@ -900,7 +900,7 @@ void util::CrashManager::OpenConsole()
 #if defined(_WIN32)
 
 	// Allocate a console window for this process
-	AllocConsole();
+	// AllocConsole();
 
 	// Update the C/C++ runtime standard input, output, and error targets to use the console window
 	BindCrtHandlesToStdHandles(true, true, true);
@@ -908,52 +908,52 @@ void util::CrashManager::OpenConsole()
 #endif
 }
 
-void util::CrashManager::IPCValuesToData(const std::vector<ipc::value>& values, nlohmann::json& data)
-{
-	int paramCounter = 0;
-	for (auto& value : values) {
-		switch (value.type) {
-		case ipc::type::Null: {
-			data.push_back({{"arg" + std::to_string(paramCounter), "null"}});
-			break;
-		}
-		case ipc::type::Float: {
-			data.push_back({{"arg" + std::to_string(paramCounter), std::to_string(value.value_union.fp32)}});
-			break;
-		}
-		case ipc::type::Double: {
-			data.push_back({{"arg" + std::to_string(paramCounter), std::to_string(value.value_union.fp64)}});
-			break;
-		}
-		case ipc::type::Int32: {
-			data.push_back({{"arg" + std::to_string(paramCounter), std::to_string(value.value_union.i32)}});
-			break;
-		}
-		case ipc::type::Int64: {
-			data.push_back({{"arg" + std::to_string(paramCounter), std::to_string(value.value_union.i64)}});
-			break;
-		}
-		case ipc::type::UInt32: {
-			data.push_back({{"arg" + std::to_string(paramCounter), std::to_string(value.value_union.ui32)}});
-			break;
-		}
-		case ipc::type::UInt64: {
-			data.push_back({{"arg" + std::to_string(paramCounter), std::to_string(value.value_union.ui64)}});
-			break;
-		}
-		case ipc::type::String: {
-			data.push_back({{"arg" + std::to_string(paramCounter), value.value_str}});
-			break;
-		}
-		case ipc::type::Binary: {
-			data.push_back({{"arg" + std::to_string(paramCounter), ""}});
-			break;
-		}
-		}
+// void util::CrashManager::IPCValuesToData(const std::vector<ipc::value>& values, nlohmann::json& data)
+// {
+// 	int paramCounter = 0;
+// 	for (auto& value : values) {
+// 		switch (value.type) {
+// 		case ipc::type::Null: {
+// 			data.push_back({{"arg" + std::to_string(paramCounter), "null"}});
+// 			break;
+// 		}
+// 		case ipc::type::Float: {
+// 			data.push_back({{"arg" + std::to_string(paramCounter), std::to_string(value.value_union.fp32)}});
+// 			break;
+// 		}
+// 		case ipc::type::Double: {
+// 			data.push_back({{"arg" + std::to_string(paramCounter), std::to_string(value.value_union.fp64)}});
+// 			break;
+// 		}
+// 		case ipc::type::Int32: {
+// 			data.push_back({{"arg" + std::to_string(paramCounter), std::to_string(value.value_union.i32)}});
+// 			break;
+// 		}
+// 		case ipc::type::Int64: {
+// 			data.push_back({{"arg" + std::to_string(paramCounter), std::to_string(value.value_union.i64)}});
+// 			break;
+// 		}
+// 		case ipc::type::UInt32: {
+// 			data.push_back({{"arg" + std::to_string(paramCounter), std::to_string(value.value_union.ui32)}});
+// 			break;
+// 		}
+// 		case ipc::type::UInt64: {
+// 			data.push_back({{"arg" + std::to_string(paramCounter), std::to_string(value.value_union.ui64)}});
+// 			break;
+// 		}
+// 		case ipc::type::String: {
+// 			data.push_back({{"arg" + std::to_string(paramCounter), value.value_str}});
+// 			break;
+// 		}
+// 		case ipc::type::Binary: {
+// 			data.push_back({{"arg" + std::to_string(paramCounter), ""}});
+// 			break;
+// 		}
+// 		}
 
-		paramCounter++;
-	}
-}
+// 		paramCounter++;
+// 	}
+// }
 
 void util::CrashManager::AddWarning(const std::string& warning)
 {
@@ -1045,33 +1045,33 @@ std::string util::CrashManager::getAppState()
 	return appState;
 }
 
-void util::CrashManager::ProcessPreServerCall(std::string cname, std::string fname, const std::vector<ipc::value>& args)
-{
-	std::string jsonEntry = cname + std::string("::") + fname;
+// void util::CrashManager::ProcessPreServerCall(std::string cname, std::string fname, const std::vector<ipc::value>& args)
+// {
+// 	std::string jsonEntry = cname + std::string("::") + fname;
 
-	// Perform this only if this user have a high crash rate (TODO: this check must be implemented)
-	/*
-	nlohmann::json ipcValues = nlohmann::json::array();
-	IPCValuesToData(args, ipcValues);
-	jsonEntry["ipc values"] = ipcValues;
-	*/
+// 	// Perform this only if this user have a high crash rate (TODO: this check must be implemented)
+// 	/*
+// 	nlohmann::json ipcValues = nlohmann::json::array();
+// 	IPCValuesToData(args, ipcValues);
+// 	jsonEntry["ipc values"] = ipcValues;
+// 	*/
 
-	RegisterAction(jsonEntry);
-}
+// 	RegisterAction(jsonEntry);
+// }
 
-void util::CrashManager::ProcessPostServerCall(
-    std::string                    cname,
-    std::string                    fname,
-    const std::vector<ipc::value>& args)
-{
-	if (args.size() == 0) {
-		AddWarning(std::string("No return params on method ") + fname + std::string(" for class ") + cname);
-	} else if ((ErrorCode)args[0].value_union.ui64 != ErrorCode::Ok) {
-		AddWarning(
-		    std::string("Server call returned error number ") + std::to_string(args[0].value_union.ui64) + " on method "
-		    + fname + std::string(" for class ") + cname);
-	}
-}
+// void util::CrashManager::ProcessPostServerCall(
+//     std::string                    cname,
+//     std::string                    fname,
+//     const std::vector<ipc::value>& args)
+// {
+// 	if (args.size() == 0) {
+// 		AddWarning(std::string("No return params on method ") + fname + std::string(" for class ") + cname);
+// 	} else if ((ErrorCode)args[0].value_union.ui64 != ErrorCode::Ok) {
+// 		AddWarning(
+// 		    std::string("Server call returned error number ") + std::to_string(args[0].value_union.ui64) + " on method "
+// 		    + fname + std::string(" for class ") + cname);
+// 	}
+// }
 
 void util::CrashManager::DisableReports()
 {
