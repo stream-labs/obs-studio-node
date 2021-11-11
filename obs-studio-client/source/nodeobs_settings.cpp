@@ -26,10 +26,10 @@
 #include "shared.hpp"
 #include "utility.hpp"
 
-#include "server/nodeobs_settings-server.h"
 #include "server/nodeobs_api-server.h"
 #include "server/memory-manager.h"
 #include "data-value.hpp"
+#include <util/lexer.h>
 
 enum CategoryTypes : uint32_t
 {
@@ -2078,10 +2078,9 @@ bool saveStreamSettings(const Napi::Array& streamSettings)
 		getSafeOBSstr(obs_data_get_string(obs_service_get_settings(currentService), "service"));
 	std::string newServiceValue;
 
-	SubCategory sc;
-	bool        serviceChanged     = false;
-	bool        serviceTypeChanged = false;
-	bool        serviceSettingsInvalid = false;
+	bool serviceChanged = false;
+	bool serviceTypeChanged = false;
+	bool serviceSettingsInvalid = false;
 
 	for (int i = 0; i < streamSettings.Length(); i++) {
 		Napi::Object subCategoryObject = streamSettings.Get(i).ToObject();
@@ -2790,7 +2789,7 @@ Napi::Value settings::OBS_settings_getListCategories(const Napi::CallbackInfo& i
 	return categories;
 }
 
-Napi::Array devices_to_js(const Napi::CallbackInfo& info, const std::vector<DeviceInfo> &data)
+Napi::Array devices_to_js(const Napi::CallbackInfo& info, const std::vector<settings::DeviceInfo> &data)
 {
 	Napi::Array devices = Napi::Array::New(info.Env());
 
@@ -2805,9 +2804,9 @@ Napi::Array devices_to_js(const Napi::CallbackInfo& info, const std::vector<Devi
 	return devices;
 }
 
-std::vector<DeviceInfo> getDevices(const char* source_id, const char* property_name)
+std::vector<settings::DeviceInfo> getDevices(const char* source_id, const char* property_name)
 {
-	std::vector<DeviceInfo> devices;
+	std::vector<settings::DeviceInfo> devices;
 
 	auto settings = obs_get_source_defaults(source_id);
 	if (!settings)
@@ -2854,7 +2853,7 @@ std::vector<DeviceInfo> getDevices(const char* source_id, const char* property_n
 	return devices;
 }
 
-std::vector<DeviceInfo> getInputAudioDevices()
+std::vector<settings::DeviceInfo> getInputAudioDevices()
 {
 #ifdef WIN32
 	const char* source_id = "wasapi_input_capture";
@@ -2865,7 +2864,7 @@ std::vector<DeviceInfo> getInputAudioDevices()
 	return getDevices(source_id, "device_id");
 }
 
-std::vector<DeviceInfo> getOutputAudioDevices()
+std::vector<settings::DeviceInfo> getOutputAudioDevices()
 {
 #ifdef WIN32
 	const char* source_id = "wasapi_output_capture";
@@ -2876,7 +2875,7 @@ std::vector<DeviceInfo> getOutputAudioDevices()
 	return getDevices(source_id, "device_id");
 }
 
-std::vector<DeviceInfo> getVideoDevices()
+std::vector<settings::DeviceInfo> getVideoDevices()
 {
 #ifdef WIN32
 	const char* source_id = "dshow_input";

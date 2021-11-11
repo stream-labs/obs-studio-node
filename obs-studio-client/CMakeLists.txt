@@ -303,8 +303,6 @@ SET(osn-client_SOURCES
 	"source/server//nodeobs_common.cpp"
 	"source/server//nodeobs_service-server.cpp"
 	"source/server//nodeobs_service-server.h"
-	"source/server//nodeobs_settings-server.cpp"
-	"source/server//nodeobs_settings-server.h"
 	"source/server//util-memory.cpp"
 	"source/server//util-memory.h"
 
