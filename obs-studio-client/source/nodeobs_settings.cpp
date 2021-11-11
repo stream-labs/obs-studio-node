@@ -119,15 +119,15 @@ inline Napi::Object buildJSObject(
 		Napi::Object valueObject = Napi::Object::New(env);
 		if (subType.compare("OBS_COMBO_FORMAT_INT") == 0) {
 			valueObject.Set(
-				name, Napi::Number::New(env, settingValue.second.value_union.i64));
+				settingValue.first, Napi::Number::New(env, settingValue.second.value_union.i64));
 		}
 		else if (subType.compare("OBS_COMBO_FORMAT_FLOAT") == 0) {
 			valueObject.Set(
-				name, Napi::Number::New(env, settingValue.second.value_union.fp64));
+				settingValue.first, Napi::Number::New(env, settingValue.second.value_union.fp64));
 		}
 		else if (subType.compare("OBS_COMBO_FORMAT_STRING") == 0) {
 			valueObject.Set(
-				name, Napi::String::New(env, settingValue.second.value_str));
+				settingValue.first, Napi::String::New(env, settingValue.second.value_str));
 		}
 		valuesObject.Set(indexValues++, valueObject);
 	}
@@ -729,19 +729,6 @@ inline void getSimpleOutputSettings(
 			std::make_pair("High Quality, Medium File Size", data::value("Small")),
 			std::make_pair("Indistinguishable Quality, Large File Size", data::value("HQ")),
 			std::make_pair("Lossless Quality, Tremendously Large File Size", data::value("Lossless")),
-		}, env
-	));
-	recordingObjects.Set(indexRecording++, buildJSObject(
-		"RecFormat", "OBS_PROPERTY_LIST",
-		"Recording Format", "OBS_COMBO_FORMAT_STRING",
-		data::value(getSafeOBSstr(config_get_string(config, "SimpleOutput", "RecFormat"))),
-		{
-			std::make_pair("flv", data::value("flv")),
-			std::make_pair("mp4", data::value("mp4")),
-			std::make_pair("mov", data::value("mov")),
-			std::make_pair("mkv", data::value("mkv")),
-			std::make_pair("ts", data::value("ts")),
-			std::make_pair("m3u8", data::value("m3u8")),
 		}, env
 	));
 	recordingObjects.Set(indexRecording++, buildJSObject(
@@ -1530,7 +1517,7 @@ inline void getOutputSettings(Napi::Object& settings, Napi::Env env)
 		}, env
 	));
 
-	outputMode.Set("nameSubCategory", Napi::String::New(env, "Output"));
+	outputMode.Set("nameSubCategory", Napi::String::New(env, "Untitled"));
 	outputMode.Set("parameters", outputModeObjects);
 	subCategories.Set(indexSubCategories++, outputMode);
 
@@ -1587,6 +1574,9 @@ inline void getAudioSettings(Napi::Object& settings, Napi::Env env)
 	audio.Set("nameSubCategory", Napi::String::New(env, "Untitled"));
 	audio.Set("parameters", audioObjects);
 	subCategories.Set(indexSubCategories++, audio);
+
+	settings.Set("data", subCategories);
+	settings.Set("type", Napi::Number::New(env, NODEOBS_CATEGORY_LIST));
 }
 
 void getVideoSettings(Napi::Object& settings, Napi::Env env)
@@ -1664,7 +1654,11 @@ void getVideoSettings(Napi::Object& settings, Napi::Env env)
 	videoObjects.Set(indexVideo++, buildJSObject(
 		"ScaleType", "OBS_PROPERTY_LIST",
 		"Downscale Filter", "OBS_COMBO_FORMAT_STRING",
-		data::value(getSafeOBSstr(config_get_string(config, "Video", "ScaleType"))), {}, env
+		data::value(getSafeOBSstr(config_get_string(config, "Video", "ScaleType"))), {
+			std::make_pair("Bilinear (Fastest, but blurry if scaling)", data::value("bilinear")),
+			std::make_pair("Bicubic (Sharpened scaling, 16 samples)", data::value("bicubic")),
+			std::make_pair("Lanczos (Sharpened scaling, 32 samples)", data::value("lanczos")),
+		}, env
 	));
 	uint64_t fpsTypeValue = config_get_uint(config, "Video", "FPSType");
 	switch (fpsTypeValue) {
@@ -2725,6 +2719,22 @@ void saveAdvancedSettings(const Napi::Array& settings, Napi::Env env)
 	MemoryManager::GetInstance().updateSourcesCache();
 }
 
+void saveAudioSettings(const Napi::Array& settings)
+{
+	Napi::Object subCategoryObject = settings.Get((uint32_t)0).ToObject();
+	Napi::Array parameters = subCategoryObject.Get("parameters").As<Napi::Array>();
+
+	Napi::Object sampleRate = parameters.Get((uint32_t)0).ToObject();
+	uint64_t valueSampleRate = uint64_t(sampleRate.Get("currentValue").ToNumber().Uint32Value());
+	config_set_uint(ConfigManager::getInstance().getBasic(), "Audio", "SampleRate", valueSampleRate);
+
+	Napi::Object channels = parameters.Get((uint32_t)1).ToObject();
+	std::string valueChannels = channels.Get("currentValue").ToString().Utf8Value();
+	config_set_string(ConfigManager::getInstance().getBasic(), "Audio", "ChannelSetup", valueChannels.c_str());
+
+	config_save_safe(ConfigManager::getInstance().getBasic(), "tmp", nullptr);
+}
+
 void settings::OBS_settings_saveSettings(const Napi::CallbackInfo& info)
 {
 	std::string category = info[0].ToString().Utf8Value();
@@ -2738,11 +2748,9 @@ void settings::OBS_settings_saveSettings(const Napi::CallbackInfo& info)
 		}
 	} else if (category.compare("Output") == 0) {
 		saveOutputSettings(settings, info.Env());
-	} 
-	// else if (category.compare("Audio") == 0) {
-	// 	saveAudioSettings(settings);
-	// }
-	else if (category.compare("Video") == 0) {
+	} else if (category.compare("Audio") == 0) {
+		saveAudioSettings(settings);
+	} else if (category.compare("Video") == 0) {
 		saveVideoSettings(settings);
 		OBS_service::resetVideoContext();
 	} else if (category.compare("Advanced") == 0) {
@@ -2797,22 +2805,103 @@ Napi::Array devices_to_js(const Napi::CallbackInfo& info, const std::vector<Devi
 	return devices;
 }
 
+std::vector<DeviceInfo> getDevices(const char* source_id, const char* property_name)
+{
+	std::vector<DeviceInfo> devices;
+
+	auto settings = obs_get_source_defaults(source_id);
+	if (!settings)
+		return devices;
+
+	const char* dummy_device_name = "does_not_exist";
+	obs_data_set_string(settings, property_name, dummy_device_name);
+	if (strcmp(source_id, "dshow_input") == 0) {
+		obs_data_set_string(settings, "video_device_id", dummy_device_name);
+		obs_data_set_string(settings, "audio_device_id", dummy_device_name);
+	}
+
+	auto dummy_source = obs_source_create(source_id, dummy_device_name, settings, nullptr);
+	if (!dummy_source)
+		return devices;
+
+	auto props = obs_source_properties(dummy_source);
+	if (!props)
+		return devices;
+
+	auto prop = obs_properties_get(props, property_name);
+	if (!prop)
+		return devices;
+
+	size_t size = obs_property_list_item_count(prop);
+	for (size_t idx = 0; idx < size; idx++) {
+		const char* description = obs_property_list_item_name(prop, idx);
+		const char* device_id = obs_property_list_item_string(prop, idx);
+
+		if (!description || !strcmp(description, "") ||
+			!device_id || !strcmp(device_id, ""))
+			continue;
+
+		devices.push_back({
+			description,
+			device_id
+		});
+	}
+
+	obs_properties_destroy(props);
+	obs_data_release(settings);
+	obs_source_release(dummy_source);
+
+	return devices;
+}
+
+std::vector<DeviceInfo> getInputAudioDevices()
+{
+#ifdef WIN32
+	const char* source_id = "wasapi_input_capture";
+#elif __APPLE__
+	const char* source_id = "coreaudio_input_capture";
+#endif
+
+	return getDevices(source_id, "device_id");
+}
+
+std::vector<DeviceInfo> getOutputAudioDevices()
+{
+#ifdef WIN32
+	const char* source_id = "wasapi_output_capture";
+#elif __APPLE__
+	const char* source_id = "coreaudio_output_capture";
+#endif
+
+	return getDevices(source_id, "device_id");
+}
+
+std::vector<DeviceInfo> getVideoDevices()
+{
+#ifdef WIN32
+	const char* source_id = "dshow_input";
+	const char* property_name = "video_device_id";
+#elif __APPLE__
+	const char* source_id = "av_capture_input";
+	const char* property_name = "device";
+#endif
+
+	return getDevices(source_id, property_name);
+}
+
 Napi::Value settings::OBS_settings_getInputAudioDevices(const Napi::CallbackInfo& info)
 {
-	// return devices_to_js(info, OBS_settings_getInputAudioDevices());
-	return info.Env().Undefined();
+	return devices_to_js(info, getInputAudioDevices());
 }
 
 Napi::Value settings::OBS_settings_getOutputAudioDevices(const Napi::CallbackInfo& info)
 {
-	// return devices_to_js(info, OBS_settings_getOutputAudioDevices());
-	return info.Env().Undefined();
+	return devices_to_js(info, getOutputAudioDevices());
 }
 
 Napi::Value settings::OBS_settings_getVideoDevices(const Napi::CallbackInfo& info)
 {
-	// return devices_to_js(info, OBS_settings_getVideoDevices());
-	return info.Env().Undefined();
+	return devices_to_js(info, getVideoDevices());
 }
 
 void settings::Init(Napi::Env env, Napi::Object exports)

@@ -760,9 +760,9 @@ int OBS_API::OBS_API_initAPI(
 	blog(LOG_INFO, "INIT - 3.3");
 #ifndef _DEBUG
 	// Redirect the ipc log callbacks to our log handler
-	ipc::register_log_callback([](void* data, const char* fmt, va_list args) { 
-		blogva(LOG_ERROR, fmt, args);
-	}, nullptr);
+	// ipc::register_log_callback([](void* data, const char* fmt, va_list args) { 
+	// 	blogva(LOG_ERROR, fmt, args);
+	// }, nullptr);
 #endif
 
 	blog(LOG_INFO, "INIT - 4");

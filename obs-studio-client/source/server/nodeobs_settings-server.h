@@ -169,9 +169,9 @@ class OBS_settings
 
 	static void saveGenericSettings(std::vector<SubCategory> genericSettings, std::string section, config_t* config);
 
-	static std::vector<DeviceInfo> OBS_settings_getInputAudioDevices();
-	static std::vector<DeviceInfo> OBS_settings_getOutputAudioDevices();
-	static std::vector<DeviceInfo> OBS_settings_getVideoDevices();
+	// static std::vector<DeviceInfo> OBS_settings_getInputAudioDevices();
+	// static std::vector<DeviceInfo> OBS_settings_getOutputAudioDevices();
+	// static std::vector<DeviceInfo> OBS_settings_getVideoDevices();
 
 	private:
 	// Exposed methods to the frontend

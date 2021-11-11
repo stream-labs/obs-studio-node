@@ -4120,86 +4120,86 @@ void OBS_settings::saveGenericSettings(std::vector<SubCategory> genericSettings,
 	config_save_safe(config, "tmp", nullptr);
 }
 
-std::vector<DeviceInfo> getDevices(const char* source_id, const char* property_name)
-{
-	std::vector<DeviceInfo> devices;
+// std::vector<DeviceInfo> getDevices(const char* source_id, const char* property_name)
+// {
+// 	std::vector<DeviceInfo> devices;
 
-	auto settings = obs_get_source_defaults(source_id);
-	if (!settings)
-		return devices;
+// 	auto settings = obs_get_source_defaults(source_id);
+// 	if (!settings)
+// 		return devices;
 
-	const char* dummy_device_name = "does_not_exist";
-	obs_data_set_string(settings, property_name, dummy_device_name);
-	if (strcmp(source_id, "dshow_input") == 0) {
-		obs_data_set_string(settings, "video_device_id", dummy_device_name);
-		obs_data_set_string(settings, "audio_device_id", dummy_device_name);
-	}
+// 	const char* dummy_device_name = "does_not_exist";
+// 	obs_data_set_string(settings, property_name, dummy_device_name);
+// 	if (strcmp(source_id, "dshow_input") == 0) {
+// 		obs_data_set_string(settings, "video_device_id", dummy_device_name);
+// 		obs_data_set_string(settings, "audio_device_id", dummy_device_name);
+// 	}
 
-	auto dummy_source = obs_source_create(source_id, dummy_device_name, settings, nullptr);
-	if (!dummy_source)
-		return devices;
+// 	auto dummy_source = obs_source_create(source_id, dummy_device_name, settings, nullptr);
+// 	if (!dummy_source)
+// 		return devices;
 
-	auto props = obs_source_properties(dummy_source);
-	if (!props)
-		return devices;
+// 	auto props = obs_source_properties(dummy_source);
+// 	if (!props)
+// 		return devices;
 
-	auto prop = obs_properties_get(props, property_name);
-	if (!prop)
-		return devices;
+// 	auto prop = obs_properties_get(props, property_name);
+// 	if (!prop)
+// 		return devices;
 
-	size_t size = obs_property_list_item_count(prop);
-	for (size_t idx = 0; idx < size; idx++) {
-		const char* description = obs_property_list_item_name(prop, idx);
-		const char* device_id = obs_property_list_item_string(prop, idx);
+// 	size_t size = obs_property_list_item_count(prop);
+// 	for (size_t idx = 0; idx < size; idx++) {
+// 		const char* description = obs_property_list_item_name(prop, idx);
+// 		const char* device_id = obs_property_list_item_string(prop, idx);
 
-		if (!description || !strcmp(description, "") ||
-			!device_id || !strcmp(device_id, ""))
-			continue;
+// 		if (!description || !strcmp(description, "") ||
+// 			!device_id || !strcmp(device_id, ""))
+// 			continue;
 
-		devices.push_back({
-			description,
-			device_id
-		});
-	}
+// 		devices.push_back({
+// 			description,
+// 			device_id
+// 		});
+// 	}
 
-	obs_properties_destroy(props);
-	obs_data_release(settings);
-	obs_source_release(dummy_source);
+// 	obs_properties_destroy(props);
+// 	obs_data_release(settings);
+// 	obs_source_release(dummy_source);
 
-	return devices;
-}
+// 	return devices;
+// }
 
-std::vector<DeviceInfo> OBS_settings::OBS_settings_getInputAudioDevices()
-{
-#ifdef WIN32
-	const char* source_id = "wasapi_input_capture";
-#elif __APPLE__
-	const char* source_id = "coreaudio_input_capture";
-#endif
+// std::vector<DeviceInfo> OBS_settings::OBS_settings_getInputAudioDevices()
+// {
+// #ifdef WIN32
+// 	const char* source_id = "wasapi_input_capture";
+// #elif __APPLE__
+// 	const char* source_id = "coreaudio_input_capture";
+// #endif
 
-	return getDevices(source_id, "device_id");
-}
+// 	return getDevices(source_id, "device_id");
+// }
 
-std::vector<DeviceInfo> OBS_settings::OBS_settings_getOutputAudioDevices()
-{
-#ifdef WIN32
-	const char* source_id = "wasapi_output_capture";
-#elif __APPLE__
-	const char* source_id = "coreaudio_output_capture";
-#endif
+// std::vector<DeviceInfo> OBS_settings::OBS_settings_getOutputAudioDevices()
+// {
+// #ifdef WIN32
+// 	const char* source_id = "wasapi_output_capture";
+// #elif __APPLE__
+// 	const char* source_id = "coreaudio_output_capture";
+// #endif
 
-	return getDevices(source_id, "device_id");
-}
+// 	return getDevices(source_id, "device_id");
+// }
 
-std::vector<DeviceInfo> OBS_settings::OBS_settings_getVideoDevices()
-{
-#ifdef WIN32
-	const char* source_id = "dshow_input";
-	const char* property_name = "video_device_id";
-#elif __APPLE__
-	const char* source_id = "av_capture_input";
-	const char* property_name = "device";
-#endif
+// std::vector<DeviceInfo> OBS_settings::OBS_settings_getVideoDevices()
+// {
+// #ifdef WIN32
+// 	const char* source_id = "dshow_input";
+// 	const char* property_name = "video_device_id";
+// #elif __APPLE__
+// 	const char* source_id = "av_capture_input";
+// 	const char* property_name = "device";
+// #endif
 
-	return getDevices(source_id, property_name);
-}
+// 	return getDevices(source_id, property_name);
+// }
