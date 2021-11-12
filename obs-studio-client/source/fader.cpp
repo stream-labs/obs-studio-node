@@ -19,7 +19,6 @@
 #include "fader.hpp"
 #include <iterator>
 #include <vector>
-#include "error.hpp"
 #include "input.hpp"
 #include "shared.hpp"
 #include <iostream>

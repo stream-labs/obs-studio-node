@@ -57,43 +57,43 @@ export declare const enum EFontStyle {
     Strikeout = 8
 }
 export declare const enum EPropertyType {
-    Invalid = 0,
-    Boolean = 1,
-    Int = 2,
-    Float = 3,
-    Text = 4,
-    Path = 5,
-    List = 6,
-    Color = 7,
-    Button = 8,
-    Font = 9,
-    EditableList = 10,
-    FrameRate = 11
+    Invalid = "OBS_PROPERTY_INVALID",
+    Boolean = "OBS_PROPERTY_BOOL",
+    Int = "OBS_PROPERTY_INT",
+    Float = "OBS_PROPERTY_FLOAT",
+    Text = "OBS_PROPERTY_TEXT",
+    Path = "OBS_PROPERTY_PATH",
+    List = "OBS_PROPERTY_LIST",
+    Color = "OBS_PROPERTY_COLOR",
+    Button = "OBS_PROPERTY_BUTTON",
+    Font = "OBS_PROPERTY_FONT",
+    EditableList = "OBS_PROPERTY_EDITABLE_LIST",
+    FrameRate = "OBS_PROPERTY_FRAME_RATE"
 }
 export declare const enum EListFormat {
-    Invalid = 0,
-    Int = 1,
-    Float = 2,
-    String = 3
+    Invalid = "OBS_COMBO_FORMAT_INVALID",
+    Int = "OBS_COMBO_FORMAT_INT",
+    Float = "OBS_COMBO_FORMAT_FLOAT",
+    String = "OBS_COMBO_FORMAT_STRING"
 }
 export declare const enum EEditableListType {
-    Strings = 0,
-    Files = 1,
-    FilesAndUrls = 2
+    Strings = "OBS_COMBO_TYPE_INVALID",
+    Files = "OBS_COMBO_TYPE_EDITABLE",
+    FilesAndUrls = "OBS_COMBO_TYPE_LIST"
 }
 export declare const enum EPathType {
-    File = 0,
-    FileSave = 1,
-    Directory = 2
+    File = "OBS_PATH_FILE",
+    FileSave = "OBS_PATH_FILE_SAVE",
+    Directory = "OBS_PATH_DIRECTORY"
 }
 export declare const enum ETextType {
-    Default = 0,
-    Password = 1,
-    Multiline = 2
+    Default = "OBS_TEXT_DEFAULT",
+    Password = "OBS_TEXT_PASSWORD",
+    Multiline = "OBS_TEXT_MULTILINE"
 }
 export declare const enum ENumberType {
-    Scroller = 0,
-    Slider = 1
+    Scroller = "OBS_NUMBER_SCROLLER",
+    Slider = "OBS_NUMBER_SLIDER"
 }
 export declare const enum EAlignment {
     Center = 0,
@@ -271,7 +271,6 @@ export declare const VolmeterFactory: IVolmeterFactory;
 export declare const FaderFactory: IFaderFactory;
 export declare const AudioFactory: IAudioFactory;
 export declare const ModuleFactory: IModuleFactory;
-export declare const IPC: IIPC;
 export interface ISettings {
     [key: string]: any;
 }
@@ -346,42 +345,27 @@ export interface IButtonProperty extends IProperty {
 export interface IFontProperty extends IProperty {
 }
 export interface IListProperty extends IProperty {
-    readonly details: IListDetails;
-}
-export interface IListDetails {
     readonly format: EListFormat;
     readonly items: {
         name: string;
         value: string | number;
     }[];
 }
-export interface IEditableListProperty extends IProperty {
-    readonly details: IEditableListDetails;
-}
-export interface IEditableListDetails extends IListDetails {
-    readonly type: EEditableListType;
+export interface IEditableListProperty extends IListProperty {
+    readonly fieldType: EEditableListType;
     readonly filter: string;
     readonly defaultPath: string;
 }
 export interface IPathProperty extends IProperty {
-    readonly details: IPathDetails;
-}
-export interface IPathDetails {
-    readonly type: EPathType;
+    readonly fieldType: EPathType;
     readonly filter: string;
     readonly defaultPath: string;
 }
 export interface ITextProperty extends IProperty {
-    readonly details: ITextDetails;
-}
-export interface ITextDetails {
-    readonly type: ETextType;
+    readonly fieldType: ETextType;
 }
 export interface INumberProperty extends IProperty {
-    readonly details: INumberDetails;
-}
-export interface INumberDetails {
-    readonly type: ENumberType;
+    readonly fieldType: ENumberType;
     readonly min: number;
     readonly max: number;
     readonly step: number;
@@ -395,14 +379,6 @@ export interface IProperty {
     readonly visible: boolean;
     readonly type: EPropertyType;
     readonly value: any;
-    next(): IProperty;
-    modified(): boolean;
-}
-export interface IProperties {
-    readonly status: number;
-    first(): IProperty;
-    count(): number;
-    get(name: string): IProperty;
 }
 export interface IFactoryTypes {
     types(): string[];
@@ -621,7 +597,7 @@ export interface ITransition extends ISource {
 export interface IConfigurable {
     update(settings: ISettings): void;
     readonly configurable: boolean;
-    readonly properties: IProperties;
+    readonly properties: IProperty[];
     readonly settings: ISettings;
 }
 export interface ISource extends IConfigurable, IReleasable {

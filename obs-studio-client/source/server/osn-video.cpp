@@ -18,7 +18,6 @@
 
 #include "osn-video.hpp"
 #include <obs.h>
-#include "error.hpp"
 #include "shared-server.hpp"
 
 uint32_t obs::Video::GetSkippedFrames()

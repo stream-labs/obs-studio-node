@@ -24,7 +24,6 @@
  * We should consider moving this to another module */
 #include <graphics/matrix4.h>
 
-#include "error.hpp"
 #include "shared-server.hpp"
 
 #include <thread>

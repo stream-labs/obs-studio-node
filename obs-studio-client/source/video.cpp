@@ -17,7 +17,6 @@
 ******************************************************************************/
 
 #include "video.hpp"
-#include <error.hpp>
 #include "shared.hpp"
 #include "utility-v8.hpp"
 #include "utility.hpp"

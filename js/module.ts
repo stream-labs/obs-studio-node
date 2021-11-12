@@ -90,48 +90,48 @@ export const enum EFontStyle {
  * Enumeration describing the type of a property
  */
 export const enum EPropertyType {
-    Invalid,
-    Boolean,
-    Int,
-    Float,
-    Text,
-    Path,
-    List,
-    Color,
-    Button,
-    Font,
-    EditableList,
-    FrameRate
+    Invalid = 'OBS_PROPERTY_INVALID',
+    Boolean = 'OBS_PROPERTY_BOOL',
+    Int = 'OBS_PROPERTY_INT',
+    Float = 'OBS_PROPERTY_FLOAT',
+    Text = 'OBS_PROPERTY_TEXT',
+    Path = 'OBS_PROPERTY_PATH',
+    List = 'OBS_PROPERTY_LIST',
+    Color = 'OBS_PROPERTY_COLOR',
+    Button = 'OBS_PROPERTY_BUTTON',
+    Font = 'OBS_PROPERTY_FONT',
+    EditableList = 'OBS_PROPERTY_EDITABLE_LIST',
+    FrameRate = 'OBS_PROPERTY_FRAME_RATE'
 }
 
 export const enum EListFormat {
-    Invalid,
-    Int,
-    Float,
-    String
+    Invalid = 'OBS_COMBO_FORMAT_INVALID',
+    Int = 'OBS_COMBO_FORMAT_INT',
+    Float = 'OBS_COMBO_FORMAT_FLOAT',
+    String = 'OBS_COMBO_FORMAT_STRING'
 }
 
 export const enum EEditableListType {
-    Strings,
-    Files,
-    FilesAndUrls
+    Strings = 'OBS_COMBO_TYPE_INVALID',
+    Files = 'OBS_COMBO_TYPE_EDITABLE',
+    FilesAndUrls = 'OBS_COMBO_TYPE_LIST',
 }
 
 export const enum EPathType {
-    File,
-    FileSave,
-    Directory
+    File = 'OBS_PATH_FILE',
+    FileSave = 'OBS_PATH_FILE_SAVE',
+    Directory = 'OBS_PATH_DIRECTORY'
 }
 
 export const enum ETextType {
-    Default,
-    Password,
-    Multiline
+    Default = 'OBS_TEXT_DEFAULT',
+    Password = 'OBS_TEXT_PASSWORD',
+    Multiline = 'OBS_TEXT_MULTILINE'
 }
 
 export const enum ENumberType {
-    Scroller,
-    Slider
+    Scroller = 'OBS_NUMBER_SCROLLER',
+    Slider = 'OBS_NUMBER_SLIDER'
 }
 
 /**
@@ -348,7 +348,6 @@ export const VolmeterFactory: IVolmeterFactory = obs.Volmeter;
 export const FaderFactory: IFaderFactory = obs.Fader;
 export const AudioFactory: IAudioFactory = obs.Audio;
 export const ModuleFactory: IModuleFactory = obs.Module;
-export const IPC: IIPC = obs.IPC;
 
 /**
  * Meta object in order to better describe settings
@@ -526,58 +525,28 @@ export interface IFontProperty extends IProperty {
 }
 
 export interface IListProperty extends IProperty {
-    readonly details: IListDetails;
-}
-
-export interface IListDetails {
     readonly format: EListFormat;
-
-    /**
-     * A list of options to be made available within the list.
-     * You can determine if it's a string or number by testing
-     * {@link IListProperty#format}
-     */
     readonly items: { name: string, value: string | number }[];
 }
 
-export interface IEditableListProperty extends IProperty {
-    readonly details: IEditableListDetails;
-}
-
-export interface IEditableListDetails extends IListDetails {
-    readonly type: EEditableListType;
-
-     /** String describing allowed valued */
+export interface IEditableListProperty extends IListProperty {
+    readonly fieldType: EEditableListType;
     readonly filter: string;
-
-    /** Default value for the editable box */
     readonly defaultPath: string;
 }
 
 export interface IPathProperty extends IProperty {
-    readonly details: IPathDetails;
-}
-
-export interface IPathDetails {
-    readonly type: EPathType;
+    readonly fieldType: EPathType;
     readonly filter: string;
     readonly defaultPath: string;
 }
 
 export interface ITextProperty extends IProperty {
-    readonly details: ITextDetails;
-}
-
-export interface ITextDetails {
-    readonly type: ETextType;
+    readonly fieldType: ETextType;
 }
 
 export interface INumberProperty extends IProperty {
-    readonly details: INumberDetails;
-}
-
-export interface INumberDetails {
-    readonly type: ENumberType;
+    readonly fieldType: ENumberType;
     readonly min: number;
     readonly max: number;
     readonly step: number;
@@ -623,32 +592,7 @@ export interface IProperty {
      * @returns If it's successful, returns true.
      * Otherwise or if end of the list, returns false. 
      */
-    next(): IProperty;
-    modified(): boolean;
-}
-
-/**
- * Object representing a list of properties. 
- * 
- * Use .properties member on an encoder, source, output, or service
- * to obtain an instance.
- */
-export interface IProperties {
-
-    /** Obtains the status of the list */
-    readonly status: number;
-
-    /** Obtains the first property in the list. */
-    first(): IProperty;
-
-    count(): number;
-
-    /**
-     * Obtains property matching name.
-     * @param name The name of the property to fetch.
-     * @returns - The property instance or null if not found
-     */
-    get(name: string): IProperty;
+    // modified(): boolean;
 }
 
 export interface IFactoryTypes {
@@ -1275,7 +1219,7 @@ export interface IConfigurable {
     /**
      * The properties of the source
      */
-    readonly properties: IProperties;
+    readonly properties: IProperty[];
 
     /**
      * Object holding current settings of the source

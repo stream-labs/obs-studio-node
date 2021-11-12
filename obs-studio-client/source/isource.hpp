@@ -19,8 +19,6 @@
 #pragma once
 #include <napi.h>
 #include "utility-v8.hpp"
-#include "properties.hpp"
-#include "obs-property.hpp"
 #include "cache-manager.hpp"
 #include "server/osn-source.hpp"
 

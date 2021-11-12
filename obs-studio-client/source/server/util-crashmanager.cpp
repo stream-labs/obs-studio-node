@@ -50,7 +50,6 @@
 #endif
 
 #include "nodeobs_api-server.h"
-#include "error.hpp"
 #include "shared-server.hpp"
 
 #ifdef ENABLE_CRASHREPORT

@@ -17,7 +17,6 @@
 ******************************************************************************/
 
 #include "callback-manager.hpp"
-#include "error.hpp"
 #include "utility-v8.hpp"
 
 #include <node.h>

@@ -77,7 +77,6 @@
 #include <fcntl.h>
 #endif
 
-#include "error.hpp"
 #include "shared-server.hpp"
 
 #include <fstream>

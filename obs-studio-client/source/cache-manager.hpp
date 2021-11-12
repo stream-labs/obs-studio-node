@@ -17,7 +17,6 @@
 ******************************************************************************/
 
 #include "utility-v8.hpp"
-#include "properties.hpp"
 
 struct SceneInfo
 {
@@ -38,9 +37,6 @@ struct SourceDataInfo
 
 	std::string setting         = "";
 	bool        settingsChanged = true;
-
-	osn::property_map_t properties;
-	bool                propertiesChanged = true;
 
 	uint32_t audioMixers        = UINT32_MAX;
 	bool     audioMixersChanged = true;

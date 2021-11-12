@@ -22,7 +22,6 @@
 #include <windows.h>
 #include <filesystem>
 #endif
-#include "error.hpp"
 #include "shared-server.hpp"
 #include "utility-server.hpp"
 

@@ -1,9 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.NodeObs = exports.getSourcesSize = exports.createSources = exports.addItems = exports.EDelayFlags = exports.IPC = exports.ModuleFactory = exports.AudioFactory = exports.FaderFactory = exports.VolmeterFactory = exports.DisplayFactory = exports.TransitionFactory = exports.FilterFactory = exports.SceneFactory = exports.InputFactory = exports.ServiceFactory = exports.VideoEncoderFactory = exports.AudioEncoderFactory = exports.OutputFactory = exports.Video = exports.Global = exports.DefaultPluginDataPath = exports.DefaultPluginPath = exports.DefaultDataPath = exports.DefaultBinPath = exports.DefaultDrawPluginPath = exports.DefaultOpenGLPath = exports.DefaultD3D11Path = void 0;
+exports.NodeObs = exports.getSourcesSize = exports.createSources = exports.addItems = exports.EDelayFlags = exports.ModuleFactory = exports.AudioFactory = exports.FaderFactory = exports.VolmeterFactory = exports.DisplayFactory = exports.TransitionFactory = exports.FilterFactory = exports.SceneFactory = exports.InputFactory = exports.ServiceFactory = exports.VideoEncoderFactory = exports.AudioEncoderFactory = exports.OutputFactory = exports.Video = exports.Global = exports.DefaultPluginDataPath = exports.DefaultPluginPath = exports.DefaultDataPath = exports.DefaultBinPath = exports.DefaultDrawPluginPath = exports.DefaultOpenGLPath = exports.DefaultD3D11Path = void 0;
 const obs = require('./obs_studio_client.node');
 const path = require("path");
-const fs = require("fs");
 exports.DefaultD3D11Path = path.resolve(__dirname, `libobs-d3d11.dll`);
 exports.DefaultOpenGLPath = path.resolve(__dirname, `libobs-opengl.dll`);
 exports.DefaultDrawPluginPath = path.resolve(__dirname, `simple_draw.dll`);
@@ -26,7 +25,6 @@ exports.VolmeterFactory = obs.Volmeter;
 exports.FaderFactory = obs.Fader;
 exports.AudioFactory = obs.Audio;
 exports.ModuleFactory = obs.Module;
-exports.IPC = obs.IPC;
 var EDelayFlags;
 (function (EDelayFlags) {
     EDelayFlags[EDelayFlags["PreserveDelay"] = 1] = "PreserveDelay";
@@ -85,4 +83,5 @@ function getSourcesSize(sourcesNames) {
     }
     return sourcesSize;
 }
+exports.getSourcesSize = getSourcesSize;
 exports.NodeObs = obs;

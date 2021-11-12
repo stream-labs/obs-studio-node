@@ -17,7 +17,6 @@
 ******************************************************************************/
 
 #include "nodeobs_settings.hpp"
-#include "error.hpp"
 #include "utility-v8.hpp"
 
 #include <node.h>
@@ -40,11 +39,6 @@ enum CategoryTypes : uint32_t
 typedef std::pair<std::string, data::value> settings_value;
 
 Napi::Array* currentAudioSettings = nullptr;
-
-inline std::string getSafeOBSstr(const char* obsSTR) {
-	if (!obsSTR) obsSTR = "";
-	return std::string(obsSTR);
-}
 
 inline Napi::Object buildJSObject(
 	const std::string& name, const std::string& type,

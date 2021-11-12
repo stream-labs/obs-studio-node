@@ -22,7 +22,6 @@
 #include <string>
 #include <algorithm>
 #include <iterator>
-#include "error.hpp"
 #include "filter.hpp"
 #include "shared.hpp"
 #include "utility.hpp"

@@ -28,7 +28,6 @@
 #include "input.hpp"
 #include "module.hpp"
 #include "nodeobs_api.hpp"
-#include "properties.hpp"
 #include "scene.hpp"
 #include "sceneitem.hpp"
 #include "transition.hpp"
@@ -92,8 +91,6 @@ Napi::Object main_node(Napi::Env env, Napi::Object exports) {
 	osn::Fader::Init(env, exports);
 	api::Init(env, exports);
 	osn::Input::Init(env, exports);
-	osn::Properties::Init(env, exports);
-	osn::PropertyObject::Init(env, exports);
 	osn::Filter::Init(env, exports);
 	osn::Global::Init(env, exports);
 	osn::Scene::Init(env, exports);

@@ -20,7 +20,6 @@
 #include <iostream>
 #include <memory>
 #include <obs.h>
-#include "error.hpp"
 #include "osn-source.hpp"
 #include "shared-server.hpp"
 

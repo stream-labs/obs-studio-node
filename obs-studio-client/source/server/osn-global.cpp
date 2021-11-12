@@ -17,7 +17,6 @@
 ******************************************************************************/
 
 #include "osn-global.hpp"
-#include <error.hpp>
 #include <obs.h>
 #include "osn-source.hpp"
 #include "shared-server.hpp"

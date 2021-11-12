@@ -20,7 +20,6 @@
 #include <iostream>
 #include <iterator>
 #include <vector>
-#include "error.hpp"
 #include "input.hpp"
 #include "shared.hpp"
 #include "utility-v8.hpp"

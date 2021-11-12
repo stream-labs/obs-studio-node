@@ -20,7 +20,6 @@
 #include <condition_variable>
 #include <mutex>
 #include <string>
-#include "error.hpp"
 #include "shared.hpp"
 #include "utility.hpp"
 

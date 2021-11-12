@@ -19,7 +19,6 @@
 #include "global.hpp"
 #include <condition_variable>
 #include <mutex>
-#include "error.hpp"
 #include "input.hpp"
 #include "scene.hpp"
 #include "transition.hpp"

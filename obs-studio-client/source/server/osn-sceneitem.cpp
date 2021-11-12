@@ -17,7 +17,6 @@
 ******************************************************************************/
 
 #include "osn-sceneitem.hpp"
-#include <error.hpp>
 #include "osn-source.hpp"
 #include "shared-server.hpp"
 

@@ -173,3 +173,8 @@ void ipc_freez_callback(bool freez_detected, std::string app_state_path)
 		}
 	}
 }
+
+std::string getSafeOBSstr(const char* obsSTR) {
+	if (!obsSTR) obsSTR = "";
+	return std::string(obsSTR);
+}

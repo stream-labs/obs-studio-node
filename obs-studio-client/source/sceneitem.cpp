@@ -20,7 +20,6 @@
 #include <mutex>
 #include <string>
 
-#include "error.hpp"
 #include "input.hpp"
 #include "scene.hpp"
 #include "sceneitem.hpp"

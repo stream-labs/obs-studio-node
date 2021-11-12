@@ -19,7 +19,6 @@
 #include "osn-transition.hpp"
 #include <memory>
 #include <obs.h>
-#include "error.hpp"
 #include "osn-source.hpp"
 #include "shared-server.hpp"
 

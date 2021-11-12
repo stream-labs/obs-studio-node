@@ -188,10 +188,6 @@ download_project(
 include("${libobs_SOURCE_DIR}/cmake/LibObs/LibObsConfig.cmake")
 
 SET(osn-client_SOURCES
-	"${CMAKE_SOURCE_DIR}/source/error.hpp"
-	"${CMAKE_SOURCE_DIR}/source/obs-property.hpp"
-	"${CMAKE_SOURCE_DIR}/source/obs-property.cpp"
-
 	"source/shared.cpp"
 	"source/shared.hpp"
 	"source/utility.cpp"
@@ -208,8 +204,6 @@ SET(osn-client_SOURCES
 	"source/input.hpp"
 	"source/isource.cpp"
 	"source/isource.hpp"
-	"source/properties.cpp"
-	"source/properties.hpp"
 	"source/filter.cpp"
 	"source/filter.hpp"
 	"source/transition.cpp"
