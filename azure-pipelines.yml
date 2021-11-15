@@ -65,9 +65,6 @@ jobs:
       AWS_SYMB_ACCESS_KEY_ID: $(AWS_SYMB_ACCESS_KEY_ID)
       AWS_SYMB_SECRET_ACCESS_KEY: $(AWS_SYMB_SECRET_ACCESS_KEY)
 
-  - script: ./ci/copy-files.cmd
-    displayName: 'Copy necessary dll files'
-
   - task: ArchiveFiles@2
     inputs:
       rootFolderOrFile: $(SLFullDistributePath)\obs-studio-node
