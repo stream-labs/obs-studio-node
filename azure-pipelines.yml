@@ -483,7 +483,7 @@ jobs:
 
 - job: 'MacOSX'
   pool:
-    vmImage: 'macos-10.14'
+    vmImage: 'macOS-11'
 
   strategy:
     matrix:
