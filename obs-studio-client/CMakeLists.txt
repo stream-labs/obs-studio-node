@@ -187,6 +187,13 @@ download_project(
 
 include("${libobs_SOURCE_DIR}/cmake/LibObs/LibObsConfig.cmake")
 
+download_project(
+	PROJ thread-pool
+	GIT_REPOSITORY https://github.com/bshoshany/thread-pool.git
+	GIT_TAG v2.0.0
+	UPDATE_DISCONNECTED 1
+)
+
 SET(osn-client_SOURCES
 	"source/shared.cpp"
 	"source/shared.hpp"
@@ -355,6 +362,7 @@ target_include_directories(
 		${LIBOBS_INCLUDE_DIRS}
 		"${stackwalker_SOURCE_DIR}/Main/StackWalker"
 		"${nlohmannjson_SOURCE_DIR}/single_include"
+		"${thread-pool_SOURCE_DIR}"
 )
 
 # Include N-API wrappers
@@ -370,8 +378,12 @@ target_link_libraries(${PROJECT_NAME} ${LIBOBS_LIBRARIES})
 # Define NAPI_VERSION
 add_definitions(-DNAPI_VERSION=4)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
-add_definitions(-std=c++17)
+if(MSVC)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++17")
+else()
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
+	add_definitions(-std=c++17)
+endif()
 
 #Define the OSN_VERSION
 add_compile_definitions(OSN_VERSION=\"$ENV{tagartifact}\") 

@@ -464,7 +464,7 @@ void osn::Input::CallSetEnabled(const Napi::CallbackInfo& info, const Napi::Valu
 
 Napi::Value osn::Input::CallRelease(const Napi::CallbackInfo& info)
 {
-	osn::ISource::Release(info, this->m_source);
+	pushTask(osn::ISource::Release, this->m_source);
 
 	return info.Env().Undefined();
 }

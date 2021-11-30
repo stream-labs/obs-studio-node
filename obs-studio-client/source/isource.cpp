@@ -25,7 +25,7 @@
 #include "utility.hpp"
 #include "server/osn-source.hpp"
 
-void osn::ISource::Release(const Napi::CallbackInfo& info, obs_source_t* source)
+void osn::ISource::Release(obs_source_t* source)
 {
 	obs::Source::Release(source);
 }

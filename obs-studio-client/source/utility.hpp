@@ -25,6 +25,7 @@
 #include "shared.hpp"
 #include <thread>
 #include "data-value.hpp"
+#include "thread_pool.hpp"
 
 #ifdef __cplusplus
 #define INITIALIZER(f)   \
@@ -138,3 +139,19 @@ std::string getSafeOBSstr(const char* obsSTR);
 
 //write detected possible reason of abnormal app close to a file used to submit statistics 
 // void ipc_freez_callback(bool freez_detected, std::string app_state_path);
+
+#define MAX_THREADS_POOL 2
+extern thread_pool* pool;
+
+void createThreadPool();
+void destroyThreadPool();
+
+template <typename F>
+void pushTask(const F &task) {
+	pool->push_task(task);
+};
+
+template <typename F, typename... A>
+void pushTask(const F &task, const A &...args) {
+	pool->push_task(task, args...);
+};

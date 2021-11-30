@@ -138,7 +138,7 @@ Napi::Value osn::Scene::FromName(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Scene::Release(const Napi::CallbackInfo& info)
 {
-	obs::Scene::Release(this->m_source);
+	pushTask(obs::Scene::Release, this->m_source);
 
 	return info.Env().Undefined();
 }
@@ -406,7 +406,7 @@ void osn::Scene::CallSetEnabled(const Napi::CallbackInfo& info, const Napi::Valu
 
 Napi::Value osn::Scene::CallRelease(const Napi::CallbackInfo& info)
 {
-	osn::ISource::Release(info, this->m_source);
+	pushTask(osn::ISource::Release, this->m_source);
 
 	return info.Env().Undefined();
 }
