@@ -211,7 +211,7 @@ void osn::Filter::CallSetEnabled(const Napi::CallbackInfo& info, const Napi::Val
 Napi::Value osn::Filter::CallRelease(const Napi::CallbackInfo& info)
 {
 	PROFINY_SCOPE
-	osn::ISource::Release(info, this->m_source);
+	pushTask(osn::ISource::Release, this->m_source);
 
 	return info.Env().Undefined();
 }

@@ -38,7 +38,7 @@ namespace osn
 	class ISource
 	{
 		public:
-		static void Release(const Napi::CallbackInfo& info, obs_source_t* source);
+		static void Release(obs_source_t* source);
 		static void Remove(const Napi::CallbackInfo& info, obs_source_t* source);
 		static void Update(const Napi::CallbackInfo& info, obs_source_t* source);
 		static void Load(const Napi::CallbackInfo& info, obs_source_t* source);

@@ -42,6 +42,8 @@ Napi::Value api::OBS_API_initAPI(const Napi::CallbackInfo& info)
 	if (info.Length()>3)
 		ASSERT_GET_VALUE(info, info[3], crashserverurl);
 
+	createThreadPool();
+
 	return Napi::Number::New(info.Env(), OBS_API::OBS_API_initAPI(
 		path,
 		language,
@@ -53,7 +55,9 @@ Napi::Value api::OBS_API_initAPI(const Napi::CallbackInfo& info)
 Napi::Value api::OBS_API_destroyOBS_API(const Napi::CallbackInfo& info)
 {
 	profiny::Profiler::printStats("profiny_results");
-	PROFINY_SCOPE
+
+	destroyThreadPool();
+
 	OBS_API::OBS_API_destroyOBS_API();
 
 #ifdef __APPLE__

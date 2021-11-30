@@ -178,3 +178,17 @@ std::string getSafeOBSstr(const char* obsSTR) {
 	if (!obsSTR) obsSTR = "";
 	return std::string(obsSTR);
 }
+
+thread_pool* pool = nullptr;
+
+void createThreadPool() {
+	if (!pool)
+		pool = new thread_pool(MAX_THREADS_POOL);
+}
+
+void destroyThreadPool() {
+	if (pool) {
+		delete pool;
+		pool = nullptr;
+	}
+}
