@@ -30,6 +30,7 @@
 #include "util-crashmanager.h"
 #include "util-metricsprovider.h"
 #include "../obs-studio-client/source/shared.hpp"
+#include "../obs-studio-client/source/utility.hpp"
 
 #include <sys/types.h>
 
@@ -857,6 +858,7 @@ void OBS_API::OBS_API_destroyOBS_API()
 
 std::vector<OBS_API::HotkeyInfo> OBS_API::QueryHotkeys()
 {
+	PROFINY_SCOPE
 	// For each registered hotkey
 	std::vector<HotkeyInfo> hotkeyInfos;
 	obs_enum_hotkeys(

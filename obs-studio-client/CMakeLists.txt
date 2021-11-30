@@ -187,6 +187,14 @@ download_project(
 
 include("${libobs_SOURCE_DIR}/cmake/LibObs/LibObsConfig.cmake")
 
+download_project(
+	PROJ thread-pool
+	GIT_REPOSITORY https://github.com/bshoshany/thread-pool.git
+	GIT_TAG v2.0.0
+	UPDATE_DISCONNECTED 1
+)
+
+
 SET(osn-client_SOURCES
 	"source/shared.cpp"
 	"source/shared.hpp"
@@ -231,6 +239,9 @@ SET(osn-client_SOURCES
 	"source/module.hpp"
 	"source/cache-manager.hpp"
 	"source/cache-manager.cpp"
+
+	"source/Profiny.h"
+	"source/Profiny.cpp"
 
 	###### callback-manager ######
 	"source/callback-manager.cpp"
@@ -355,6 +366,7 @@ target_include_directories(
 		${LIBOBS_INCLUDE_DIRS}
 		"${stackwalker_SOURCE_DIR}/Main/StackWalker"
 		"${nlohmannjson_SOURCE_DIR}/single_include"
+		"${thread-pool_SOURCE_DIR}/thread_pool.hpp"
 )
 
 # Include N-API wrappers

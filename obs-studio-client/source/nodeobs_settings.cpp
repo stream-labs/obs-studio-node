@@ -2028,6 +2028,7 @@ void getAdvancedSettings(Napi::Object& settings, Napi::Env env)
 
 Napi::Value settings::OBS_settings_getSettings(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	std::string category = info[0].ToString().Utf8Value();
 	std::vector<std::string> listSettings = getListCategories();
 	std::vector<std::string>::iterator it = std::find(listSettings.begin(), listSettings.end(), category);
@@ -2730,6 +2731,7 @@ void saveAudioSettings(const Napi::Array& settings)
 
 void settings::OBS_settings_saveSettings(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	std::string category = info[0].ToString().Utf8Value();
 	Napi::Array settings = info[1].As<Napi::Array>();
 
@@ -2773,6 +2775,7 @@ std::vector<std::string> settings::getListCategories(void)
 
 Napi::Value settings::OBS_settings_getListCategories(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	Napi::Array categories = Napi::Array::New(info.Env());
 	std::vector<std::string> settings = getListCategories();
 
@@ -2884,16 +2887,19 @@ std::vector<settings::DeviceInfo> getVideoDevices()
 
 Napi::Value settings::OBS_settings_getInputAudioDevices(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	return devices_to_js(info, getInputAudioDevices());
 }
 
 Napi::Value settings::OBS_settings_getOutputAudioDevices(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	return devices_to_js(info, getOutputAudioDevices());
 }
 
 Napi::Value settings::OBS_settings_getVideoDevices(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	return devices_to_js(info, getVideoDevices());
 }
 

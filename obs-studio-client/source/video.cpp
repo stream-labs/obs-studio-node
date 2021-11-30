@@ -48,10 +48,12 @@ osn::Video::Video(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Video::skippedFrames(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	return Napi::Number::New(info.Env(), obs::Video::GetSkippedFrames());
 }
 
 Napi::Value osn::Video::encodedFrames(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	return Napi::Number::New(info.Env(), obs::Video::GetTotalFrames());
 }

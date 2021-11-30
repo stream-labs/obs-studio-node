@@ -16,6 +16,9 @@
 
 ******************************************************************************/
 
+#ifndef UTILITY_CPP_H_
+#define UTILITY_CPP_H_
+
 #pragma once
 #include <memory>
 #include <string>
@@ -138,3 +141,10 @@ std::string getSafeOBSstr(const char* obsSTR);
 
 //write detected possible reason of abnormal app close to a file used to submit statistics 
 // void ipc_freez_callback(bool freez_detected, std::string app_state_path);
+
+#define PROFINY_CALL_GRAPH_PROFILER
+// #define PROFINY_FLAT_PROFILER
+
+#include "Profiny.h"
+
+#endif

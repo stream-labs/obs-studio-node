@@ -67,6 +67,7 @@ osn::Module::Module(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Module::Open(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	std::string bin_path = info[0].ToString().Utf8Value();
 	std::string data_path = info[1].ToString().Utf8Value();
 
@@ -82,6 +83,7 @@ Napi::Value osn::Module::Open(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Module::Modules(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	auto modulesArray = obs::Module::Modules();
 	Napi::Array modules = Napi::Array::New(info.Env(), modulesArray.size());
 
@@ -94,35 +96,42 @@ Napi::Value osn::Module::Modules(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Module::Initialize(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	return Napi::Boolean::New(info.Env(), obs::Module::Initialize(this->moduleId));
 }
 
 Napi::Value osn::Module::Name(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	return Napi::String::New(info.Env(), obs::Module::GetName(this->moduleId));
 }
 
 Napi::Value osn::Module::FileName(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	return Napi::String::New(info.Env(), obs::Module::GetFileName(this->moduleId));
 }
 
 Napi::Value osn::Module::Description(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	return Napi::String::New(info.Env(), obs::Module::GetDescription(this->moduleId));
 }
 
 Napi::Value osn::Module::Author(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	return Napi::String::New(info.Env(), obs::Module::GetAuthor(this->moduleId));
 }
 
 Napi::Value osn::Module::BinaryPath(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	return Napi::String::New(info.Env(), obs::Module::GetBinaryPath(this->moduleId));
 }
 
 Napi::Value osn::Module::DataPath(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	return Napi::String::New(info.Env(), obs::Module::GetDataPath(this->moduleId));
 }

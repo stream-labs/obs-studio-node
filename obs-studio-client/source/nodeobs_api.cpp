@@ -30,6 +30,7 @@ Napi::ThreadSafeFunction js_thread;
 
 Napi::Value api::OBS_API_initAPI(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	std::string path;
 	std::string language;
 	std::string version;
@@ -51,13 +52,14 @@ Napi::Value api::OBS_API_initAPI(const Napi::CallbackInfo& info)
 
 Napi::Value api::OBS_API_destroyOBS_API(const Napi::CallbackInfo& info)
 {
+	profiny::Profiler::printStats("profiny_results");
+	PROFINY_SCOPE
 	OBS_API::OBS_API_destroyOBS_API();
 
 #ifdef __APPLE__
 	if (js_thread)
 		js_thread.Release();
 #endif
-
 	return info.Env().Undefined();
 }
 

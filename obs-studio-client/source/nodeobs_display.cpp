@@ -57,6 +57,7 @@ static void FixChromeD3DIssue(HWND chromeWindow)
 
 Napi::Value display::OBS_content_createDisplay(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	Napi::Buffer<void *> bufferData = info[0].As<Napi::Buffer<void*>>();
 	uint64_t* windowHandle = static_cast<uint64_t*>(*reinterpret_cast<void **>(bufferData.Data()));
 
@@ -74,6 +75,7 @@ Napi::Value display::OBS_content_createDisplay(const Napi::CallbackInfo& info)
 
 Napi::Value display::OBS_content_destroyDisplay(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	std::string key = info[0].ToString().Utf8Value();
 
 	OBS_content::OBS_content_destroyDisplay(key);
@@ -83,6 +85,7 @@ Napi::Value display::OBS_content_destroyDisplay(const Napi::CallbackInfo& info)
 
 Napi::Value display::OBS_content_getDisplayPreviewOffset(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	std::string key = info[0].ToString().Utf8Value();
 
 	Napi::Object previewOffset = Napi::Object::New(info.Env());
@@ -95,6 +98,7 @@ Napi::Value display::OBS_content_getDisplayPreviewOffset(const Napi::CallbackInf
 
 Napi::Value display::OBS_content_getDisplayPreviewSize(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	std::string key = info[0].ToString().Utf8Value();
 
 	Napi::Object previewSize = Napi::Object::New(info.Env());
@@ -106,6 +110,7 @@ Napi::Value display::OBS_content_getDisplayPreviewSize(const Napi::CallbackInfo&
 
 Napi::Value display::OBS_content_createSourcePreviewDisplay(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	Napi::Buffer<void *> bufferData = info[0].As<Napi::Buffer<void*>>();
 	uint64_t* windowHandle = static_cast<uint64_t*>(*reinterpret_cast<void **>(bufferData.Data()));
 
@@ -123,6 +128,7 @@ Napi::Value display::OBS_content_createSourcePreviewDisplay(const Napi::Callback
 
 Napi::Value display::OBS_content_resizeDisplay(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	std::string key = info[0].ToString().Utf8Value();
 	uint32_t width = info[1].ToNumber().Uint32Value();
 	uint32_t height = info[2].ToNumber().Uint32Value();
@@ -133,6 +139,7 @@ Napi::Value display::OBS_content_resizeDisplay(const Napi::CallbackInfo& info)
 
 Napi::Value display::OBS_content_moveDisplay(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	std::string key = info[0].ToString().Utf8Value();
 	uint32_t x = info[1].ToNumber().Uint32Value();
 	uint32_t y = info[2].ToNumber().Uint32Value();
@@ -143,6 +150,7 @@ Napi::Value display::OBS_content_moveDisplay(const Napi::CallbackInfo& info)
 
 Napi::Value display::OBS_content_setPaddingSize(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	std::string key = info[0].ToString().Utf8Value();
 	uint32_t paddingSize = info[1].ToNumber().Uint32Value();
 
@@ -152,6 +160,7 @@ Napi::Value display::OBS_content_setPaddingSize(const Napi::CallbackInfo& info)
 
 Napi::Value display::OBS_content_setPaddingColor(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	std::string key = info[0].ToString().Utf8Value();
 	uint32_t r = info[1].ToNumber().Uint32Value();
 	uint32_t g = info[2].ToNumber().Uint32Value();
@@ -167,6 +176,7 @@ Napi::Value display::OBS_content_setPaddingColor(const Napi::CallbackInfo& info)
 
 Napi::Value display::OBS_content_setOutlineColor(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	std::string key = info[0].ToString().Utf8Value();
 	uint32_t r = info[1].ToNumber().Uint32Value();
 	uint32_t g = info[2].ToNumber().Uint32Value();
@@ -182,6 +192,7 @@ Napi::Value display::OBS_content_setOutlineColor(const Napi::CallbackInfo& info)
 
 Napi::Value display::OBS_content_setShouldDrawUI(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	std::string key = info[0].ToString().Utf8Value();
 	bool drawUI = info[1].ToBoolean().Value();
 
@@ -191,6 +202,7 @@ Napi::Value display::OBS_content_setShouldDrawUI(const Napi::CallbackInfo& info)
 
 Napi::Value display::OBS_content_setDrawGuideLines(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	std::string key = info[0].ToString().Utf8Value();
 	bool drawGuideLines = info[1].ToBoolean().Value();
 

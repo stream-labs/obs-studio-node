@@ -29,9 +29,9 @@
 #undef strtoll
 #include "nlohmann/json.hpp"
 
- #ifndef _DEBUG
-#define ENABLE_CRASHREPORT
- #endif
+#ifndef _DEBUG
+// #define ENABLE_CRASHREPORT
+#endif
 
 extern std::string workingDirectory;
 

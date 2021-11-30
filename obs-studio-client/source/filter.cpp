@@ -80,6 +80,7 @@ osn::Filter::Filter(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Filter::Types(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	auto typesArray = obs::Filter::Types();
 	Napi::Array types = Napi::Array::New(info.Env(), typesArray.size());
 	uint32_t index = 0;
@@ -92,6 +93,7 @@ Napi::Value osn::Filter::Types(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Filter::Create(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	std::string type = info[0].ToString().Utf8Value();
 	std::string name = info[1].ToString().Utf8Value();
 	Napi::String settings = Napi::String::New(info.Env(), "");
@@ -117,82 +119,98 @@ Napi::Value osn::Filter::Create(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Filter::CallIsConfigurable(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	return osn::ISource::IsConfigurable(info, this->m_source);
 }
 
 Napi::Value osn::Filter::CallGetProperties(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	return osn::ISource::GetProperties(info, this->m_source);
 }
 
 Napi::Value osn::Filter::CallGetSettings(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	return osn::ISource::GetSettings(info, this->m_source);
 }
 
 
 Napi::Value osn::Filter::CallGetType(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	return osn::ISource::GetType(info, this->m_source);
 }
 
 Napi::Value osn::Filter::CallGetName(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	return osn::ISource::GetName(info, this->m_source);
 }
 
 void osn::Filter::CallSetName(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
+	PROFINY_SCOPE
 	osn::ISource::SetName(info, value, this->m_source);
 }
 
 Napi::Value osn::Filter::CallGetOutputFlags(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	return osn::ISource::GetOutputFlags(info, this->m_source);
 }
 
 Napi::Value osn::Filter::CallGetFlags(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	return osn::ISource::GetFlags(info, this->m_source);
 }
 
 void osn::Filter::CallSetFlags(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
+	PROFINY_SCOPE
 	osn::ISource::SetFlags(info, value, this->m_source);
 }
 
 Napi::Value osn::Filter::CallGetStatus(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	return osn::ISource::GetStatus(info, this->m_source);
 }
 
 Napi::Value osn::Filter::CallGetId(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	return osn::ISource::GetId(info, this->m_source);
 }
 
 Napi::Value osn::Filter::CallGetMuted(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	return osn::ISource::GetMuted(info, this->m_source);
 }
 
 void osn::Filter::CallSetMuted(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
+	PROFINY_SCOPE
 	osn::ISource::SetMuted(info, value, this->m_source);
 }
 
 Napi::Value osn::Filter::CallGetEnabled(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	return osn::ISource::GetEnabled(info, this->m_source);
 }
 
 void osn::Filter::CallSetEnabled(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
+	PROFINY_SCOPE
 	osn::ISource::SetEnabled(info, value, this->m_source);
 }
 
 Napi::Value osn::Filter::CallRelease(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	osn::ISource::Release(info, this->m_source);
 
 	return info.Env().Undefined();
@@ -200,6 +218,7 @@ Napi::Value osn::Filter::CallRelease(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Filter::CallRemove(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	osn::ISource::Remove(info, this->m_source);
 	this->m_source = nullptr;
 
@@ -208,6 +227,7 @@ Napi::Value osn::Filter::CallRemove(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Filter::CallUpdate(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	osn::ISource::Update(info, this->m_source);
 
 	return info.Env().Undefined();
@@ -215,6 +235,7 @@ Napi::Value osn::Filter::CallUpdate(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Filter::CallLoad(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	osn::ISource::Load(info, this->m_source);
 
 	return info.Env().Undefined();
@@ -222,6 +243,7 @@ Napi::Value osn::Filter::CallLoad(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Filter::CallSave(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	osn::ISource::Save(info, this->m_source);
 
 	return info.Env().Undefined();
@@ -229,6 +251,7 @@ Napi::Value osn::Filter::CallSave(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Filter::CallSendMouseClick(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	osn::ISource::SendMouseClick(info, this->m_source);
 
 	return info.Env().Undefined();
@@ -236,6 +259,7 @@ Napi::Value osn::Filter::CallSendMouseClick(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Filter::CallSendMouseMove(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	osn::ISource::SendMouseMove(info, this->m_source);
 
 	return info.Env().Undefined();
@@ -243,6 +267,7 @@ Napi::Value osn::Filter::CallSendMouseMove(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Filter::CallSendMouseWheel(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	osn::ISource::SendMouseWheel(info, this->m_source);
 
 	return info.Env().Undefined();
@@ -250,6 +275,7 @@ Napi::Value osn::Filter::CallSendMouseWheel(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Filter::CallSendFocus(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	osn::ISource::SendFocus(info, this->m_source);
 
 	return info.Env().Undefined();
@@ -257,6 +283,7 @@ Napi::Value osn::Filter::CallSendFocus(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Filter::CallSendKeyClick(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	osn::ISource::SendKeyClick(info, this->m_source);
 
 	return info.Env().Undefined();

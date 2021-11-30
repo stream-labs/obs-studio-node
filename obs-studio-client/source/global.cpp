@@ -58,6 +58,7 @@ osn::Global::Global(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Global::getOutputSource(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	uint32_t channel = info[0].ToNumber().Uint32Value();
 	auto res = obs::Global::GetOutputSource(channel);
 
@@ -92,6 +93,7 @@ Napi::Value osn::Global::getOutputSource(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Global::setOutputSource(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	uint32_t channel = info[0].ToNumber().Uint32Value();
 	osn::Input* input = nullptr;
 
@@ -105,6 +107,7 @@ Napi::Value osn::Global::setOutputSource(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Global::getOutputFlagsFromId(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	std::string id = info[0].ToString().Utf8Value();
 	auto flags = obs::Global::GetOutputFlagsFromId(id);
 
@@ -113,30 +116,36 @@ Napi::Value osn::Global::getOutputFlagsFromId(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Global::laggedFrames(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	return Napi::Number::New(info.Env(), obs::Global::LaggedFrames());
 }
 
 Napi::Value osn::Global::totalFrames(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	return Napi::Number::New(info.Env(), obs::Global::TotalFrames());
 }
 
 Napi::Value osn::Global::getLocale(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	return Napi::String::New(info.Env(), obs::Global::GetLocale());
 }
 
 void osn::Global::setLocale(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
+	PROFINY_SCOPE
 	obs::Global::SetLocale(value.ToString().Utf8Value());
 }
 
 Napi::Value osn::Global::getMultipleRendering(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	return Napi::Boolean::New(info.Env(), obs::Global::GetMultipleRendering());
 }
 
 void osn::Global::setMultipleRendering(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
+	PROFINY_SCOPE
 	obs::Global::SetMultipleRendering(value.ToBoolean().Value());
 }

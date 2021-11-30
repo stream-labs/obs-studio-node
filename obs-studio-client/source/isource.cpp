@@ -27,21 +27,25 @@
 
 void osn::ISource::Release(const Napi::CallbackInfo& info, obs_source_t* source)
 {
+	PROFINY_SCOPE
 	obs::Source::Release(source);
 }
 
 void osn::ISource::Remove(const Napi::CallbackInfo& info, obs_source_t* source)
 {
+	PROFINY_SCOPE
 	obs::Source::Remove(source);
 }
 
 Napi::Value osn::ISource::IsConfigurable(const Napi::CallbackInfo& info, obs_source_t* source)
 {
+	PROFINY_SCOPE
 	return Napi::Boolean::New(info.Env(), obs::Source::IsConfigurable(source));
 }
 
 Napi::Value osn::ISource::GetProperties(const Napi::CallbackInfo& info, obs_source_t* source)
 {
+	PROFINY_SCOPE
 	Napi::Array propertiesObject = Napi::Array::New(info.Env());
 
 	uint32_t indexProperties = 0;
@@ -518,6 +522,7 @@ Napi::Value osn::ISource::GetProperties(const Napi::CallbackInfo& info, obs_sour
 
 Napi::Value osn::ISource::GetSettings(const Napi::CallbackInfo& info, obs_source_t* source)
 {
+	PROFINY_SCOPE
 	Napi::Object json = info.Env().Global().Get("JSON").As<Napi::Object>();
 	Napi::Function parse = json.Get("parse").As<Napi::Function>();
 
@@ -530,6 +535,7 @@ Napi::Value osn::ISource::GetSettings(const Napi::CallbackInfo& info, obs_source
 
 void osn::ISource::Update(const Napi::CallbackInfo& info, obs_source_t* source)
 {
+	PROFINY_SCOPE
 	Napi::Object jsonObj = info[0].ToObject();
 
 	Napi::Object json = info.Env().Global().Get("JSON").As<Napi::Object>();
@@ -542,26 +548,31 @@ void osn::ISource::Update(const Napi::CallbackInfo& info, obs_source_t* source)
 
 void osn::ISource::Load(const Napi::CallbackInfo& info, obs_source_t* source)
 {
+	PROFINY_SCOPE
 	obs::Source::Load(source);
 }
 
 void osn::ISource::Save(const Napi::CallbackInfo& info, obs_source_t* source)
 {
+	PROFINY_SCOPE
 	obs::Source::Save(source);
 }
 
 Napi::Value osn::ISource::GetType(const Napi::CallbackInfo& info, obs_source_t* source)
 {
+	PROFINY_SCOPE
 	return Napi::Number::New(info.Env(), obs::Source::GetType(source));
 }
 
 Napi::Value osn::ISource::GetName(const Napi::CallbackInfo& info, obs_source_t* source)
 {
+	PROFINY_SCOPE
 	return Napi::String::New(info.Env(), obs::Source::GetName(source));
 }
 
 void osn::ISource::SetName(const Napi::CallbackInfo& info, const Napi::Value &value, obs_source_t* source)
 {
+	PROFINY_SCOPE
 	std::string name = value.ToString().Utf8Value();
 
 	obs::Source::SetName(source, name);
@@ -569,16 +580,19 @@ void osn::ISource::SetName(const Napi::CallbackInfo& info, const Napi::Value &va
 
 Napi::Value osn::ISource::GetOutputFlags(const Napi::CallbackInfo& info, obs_source_t* source)
 {
+	PROFINY_SCOPE
 	return Napi::Number::New(info.Env(), obs::Source::GetOutputFlags(source));
 }
 
 Napi::Value osn::ISource::GetFlags(const Napi::CallbackInfo& info, obs_source_t* source)
 {
+	PROFINY_SCOPE
 	return Napi::Number::New(info.Env(), obs::Source::GetFlags(source));
 }
 
 void osn::ISource::SetFlags(const Napi::CallbackInfo& info, const Napi::Value &value, obs_source_t* source)
 {
+	PROFINY_SCOPE
 	uint32_t flags = value.ToNumber().Uint32Value();
 
 	obs::Source::SetFlags(source, flags);
@@ -586,21 +600,25 @@ void osn::ISource::SetFlags(const Napi::CallbackInfo& info, const Napi::Value &v
 
 Napi::Value osn::ISource::GetStatus(const Napi::CallbackInfo& info, obs_source_t* source)
 {
+	PROFINY_SCOPE
 	return Napi::Number::New(info.Env(), obs::Source::GetStatus(source));
 }
 
 Napi::Value osn::ISource::GetId(const Napi::CallbackInfo& info, obs_source_t* source)
 {
+	PROFINY_SCOPE
 	return Napi::String::New(info.Env(), obs::Source::GetId(source));
 }
 
 Napi::Value osn::ISource::GetMuted(const Napi::CallbackInfo& info, obs_source_t* source)
 {
+	PROFINY_SCOPE
 	return Napi::Boolean::New(info.Env(), obs::Source::GetMuted(source));
 }
 
 void osn::ISource::SetMuted(const Napi::CallbackInfo& info, const Napi::Value &value, obs_source_t* source)
 {
+	PROFINY_SCOPE
 	bool muted = value.ToBoolean().Value();
 
 	obs::Source::SetMuted(source, muted);
@@ -608,11 +626,13 @@ void osn::ISource::SetMuted(const Napi::CallbackInfo& info, const Napi::Value &v
 
 Napi::Value osn::ISource::GetEnabled(const Napi::CallbackInfo& info, obs_source_t* source)
 {
+	PROFINY_SCOPE
 	return Napi::Boolean::New(info.Env(), obs::Source::GetEnabled(source));
 }
 
 void osn::ISource::SetEnabled(const Napi::CallbackInfo& info, const Napi::Value &value, obs_source_t* source)
 {
+	PROFINY_SCOPE
 	bool enabled = value.ToBoolean().Value();
 
 	obs::Source::SetEnabled(source, enabled);
@@ -620,6 +640,7 @@ void osn::ISource::SetEnabled(const Napi::CallbackInfo& info, const Napi::Value 
 
 void osn::ISource::SendMouseClick(const Napi::CallbackInfo& info, obs_source_t* source)
 {
+	PROFINY_SCOPE
 	Napi::Object mouse_event_obj = info[0].ToObject();
 	uint32_t type = info[1].ToNumber().Uint32Value();
 	bool mouse_up = info[2].ToBoolean().Value();
@@ -642,6 +663,7 @@ void osn::ISource::SendMouseClick(const Napi::CallbackInfo& info, obs_source_t* 
 
 void osn::ISource::SendMouseMove(const Napi::CallbackInfo& info, obs_source_t* source)
 {
+	PROFINY_SCOPE
 	Napi::Object mouse_event_obj = info[0].ToObject();
 	bool mouse_leave = info[1].ToBoolean().Value();
 
@@ -660,6 +682,7 @@ void osn::ISource::SendMouseMove(const Napi::CallbackInfo& info, obs_source_t* s
 
 void osn::ISource::SendMouseWheel(const Napi::CallbackInfo& info, obs_source_t* source)
 {
+	PROFINY_SCOPE
 	Napi::Object mouse_event_obj = info[0].ToObject();
 	int32_t x_delta = info[1].ToNumber().Int32Value();
 	int32_t y_delta = info[2].ToNumber().Int32Value();
@@ -680,6 +703,7 @@ void osn::ISource::SendMouseWheel(const Napi::CallbackInfo& info, obs_source_t* 
 
 void osn::ISource::SendFocus(const Napi::CallbackInfo& info, obs_source_t* source)
 {
+	PROFINY_SCOPE
 	bool focus = info[0].ToBoolean().Value();
 
 	obs::Source::SendFocus(source, focus);
@@ -687,6 +711,7 @@ void osn::ISource::SendFocus(const Napi::CallbackInfo& info, obs_source_t* sourc
 
 void osn::ISource::SendKeyClick(const Napi::CallbackInfo& info, obs_source_t* source)
 {
+	PROFINY_SCOPE
 	Napi::Object key_event_obj = info[0].ToObject();
 	bool key_up = info[1].ToBoolean().Value();
 

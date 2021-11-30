@@ -65,6 +65,7 @@ void callJS(SignalInfo* data)
 
 Napi::Value service::OBS_service_resetAudioContext(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	OBS_service::OBS_service_resetAudioContext();
 
 	return info.Env().Undefined();
@@ -72,6 +73,7 @@ Napi::Value service::OBS_service_resetAudioContext(const Napi::CallbackInfo& inf
 
 Napi::Value service::OBS_service_resetVideoContext(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	OBS_service::OBS_service_resetVideoContext();
 
 	return info.Env().Undefined();
@@ -79,6 +81,7 @@ Napi::Value service::OBS_service_resetVideoContext(const Napi::CallbackInfo& inf
 
 Napi::Value service::OBS_service_startStreaming(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	OBS_service::OBS_service_startStreaming(callJS);
 
 	return info.Env().Undefined();
@@ -86,6 +89,7 @@ Napi::Value service::OBS_service_startStreaming(const Napi::CallbackInfo& info)
 
 Napi::Value service::OBS_service_startRecording(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	OBS_service::OBS_service_startRecording(callJS);
 
 	return info.Env().Undefined();
@@ -93,6 +97,7 @@ Napi::Value service::OBS_service_startRecording(const Napi::CallbackInfo& info)
 
 Napi::Value service::OBS_service_startReplayBuffer(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	OBS_service::OBS_service_startReplayBuffer(callJS);
 
 	return info.Env().Undefined();
@@ -100,6 +105,7 @@ Napi::Value service::OBS_service_startReplayBuffer(const Napi::CallbackInfo& inf
 
 Napi::Value service::OBS_service_stopStreaming(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	bool forceStop = info[0].ToBoolean().Value();
 
 	OBS_service::OBS_service_stopStreaming(forceStop);
@@ -109,6 +115,7 @@ Napi::Value service::OBS_service_stopStreaming(const Napi::CallbackInfo& info)
 
 Napi::Value service::OBS_service_stopRecording(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	OBS_service::OBS_service_stopRecording();
 
 	return info.Env().Undefined();
@@ -116,6 +123,7 @@ Napi::Value service::OBS_service_stopRecording(const Napi::CallbackInfo& info)
 
 Napi::Value service::OBS_service_stopReplayBuffer(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	bool forceStop = info[0].ToBoolean().Value();
 
 	OBS_service::OBS_service_stopReplayBuffer(forceStop);
@@ -127,6 +135,7 @@ static v8::Persistent<v8::Object> serviceCallbackObject;
 
 void JSCallbackOutputSignal(void* data, calldata_t* params)
 {
+	PROFINY_SCOPE
 	SignalInfo* signal = reinterpret_cast<SignalInfo*>(data);
 
 	if (signal->m_signal.compare("stop") == 0) {
@@ -159,6 +168,7 @@ void JSCallbackOutputSignal(void* data, calldata_t* params)
 
 Napi::Value service::OBS_service_connectOutputSignals(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	Napi::Function async_callback = info[0].As<Napi::Function>();
 	js_thread = Napi::ThreadSafeFunction::New(
 		info.Env(),
@@ -174,6 +184,7 @@ Napi::Value service::OBS_service_connectOutputSignals(const Napi::CallbackInfo& 
 
 Napi::Value service::OBS_service_processReplayBufferHotkey(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	OBS_service::OBS_service_processReplayBufferHotkey();
 
 	return info.Env().Undefined();
@@ -181,17 +192,20 @@ Napi::Value service::OBS_service_processReplayBufferHotkey(const Napi::CallbackI
 
 Napi::Value service::OBS_service_getLastReplay(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	return Napi::String::New(info.Env(), OBS_service::OBS_service_getLastReplay());
 }
 
 Napi::Value service::OBS_service_removeCallback(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	// TODO
 	return info.Env().Undefined();
 }
 
 Napi::Value service::OBS_service_createVirtualWebcam(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	std::string name = info[0].ToString().Utf8Value();
 
 	OBS_service::OBS_service_createVirtualWebcam(name);
@@ -201,6 +215,7 @@ Napi::Value service::OBS_service_createVirtualWebcam(const Napi::CallbackInfo& i
 
 Napi::Value service::OBS_service_removeVirtualWebcam(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	OBS_service::OBS_service_removeVirtualWebcam();
 
 	return info.Env().Undefined();
@@ -208,6 +223,7 @@ Napi::Value service::OBS_service_removeVirtualWebcam(const Napi::CallbackInfo& i
 
 Napi::Value service::OBS_service_startVirtualWebcam(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	OBS_service::OBS_service_startVirtualWebcam();
 
 	return info.Env().Undefined();
@@ -215,6 +231,7 @@ Napi::Value service::OBS_service_startVirtualWebcam(const Napi::CallbackInfo& in
 
 Napi::Value service::OBS_service_stopVirtualWebcam(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	OBS_service::OBS_service_stopVirtualWebcam();
 
 	return info.Env().Undefined();

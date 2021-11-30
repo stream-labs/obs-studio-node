@@ -39,6 +39,8 @@
 #include "nodeobs_autoconfig.hpp"
 #include "callback-manager.hpp"
 
+#include "utility.hpp"
+
 #if defined(_WIN32)
 // Checks ForceGPUAsRenderDevice setting
 extern "C" __declspec(dllexport) DWORD NvOptimusEnablement = [] {
@@ -104,6 +106,9 @@ Napi::Object main_node(Napi::Env env, Napi::Object exports) {
 	service::Init(env, exports);
 	autoConfig::Init(env, exports);
 	globalCallback::Init(env, exports);
+
+	PROFINY_SCOPE
+	// profiny::Profiler::setOmitRecursiveCalls(false);
 	return exports;
 };
 

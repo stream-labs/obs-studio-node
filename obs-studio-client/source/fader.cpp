@@ -64,6 +64,7 @@ osn::Fader::Fader(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Fader::Create(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	int32_t fader_type = info[0].ToNumber().Int32Value();
 
 	auto uid = obs::Fader::Create(fader_type);
@@ -78,6 +79,7 @@ Napi::Value osn::Fader::Create(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Fader::GetDeziBel(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	float_t db = obs::Fader::GetDeziBel(this->uid);
 
 	return Napi::Number::New(Env(), db);
@@ -85,6 +87,7 @@ Napi::Value osn::Fader::GetDeziBel(const Napi::CallbackInfo& info)
 
 void osn::Fader::SetDezibel(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
+	PROFINY_SCOPE
 	float_t db = value.ToNumber().FloatValue();
 
 	obs::Fader::SetDeziBel(this->uid, db);
@@ -92,6 +95,7 @@ void osn::Fader::SetDezibel(const Napi::CallbackInfo& info, const Napi::Value &v
 
 Napi::Value osn::Fader::GetDeflection(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	float_t deflection = obs::Fader::GetDeflection(this->uid);
 
     return Napi::Number::New(Env(), deflection);
@@ -99,6 +103,7 @@ Napi::Value osn::Fader::GetDeflection(const Napi::CallbackInfo& info)
 
 void osn::Fader::SetDeflection(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
+	PROFINY_SCOPE
 	float_t deflection = value.ToNumber().FloatValue();
 
 	obs::Fader::SetDeflection(this->uid, deflection);
@@ -106,6 +111,7 @@ void osn::Fader::SetDeflection(const Napi::CallbackInfo& info, const Napi::Value
 
 Napi::Value osn::Fader::GetMultiplier(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	float_t mul = obs::Fader::GetMultiplier(this->uid);
 
     return Napi::Number::New(Env(), mul);
@@ -113,6 +119,7 @@ Napi::Value osn::Fader::GetMultiplier(const Napi::CallbackInfo& info)
 
 void osn::Fader::SetMultiplier(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
+	PROFINY_SCOPE
 	float_t mul = value.ToNumber().FloatValue();
 
 	obs::Fader::SetMultiplier(this->uid, mul);
@@ -120,6 +127,7 @@ void osn::Fader::SetMultiplier(const Napi::CallbackInfo& info, const Napi::Value
 
 Napi::Value osn::Fader::Destroy(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	obs::Fader::Destroy(this->uid);
 
 	return info.Env().Undefined();
@@ -127,6 +135,7 @@ Napi::Value osn::Fader::Destroy(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Fader::Attach(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
     osn::Input* input = Napi::ObjectWrap<osn::Input>::Unwrap(info[0].ToObject());
 	obs::Fader::Attach(this->uid, input->m_source);
 
@@ -135,6 +144,7 @@ Napi::Value osn::Fader::Attach(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Fader::Detach(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	obs::Fader::Detach(this->uid);
 
 	return info.Env().Undefined();

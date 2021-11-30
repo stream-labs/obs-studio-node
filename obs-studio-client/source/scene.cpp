@@ -95,6 +95,7 @@ osn::Scene::Scene(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Scene::Create(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	std::string name = info[0].ToString().Utf8Value();
 	auto source = obs::Scene::Create(name);
 
@@ -108,6 +109,7 @@ Napi::Value osn::Scene::Create(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Scene::CreatePrivate(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	std::string name = info[0].ToString().Utf8Value();
 	auto source = obs::Scene::CreatePrivate(name);
 
@@ -121,6 +123,7 @@ Napi::Value osn::Scene::CreatePrivate(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Scene::FromName(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	std::string name = info[0].ToString().Utf8Value();
 	auto source = obs::Scene::FromName(name);
 
@@ -138,6 +141,7 @@ Napi::Value osn::Scene::FromName(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Scene::Release(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	obs::Scene::Release(this->m_source);
 
 	return info.Env().Undefined();
@@ -145,6 +149,7 @@ Napi::Value osn::Scene::Release(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Scene::Remove(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	obs::Scene::Remove(this->m_source);
 
 	return info.Env().Undefined();
@@ -152,6 +157,7 @@ Napi::Value osn::Scene::Remove(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Scene::AsSource(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
     auto instance =
         osn::Input::constructor.New({
 			Napi::External<obs_source_t*>::New(info.Env(), &this->m_source)
@@ -162,6 +168,7 @@ Napi::Value osn::Scene::AsSource(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Scene::Duplicate(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	std::string name = info[0].ToString().Utf8Value();
 	int duplicate_type = info[1].ToNumber().Int64Value();
 
@@ -177,6 +184,7 @@ Napi::Value osn::Scene::Duplicate(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Scene::AddSource(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	osn::Input* input = Napi::ObjectWrap<osn::Input>::Unwrap(info[0].ToObject());
 
 	Napi::Object transform = Napi::Object::New(info.Env());
@@ -214,6 +222,7 @@ Napi::Value osn::Scene::AddSource(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Scene::FindItem(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	bool        hasName = false;
 	std::string name;
 	int64_t     position;
@@ -246,6 +255,7 @@ Napi::Value osn::Scene::FindItem(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Scene::MoveItem(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	int from = info[0].ToNumber().Int64Value();
 	int to = info[1].ToNumber().Int64Value();
 
@@ -259,6 +269,7 @@ Napi::Value osn::Scene::MoveItem(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Scene::OrderItems(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	std::vector<int64_t> order;
 	std::vector<char> order_char;
 
@@ -279,6 +290,7 @@ Napi::Value osn::Scene::OrderItems(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Scene::GetItemAtIndex(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	int32_t index = info[0].ToNumber().Int32Value();
 
 	auto item = obs::Scene::GetItem(this->m_source, (int64_t)index);
@@ -293,6 +305,7 @@ Napi::Value osn::Scene::GetItemAtIndex(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Scene::GetItems(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	auto res = obs::Scene::GetItems(this->m_source);
 	Napi::Array array = Napi::Array::New(info.Env(), res.size());
 	uint32_t index = 0;
@@ -310,6 +323,7 @@ Napi::Value osn::Scene::GetItems(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Scene::GetItemsInRange(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	int32_t from = info[0].ToNumber().Int32Value();
 	int32_t to = info[1].ToNumber().Int32Value();
 
@@ -330,82 +344,98 @@ Napi::Value osn::Scene::GetItemsInRange(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Scene::CallIsConfigurable(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	return osn::ISource::IsConfigurable(info, this->m_source);
 }
 
 Napi::Value osn::Scene::CallGetProperties(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	return osn::ISource::GetProperties(info, this->m_source);
 }
 
 Napi::Value osn::Scene::CallGetSettings(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	return osn::ISource::GetSettings(info, this->m_source);
 }
 
 
 Napi::Value osn::Scene::CallGetType(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	return osn::ISource::GetType(info, this->m_source);
 }
 
 Napi::Value osn::Scene::CallGetName(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	return osn::ISource::GetName(info, this->m_source);
 }
 
 void osn::Scene::CallSetName(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
+	PROFINY_SCOPE
 	osn::ISource::SetName(info, value, this->m_source);
 }
 
 Napi::Value osn::Scene::CallGetOutputFlags(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	return osn::ISource::GetOutputFlags(info, this->m_source);
 }
 
 Napi::Value osn::Scene::CallGetFlags(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	return osn::ISource::GetFlags(info, this->m_source);
 }
 
 void osn::Scene::CallSetFlags(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
+	PROFINY_SCOPE
 	osn::ISource::SetFlags(info, value, this->m_source);
 }
 
 Napi::Value osn::Scene::CallGetStatus(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	return osn::ISource::GetStatus(info, this->m_source);
 }
 
 Napi::Value osn::Scene::CallGetId(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	return osn::ISource::GetId(info, this->m_source);
 }
 
 Napi::Value osn::Scene::CallGetMuted(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	return osn::ISource::GetMuted(info, this->m_source);
 }
 
 void osn::Scene::CallSetMuted(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
+	PROFINY_SCOPE
 	osn::ISource::SetMuted(info, value, this->m_source);
 }
 
 Napi::Value osn::Scene::CallGetEnabled(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	return osn::ISource::GetEnabled(info, this->m_source);
 }
 
 void osn::Scene::CallSetEnabled(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
+	PROFINY_SCOPE
 	osn::ISource::SetEnabled(info, value, this->m_source);
 }
 
 Napi::Value osn::Scene::CallRelease(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	osn::ISource::Release(info, this->m_source);
 
 	return info.Env().Undefined();
@@ -413,6 +443,7 @@ Napi::Value osn::Scene::CallRelease(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Scene::CallRemove(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	osn::ISource::Remove(info, this->m_source);
 	this->m_source = nullptr;
 
@@ -421,6 +452,7 @@ Napi::Value osn::Scene::CallRemove(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Scene::CallUpdate(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	osn::ISource::Update(info, this->m_source);
 
 	return info.Env().Undefined();
@@ -428,6 +460,7 @@ Napi::Value osn::Scene::CallUpdate(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Scene::CallLoad(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	osn::ISource::Load(info, this->m_source);
 
 	return info.Env().Undefined();
@@ -435,6 +468,7 @@ Napi::Value osn::Scene::CallLoad(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Scene::CallSave(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	osn::ISource::Save(info, this->m_source);
 
 	return info.Env().Undefined();
@@ -442,6 +476,7 @@ Napi::Value osn::Scene::CallSave(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Scene::CallSendMouseClick(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	osn::ISource::SendMouseClick(info, this->m_source);
 
 	return info.Env().Undefined();
@@ -449,6 +484,7 @@ Napi::Value osn::Scene::CallSendMouseClick(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Scene::CallSendMouseMove(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	osn::ISource::SendMouseMove(info, this->m_source);
 
 	return info.Env().Undefined();
@@ -456,6 +492,7 @@ Napi::Value osn::Scene::CallSendMouseMove(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Scene::CallSendMouseWheel(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	osn::ISource::SendMouseWheel(info, this->m_source);
 
 	return info.Env().Undefined();
@@ -463,6 +500,7 @@ Napi::Value osn::Scene::CallSendMouseWheel(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Scene::CallSendFocus(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	osn::ISource::SendFocus(info, this->m_source);
 
 	return info.Env().Undefined();
@@ -470,6 +508,7 @@ Napi::Value osn::Scene::CallSendFocus(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Scene::CallSendKeyClick(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	osn::ISource::SendKeyClick(info, this->m_source);
 
 	return info.Env().Undefined();

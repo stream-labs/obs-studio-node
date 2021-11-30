@@ -64,6 +64,7 @@ osn::Volmeter::Volmeter(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Volmeter::Create(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	int32_t type = info[0].ToNumber().Int32Value();
 
 	auto res = obs::Volmeter::Create(type);
@@ -78,6 +79,7 @@ Napi::Value osn::Volmeter::Create(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Volmeter::Destroy(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	obs::Volmeter::Destroy(this->m_uid);
 
 	return info.Env().Undefined();
@@ -85,6 +87,7 @@ Napi::Value osn::Volmeter::Destroy(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Volmeter::Attach(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	osn::Input* input = Napi::ObjectWrap<osn::Input>::Unwrap(info[0].ToObject());
 
 	obs::Volmeter::Attach(this->m_uid, input->m_source);
@@ -94,12 +97,14 @@ Napi::Value osn::Volmeter::Attach(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Volmeter::Detach(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	obs::Volmeter::Detach(this->m_uid);
 
 	return info.Env().Undefined();
 }
 
 auto volmeter_callback = []( Napi::Env env, Napi::Function jsCallback, VolmeterData* data ) {
+	PROFINY_SCOPE
 	Napi::Array magnitude = Napi::Array::New(env);
 	Napi::Array peak = Napi::Array::New(env);
 	Napi::Array input_peak = Napi::Array::New(env);
@@ -171,6 +176,7 @@ void OBSCallback(
 
 Napi::Value osn::Volmeter::AddCallback(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	Napi::Function async_callback = info[0].As<Napi::Function>();
 
 	m_jsThread = Napi::ThreadSafeFunction::New(
@@ -188,6 +194,7 @@ Napi::Value osn::Volmeter::AddCallback(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Volmeter::RemoveCallback(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	obs::Volmeter::RemoveCallback(this->m_uid, OBSCallback);
 	m_jsThread.Release();
 	return Napi::Boolean::New(info.Env(), true);

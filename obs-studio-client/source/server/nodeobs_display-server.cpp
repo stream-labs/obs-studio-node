@@ -25,6 +25,7 @@
 #include <graphics/matrix4.h>
 #include <graphics/vec4.h>
 #include <util/platform.h>
+#include "../obs-studio-client/source/utility.hpp"
 
 std::vector<std::pair<std::string, std::pair<uint32_t, uint32_t>>> sourcesSize;
 
@@ -141,6 +142,7 @@ void OBS::Display::SystemWorker()
 	bool keepRunning = true;
 	do {
 		BOOL gotMessage = GetMessage(&message, NULL, 0, 0);
+		PROFINY_SCOPE
 		if (gotMessage == 0) {
 			continue;
 		}

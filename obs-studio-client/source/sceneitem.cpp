@@ -89,6 +89,7 @@ void osn::SceneItem::SetOBSSceneItem(obs_sceneitem_t* item)
 
 Napi::Value osn::SceneItem::GetSource(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	auto source = obs::SceneItem::GetSource(this->m_item);
 
     auto instance =
@@ -101,6 +102,7 @@ Napi::Value osn::SceneItem::GetSource(const Napi::CallbackInfo& info)
 
 Napi::Value osn::SceneItem::GetScene(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	auto source = obs::SceneItem::GetScene(this->m_item);
     auto instance =
         osn::Scene::constructor.New({
@@ -112,6 +114,7 @@ Napi::Value osn::SceneItem::GetScene(const Napi::CallbackInfo& info)
 
 Napi::Value osn::SceneItem::Remove(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	obs::SceneItem::Remove(this->m_item);
 
 	return info.Env().Undefined();
@@ -119,33 +122,39 @@ Napi::Value osn::SceneItem::Remove(const Napi::CallbackInfo& info)
 
 Napi::Value osn::SceneItem::IsVisible(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	return Napi::Boolean::New(info.Env(), obs::SceneItem::IsVisible(this->m_item));
 }
 
 void osn::SceneItem::SetVisible(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
+	PROFINY_SCOPE
 	bool visible = value.ToBoolean().Value();
 	obs::SceneItem::SetVisible(this->m_item, visible);
 }
 
 Napi::Value osn::SceneItem::IsSelected(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	return Napi::Boolean::New(info.Env(), obs::SceneItem::IsSelected(this->m_item));
 }
 
 void osn::SceneItem::SetSelected(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
+	PROFINY_SCOPE
 	bool selected = value.ToBoolean().Value();
 	obs::SceneItem::SetSelected(this->m_item, selected);
 }
 
 Napi::Value osn::SceneItem::IsStreamVisible(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	return Napi::Boolean::New(info.Env(), obs::SceneItem::IsStreamVisible(this->m_item));
 }
 
 void osn::SceneItem::SetStreamVisible(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
+	PROFINY_SCOPE
 	bool streamVisible = value.ToBoolean().Value();
 
 	obs::SceneItem::SetStreamVisible(this->m_item, streamVisible);
@@ -153,6 +162,7 @@ void osn::SceneItem::SetStreamVisible(const Napi::CallbackInfo& info, const Napi
 
 Napi::Value osn::SceneItem::IsRecordingVisible(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	bool recordingVisible = obs::SceneItem::IsRecordingVisible(this->m_item);
 
 	return Napi::Boolean::New(info.Env(), recordingVisible);
@@ -160,6 +170,7 @@ Napi::Value osn::SceneItem::IsRecordingVisible(const Napi::CallbackInfo& info)
 
 void osn::SceneItem::SetRecordingVisible(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
+	PROFINY_SCOPE
 	bool recordingVisible = value.ToBoolean().Value();
 
 	obs::SceneItem::SetRecordingVisible(this->m_item, recordingVisible);
@@ -167,6 +178,7 @@ void osn::SceneItem::SetRecordingVisible(const Napi::CallbackInfo& info, const N
 
 Napi::Value osn::SceneItem::GetPosition(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	auto res = obs::SceneItem::GetPosition(this->m_item);
 	float x = res.first;
 	float y = res.second;
@@ -180,6 +192,7 @@ Napi::Value osn::SceneItem::GetPosition(const Napi::CallbackInfo& info)
 
 void osn::SceneItem::SetPosition(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
+	PROFINY_SCOPE
 	Napi::Object vector = info[0].ToObject();
 	float_t x = vector.Get("x").ToNumber().FloatValue();
 	float_t y = vector.Get("y").ToNumber().FloatValue();
@@ -189,11 +202,13 @@ void osn::SceneItem::SetPosition(const Napi::CallbackInfo& info, const Napi::Val
 
 Napi::Value osn::SceneItem::GetRotation(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	return Napi::Number::New(info.Env(), obs::SceneItem::GetRotation(this->m_item));
 }
 
 void osn::SceneItem::SetRotation(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
+	PROFINY_SCOPE
 	float_t rotation = info[0].ToNumber().FloatValue();
 
 	obs::SceneItem::SetRotation(this->m_item, rotation);
@@ -201,6 +216,7 @@ void osn::SceneItem::SetRotation(const Napi::CallbackInfo& info, const Napi::Val
 
 Napi::Value osn::SceneItem::GetScale(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	auto res = obs::SceneItem::GetScale(this->m_item);
 	float x = res.first;
 	float y = res.second;
@@ -214,6 +230,7 @@ Napi::Value osn::SceneItem::GetScale(const Napi::CallbackInfo& info)
 
 void osn::SceneItem::SetScale(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
+	PROFINY_SCOPE
 	Napi::Object vector = info[0].ToObject();
 	float_t x = vector.Get("x").ToNumber().FloatValue();
 	float_t y = vector.Get("y").ToNumber().FloatValue();
@@ -223,11 +240,13 @@ void osn::SceneItem::SetScale(const Napi::CallbackInfo& info, const Napi::Value 
 
 Napi::Value osn::SceneItem::GetScaleFilter(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	return Napi::Number::New(info.Env(), obs::SceneItem::GetScaleFilter(this->m_item));
 }
 
 void osn::SceneItem::SetScaleFilter(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
+	PROFINY_SCOPE
 	uint32_t scaleFilter = value.ToNumber().Uint32Value();
 
 	obs::SceneItem::SetScaleFilter(this->m_item, scaleFilter);
@@ -235,11 +254,13 @@ void osn::SceneItem::SetScaleFilter(const Napi::CallbackInfo& info, const Napi::
 
 Napi::Value osn::SceneItem::GetAlignment(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	return Napi::Boolean::New(info.Env(), obs::SceneItem::GetAlignment(this->m_item));
 }
 
 void osn::SceneItem::SetAlignment(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
+	PROFINY_SCOPE
 	uint32_t alignment = value.ToNumber().Uint32Value();
 
 	obs::SceneItem::SetAlignment(this->m_item, alignment);
@@ -247,6 +268,7 @@ void osn::SceneItem::SetAlignment(const Napi::CallbackInfo& info, const Napi::Va
 
 Napi::Value osn::SceneItem::GetBounds(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	auto res = obs::SceneItem::GetBounds(this->m_item);
 	float x = res.first;
 	float y = res.second;
@@ -259,6 +281,7 @@ Napi::Value osn::SceneItem::GetBounds(const Napi::CallbackInfo& info)
 
 void osn::SceneItem::SetBounds(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
+	PROFINY_SCOPE
 	Napi::Object vector = info[0].ToObject();
 	float_t x = vector.Get("x").ToNumber().FloatValue();
 	float_t y = vector.Get("y").ToNumber().FloatValue();
@@ -268,11 +291,13 @@ void osn::SceneItem::SetBounds(const Napi::CallbackInfo& info, const Napi::Value
 
 Napi::Value osn::SceneItem::GetBoundsAlignment(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	return Napi::Number::New(info.Env(), obs::SceneItem::GetBoundsAlignment(this->m_item));
 }
 
 void osn::SceneItem::SetBoundsAlignment(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
+	PROFINY_SCOPE
 	uint32_t aligment = value.ToNumber().Uint32Value();
 
 	obs::SceneItem::SetBoundsAlignment(this->m_item, aligment);
@@ -280,11 +305,13 @@ void osn::SceneItem::SetBoundsAlignment(const Napi::CallbackInfo& info, const Na
 
 Napi::Value osn::SceneItem::GetBoundsType(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	return Napi::Number::New(info.Env(), obs::SceneItem::GetBoundsType(this->m_item));
 }
 
 void osn::SceneItem::SetBoundsType(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
+	PROFINY_SCOPE
 	int32_t boundsType = value.ToNumber().Int32Value();
 
 	obs::SceneItem::SetBoundsType(this->m_item, boundsType);
@@ -292,6 +319,7 @@ void osn::SceneItem::SetBoundsType(const Napi::CallbackInfo& info, const Napi::V
 
 Napi::Value osn::SceneItem::GetCrop(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	auto res = obs::SceneItem::GetCrop(this->m_item);
 	Napi::Object obj = Napi::Object::New(info.Env());
 	obj.Set("left", Napi::Number::New(info.Env(), res.left));
@@ -304,6 +332,7 @@ Napi::Value osn::SceneItem::GetCrop(const Napi::CallbackInfo& info)
 
 void osn::SceneItem::SetCrop(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
+	PROFINY_SCOPE
 	Napi::Object vector = info[0].ToObject();
 	obs_sceneitem_crop crop;
 	crop.left = vector.Get("left").ToNumber().Int32Value();
@@ -316,6 +345,7 @@ void osn::SceneItem::SetCrop(const Napi::CallbackInfo& info, const Napi::Value &
 
 Napi::Value osn::SceneItem::GetId(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	auto id = obs::SceneItem::GetId(this->m_item);
 
 	return Napi::Number::New(info.Env(), id);
@@ -323,6 +353,7 @@ Napi::Value osn::SceneItem::GetId(const Napi::CallbackInfo& info)
 
 Napi::Value osn::SceneItem::MoveUp(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	obs::SceneItem::MoveUp(this->m_item);
 
 	return info.Env().Undefined();
@@ -330,6 +361,7 @@ Napi::Value osn::SceneItem::MoveUp(const Napi::CallbackInfo& info)
 
 Napi::Value osn::SceneItem::MoveDown(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	obs::SceneItem::MoveDown(this->m_item);
 
 	return info.Env().Undefined();
@@ -337,6 +369,7 @@ Napi::Value osn::SceneItem::MoveDown(const Napi::CallbackInfo& info)
 
 Napi::Value osn::SceneItem::MoveTop(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	obs::SceneItem::MoveTop(this->m_item);
 
 	return info.Env().Undefined();
@@ -344,6 +377,7 @@ Napi::Value osn::SceneItem::MoveTop(const Napi::CallbackInfo& info)
 
 Napi::Value osn::SceneItem::MoveBottom(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	obs::SceneItem::MoveBottom(this->m_item);
 
 	return info.Env().Undefined();
@@ -351,6 +385,7 @@ Napi::Value osn::SceneItem::MoveBottom(const Napi::CallbackInfo& info)
 
 Napi::Value osn::SceneItem::Move(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	int32_t position = info[0].ToNumber().Int32Value();
 
 	obs::SceneItem::Move(this->m_item, position);
@@ -360,6 +395,7 @@ Napi::Value osn::SceneItem::Move(const Napi::CallbackInfo& info)
 
 Napi::Value osn::SceneItem::DeferUpdateBegin(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	obs::SceneItem::DeferUpdateBegin(this->m_item);
 
 	return info.Env().Undefined();
@@ -367,6 +403,7 @@ Napi::Value osn::SceneItem::DeferUpdateBegin(const Napi::CallbackInfo& info)
 
 Napi::Value osn::SceneItem::DeferUpdateEnd(const Napi::CallbackInfo& info)
 {
+	PROFINY_SCOPE
 	obs::SceneItem::DeferUpdateEnd(this->m_item);
 
 	return info.Env().Undefined();
