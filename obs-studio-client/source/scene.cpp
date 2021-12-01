@@ -145,7 +145,7 @@ Napi::Value osn::Scene::Release(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Scene::Remove(const Napi::CallbackInfo& info)
 {
-	obs::Scene::Remove(this->m_source);
+	pushTask(obs::Scene::Remove, this->m_source);
 
 	return info.Env().Undefined();
 }
@@ -413,8 +413,8 @@ Napi::Value osn::Scene::CallRelease(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Scene::CallRemove(const Napi::CallbackInfo& info)
 {
-	osn::ISource::Remove(info, this->m_source);
-	this->m_source = nullptr;
+	pushTask(osn::ISource::Remove, this->m_source);
+	// this->m_source = nullptr;
 
 	return info.Env().Undefined();
 }

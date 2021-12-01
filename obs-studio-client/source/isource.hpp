@@ -39,7 +39,7 @@ namespace osn
 	{
 		public:
 		static void Release(obs_source_t* source);
-		static void Remove(const Napi::CallbackInfo& info, obs_source_t* source);
+		static void Remove(obs_source_t* source);
 		static void Update(const Napi::CallbackInfo& info, obs_source_t* source);
 		static void Load(const Napi::CallbackInfo& info, obs_source_t* source);
 		static void Save(const Napi::CallbackInfo& info, obs_source_t* source);

@@ -300,8 +300,8 @@ Napi::Value osn::Transition::CallRelease(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Transition::CallRemove(const Napi::CallbackInfo& info)
 {
-	osn::ISource::Remove(info, this->m_source);
-	this->m_source = nullptr;
+	pushTask(osn::ISource::Remove, this->m_source);
+	// this->m_source = nullptr;
 
 	return info.Env().Undefined();
 }

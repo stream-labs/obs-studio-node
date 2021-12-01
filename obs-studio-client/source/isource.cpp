@@ -27,11 +27,13 @@
 
 void osn::ISource::Release(obs_source_t* source)
 {
+	blog(LOG_INFO, "Release source %s", obs_source_get_name(source));
 	obs::Source::Release(source);
 }
 
-void osn::ISource::Remove(const Napi::CallbackInfo& info, obs_source_t* source)
+void osn::ISource::Remove(obs_source_t* source)
 {
+	blog(LOG_INFO, "Remove source %s", obs_source_get_name(source));
 	obs::Source::Remove(source);
 }
 

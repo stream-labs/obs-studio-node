@@ -464,15 +464,18 @@ void osn::Input::CallSetEnabled(const Napi::CallbackInfo& info, const Napi::Valu
 
 Napi::Value osn::Input::CallRelease(const Napi::CallbackInfo& info)
 {
-	pushTask(osn::ISource::Release, this->m_source);
+	// pushTask(osn::ISource::Release, this->m_source);
+	pushTask([&, this] {
+		osn::ISource::Release(this->m_source);
+	});
 
 	return info.Env().Undefined();
 }
 
 Napi::Value osn::Input::CallRemove(const Napi::CallbackInfo& info)
 {
-	osn::ISource::Remove(info, this->m_source);
-	this->m_source = nullptr;
+	pushTask(osn::ISource::Remove, this->m_source);
+	// this->m_source = nullptr;
 
 	return info.Env().Undefined();
 }
