@@ -83,7 +83,9 @@ osn::Transition::Transition(const Napi::CallbackInfo& info)
     }
 
 	auto externalItem = info[0].As<Napi::External<obs_source_t*>>();
-	this->m_source = *externalItem.Data();
+	auto source = *externalItem.Data();
+	this->id = idSourcesCount++;
+	sources.insert_or_assign(this->id, source);
 }
 
 Napi::Value osn::Transition::Types(const Napi::CallbackInfo& info)
@@ -165,7 +167,11 @@ Napi::Value osn::Transition::FromName(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Transition::GetActiveSource(const Napi::CallbackInfo& info)
 {
-	auto res = obs::Transition::GetActiveSource(this->m_source);
+	auto source = sources[this->id];
+	if (!source)
+		return info.Env().Undefined();
+
+	auto res = obs::Transition::GetActiveSource(source);
 	if (!res.first)
 		return info.Env().Undefined();
 
@@ -192,172 +198,194 @@ Napi::Value osn::Transition::GetActiveSource(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Transition::Clear(const Napi::CallbackInfo& info)
 {
-	obs::Transition::Clear(this->m_source);
+	auto source = sources[this->id];
+	if (!source)
+		return info.Env().Undefined();
+
+	obs::Transition::Clear(source);
 
 	return info.Env().Undefined();
 }
 
 Napi::Value osn::Transition::Set(const Napi::CallbackInfo& info)
 {
-	osn::Scene* scene = Napi::ObjectWrap<osn::Scene>::Unwrap(info[0].ToObject());
+	auto transition = sources[this->id];
+	if (!transition)
+		return info.Env().Undefined();
 
-	obs::Transition::Set(this->m_source, scene->m_source);
+	osn::Scene* scene = Napi::ObjectWrap<osn::Scene>::Unwrap(info[0].ToObject());
+	auto source = sources[scene->id];
+	if (!source)
+		return info.Env().Undefined();
+
+	obs::Transition::Set(transition, source);
 
 	return info.Env().Undefined();
 }
 
 Napi::Value osn::Transition::Start(const Napi::CallbackInfo& info)
 {
+	auto transition = sources[this->id];
+	if (!transition)
+		return info.Env().Undefined();
+
 	uint32_t ms = info[0].ToNumber().Uint32Value();
 	osn::Scene* scene = Napi::ObjectWrap<osn::Scene>::Unwrap(info[1].ToObject());
+	auto source = sources[this->id];
+	if (!source)
+		return info.Env().Undefined();
 
-	return Napi::Boolean::New(info.Env(), obs::Transition::Start(this->m_source, ms, scene->m_source));
+	return Napi::Boolean::New(info.Env(),
+		obs::Transition::Start(transition, ms, source));
 }
 
 Napi::Value osn::Transition::CallIsConfigurable(const Napi::CallbackInfo& info)
 {
-	return osn::ISource::IsConfigurable(info, this->m_source);
+	return osn::ISource::IsConfigurable(info, this->id);
 }
 
 Napi::Value osn::Transition::CallGetProperties(const Napi::CallbackInfo& info)
 {
-	return osn::ISource::GetProperties(info, this->m_source);
+	return osn::ISource::GetProperties(info, this->id);
 }
 
 Napi::Value osn::Transition::CallGetSettings(const Napi::CallbackInfo& info)
 {
-	return osn::ISource::GetSettings(info, this->m_source);
+	return osn::ISource::GetSettings(info, this->id);
 }
 
 
 Napi::Value osn::Transition::CallGetType(const Napi::CallbackInfo& info)
 {
-	return osn::ISource::GetType(info, this->m_source);
+	return osn::ISource::GetType(info, this->id);
 }
 
 Napi::Value osn::Transition::CallGetName(const Napi::CallbackInfo& info)
 {
-	return osn::ISource::GetName(info, this->m_source);
+	return osn::ISource::GetName(info, this->id);
 }
 
 void osn::Transition::CallSetName(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
-	osn::ISource::SetName(info, value, this->m_source);
+	osn::ISource::SetName(info, value, this->id);
 }
 
 Napi::Value osn::Transition::CallGetOutputFlags(const Napi::CallbackInfo& info)
 {
-	return osn::ISource::GetOutputFlags(info, this->m_source);
+	return osn::ISource::GetOutputFlags(info, this->id);
 }
 
 Napi::Value osn::Transition::CallGetFlags(const Napi::CallbackInfo& info)
 {
-	return osn::ISource::GetFlags(info, this->m_source);
+	return osn::ISource::GetFlags(info, this->id);
 }
 
 void osn::Transition::CallSetFlags(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
-	osn::ISource::SetFlags(info, value, this->m_source);
+	osn::ISource::SetFlags(info, value, this->id);
 }
 
 Napi::Value osn::Transition::CallGetStatus(const Napi::CallbackInfo& info)
 {
-	return osn::ISource::GetStatus(info, this->m_source);
+	return osn::ISource::GetStatus(info, this->id);
 }
 
 Napi::Value osn::Transition::CallGetId(const Napi::CallbackInfo& info)
 {
 
-	return osn::ISource::GetId(info, this->m_source);
+	return osn::ISource::GetId(info, this->id);
 }
 
 Napi::Value osn::Transition::CallGetMuted(const Napi::CallbackInfo& info)
 {
-	return osn::ISource::GetMuted(info, this->m_source);
+	return osn::ISource::GetMuted(info, this->id);
 }
 
 void osn::Transition::CallSetMuted(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
-	osn::ISource::SetMuted(info, value, this->m_source);
+	osn::ISource::SetMuted(info, value, this->id);
 }
 
 Napi::Value osn::Transition::CallGetEnabled(const Napi::CallbackInfo& info)
 {
-	return osn::ISource::GetEnabled(info, this->m_source);
+	return osn::ISource::GetEnabled(info, this->id);
 }
 
 void osn::Transition::CallSetEnabled(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
-	osn::ISource::SetEnabled(info, value, this->m_source);
+	osn::ISource::SetEnabled(info, value, this->id);
 }
 
 Napi::Value osn::Transition::CallRelease(const Napi::CallbackInfo& info)
 {
-	pushTask(osn::ISource::Release, this->m_source);
+	pushTask(osn::ISource::Release, this->id);
+	// osn::ISource::Release(this->id);
 
 	return info.Env().Undefined();
 }
 
 Napi::Value osn::Transition::CallRemove(const Napi::CallbackInfo& info)
 {
-	pushTask(osn::ISource::Remove, this->m_source);
-	// this->m_source = nullptr;
+	pushTask([&, this] {
+		osn::ISource::Remove(this->id);
+		this->id = UINT32_MAX;
+	});
 
 	return info.Env().Undefined();
 }
 
 Napi::Value osn::Transition::CallUpdate(const Napi::CallbackInfo& info)
 {
-	osn::ISource::Update(info, this->m_source);
+	osn::ISource::Update(info, this->id);
 
 	return info.Env().Undefined();
 }
 
 Napi::Value osn::Transition::CallLoad(const Napi::CallbackInfo& info)
 {
-	osn::ISource::Load(info, this->m_source);
+	osn::ISource::Load(info, this->id);
 
 	return info.Env().Undefined();
 }
 
 Napi::Value osn::Transition::CallSave(const Napi::CallbackInfo& info)
 {
-	osn::ISource::Save(info, this->m_source);
+	osn::ISource::Save(info, this->id);
 
 	return info.Env().Undefined();
 }
 
 Napi::Value osn::Transition::CallSendMouseClick(const Napi::CallbackInfo& info)
 {
-	osn::ISource::SendMouseClick(info, this->m_source);
+	osn::ISource::SendMouseClick(info, this->id);
 
 	return info.Env().Undefined();
 }
 
 Napi::Value osn::Transition::CallSendMouseMove(const Napi::CallbackInfo& info)
 {
-	osn::ISource::SendMouseMove(info, this->m_source);
+	osn::ISource::SendMouseMove(info, this->id);
 
 	return info.Env().Undefined();
 }
 
 Napi::Value osn::Transition::CallSendMouseWheel(const Napi::CallbackInfo& info)
 {
-	osn::ISource::SendMouseWheel(info, this->m_source);
+	osn::ISource::SendMouseWheel(info, this->id);
 
 	return info.Env().Undefined();
 }
 
 Napi::Value osn::Transition::CallSendFocus(const Napi::CallbackInfo& info)
 {
-	osn::ISource::SendFocus(info, this->m_source);
+	osn::ISource::SendFocus(info, this->id);
 
 	return info.Env().Undefined();
 }
 
 Napi::Value osn::Transition::CallSendKeyClick(const Napi::CallbackInfo& info)
 {
-	osn::ISource::SendKeyClick(info, this->m_source);
+	osn::ISource::SendKeyClick(info, this->id);
 
 	return info.Env().Undefined();
 }

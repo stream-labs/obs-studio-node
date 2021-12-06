@@ -27,7 +27,7 @@ namespace osn
 	class Input : public Napi::ObjectWrap<osn::Input>
 	{
 		public:
-		obs_source_t* m_source;
+		uint32_t id;
 
 		public:
 		static Napi::FunctionReference constructor;

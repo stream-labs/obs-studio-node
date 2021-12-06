@@ -28,7 +28,7 @@ struct VolmeterData
     std::vector<float> peak;
     std::vector<float> input_peak;
 	int channels;
-	obs::Volmeter* volmeter;
+	bool* cbReady;
 };
 
 namespace osn

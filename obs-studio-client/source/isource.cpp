@@ -25,25 +25,46 @@
 #include "utility.hpp"
 #include "server/osn-source.hpp"
 
-void osn::ISource::Release(obs_source_t* source)
+std::map<uint32_t, obs_source_t*> sources;
+uint32_t idSourcesCount = 0;
+
+void osn::ISource::Release(uint32_t id)
 {
+	auto source = sources[id];
+	if (!source)
+		return;
+
 	blog(LOG_INFO, "Release source %s", obs_source_get_name(source));
 	obs::Source::Release(source);
 }
 
-void osn::ISource::Remove(obs_source_t* source)
+void osn::ISource::Remove(uint32_t id)
 {
+	auto source = sources[id];
+	if (!source)
+		return;
+
 	blog(LOG_INFO, "Remove source %s", obs_source_get_name(source));
 	obs::Source::Remove(source);
 }
 
-Napi::Value osn::ISource::IsConfigurable(const Napi::CallbackInfo& info, obs_source_t* source)
+Napi::Value osn::ISource::IsConfigurable(const Napi::CallbackInfo& info, uint32_t id)
 {
+	auto source = sources[id];
+	if (!source)
+		return info.Env().Undefined();
+
+	blog(LOG_INFO, "IsConfigurable source %s", obs_source_get_name(source));
 	return Napi::Boolean::New(info.Env(), obs::Source::IsConfigurable(source));
 }
 
-Napi::Value osn::ISource::GetProperties(const Napi::CallbackInfo& info, obs_source_t* source)
+Napi::Value osn::ISource::GetProperties(const Napi::CallbackInfo& info, uint32_t id)
 {
+	auto source = sources[id];
+	if (!source)
+		return info.Env().Undefined();
+
+	blog(LOG_INFO, "GetProperties source %s", obs_source_get_name(source));
 	Napi::Array propertiesObject = Napi::Array::New(info.Env());
 
 	uint32_t indexProperties = 0;
@@ -518,8 +539,13 @@ Napi::Value osn::ISource::GetProperties(const Napi::CallbackInfo& info, obs_sour
 	// return instance;
 }
 
-Napi::Value osn::ISource::GetSettings(const Napi::CallbackInfo& info, obs_source_t* source)
+Napi::Value osn::ISource::GetSettings(const Napi::CallbackInfo& info, uint32_t id)
 {
+	auto source = sources[id];
+	if (!source)
+		return info.Env().Undefined();
+
+	blog(LOG_INFO, "GetSettings source %s", obs_source_get_name(source));
 	Napi::Object json = info.Env().Global().Get("JSON").As<Napi::Object>();
 	Napi::Function parse = json.Get("parse").As<Napi::Function>();
 
@@ -530,8 +556,13 @@ Napi::Value osn::ISource::GetSettings(const Napi::CallbackInfo& info, obs_source
 	return jsonObj;
 }
 
-void osn::ISource::Update(const Napi::CallbackInfo& info, obs_source_t* source)
+void osn::ISource::Update(const Napi::CallbackInfo& info, uint32_t id)
 {
+	auto source = sources[id];
+	if (!source)
+		return;
+
+	blog(LOG_INFO, "Update source %s", obs_source_get_name(source));
 	Napi::Object jsonObj = info[0].ToObject();
 
 	Napi::Object json = info.Env().Global().Get("JSON").As<Napi::Object>();
@@ -542,86 +573,162 @@ void osn::ISource::Update(const Napi::CallbackInfo& info, obs_source_t* source)
 	obs::Source::Update(source, jsondata);
 }
 
-void osn::ISource::Load(const Napi::CallbackInfo& info, obs_source_t* source)
+void osn::ISource::Load(const Napi::CallbackInfo& info, uint32_t id)
 {
+	auto source = sources[id];
+	if (!source)
+		return;
+
+	blog(LOG_INFO, "Load source %s", obs_source_get_name(source));
 	obs::Source::Load(source);
 }
 
-void osn::ISource::Save(const Napi::CallbackInfo& info, obs_source_t* source)
+void osn::ISource::Save(const Napi::CallbackInfo& info, uint32_t id)
 {
+	auto source = sources[id];
+	if (!source)
+		return;
+
+	blog(LOG_INFO, "Save source %s", obs_source_get_name(source));
 	obs::Source::Save(source);
 }
 
-Napi::Value osn::ISource::GetType(const Napi::CallbackInfo& info, obs_source_t* source)
+Napi::Value osn::ISource::GetType(const Napi::CallbackInfo& info, uint32_t id)
 {
+	auto source = sources[id];
+	if (!source)
+		return info.Env().Undefined();
+
+	blog(LOG_INFO, "GetType source %s", obs_source_get_name(source));
 	return Napi::Number::New(info.Env(), obs::Source::GetType(source));
 }
 
-Napi::Value osn::ISource::GetName(const Napi::CallbackInfo& info, obs_source_t* source)
+Napi::Value osn::ISource::GetName(const Napi::CallbackInfo& info, uint32_t id)
 {
+	auto source = sources[id];
+	if (!source)
+		return info.Env().Undefined();
+
+	blog(LOG_INFO, "GetName source %s", obs_source_get_name(source));
 	return Napi::String::New(info.Env(), obs::Source::GetName(source));
 }
 
-void osn::ISource::SetName(const Napi::CallbackInfo& info, const Napi::Value &value, obs_source_t* source)
+void osn::ISource::SetName(const Napi::CallbackInfo& info, const Napi::Value &value, uint32_t id)
 {
+	auto source = sources[id];
+	if (!source)
+		return;
+
 	std::string name = value.ToString().Utf8Value();
 
+	blog(LOG_INFO, "SetName source %s", obs_source_get_name(source));
 	obs::Source::SetName(source, name);
 }
 
-Napi::Value osn::ISource::GetOutputFlags(const Napi::CallbackInfo& info, obs_source_t* source)
+Napi::Value osn::ISource::GetOutputFlags(const Napi::CallbackInfo& info, uint32_t id)
 {
+	auto source = sources[id];
+	if (!source)
+		return info.Env().Undefined();
+
+	blog(LOG_INFO, "GetOutputFlags source %s", obs_source_get_name(source));
 	return Napi::Number::New(info.Env(), obs::Source::GetOutputFlags(source));
 }
 
-Napi::Value osn::ISource::GetFlags(const Napi::CallbackInfo& info, obs_source_t* source)
+Napi::Value osn::ISource::GetFlags(const Napi::CallbackInfo& info, uint32_t id)
 {
+	auto source = sources[id];
+	if (!source)
+		return info.Env().Undefined();
+
+	blog(LOG_INFO, "GetFlags source %s", obs_source_get_name(source));
 	return Napi::Number::New(info.Env(), obs::Source::GetFlags(source));
 }
 
-void osn::ISource::SetFlags(const Napi::CallbackInfo& info, const Napi::Value &value, obs_source_t* source)
+void osn::ISource::SetFlags(const Napi::CallbackInfo& info, const Napi::Value &value, uint32_t id)
 {
+	auto source = sources[id];
+	if (!source)
+		return;
+
 	uint32_t flags = value.ToNumber().Uint32Value();
 
+	blog(LOG_INFO, "SetFlags source %s", obs_source_get_name(source));
 	obs::Source::SetFlags(source, flags);
 }
 
-Napi::Value osn::ISource::GetStatus(const Napi::CallbackInfo& info, obs_source_t* source)
+Napi::Value osn::ISource::GetStatus(const Napi::CallbackInfo& info, uint32_t id)
 {
+	auto source = sources[id];
+	if (!source)
+		return info.Env().Undefined();
+
+	blog(LOG_INFO, "GetStatus source %s", obs_source_get_name(source));
 	return Napi::Number::New(info.Env(), obs::Source::GetStatus(source));
 }
 
-Napi::Value osn::ISource::GetId(const Napi::CallbackInfo& info, obs_source_t* source)
+Napi::Value osn::ISource::GetId(const Napi::CallbackInfo& info, uint32_t id)
 {
+	auto source = sources[id];
+	if (!source) {
+		blog(LOG_INFO, "Source not found");
+		return info.Env().Undefined();
+	}
+
+	blog(LOG_INFO, "GetId source %s", obs_source_get_name(source));
 	return Napi::String::New(info.Env(), obs::Source::GetId(source));
 }
 
-Napi::Value osn::ISource::GetMuted(const Napi::CallbackInfo& info, obs_source_t* source)
+Napi::Value osn::ISource::GetMuted(const Napi::CallbackInfo& info, uint32_t id)
 {
+	auto source = sources[id];
+	if (!source)
+		return info.Env().Undefined();
+
+	blog(LOG_INFO, "GetMuted source %s", obs_source_get_name(source));
 	return Napi::Boolean::New(info.Env(), obs::Source::GetMuted(source));
 }
 
-void osn::ISource::SetMuted(const Napi::CallbackInfo& info, const Napi::Value &value, obs_source_t* source)
+void osn::ISource::SetMuted(const Napi::CallbackInfo& info, const Napi::Value &value, uint32_t id)
 {
+	auto source = sources[id];
+	if (!source)
+		return;
+
 	bool muted = value.ToBoolean().Value();
 
+	blog(LOG_INFO, "SetMuted source %s", obs_source_get_name(source));
 	obs::Source::SetMuted(source, muted);
 }
 
-Napi::Value osn::ISource::GetEnabled(const Napi::CallbackInfo& info, obs_source_t* source)
+Napi::Value osn::ISource::GetEnabled(const Napi::CallbackInfo& info, uint32_t id)
 {
+	auto source = sources[id];
+	if (!source)
+		return info.Env().Undefined();
+
+	blog(LOG_INFO, "GetEnabled source %s", obs_source_get_name(source));
 	return Napi::Boolean::New(info.Env(), obs::Source::GetEnabled(source));
 }
 
-void osn::ISource::SetEnabled(const Napi::CallbackInfo& info, const Napi::Value &value, obs_source_t* source)
+void osn::ISource::SetEnabled(const Napi::CallbackInfo& info, const Napi::Value &value, uint32_t id)
 {
+	auto source = sources[id];
+	if (!source)
+		return;
+
 	bool enabled = value.ToBoolean().Value();
 
+	blog(LOG_INFO, "SetEnabled source %s", obs_source_get_name(source));
 	obs::Source::SetEnabled(source, enabled);
 }
 
-void osn::ISource::SendMouseClick(const Napi::CallbackInfo& info, obs_source_t* source)
+void osn::ISource::SendMouseClick(const Napi::CallbackInfo& info, uint32_t id)
 {
+	auto source = sources[id];
+	if (!source)
+		return;
+
 	Napi::Object mouse_event_obj = info[0].ToObject();
 	uint32_t type = info[1].ToNumber().Uint32Value();
 	bool mouse_up = info[2].ToBoolean().Value();
@@ -642,8 +749,12 @@ void osn::ISource::SendMouseClick(const Napi::CallbackInfo& info, obs_source_t* 
 	);
 }
 
-void osn::ISource::SendMouseMove(const Napi::CallbackInfo& info, obs_source_t* source)
+void osn::ISource::SendMouseMove(const Napi::CallbackInfo& info, uint32_t id)
 {
+	auto source = sources[id];
+	if (!source)
+		return;
+
 	Napi::Object mouse_event_obj = info[0].ToObject();
 	bool mouse_leave = info[1].ToBoolean().Value();
 
@@ -660,8 +771,12 @@ void osn::ISource::SendMouseMove(const Napi::CallbackInfo& info, obs_source_t* s
 	);
 }
 
-void osn::ISource::SendMouseWheel(const Napi::CallbackInfo& info, obs_source_t* source)
+void osn::ISource::SendMouseWheel(const Napi::CallbackInfo& info, uint32_t id)
 {
+	auto source = sources[id];
+	if (!source)
+		return;
+
 	Napi::Object mouse_event_obj = info[0].ToObject();
 	int32_t x_delta = info[1].ToNumber().Int32Value();
 	int32_t y_delta = info[2].ToNumber().Int32Value();
@@ -680,15 +795,23 @@ void osn::ISource::SendMouseWheel(const Napi::CallbackInfo& info, obs_source_t* 
 	);
 }
 
-void osn::ISource::SendFocus(const Napi::CallbackInfo& info, obs_source_t* source)
+void osn::ISource::SendFocus(const Napi::CallbackInfo& info, uint32_t id)
 {
+	auto source = sources[id];
+	if (!source)
+		return;
+
 	bool focus = info[0].ToBoolean().Value();
 
 	obs::Source::SendFocus(source, focus);
 }
 
-void osn::ISource::SendKeyClick(const Napi::CallbackInfo& info, obs_source_t* source)
+void osn::ISource::SendKeyClick(const Napi::CallbackInfo& info, uint32_t id)
 {
+	auto source = sources[id];
+	if (!source)
+		return;
+
 	Napi::Object key_event_obj = info[0].ToObject();
 	bool key_up = info[1].ToBoolean().Value();
 

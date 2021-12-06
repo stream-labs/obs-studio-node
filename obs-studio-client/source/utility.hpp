@@ -140,7 +140,7 @@ std::string getSafeOBSstr(const char* obsSTR);
 //write detected possible reason of abnormal app close to a file used to submit statistics 
 // void ipc_freez_callback(bool freez_detected, std::string app_state_path);
 
-#define MAX_THREADS_POOL 1
+#define MAX_THREADS_POOL 2
 extern thread_pool* pool;
 
 void createThreadPool();

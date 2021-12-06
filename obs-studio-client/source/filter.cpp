@@ -75,7 +75,9 @@ osn::Filter::Filter(const Napi::CallbackInfo& info)
     }
 
 	auto externalItem = info[0].As<Napi::External<obs_source_t*>>();
-	this->m_source = *externalItem.Data();
+	auto source = *externalItem.Data();
+	this->id = idSourcesCount++;
+	sources.insert_or_assign(this->id, source);
 }
 
 Napi::Value osn::Filter::Types(const Napi::CallbackInfo& info)
@@ -117,147 +119,150 @@ Napi::Value osn::Filter::Create(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Filter::CallIsConfigurable(const Napi::CallbackInfo& info)
 {
-	return osn::ISource::IsConfigurable(info, this->m_source);
+	return osn::ISource::IsConfigurable(info, this->id);
 }
 
 Napi::Value osn::Filter::CallGetProperties(const Napi::CallbackInfo& info)
 {
-	return osn::ISource::GetProperties(info, this->m_source);
+	return osn::ISource::GetProperties(info, this->id);
 }
 
 Napi::Value osn::Filter::CallGetSettings(const Napi::CallbackInfo& info)
 {
-	return osn::ISource::GetSettings(info, this->m_source);
+	return osn::ISource::GetSettings(info, this->id);
 }
 
 
 Napi::Value osn::Filter::CallGetType(const Napi::CallbackInfo& info)
 {
-	return osn::ISource::GetType(info, this->m_source);
+	return osn::ISource::GetType(info, this->id);
 }
 
 Napi::Value osn::Filter::CallGetName(const Napi::CallbackInfo& info)
 {
-	return osn::ISource::GetName(info, this->m_source);
+	return osn::ISource::GetName(info, this->id);
 }
 
 void osn::Filter::CallSetName(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
-	osn::ISource::SetName(info, value, this->m_source);
+	osn::ISource::SetName(info, value, this->id);
 }
 
 Napi::Value osn::Filter::CallGetOutputFlags(const Napi::CallbackInfo& info)
 {
-	return osn::ISource::GetOutputFlags(info, this->m_source);
+	return osn::ISource::GetOutputFlags(info, this->id);
 }
 
 Napi::Value osn::Filter::CallGetFlags(const Napi::CallbackInfo& info)
 {
-	return osn::ISource::GetFlags(info, this->m_source);
+	return osn::ISource::GetFlags(info, this->id);
 }
 
 void osn::Filter::CallSetFlags(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
-	osn::ISource::SetFlags(info, value, this->m_source);
+	osn::ISource::SetFlags(info, value, this->id);
 }
 
 Napi::Value osn::Filter::CallGetStatus(const Napi::CallbackInfo& info)
 {
-	return osn::ISource::GetStatus(info, this->m_source);
+	return osn::ISource::GetStatus(info, this->id);
 }
 
 Napi::Value osn::Filter::CallGetId(const Napi::CallbackInfo& info)
 {
-	return osn::ISource::GetId(info, this->m_source);
+	return osn::ISource::GetId(info, this->id);
 }
 
 Napi::Value osn::Filter::CallGetMuted(const Napi::CallbackInfo& info)
 {
-	return osn::ISource::GetMuted(info, this->m_source);
+	return osn::ISource::GetMuted(info, this->id);
 }
 
 void osn::Filter::CallSetMuted(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
-	osn::ISource::SetMuted(info, value, this->m_source);
+	osn::ISource::SetMuted(info, value, this->id);
 }
 
 Napi::Value osn::Filter::CallGetEnabled(const Napi::CallbackInfo& info)
 {
-	return osn::ISource::GetEnabled(info, this->m_source);
+	return osn::ISource::GetEnabled(info, this->id);
 }
 
 void osn::Filter::CallSetEnabled(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
-	osn::ISource::SetEnabled(info, value, this->m_source);
+	osn::ISource::SetEnabled(info, value, this->id);
 }
 
 Napi::Value osn::Filter::CallRelease(const Napi::CallbackInfo& info)
 {
-	pushTask(osn::ISource::Release, this->m_source);
+	// osn::ISource::Release(this->id);
+	pushTask(osn::ISource::Release, this->id);
 
 	return info.Env().Undefined();
 }
 
 Napi::Value osn::Filter::CallRemove(const Napi::CallbackInfo& info)
 {
-	pushTask(osn::ISource::Remove, this->m_source);
-	// this->m_source = nullptr;
+	pushTask([&, this] {
+		osn::ISource::Remove(this->id);
+		this->id = UINT32_MAX;
+	});
 
 	return info.Env().Undefined();
 }
 
 Napi::Value osn::Filter::CallUpdate(const Napi::CallbackInfo& info)
 {
-	osn::ISource::Update(info, this->m_source);
+	osn::ISource::Update(info, this->id);
 
 	return info.Env().Undefined();
 }
 
 Napi::Value osn::Filter::CallLoad(const Napi::CallbackInfo& info)
 {
-	osn::ISource::Load(info, this->m_source);
+	osn::ISource::Load(info, this->id);
 
 	return info.Env().Undefined();
 }
 
 Napi::Value osn::Filter::CallSave(const Napi::CallbackInfo& info)
 {
-	osn::ISource::Save(info, this->m_source);
+	osn::ISource::Save(info, this->id);
 
 	return info.Env().Undefined();
 }
 
 Napi::Value osn::Filter::CallSendMouseClick(const Napi::CallbackInfo& info)
 {
-	osn::ISource::SendMouseClick(info, this->m_source);
+	osn::ISource::SendMouseClick(info, this->id);
 
 	return info.Env().Undefined();
 }
 
 Napi::Value osn::Filter::CallSendMouseMove(const Napi::CallbackInfo& info)
 {
-	osn::ISource::SendMouseMove(info, this->m_source);
+	osn::ISource::SendMouseMove(info, this->id);
 
 	return info.Env().Undefined();
 }
 
 Napi::Value osn::Filter::CallSendMouseWheel(const Napi::CallbackInfo& info)
 {
-	osn::ISource::SendMouseWheel(info, this->m_source);
+	osn::ISource::SendMouseWheel(info, this->id);
 
 	return info.Env().Undefined();
 }
 
 Napi::Value osn::Filter::CallSendFocus(const Napi::CallbackInfo& info)
 {
-	osn::ISource::SendFocus(info, this->m_source);
+	osn::ISource::SendFocus(info, this->id);
 
 	return info.Env().Undefined();
 }
 
 Napi::Value osn::Filter::CallSendKeyClick(const Napi::CallbackInfo& info)
 {
-	osn::ISource::SendKeyClick(info, this->m_source);
+	osn::ISource::SendKeyClick(info, this->id);
 
 	return info.Env().Undefined();
 }

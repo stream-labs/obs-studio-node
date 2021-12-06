@@ -28,7 +28,7 @@ namespace osn
 	class Transition : public Napi::ObjectWrap<osn::Transition>
 	{
 		public:
-		obs_source_t* m_source;
+		uint32_t id;
 
 		public:
 		static Napi::FunctionReference constructor;

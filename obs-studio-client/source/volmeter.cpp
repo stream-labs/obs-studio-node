@@ -86,8 +86,11 @@ Napi::Value osn::Volmeter::Destroy(const Napi::CallbackInfo& info)
 Napi::Value osn::Volmeter::Attach(const Napi::CallbackInfo& info)
 {
 	osn::Input* input = Napi::ObjectWrap<osn::Input>::Unwrap(info[0].ToObject());
+	auto source = sources[input->id];
+	if (!source)
+		return info.Env().Undefined();
 
-	obs::Volmeter::Attach(this->m_uid, input->m_source);
+	obs::Volmeter::Attach(this->m_uid, source);
 
 	return info.Env().Undefined();
 }
@@ -115,7 +118,7 @@ auto volmeter_callback = []( Napi::Env env, Napi::Function jsCallback, VolmeterD
 
 	jsCallback.Call({ magnitude, peak, input_peak });
 
-	data->volmeter->cbReady = true;
+	*data->cbReady = true;
 	delete data;
 };
 
@@ -130,8 +133,7 @@ void OBSCallback(
 		return;
 	}
 
-	bool cbReady = meter->cbReady;
-	if (cbReady != true)
+	if (*meter->cbReady != true)
 		return;
 
 	auto now = std::chrono::high_resolution_clock::now();
@@ -141,7 +143,7 @@ void OBSCallback(
 		return;
 
 	meter->lastProcessed = now;
-	meter->cbReady = false;
+	*meter->cbReady = false;
 
 	int channels = obs_volmeter_get_nr_channels(meter->self);
 	VolmeterData* data     = new VolmeterData{
@@ -149,7 +151,7 @@ void OBSCallback(
 		{},
 		{},
 		obs_volmeter_get_nr_channels(meter->self),
-		meter
+		meter->cbReady
 	};
 
 	data->magnitude.resize(channels);

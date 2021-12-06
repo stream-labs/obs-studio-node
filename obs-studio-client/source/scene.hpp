@@ -27,7 +27,7 @@ namespace osn
 	class Scene : public Napi::ObjectWrap<osn::Scene>
 	{
 		public:
-		obs_source_t* m_source;
+		uint32_t id;
 
 		public:
 		static Napi::FunctionReference constructor;

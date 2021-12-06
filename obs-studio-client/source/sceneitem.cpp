@@ -27,6 +27,8 @@
 #include "utility.hpp"
 
 Napi::FunctionReference osn::SceneItem::constructor;
+std::map<uint32_t, obs_sceneitem_t*> sceneItems;
+uint32_t idSceneItemsCount = 0;
 
 Napi::Object osn::SceneItem::Init(Napi::Env env, Napi::Object exports) {
 	Napi::HandleScope scope(env);
@@ -78,18 +80,18 @@ osn::SceneItem::SceneItem(const Napi::CallbackInfo& info)
     }
 
 	auto externalItem = info[0].As<Napi::External<obs_sceneitem_t*>>();
-	this->m_item = *externalItem.Data();
-
-}
-
-void osn::SceneItem::SetOBSSceneItem(obs_sceneitem_t* item)
-{
-	this->m_item = item;
+	auto item = *externalItem.Data();
+	this->id = idSceneItemsCount++;
+	sceneItems.insert_or_assign(this->id, item);
 }
 
 Napi::Value osn::SceneItem::GetSource(const Napi::CallbackInfo& info)
 {
-	auto source = obs::SceneItem::GetSource(this->m_item);
+	auto item = sceneItems[this->id];
+	if (!item)
+		return info.Env().Undefined();
+
+	auto source = obs::SceneItem::GetSource(item);
 
     auto instance =
         osn::Input::constructor.New({
@@ -101,7 +103,11 @@ Napi::Value osn::SceneItem::GetSource(const Napi::CallbackInfo& info)
 
 Napi::Value osn::SceneItem::GetScene(const Napi::CallbackInfo& info)
 {
-	auto source = obs::SceneItem::GetScene(this->m_item);
+	auto item = sceneItems[this->id];
+	if (!item)
+		return info.Env().Undefined();
+
+	auto source = obs::SceneItem::GetScene(item);
     auto instance =
         osn::Scene::constructor.New({
             Napi::External<obs_source_t*>::New(info.Env(), &source)
@@ -112,62 +118,104 @@ Napi::Value osn::SceneItem::GetScene(const Napi::CallbackInfo& info)
 
 Napi::Value osn::SceneItem::Remove(const Napi::CallbackInfo& info)
 {
-	obs::SceneItem::Remove(this->m_item);
+	auto item = sceneItems[this->id];
+	if (!item)
+		return info.Env().Undefined();
+
+	obs::SceneItem::Remove(item);
+
+	sceneItems.erase(this->id);
 
 	return info.Env().Undefined();
 }
 
 Napi::Value osn::SceneItem::IsVisible(const Napi::CallbackInfo& info)
 {
-	return Napi::Boolean::New(info.Env(), obs::SceneItem::IsVisible(this->m_item));
+	auto item = sceneItems[this->id];
+	if (!item)
+		return info.Env().Undefined();
+
+	return Napi::Boolean::New(info.Env(), obs::SceneItem::IsVisible(item));
 }
 
 void osn::SceneItem::SetVisible(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
+	auto item = sceneItems[this->id];
+	if (!item)
+		return;
+
 	bool visible = value.ToBoolean().Value();
-	obs::SceneItem::SetVisible(this->m_item, visible);
+	obs::SceneItem::SetVisible(item, visible);
 }
 
 Napi::Value osn::SceneItem::IsSelected(const Napi::CallbackInfo& info)
 {
-	return Napi::Boolean::New(info.Env(), obs::SceneItem::IsSelected(this->m_item));
+	auto item = sceneItems[this->id];
+	if (!item)
+		return info.Env().Undefined();
+
+	return Napi::Boolean::New(info.Env(), obs::SceneItem::IsSelected(item));
 }
 
 void osn::SceneItem::SetSelected(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
+	auto item = sceneItems[this->id];
+	if (!item)
+		return;
+
 	bool selected = value.ToBoolean().Value();
-	obs::SceneItem::SetSelected(this->m_item, selected);
+	obs::SceneItem::SetSelected(item, selected);
 }
 
 Napi::Value osn::SceneItem::IsStreamVisible(const Napi::CallbackInfo& info)
 {
-	return Napi::Boolean::New(info.Env(), obs::SceneItem::IsStreamVisible(this->m_item));
+	auto item = sceneItems[this->id];
+	if (!item)
+		return info.Env().Undefined();
+
+	return Napi::Boolean::New(info.Env(), obs::SceneItem::IsStreamVisible(item));
 }
 
 void osn::SceneItem::SetStreamVisible(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
+	auto item = sceneItems[this->id];
+	if (!item)
+		return;
+
 	bool streamVisible = value.ToBoolean().Value();
 
-	obs::SceneItem::SetStreamVisible(this->m_item, streamVisible);
+	obs::SceneItem::SetStreamVisible(item, streamVisible);
 }
 
 Napi::Value osn::SceneItem::IsRecordingVisible(const Napi::CallbackInfo& info)
 {
-	bool recordingVisible = obs::SceneItem::IsRecordingVisible(this->m_item);
+	auto item = sceneItems[this->id];
+	if (!item)
+		return info.Env().Undefined();
+
+	bool recordingVisible = obs::SceneItem::IsRecordingVisible(item);
 
 	return Napi::Boolean::New(info.Env(), recordingVisible);
 }
 
 void osn::SceneItem::SetRecordingVisible(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
+	auto item = sceneItems[this->id];
+	if (!item)
+		return;
+
 	bool recordingVisible = value.ToBoolean().Value();
 
-	obs::SceneItem::SetRecordingVisible(this->m_item, recordingVisible);
+	obs::SceneItem::SetRecordingVisible(item, recordingVisible);
 }
 
 Napi::Value osn::SceneItem::GetPosition(const Napi::CallbackInfo& info)
 {
-	auto res = obs::SceneItem::GetPosition(this->m_item);
+	auto item = sceneItems[this->id];
+	if (!item)
+		return info.Env().Undefined();
+
+	auto res = obs::SceneItem::GetPosition(item);
 	float x = res.first;
 	float y = res.second;
 
@@ -180,28 +228,44 @@ Napi::Value osn::SceneItem::GetPosition(const Napi::CallbackInfo& info)
 
 void osn::SceneItem::SetPosition(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
+	auto item = sceneItems[this->id];
+	if (!item)
+		return;
+
 	Napi::Object vector = info[0].ToObject();
 	float_t x = vector.Get("x").ToNumber().FloatValue();
 	float_t y = vector.Get("y").ToNumber().FloatValue();
 
-	obs::SceneItem::SetPosition(this->m_item, x, y);
+	obs::SceneItem::SetPosition(item, x, y);
 }
 
 Napi::Value osn::SceneItem::GetRotation(const Napi::CallbackInfo& info)
 {
-	return Napi::Number::New(info.Env(), obs::SceneItem::GetRotation(this->m_item));
+	auto item = sceneItems[this->id];
+	if (!item)
+		return info.Env().Undefined();
+
+	return Napi::Number::New(info.Env(), obs::SceneItem::GetRotation(item));
 }
 
 void osn::SceneItem::SetRotation(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
+	auto item = sceneItems[this->id];
+	if (!item)
+		return;
+
 	float_t rotation = info[0].ToNumber().FloatValue();
 
-	obs::SceneItem::SetRotation(this->m_item, rotation);
+	obs::SceneItem::SetRotation(item, rotation);
 }
 
 Napi::Value osn::SceneItem::GetScale(const Napi::CallbackInfo& info)
 {
-	auto res = obs::SceneItem::GetScale(this->m_item);
+	auto item = sceneItems[this->id];
+	if (!item)
+		return info.Env().Undefined();
+
+	auto res = obs::SceneItem::GetScale(item);
 	float x = res.first;
 	float y = res.second;
 
@@ -214,40 +278,64 @@ Napi::Value osn::SceneItem::GetScale(const Napi::CallbackInfo& info)
 
 void osn::SceneItem::SetScale(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
+	auto item = sceneItems[this->id];
+	if (!item)
+		return;
+
 	Napi::Object vector = info[0].ToObject();
 	float_t x = vector.Get("x").ToNumber().FloatValue();
 	float_t y = vector.Get("y").ToNumber().FloatValue();
 
-	obs::SceneItem::SetScale(this->m_item, x, y);
+	obs::SceneItem::SetScale(item, x, y);
 }
 
 Napi::Value osn::SceneItem::GetScaleFilter(const Napi::CallbackInfo& info)
 {
-	return Napi::Number::New(info.Env(), obs::SceneItem::GetScaleFilter(this->m_item));
+	auto item = sceneItems[this->id];
+	if (!item)
+		return info.Env().Undefined();
+
+	return Napi::Number::New(info.Env(), obs::SceneItem::GetScaleFilter(item));
 }
 
 void osn::SceneItem::SetScaleFilter(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
+	auto item = sceneItems[this->id];
+	if (!item)
+		return;
+
 	uint32_t scaleFilter = value.ToNumber().Uint32Value();
 
-	obs::SceneItem::SetScaleFilter(this->m_item, scaleFilter);
+	obs::SceneItem::SetScaleFilter(item, scaleFilter);
 }
 
 Napi::Value osn::SceneItem::GetAlignment(const Napi::CallbackInfo& info)
 {
-	return Napi::Boolean::New(info.Env(), obs::SceneItem::GetAlignment(this->m_item));
+	auto item = sceneItems[this->id];
+	if (!item)
+		return info.Env().Undefined();
+
+	return Napi::Boolean::New(info.Env(), obs::SceneItem::GetAlignment(item));
 }
 
 void osn::SceneItem::SetAlignment(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
+	auto item = sceneItems[this->id];
+	if (!item)
+		return;
+
 	uint32_t alignment = value.ToNumber().Uint32Value();
 
-	obs::SceneItem::SetAlignment(this->m_item, alignment);
+	obs::SceneItem::SetAlignment(item, alignment);
 }
 
 Napi::Value osn::SceneItem::GetBounds(const Napi::CallbackInfo& info)
 {
-	auto res = obs::SceneItem::GetBounds(this->m_item);
+	auto item = sceneItems[this->id];
+	if (!item)
+		return info.Env().Undefined();
+
+	auto res = obs::SceneItem::GetBounds(item);
 	float x = res.first;
 	float y = res.second;
 
@@ -259,40 +347,64 @@ Napi::Value osn::SceneItem::GetBounds(const Napi::CallbackInfo& info)
 
 void osn::SceneItem::SetBounds(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
+	auto item = sceneItems[this->id];
+	if (!item)
+		return;
+
 	Napi::Object vector = info[0].ToObject();
 	float_t x = vector.Get("x").ToNumber().FloatValue();
 	float_t y = vector.Get("y").ToNumber().FloatValue();
 
-	obs::SceneItem::SetBounds(this->m_item, x, y);
+	obs::SceneItem::SetBounds(item, x, y);
 }
 
 Napi::Value osn::SceneItem::GetBoundsAlignment(const Napi::CallbackInfo& info)
 {
-	return Napi::Number::New(info.Env(), obs::SceneItem::GetBoundsAlignment(this->m_item));
+	auto item = sceneItems[this->id];
+	if (!item)
+		return info.Env().Undefined();
+
+	return Napi::Number::New(info.Env(), obs::SceneItem::GetBoundsAlignment(item));
 }
 
 void osn::SceneItem::SetBoundsAlignment(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
+	auto item = sceneItems[this->id];
+	if (!item)
+		return;
+
 	uint32_t aligment = value.ToNumber().Uint32Value();
 
-	obs::SceneItem::SetBoundsAlignment(this->m_item, aligment);
+	obs::SceneItem::SetBoundsAlignment(item, aligment);
 }
 
 Napi::Value osn::SceneItem::GetBoundsType(const Napi::CallbackInfo& info)
 {
-	return Napi::Number::New(info.Env(), obs::SceneItem::GetBoundsType(this->m_item));
+	auto item = sceneItems[this->id];
+	if (!item)
+		return info.Env().Undefined();
+
+	return Napi::Number::New(info.Env(), obs::SceneItem::GetBoundsType(item));
 }
 
 void osn::SceneItem::SetBoundsType(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
+	auto item = sceneItems[this->id];
+	if (!item)
+		return;
+
 	int32_t boundsType = value.ToNumber().Int32Value();
 
-	obs::SceneItem::SetBoundsType(this->m_item, boundsType);
+	obs::SceneItem::SetBoundsType(item, boundsType);
 }
 
 Napi::Value osn::SceneItem::GetCrop(const Napi::CallbackInfo& info)
 {
-	auto res = obs::SceneItem::GetCrop(this->m_item);
+	auto item = sceneItems[this->id];
+	if (!item)
+		return info.Env().Undefined();
+
+	auto res = obs::SceneItem::GetCrop(item);
 	Napi::Object obj = Napi::Object::New(info.Env());
 	obj.Set("left", Napi::Number::New(info.Env(), res.left));
 	obj.Set("top", Napi::Number::New(info.Env(), res.top));
@@ -304,6 +416,10 @@ Napi::Value osn::SceneItem::GetCrop(const Napi::CallbackInfo& info)
 
 void osn::SceneItem::SetCrop(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
+	auto item = sceneItems[this->id];
+	if (!item)
+		return;
+
 	Napi::Object vector = info[0].ToObject();
 	obs_sceneitem_crop crop;
 	crop.left = vector.Get("left").ToNumber().Int32Value();
@@ -311,63 +427,95 @@ void osn::SceneItem::SetCrop(const Napi::CallbackInfo& info, const Napi::Value &
 	crop.right = vector.Get("right").ToNumber().Int32Value();
 	crop.bottom = vector.Get("bottom").ToNumber().Int32Value();
 
-	obs::SceneItem::SetCrop(this->m_item, crop);
+	obs::SceneItem::SetCrop(item, crop);
 }
 
 Napi::Value osn::SceneItem::GetId(const Napi::CallbackInfo& info)
 {
-	auto id = obs::SceneItem::GetId(this->m_item);
+	auto item = sceneItems[this->id];
+	if (!item)
+		return info.Env().Undefined();
+
+	auto id = obs::SceneItem::GetId(item);
 
 	return Napi::Number::New(info.Env(), id);
 }
 
 Napi::Value osn::SceneItem::MoveUp(const Napi::CallbackInfo& info)
 {
-	obs::SceneItem::MoveUp(this->m_item);
+	auto item = sceneItems[this->id];
+	if (!item)
+		return info.Env().Undefined();
+
+	obs::SceneItem::MoveUp(item);
 
 	return info.Env().Undefined();
 }
 
 Napi::Value osn::SceneItem::MoveDown(const Napi::CallbackInfo& info)
 {
-	obs::SceneItem::MoveDown(this->m_item);
+	auto item = sceneItems[this->id];
+	if (!item)
+		return info.Env().Undefined();
+
+	obs::SceneItem::MoveDown(item);
 
 	return info.Env().Undefined();
 }
 
 Napi::Value osn::SceneItem::MoveTop(const Napi::CallbackInfo& info)
 {
-	obs::SceneItem::MoveTop(this->m_item);
+	auto item = sceneItems[this->id];
+	if (!item)
+		return info.Env().Undefined();
+
+	obs::SceneItem::MoveTop(item);
 
 	return info.Env().Undefined();
 }
 
 Napi::Value osn::SceneItem::MoveBottom(const Napi::CallbackInfo& info)
 {
-	obs::SceneItem::MoveBottom(this->m_item);
+	auto item = sceneItems[this->id];
+	if (!item)
+		return info.Env().Undefined();
+
+	obs::SceneItem::MoveBottom(item);
 
 	return info.Env().Undefined();
 }
 
 Napi::Value osn::SceneItem::Move(const Napi::CallbackInfo& info)
 {
+	auto item = sceneItems[this->id];
+	if (!item)
+		return info.Env().Undefined();
+
 	int32_t position = info[0].ToNumber().Int32Value();
 
-	obs::SceneItem::Move(this->m_item, position);
+	obs::SceneItem::Move(item, position);
 
 	return info.Env().Undefined();
 }
 
 Napi::Value osn::SceneItem::DeferUpdateBegin(const Napi::CallbackInfo& info)
 {
-	obs::SceneItem::DeferUpdateBegin(this->m_item);
+	auto item = sceneItems[this->id];
+	if (!item)
+		return info.Env().Undefined();
+
+	obs::SceneItem::DeferUpdateBegin(item);
 
 	return info.Env().Undefined();
 }
 
 Napi::Value osn::SceneItem::DeferUpdateEnd(const Napi::CallbackInfo& info)
 {
-	obs::SceneItem::DeferUpdateEnd(this->m_item);
+	auto item = sceneItems[this->id];
+	if (!item)
+		return info.Env().Undefined();
+
+	obs::SceneItem::DeferUpdateEnd(item);
 
 	return info.Env().Undefined();
 }

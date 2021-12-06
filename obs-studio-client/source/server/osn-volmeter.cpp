@@ -131,7 +131,7 @@ void obs::Volmeter::AddCallback(
 
 	meter->m_jsThread = jsThread;
 	meter->callback_count++;
-	meter->cbReady = true;
+	meter->cbReady = new bool(true);
 	meter->lastProcessed = std::chrono::high_resolution_clock::now();
 	if (meter->callback_count == 1) {
 		meter->id2  = new uint64_t;

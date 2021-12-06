@@ -55,7 +55,7 @@ namespace obs
 		uint64_t*       id2            = nullptr;
 		uint64_t        uid_source     = 0;
 		void*           m_jsThread     = nullptr;
-		bool            cbReady;
+		bool*           cbReady;
 
 		std::chrono::steady_clock::time_point lastProcessed;
 

@@ -97,7 +97,10 @@ Napi::Value osn::Global::setOutputSource(const Napi::CallbackInfo& info)
 
 	if (info[1].IsObject()) {
 		input = Napi::ObjectWrap<osn::Input>::Unwrap(info[1].ToObject());
-		obs::Global::SetOutputSource(channel, input ? input->m_source : nullptr);
+		auto source = sources[input->id];
+		if (!source)
+			return info.Env().Undefined();
+		obs::Global::SetOutputSource(channel, source);
 	}
 
 	return info.Env().Undefined();

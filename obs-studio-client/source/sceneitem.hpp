@@ -22,19 +22,20 @@
 #include "utility-v8.hpp"
 #include "server/osn-sceneitem.hpp"
 
+extern std::map<uint32_t, obs_sceneitem_t*> sceneItems;
+extern uint32_t idSceneItemsCount;
+
 namespace osn
 {
 	class SceneItem : public Napi::ObjectWrap<osn::SceneItem>
 	{
 		public:
-		obs_sceneitem_t* m_item;
+		uint32_t id;
 
 		public:
 		static Napi::FunctionReference constructor;
 		static Napi::Object Init(Napi::Env env, Napi::Object exports);
 		SceneItem(const Napi::CallbackInfo& info);
-
-		void SetOBSSceneItem(obs_sceneitem_t* item);
 
 		Napi::Value GetSource(const Napi::CallbackInfo& info);
 		Napi::Value GetScene(const Napi::CallbackInfo& info);
