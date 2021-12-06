@@ -60,7 +60,7 @@ void callJS(SignalInfo* data)
 
 		jsCallback.Call({ result });
 		} catch (...) {}
-		delete data;
+		// delete data;
 
     };
 
