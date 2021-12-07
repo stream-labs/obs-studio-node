@@ -50,7 +50,6 @@ obs_source_t* obs::SceneItem::GetScene(obs_sceneitem_t* item)
 
 void obs::SceneItem::Remove(obs_sceneitem_t* item)
 {
-	blog(LOG_INFO, "Remove scneitem %s", obs_source_get_name(obs_sceneitem_get_source(item)));
 	obs_sceneitem_release(item);
 	obs_sceneitem_remove(item);
 }

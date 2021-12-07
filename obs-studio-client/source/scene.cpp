@@ -139,7 +139,7 @@ Napi::Value osn::Scene::FromName(const Napi::CallbackInfo& info)
 }
 
 Napi::Value osn::Scene::Release(const Napi::CallbackInfo& info)
-{	
+{
 	// blog(LOG_INFO, "Release source %s", obs_source_get_name(this->id));
 	auto source = sources[this->id];
 	if (!source)
