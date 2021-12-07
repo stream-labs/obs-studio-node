@@ -231,7 +231,7 @@ Napi::Value osn::Transition::Start(const Napi::CallbackInfo& info)
 
 	uint32_t ms = info[0].ToNumber().Uint32Value();
 	osn::Scene* scene = Napi::ObjectWrap<osn::Scene>::Unwrap(info[1].ToObject());
-	auto source = sources[this->id];
+	auto source = sources[scene->id];
 	if (!source)
 		return info.Env().Undefined();
 
