@@ -28,7 +28,7 @@
     "@types/mocha": "^5.2.5",
     "@types/node": "^12.16.3",
     "archiver": "^3.1.1",
-    "aws-sdk": "^2.585.0",
+    "aws-sdk": "^2.814.0",
     "chai": "^4.2.0",
     "colors": "^1.4.0",
     "electron": "13.4.0",
