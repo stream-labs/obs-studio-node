@@ -91,7 +91,7 @@ osn::Scene::Scene(const Napi::CallbackInfo& info)
 	auto externalItem = info[0].As<Napi::External<obs_source_t*>>();
 	auto source = *externalItem.Data();
 	this->id = idSourcesCount++;
-	sources.insert_or_assign(this->id, source);
+	sourcesStore.insert_or_assign(this->id, source);
 }
 
 
@@ -141,7 +141,7 @@ Napi::Value osn::Scene::FromName(const Napi::CallbackInfo& info)
 Napi::Value osn::Scene::Release(const Napi::CallbackInfo& info)
 {
 	// blog(LOG_INFO, "Release source %s", obs_source_get_name(this->id));
-	auto source = sources[this->id];
+	auto source = sourcesStore[this->id];
 	if (!source)
 		return info.Env().Undefined();
 
@@ -154,7 +154,7 @@ Napi::Value osn::Scene::Release(const Napi::CallbackInfo& info)
 Napi::Value osn::Scene::Remove(const Napi::CallbackInfo& info)
 {
 	// blog(LOG_INFO, "Remove source %s", obs_source_get_name(this->id));
-	auto source = sources[this->id];
+	auto source = sourcesStore[this->id];
 	if (!source)
 		return info.Env().Undefined();
 
@@ -166,7 +166,7 @@ Napi::Value osn::Scene::Remove(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Scene::AsSource(const Napi::CallbackInfo& info)
 {
-	auto source = sources[this->id];
+	auto source = sourcesStore[this->id];
 	if (!source)
 		return info.Env().Undefined();
 
@@ -180,7 +180,7 @@ Napi::Value osn::Scene::AsSource(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Scene::Duplicate(const Napi::CallbackInfo& info)
 {
-	auto scene = sources[this->id];
+	auto scene = sourcesStore[this->id];
 	if (!scene)
 		return info.Env().Undefined();
 
@@ -199,12 +199,12 @@ Napi::Value osn::Scene::Duplicate(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Scene::AddSource(const Napi::CallbackInfo& info)
 {
-	auto source = sources[id];
+	auto source = sourcesStore[id];
 	if (!source)
 		return info.Env().Undefined();
 
 	osn::Input* input = Napi::ObjectWrap<osn::Input>::Unwrap(info[0].ToObject());
-	auto inputSource = sources[input->id];
+	auto inputSource = sourcesStore[input->id];
 	if (!inputSource)
 		return info.Env().Undefined();
 
@@ -243,7 +243,7 @@ Napi::Value osn::Scene::AddSource(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Scene::FindItem(const Napi::CallbackInfo& info)
 {
-	auto source = sources[id];
+	auto source = sourcesStore[id];
 	if (!source)
 		return info.Env().Undefined();
 
@@ -279,7 +279,7 @@ Napi::Value osn::Scene::FindItem(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Scene::MoveItem(const Napi::CallbackInfo& info)
 {
-	auto source = sources[this->id];
+	auto source = sourcesStore[this->id];
 	if (!source)
 		return info.Env().Undefined();
 
@@ -296,7 +296,7 @@ Napi::Value osn::Scene::MoveItem(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Scene::OrderItems(const Napi::CallbackInfo& info)
 {
-	auto source = sources[this->id];
+	auto source = sourcesStore[this->id];
 	if (!source)
 		return info.Env().Undefined();
 
@@ -320,7 +320,7 @@ Napi::Value osn::Scene::OrderItems(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Scene::GetItemAtIndex(const Napi::CallbackInfo& info)
 {
-	auto source = sources[this->id];
+	auto source = sourcesStore[this->id];
 	if (!source)
 		return info.Env().Undefined();
 
@@ -338,7 +338,7 @@ Napi::Value osn::Scene::GetItemAtIndex(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Scene::GetItems(const Napi::CallbackInfo& info)
 {
-	auto source = sources[this->id];
+	auto source = sourcesStore[this->id];
 	if (!source)
 		return info.Env().Undefined();
 
@@ -359,7 +359,7 @@ Napi::Value osn::Scene::GetItems(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Scene::GetItemsInRange(const Napi::CallbackInfo& info)
 {
-	auto source = sources[this->id];
+	auto source = sourcesStore[this->id];
 	if (!source)
 		return info.Env().Undefined();
 

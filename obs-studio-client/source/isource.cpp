@@ -25,12 +25,12 @@
 #include "utility.hpp"
 #include "server/osn-source.hpp"
 
-std::map<uint32_t, obs_source_t*> sources;
+std::map<uint32_t, obs_source_t*> sourcesStore;
 uint32_t idSourcesCount = 0;
 
 void osn::ISource::Release(uint32_t id)
 {
-	auto source = sources[id];
+	auto source = sourcesStore[id];
 	if (!source)
 		return;
 
@@ -40,7 +40,7 @@ void osn::ISource::Release(uint32_t id)
 
 void osn::ISource::Remove(uint32_t id)
 {
-	auto source = sources[id];
+	auto source = sourcesStore[id];
 	if (!source)
 		return;
 
@@ -50,7 +50,7 @@ void osn::ISource::Remove(uint32_t id)
 
 Napi::Value osn::ISource::IsConfigurable(const Napi::CallbackInfo& info, uint32_t id)
 {
-	auto source = sources[id];
+	auto source = sourcesStore[id];
 	if (!source)
 		return info.Env().Undefined();
 
@@ -60,7 +60,7 @@ Napi::Value osn::ISource::IsConfigurable(const Napi::CallbackInfo& info, uint32_
 
 Napi::Value osn::ISource::GetProperties(const Napi::CallbackInfo& info, uint32_t id)
 {
-	auto source = sources[id];
+	auto source = sourcesStore[id];
 	if (!source)
 		return info.Env().Undefined();
 
@@ -558,7 +558,7 @@ Napi::Value osn::ISource::GetProperties(const Napi::CallbackInfo& info, uint32_t
 
 Napi::Value osn::ISource::GetSettings(const Napi::CallbackInfo& info, uint32_t id)
 {
-	auto source = sources[id];
+	auto source = sourcesStore[id];
 	if (!source)
 		return info.Env().Undefined();
 
@@ -575,7 +575,7 @@ Napi::Value osn::ISource::GetSettings(const Napi::CallbackInfo& info, uint32_t i
 
 void osn::ISource::Update(const Napi::CallbackInfo& info, uint32_t id)
 {
-	auto source = sources[id];
+	auto source = sourcesStore[id];
 	if (!source)
 		return;
 
@@ -592,7 +592,7 @@ void osn::ISource::Update(const Napi::CallbackInfo& info, uint32_t id)
 
 void osn::ISource::Load(const Napi::CallbackInfo& info, uint32_t id)
 {
-	auto source = sources[id];
+	auto source = sourcesStore[id];
 	if (!source)
 		return;
 
@@ -602,7 +602,7 @@ void osn::ISource::Load(const Napi::CallbackInfo& info, uint32_t id)
 
 void osn::ISource::Save(const Napi::CallbackInfo& info, uint32_t id)
 {
-	auto source = sources[id];
+	auto source = sourcesStore[id];
 	if (!source)
 		return;
 
@@ -612,7 +612,7 @@ void osn::ISource::Save(const Napi::CallbackInfo& info, uint32_t id)
 
 Napi::Value osn::ISource::GetType(const Napi::CallbackInfo& info, uint32_t id)
 {
-	auto source = sources[id];
+	auto source = sourcesStore[id];
 	if (!source)
 		return info.Env().Undefined();
 
@@ -622,7 +622,7 @@ Napi::Value osn::ISource::GetType(const Napi::CallbackInfo& info, uint32_t id)
 
 Napi::Value osn::ISource::GetName(const Napi::CallbackInfo& info, uint32_t id)
 {
-	auto source = sources[id];
+	auto source = sourcesStore[id];
 	if (!source)
 		return info.Env().Undefined();
 
@@ -632,7 +632,7 @@ Napi::Value osn::ISource::GetName(const Napi::CallbackInfo& info, uint32_t id)
 
 void osn::ISource::SetName(const Napi::CallbackInfo& info, const Napi::Value &value, uint32_t id)
 {
-	auto source = sources[id];
+	auto source = sourcesStore[id];
 	if (!source)
 		return;
 
@@ -644,7 +644,7 @@ void osn::ISource::SetName(const Napi::CallbackInfo& info, const Napi::Value &va
 
 Napi::Value osn::ISource::GetOutputFlags(const Napi::CallbackInfo& info, uint32_t id)
 {
-	auto source = sources[id];
+	auto source = sourcesStore[id];
 	if (!source)
 		return info.Env().Undefined();
 
@@ -654,7 +654,7 @@ Napi::Value osn::ISource::GetOutputFlags(const Napi::CallbackInfo& info, uint32_
 
 Napi::Value osn::ISource::GetFlags(const Napi::CallbackInfo& info, uint32_t id)
 {
-	auto source = sources[id];
+	auto source = sourcesStore[id];
 	if (!source)
 		return info.Env().Undefined();
 
@@ -664,7 +664,7 @@ Napi::Value osn::ISource::GetFlags(const Napi::CallbackInfo& info, uint32_t id)
 
 void osn::ISource::SetFlags(const Napi::CallbackInfo& info, const Napi::Value &value, uint32_t id)
 {
-	auto source = sources[id];
+	auto source = sourcesStore[id];
 	if (!source)
 		return;
 
@@ -676,7 +676,7 @@ void osn::ISource::SetFlags(const Napi::CallbackInfo& info, const Napi::Value &v
 
 Napi::Value osn::ISource::GetStatus(const Napi::CallbackInfo& info, uint32_t id)
 {
-	auto source = sources[id];
+	auto source = sourcesStore[id];
 	if (!source)
 		return info.Env().Undefined();
 
@@ -686,7 +686,7 @@ Napi::Value osn::ISource::GetStatus(const Napi::CallbackInfo& info, uint32_t id)
 
 Napi::Value osn::ISource::GetId(const Napi::CallbackInfo& info, uint32_t id)
 {
-	auto source = sources[id];
+	auto source = sourcesStore[id];
 	if (!source) {
 		blog(LOG_INFO, "Source not found");
 		return info.Env().Undefined();
@@ -698,7 +698,7 @@ Napi::Value osn::ISource::GetId(const Napi::CallbackInfo& info, uint32_t id)
 
 Napi::Value osn::ISource::GetMuted(const Napi::CallbackInfo& info, uint32_t id)
 {
-	auto source = sources[id];
+	auto source = sourcesStore[id];
 	if (!source)
 		return info.Env().Undefined();
 
@@ -708,7 +708,7 @@ Napi::Value osn::ISource::GetMuted(const Napi::CallbackInfo& info, uint32_t id)
 
 void osn::ISource::SetMuted(const Napi::CallbackInfo& info, const Napi::Value &value, uint32_t id)
 {
-	auto source = sources[id];
+	auto source = sourcesStore[id];
 	if (!source)
 		return;
 
@@ -720,7 +720,7 @@ void osn::ISource::SetMuted(const Napi::CallbackInfo& info, const Napi::Value &v
 
 Napi::Value osn::ISource::GetEnabled(const Napi::CallbackInfo& info, uint32_t id)
 {
-	auto source = sources[id];
+	auto source = sourcesStore[id];
 	if (!source)
 		return info.Env().Undefined();
 
@@ -730,7 +730,7 @@ Napi::Value osn::ISource::GetEnabled(const Napi::CallbackInfo& info, uint32_t id
 
 void osn::ISource::SetEnabled(const Napi::CallbackInfo& info, const Napi::Value &value, uint32_t id)
 {
-	auto source = sources[id];
+	auto source = sourcesStore[id];
 	if (!source)
 		return;
 
@@ -742,7 +742,7 @@ void osn::ISource::SetEnabled(const Napi::CallbackInfo& info, const Napi::Value 
 
 void osn::ISource::SendMouseClick(const Napi::CallbackInfo& info, uint32_t id)
 {
-	auto source = sources[id];
+	auto source = sourcesStore[id];
 	if (!source)
 		return;
 
@@ -768,7 +768,7 @@ void osn::ISource::SendMouseClick(const Napi::CallbackInfo& info, uint32_t id)
 
 void osn::ISource::SendMouseMove(const Napi::CallbackInfo& info, uint32_t id)
 {
-	auto source = sources[id];
+	auto source = sourcesStore[id];
 	if (!source)
 		return;
 
@@ -790,7 +790,7 @@ void osn::ISource::SendMouseMove(const Napi::CallbackInfo& info, uint32_t id)
 
 void osn::ISource::SendMouseWheel(const Napi::CallbackInfo& info, uint32_t id)
 {
-	auto source = sources[id];
+	auto source = sourcesStore[id];
 	if (!source)
 		return;
 
@@ -814,7 +814,7 @@ void osn::ISource::SendMouseWheel(const Napi::CallbackInfo& info, uint32_t id)
 
 void osn::ISource::SendFocus(const Napi::CallbackInfo& info, uint32_t id)
 {
-	auto source = sources[id];
+	auto source = sourcesStore[id];
 	if (!source)
 		return;
 
@@ -825,7 +825,7 @@ void osn::ISource::SendFocus(const Napi::CallbackInfo& info, uint32_t id)
 
 void osn::ISource::SendKeyClick(const Napi::CallbackInfo& info, uint32_t id)
 {
-	auto source = sources[id];
+	auto source = sourcesStore[id];
 	if (!source)
 		return;
 

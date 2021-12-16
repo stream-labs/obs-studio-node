@@ -991,7 +991,7 @@ inline void getAdvancedOutputStreamingSettings(
 	std::string encoderCurrentValue = getSafeOBSstr(config_get_string(config, "AdvOut", "Encoder"));
 #ifdef __APPLE__
 	encoderCurrentValue = translate_macvth264_encoder(encoderCurrentValue);
-	config_set_string(config, "AdvOut", "Encoder", encoderCurrentValue);
+	config_set_string(config, "AdvOut", "Encoder", encoderCurrentValue.c_str());
 #endif
 	streamingObjects.Set(indexStreaming++, buildJSObject(
 		"Encoder", "OBS_PROPERTY_LIST",

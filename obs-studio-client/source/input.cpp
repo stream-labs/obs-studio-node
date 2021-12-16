@@ -109,7 +109,7 @@ osn::Input::Input(const Napi::CallbackInfo& info)
 	auto externalItem = info[0].As<Napi::External<obs_source_t*>>();
 	auto source = *externalItem.Data();
 	this->id = idSourcesCount++;
-	sources.insert_or_assign(this->id, source);
+	sourcesStore.insert_or_assign(this->id, source);
 }
 
 Napi::Value osn::Input::Types(const Napi::CallbackInfo& info)
@@ -210,7 +210,7 @@ Napi::Value osn::Input::GetPublicSources(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Input::Duplicate(const Napi::CallbackInfo& info)
 {
-	auto source = sources[this->id];
+	auto source = sourcesStore[this->id];
 	if (!source)
 		return info.Env().Undefined();
 
@@ -224,7 +224,7 @@ Napi::Value osn::Input::Duplicate(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Input::Active(const Napi::CallbackInfo& info)
 {
-	auto source = sources[this->id];
+	auto source = sourcesStore[this->id];
 	if (!source)
 		return info.Env().Undefined();
 
@@ -233,7 +233,7 @@ Napi::Value osn::Input::Active(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Input::Showing(const Napi::CallbackInfo& info)
 {
-	auto source = sources[this->id];
+	auto source = sourcesStore[this->id];
 	if (!source)
 		return info.Env().Undefined();
 
@@ -242,7 +242,7 @@ Napi::Value osn::Input::Showing(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Input::Width(const Napi::CallbackInfo& info)
 {
-	auto source = sources[this->id];
+	auto source = sourcesStore[this->id];
 	if (!source)
 		return info.Env().Undefined();
 
@@ -251,7 +251,7 @@ Napi::Value osn::Input::Width(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Input::Height(const Napi::CallbackInfo& info)
 {
-	auto source = sources[this->id];
+	auto source = sourcesStore[this->id];
 	if (!source)
 		return info.Env().Undefined();
 
@@ -260,7 +260,7 @@ Napi::Value osn::Input::Height(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Input::GetVolume(const Napi::CallbackInfo& info)
 {
-	auto source = sources[this->id];
+	auto source = sourcesStore[this->id];
 	if (!source)
 		info.Env().Undefined();
 
@@ -269,7 +269,7 @@ Napi::Value osn::Input::GetVolume(const Napi::CallbackInfo& info)
 
 void osn::Input::SetVolume(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
-	auto source = sources[this->id];
+	auto source = sourcesStore[this->id];
 	if (!source)
 		return;
 
@@ -278,7 +278,7 @@ void osn::Input::SetVolume(const Napi::CallbackInfo& info, const Napi::Value &va
 
 Napi::Value osn::Input::GetSyncOffset(const Napi::CallbackInfo& info)
 {
-	auto source = sources[this->id];
+	auto source = sourcesStore[this->id];
 	if (!source)
 		return info.Env().Undefined();
 
@@ -292,7 +292,7 @@ Napi::Value osn::Input::GetSyncOffset(const Napi::CallbackInfo& info)
 
 void osn::Input::SetSyncOffset(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
-	auto source = sources[this->id];
+	auto source = sourcesStore[this->id];
 	if (!source)
 		return;
 
@@ -307,7 +307,7 @@ void osn::Input::SetSyncOffset(const Napi::CallbackInfo& info, const Napi::Value
 
 Napi::Value osn::Input::GetAudioMixers(const Napi::CallbackInfo& info)
 {
-	auto source = sources[this->id];
+	auto source = sourcesStore[this->id];
 	if (!source)
 		return info.Env().Undefined();
 
@@ -318,7 +318,7 @@ Napi::Value osn::Input::GetAudioMixers(const Napi::CallbackInfo& info)
 
 void osn::Input::SetAudioMixers(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
-	auto source = sources[this->id];
+	auto source = sourcesStore[this->id];
 	if (!source)
 		return;
 
@@ -329,7 +329,7 @@ void osn::Input::SetAudioMixers(const Napi::CallbackInfo& info, const Napi::Valu
 
 Napi::Value osn::Input::GetMonitoringType(const Napi::CallbackInfo& info)
 {
-	auto source = sources[this->id];
+	auto source = sourcesStore[this->id];
 	if (!source)
 		return info.Env().Undefined();
 
@@ -338,7 +338,7 @@ Napi::Value osn::Input::GetMonitoringType(const Napi::CallbackInfo& info)
 
 void osn::Input::SetMonitoringType(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
-	auto source = sources[this->id];
+	auto source = sourcesStore[this->id];
 	if (!source)
 		return;
 
@@ -349,7 +349,7 @@ void osn::Input::SetMonitoringType(const Napi::CallbackInfo& info, const Napi::V
 
 Napi::Value osn::Input::GetDeinterlaceFieldOrder(const Napi::CallbackInfo& info)
 {
-	auto source = sources[this->id];
+	auto source = sourcesStore[this->id];
 	if (!source)
 		return info.Env().Undefined();
 
@@ -358,7 +358,7 @@ Napi::Value osn::Input::GetDeinterlaceFieldOrder(const Napi::CallbackInfo& info)
 
 void osn::Input::SetDeinterlaceFieldOrder(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
-	auto source = sources[this->id];
+	auto source = sourcesStore[this->id];
 	if (!source)
 		return;
 
@@ -369,7 +369,7 @@ void osn::Input::SetDeinterlaceFieldOrder(const Napi::CallbackInfo& info, const 
 
 Napi::Value osn::Input::GetDeinterlaceMode(const Napi::CallbackInfo& info)
 {
-	auto source = sources[this->id];
+	auto source = sourcesStore[this->id];
 	if (!source)
 		return info.Env().Undefined();
 
@@ -378,7 +378,7 @@ Napi::Value osn::Input::GetDeinterlaceMode(const Napi::CallbackInfo& info)
 
 void osn::Input::SetDeinterlaceMode(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
-	auto source = sources[this->id];
+	auto source = sourcesStore[this->id];
 	if (!source)
 		return;
 
@@ -389,7 +389,7 @@ void osn::Input::SetDeinterlaceMode(const Napi::CallbackInfo& info, const Napi::
 
 Napi::Value osn::Input::Filters(const Napi::CallbackInfo& info)
 {
-	auto source = sources[this->id];
+	auto source = sourcesStore[this->id];
 	if (!source)
 		return info.Env().Undefined();
 
@@ -410,12 +410,12 @@ Napi::Value osn::Input::Filters(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Input::AddFilter(const Napi::CallbackInfo& info)
 {
-	auto input = sources[this->id];
+	auto input = sourcesStore[this->id];
 	if (!input)
 		return info.Env().Undefined();
 
 	osn::Filter* objfilter = Napi::ObjectWrap<osn::Filter>::Unwrap(info[0].ToObject());
-	auto filter = sources[objfilter->id];
+	auto filter = sourcesStore[objfilter->id];
 	if (!filter)
 		return info.Env().Undefined();
 
@@ -426,12 +426,12 @@ Napi::Value osn::Input::AddFilter(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Input::RemoveFilter(const Napi::CallbackInfo& info)
 {
-	auto input = sources[this->id];
+	auto input = sourcesStore[this->id];
 	if (!input)
 		return info.Env().Undefined();
 
 	osn::Filter* objfilter = Napi::ObjectWrap<osn::Filter>::Unwrap(info[0].ToObject());
-	auto filter = sources[objfilter->id];
+	auto filter = sourcesStore[objfilter->id];
 	if (!filter)
 		return info.Env().Undefined();
 
@@ -442,12 +442,12 @@ Napi::Value osn::Input::RemoveFilter(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Input::SetFilterOrder(const Napi::CallbackInfo& info)
 {
-	auto input = sources[this->id];
+	auto input = sourcesStore[this->id];
 	if (!input)
 		return info.Env().Undefined();
 
 	osn::Filter* objfilter = Napi::ObjectWrap<osn::Filter>::Unwrap(info[0].ToObject());
-	auto filter = sources[objfilter->id];
+	auto filter = sourcesStore[objfilter->id];
 	if (!filter)
 		return info.Env().Undefined();
 
@@ -460,7 +460,7 @@ Napi::Value osn::Input::SetFilterOrder(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Input::FindFilter(const Napi::CallbackInfo& info)
 {
-	auto source = sources[this->id];
+	auto source = sourcesStore[this->id];
 	if (!source)
 		return info.Env().Undefined();
 
@@ -481,12 +481,12 @@ Napi::Value osn::Input::FindFilter(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Input::CopyFilters(const Napi::CallbackInfo& info)
 {
-	auto from = sources[this->id];
+	auto from = sourcesStore[this->id];
 	if (!from)
 		info.Env().Undefined();
 
 	osn::Input* objfilter = Napi::ObjectWrap<osn::Input>::Unwrap(info[0].ToObject());
-	auto to = sources[objfilter->id];
+	auto to = sourcesStore[objfilter->id];
 	if (!to)
 		info.Env().Undefined();
 
@@ -649,7 +649,7 @@ Napi::Value osn::Input::CallSendKeyClick(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Input::GetDuration(const Napi::CallbackInfo& info)
 {
-	auto source = sources[this->id];
+	auto source = sourcesStore[this->id];
 	if (!source)
 		return info.Env().Undefined();
 
@@ -658,7 +658,7 @@ Napi::Value osn::Input::GetDuration(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Input::GetTime(const Napi::CallbackInfo& info)
 {
-	auto source = sources[this->id];
+	auto source = sourcesStore[this->id];
 	if (!source)
 		return info.Env().Undefined();
 
@@ -667,7 +667,7 @@ Napi::Value osn::Input::GetTime(const Napi::CallbackInfo& info)
 
 void osn::Input::SetTime(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
-	auto source = sources[this->id];
+	auto source = sourcesStore[this->id];
 	if (!source)
 		return;
 
@@ -678,7 +678,7 @@ void osn::Input::SetTime(const Napi::CallbackInfo& info, const Napi::Value &valu
 
 void osn::Input::Play(const Napi::CallbackInfo& info)
 {
-	auto source = sources[this->id];
+	auto source = sourcesStore[this->id];
 	if (!source)
 		return;
 
@@ -687,7 +687,7 @@ void osn::Input::Play(const Napi::CallbackInfo& info)
 
 void osn::Input::Pause(const Napi::CallbackInfo& info)
 {
-	auto source = sources[this->id];
+	auto source = sourcesStore[this->id];
 	if (!source)
 		return;
 
@@ -696,7 +696,7 @@ void osn::Input::Pause(const Napi::CallbackInfo& info)
 
 void osn::Input::Restart(const Napi::CallbackInfo& info)
 {
-	auto source = sources[this->id];
+	auto source = sourcesStore[this->id];
 	if (!source)
 		return;
 
@@ -705,7 +705,7 @@ void osn::Input::Restart(const Napi::CallbackInfo& info)
 
 void osn::Input::Stop(const Napi::CallbackInfo& info)
 {
-	auto source = sources[this->id];
+	auto source = sourcesStore[this->id];
 	if (!source)
 		return;
 
@@ -714,7 +714,7 @@ void osn::Input::Stop(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Input::GetMediaState(const Napi::CallbackInfo& info)
 {
-	auto source = sources[this->id];
+	auto source = sourcesStore[this->id];
 	if (!source)
 		return info.Env().Undefined();
 

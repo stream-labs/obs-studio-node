@@ -128,7 +128,7 @@ Napi::Value osn::Fader::Destroy(const Napi::CallbackInfo& info)
 Napi::Value osn::Fader::Attach(const Napi::CallbackInfo& info)
 {
     osn::Input* input = Napi::ObjectWrap<osn::Input>::Unwrap(info[0].ToObject());
-	auto source = sources[input->id];
+	auto source = sourcesStore[input->id];
 	if (!source)
 		return info.Env().Undefined();
 

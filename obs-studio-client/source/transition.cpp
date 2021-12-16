@@ -85,7 +85,7 @@ osn::Transition::Transition(const Napi::CallbackInfo& info)
 	auto externalItem = info[0].As<Napi::External<obs_source_t*>>();
 	auto source = *externalItem.Data();
 	this->id = idSourcesCount++;
-	sources.insert_or_assign(this->id, source);
+	sourcesStore.insert_or_assign(this->id, source);
 }
 
 Napi::Value osn::Transition::Types(const Napi::CallbackInfo& info)
@@ -167,7 +167,7 @@ Napi::Value osn::Transition::FromName(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Transition::GetActiveSource(const Napi::CallbackInfo& info)
 {
-	auto source = sources[this->id];
+	auto source = sourcesStore[this->id];
 	if (!source)
 		return info.Env().Undefined();
 
@@ -198,7 +198,7 @@ Napi::Value osn::Transition::GetActiveSource(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Transition::Clear(const Napi::CallbackInfo& info)
 {
-	auto source = sources[this->id];
+	auto source = sourcesStore[this->id];
 	if (!source)
 		return info.Env().Undefined();
 
@@ -209,12 +209,12 @@ Napi::Value osn::Transition::Clear(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Transition::Set(const Napi::CallbackInfo& info)
 {
-	auto transition = sources[this->id];
+	auto transition = sourcesStore[this->id];
 	if (!transition)
 		return info.Env().Undefined();
 
 	osn::Scene* scene = Napi::ObjectWrap<osn::Scene>::Unwrap(info[0].ToObject());
-	auto source = sources[scene->id];
+	auto source = sourcesStore[scene->id];
 	if (!source)
 		return info.Env().Undefined();
 
@@ -225,13 +225,13 @@ Napi::Value osn::Transition::Set(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Transition::Start(const Napi::CallbackInfo& info)
 {
-	auto transition = sources[this->id];
+	auto transition = sourcesStore[this->id];
 	if (!transition)
 		return info.Env().Undefined();
 
 	uint32_t ms = info[0].ToNumber().Uint32Value();
 	osn::Scene* scene = Napi::ObjectWrap<osn::Scene>::Unwrap(info[1].ToObject());
-	auto source = sources[scene->id];
+	auto source = sourcesStore[scene->id];
 	if (!source)
 		return info.Env().Undefined();
 

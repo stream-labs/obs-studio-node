@@ -29,7 +29,7 @@
 #include "util/lexer.h"
 #include "util-crashmanager.h"
 #include "util-metricsprovider.h"
-#include "../obs-studio-client/source/shared.hpp"
+#include "../shared.hpp"
 
 #include <sys/types.h>
 

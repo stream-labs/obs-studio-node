@@ -151,7 +151,7 @@ void obs::Volmeter::RemoveCallback(uint64_t uid, obs_volmeter_updated_t callback
 
 	meter->m_jsThread = nullptr;
 	meter->callback_count--;
-	meter->cbReady = false;
+	*meter->cbReady = false;
 	if (meter->callback_count == 0) {
 		obs_volmeter_remove_callback(meter->self, callback, meter.get());
 		delete meter->id2;

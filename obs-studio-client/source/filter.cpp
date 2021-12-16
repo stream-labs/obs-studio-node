@@ -77,7 +77,7 @@ osn::Filter::Filter(const Napi::CallbackInfo& info)
 	auto externalItem = info[0].As<Napi::External<obs_source_t*>>();
 	auto source = *externalItem.Data();
 	this->id = idSourcesCount++;
-	sources.insert_or_assign(this->id, source);
+	sourcesStore.insert_or_assign(this->id, source);
 }
 
 Napi::Value osn::Filter::Types(const Napi::CallbackInfo& info)

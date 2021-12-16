@@ -26,7 +26,7 @@
 #include "nlohmann/json.hpp"
 #include <map>
 
-extern std::map<uint32_t, obs_source_t*> sources;
+extern std::map<uint32_t, obs_source_t*> sourcesStore;
 extern uint32_t idSourcesCount;
 
 namespace osn
