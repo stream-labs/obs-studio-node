@@ -109,7 +109,7 @@ class OBS_API
 	static double getAverageTimeToRenderFrame();
 	static std::string getDiskSpaceAvailable();
 	static double getMemoryUsage();
-	static OBS_API::OutputStats getCurrentOutputStats(std::string type);
+	static void getCurrentOutputStats(std::string type, OBS_API::OutputStats &outputStats);
 
 	protected:
 	static void initAPI(void);

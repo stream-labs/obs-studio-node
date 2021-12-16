@@ -101,8 +101,6 @@ os_cpu_usage_info_t* cpuUsageInfo      = nullptr;
 std::string                                            slobs_plugin;
 std::vector<std::pair<std::string, obs_module_t*>>     obsModules;
 OBS_API::LogReport                                     logReport;
-OBS_API::OutputStats                                   streamingOutputStats;
-OBS_API::OutputStats                                   recordingOutputStats;
 std::mutex                                             logMutex;
 std::string                                            currentVersion;
 std::string                                            username("unknown");
@@ -1631,23 +1629,21 @@ double OBS_API::getDroppedFramesPercentage(void)
 	return percent;
 }
 
-OBS_API::OutputStats OBS_API::getCurrentOutputStats(std::string type) // obs_output_t* output, OBS_API::OutputStats &outputStats)
+void OBS_API::getCurrentOutputStats(std::string type, OBS_API::OutputStats &outputStats)
 {
-	OBS_API::OutputStats outputStats = {0};
 	outputStats.kbitsPerSec = 0.0;
 	outputStats.dataOutput  = 0.0;
 	obs_output_t* output = nullptr;
 
-	if (type.compare("stream") == 0) {
+	if (type.compare("stream") == 0)
 		output = OBS_service::getStreamingOutput();
-	} else if (type.compare("recording")) {
+	else if (type.compare("recording"))
 		output = OBS_service::getRecordingOutput();
-	} else {
-		return outputStats;
-	}
+	else
+		return;
 
 	if (!output)
-		return outputStats;
+		return;
 
 	if (obs_output_active(output)) {
 		uint64_t bytesSent = obs_output_get_total_bytes(output);
@@ -1672,8 +1668,6 @@ OBS_API::OutputStats OBS_API::getCurrentOutputStats(std::string type) // obs_out
 		outputStats.lastBytesSentTime = bytesSentTime;
 		outputStats.dataOutput = bytesSent / (1024.0 * 1024.0);
 	}
-
-	return outputStats;
 }
 
 double OBS_API::getCurrentFrameRate(void)

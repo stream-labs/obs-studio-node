@@ -27,6 +27,8 @@
 #include "server/nodeobs_api-server.h"
 
 Napi::ThreadSafeFunction js_thread;
+OBS_API::OutputStats streamingOutputStats;
+OBS_API::OutputStats recordingOutputStats;
 
 Napi::Value api::OBS_API_initAPI(const Napi::CallbackInfo& info)
 {
@@ -79,21 +81,21 @@ Napi::Value api::OBS_API_getPerformanceStatistics(const Napi::CallbackInfo& info
 		Napi::String::New(info.Env(), "percentageDroppedFrames"),
 		Napi::Number::New(info.Env(), OBS_API::getDroppedFramesPercentage()));
 	
-	OBS_API::OutputStats streamStats = OBS_API::getCurrentOutputStats("stream");
+	OBS_API::getCurrentOutputStats("stream", streamingOutputStats);
 	statistics.Set(
 		Napi::String::New(info.Env(), "streamingBandwidth"),
-		Napi::Number::New(info.Env(), streamStats.kbitsPerSec));
+		Napi::Number::New(info.Env(), streamingOutputStats.kbitsPerSec));
 	statistics.Set(
 		Napi::String::New(info.Env(), "streamingDataOutput"),
-		Napi::Number::New(info.Env(), streamStats.dataOutput));
+		Napi::Number::New(info.Env(), streamingOutputStats.dataOutput));
 
-	OBS_API::OutputStats recordingStats = OBS_API::getCurrentOutputStats("recording");
+	OBS_API::getCurrentOutputStats("recording", recordingOutputStats);
 	statistics.Set(
 		Napi::String::New(info.Env(), "recordingBandwidth"),
-		Napi::Number::New(info.Env(), recordingStats.kbitsPerSec));
+		Napi::Number::New(info.Env(), recordingOutputStats.kbitsPerSec));
 	statistics.Set(
 		Napi::String::New(info.Env(), "recordingDataOutput"),
-		Napi::Number::New(info.Env(), recordingStats.dataOutput));
+		Napi::Number::New(info.Env(), recordingOutputStats.dataOutput));
 
 	statistics.Set(
 		Napi::String::New(info.Env(), "frameRate"),
