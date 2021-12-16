@@ -38,7 +38,7 @@ enum CategoryTypes : uint32_t
 
 typedef std::pair<std::string, data::value> settings_value;
 
-Napi::Array* currentAudioSettings = nullptr;
+Napi::Reference<Napi::Array> currentAudioSettings;
 
 inline Napi::Object buildJSObject(
 	const std::string& name, const std::string& type,
@@ -1371,10 +1371,11 @@ void saveGenericSettings(const Napi::Array& settings, std::string section, confi
 
 void UpdateAudioSettings(const bool& saveOnlyIfLimitApplied, Napi::Env env)
 {
-	if (!currentAudioSettings) return;
+	auto array = currentAudioSettings.Value();
+	if (!array) return;
 
 	// Do nothing if there is no info
-	if (!currentAudioSettings->IsArray() || currentAudioSettings->Length() == 0)
+	if (!array.IsArray() || array.Length() == 0)
 		return;
 
 	auto currentChannelSetup =
@@ -1382,8 +1383,8 @@ void UpdateAudioSettings(const bool& saveOnlyIfLimitApplied, Napi::Env env)
 	bool isSurround = IsSurround(currentChannelSetup.c_str());
 	bool limitApplied = false;
 
-	for (int i = 0; i < currentAudioSettings->Length(); i++) {
-		Napi::Object audioObject = currentAudioSettings->Get(i).ToObject();
+	for (int i = 0; i < array.Length(); i++) {
+		Napi::Object audioObject = array.Get(i).ToObject();
 		Napi::Array parametersAudio = audioObject.Get("parameters").As<Napi::Array>();
 		auto nameCateogry = audioObject.Get("nameSubCategory").As<Napi::String>().ToString().Utf8Value();
 		Napi::Object parameterAudioObject = parametersAudio.Get((uint32_t)0).ToObject();
@@ -1408,7 +1409,7 @@ void UpdateAudioSettings(const bool& saveOnlyIfLimitApplied, Napi::Env env)
 	}
 
 	if ((!saveOnlyIfLimitApplied || (saveOnlyIfLimitApplied && limitApplied))) {
-		saveGenericSettings(*currentAudioSettings, "AdvOut", ConfigManager::getInstance().getBasic());
+		saveGenericSettings(array, "AdvOut", ConfigManager::getInstance().getBasic());
 	}
 }
 
@@ -1460,7 +1461,7 @@ void getAdvancedOutputAudioSettings(
 		subCategories.Set(indexSubCategories++, audio);
 		audioObjectsArray.Set(i, audio);
 	}
-	currentAudioSettings = new Napi::Array(env, audioObjectsArray);
+	currentAudioSettings = Napi::Reference<Napi::Array>::New(audioObjectsArray);
 }
 
 void getAdvancedOutputSettings(
@@ -2485,7 +2486,7 @@ void saveAdvancedOutputSettings(const Napi::Array& settings, Napi::Env env)
 		}
 
 		// Update the current audio settings, limiting them if necessary
-		currentAudioSettings = new Napi::Array(env, audioSettings);
+		currentAudioSettings = Napi::Reference<Napi::Array>::New(audioSettings);
 		UpdateAudioSettings(false, env);
 	}
 
