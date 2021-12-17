@@ -87,7 +87,8 @@ Napi::Object osn::Input::Init(Napi::Env env, Napi::Object exports) {
 			InstanceMethod("pause", &osn::Input::Pause),
 			InstanceMethod("restart", &osn::Input::Restart),
 			InstanceMethod("stop", &osn::Input::Stop),
-			InstanceMethod("getMediaState", &osn::Input::GetMediaState)
+			InstanceMethod("getMediaState", &osn::Input::GetMediaState),
+			InstanceMethod("buttonClicked", &osn::Input::CallButtonClicked)
 		});
 	exports.Set("Input", func);
 	osn::Input::constructor = Napi::Persistent(func);
@@ -645,6 +646,11 @@ Napi::Value osn::Input::CallSendKeyClick(const Napi::CallbackInfo& info)
 	osn::ISource::SendKeyClick(info, this->id);
 
 	return info.Env().Undefined();
+}
+
+void osn::Input::CallButtonClicked(const Napi::CallbackInfo& info)
+{
+	osn::ISource::ButtonClicked(info, this->id);
 }
 
 Napi::Value osn::Input::GetDuration(const Napi::CallbackInfo& info)

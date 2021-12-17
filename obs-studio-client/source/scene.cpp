@@ -70,6 +70,7 @@ Napi::Object osn::Scene::Init(Napi::Env env, Napi::Object exports) {
 			InstanceMethod("sendMouseWheel", &osn::Scene::CallSendMouseWheel),
 			InstanceMethod("sendFocus", &osn::Scene::CallSendFocus),
 			InstanceMethod("sendKeyClick", &osn::Scene::CallSendKeyClick),
+			InstanceMethod("buttonClicked", &osn::Scene::CallButtonClicked)
 		});
 	exports.Set("Scene", func);
 	osn::Scene::constructor = Napi::Persistent(func);
@@ -529,4 +530,9 @@ Napi::Value osn::Scene::CallSendKeyClick(const Napi::CallbackInfo& info)
 	osn::ISource::SendKeyClick(info, this->id);
 
 	return info.Env().Undefined();
+}
+
+void osn::Scene::CallButtonClicked(const Napi::CallbackInfo& info)
+{
+	osn::ISource::ButtonClicked(info, this->id);
 }

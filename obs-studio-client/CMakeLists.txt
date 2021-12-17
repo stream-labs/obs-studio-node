@@ -265,8 +265,6 @@ SET(osn-client_SOURCES
 	"source/server/osn-module.hpp"
 	"source/server/osn-output.cpp"
 	"source/server/osn-output.hpp"
-	"source/server/osn-properties.cpp"
-	"source/server/osn-properties.hpp"
 	"source/server/osn-scene.cpp"
 	"source/server/osn-scene.hpp"
 	"source/server/osn-sceneitem.cpp"

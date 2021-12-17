@@ -64,6 +64,7 @@ Napi::Object osn::Transition::Init(Napi::Env env, Napi::Object exports) {
 			InstanceMethod("sendMouseWheel", &osn::Transition::CallSendMouseWheel),
 			InstanceMethod("sendFocus", &osn::Transition::CallSendFocus),
 			InstanceMethod("sendKeyClick", &osn::Transition::CallSendKeyClick),
+			InstanceMethod("buttonClicked", &osn::Transition::CallButtonClicked)
 		});
 	exports.Set("Transition", func);
 	osn::Transition::constructor = Napi::Persistent(func);
@@ -388,4 +389,9 @@ Napi::Value osn::Transition::CallSendKeyClick(const Napi::CallbackInfo& info)
 	osn::ISource::SendKeyClick(info, this->id);
 
 	return info.Env().Undefined();
+}
+
+void osn::Transition::CallButtonClicked(const Napi::CallbackInfo& info)
+{
+	osn::ISource::ButtonClicked(info, this->id);
 }

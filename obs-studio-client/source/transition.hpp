@@ -73,5 +73,7 @@ namespace osn
 		Napi::Value CallSendMouseWheel(const Napi::CallbackInfo& info);
 		Napi::Value CallSendFocus(const Napi::CallbackInfo& info);
 		Napi::Value CallSendKeyClick(const Napi::CallbackInfo& info);
+
+		void CallButtonClicked(const Napi::CallbackInfo& info);
 	};
 }

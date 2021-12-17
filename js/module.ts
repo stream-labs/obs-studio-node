@@ -1246,7 +1246,7 @@ export interface ISource extends IConfigurable, IReleasable {
      * as it allows the source to know it needs to update 
      * its settings.
      */
-     save(): void;
+    save(): void;
 
     /**
      * The validity of the source
@@ -1292,6 +1292,12 @@ export interface ISource extends IConfigurable, IReleasable {
      * Easy way to disable a filter.
      */
     enabled: boolean;
+
+    /**
+     * Click action on a button for a given
+     * source property name.
+     */
+    buttonClicked(propertyName: string): void;
 }
 
 export interface IFaderFactory {
