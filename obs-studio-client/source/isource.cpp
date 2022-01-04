@@ -248,23 +248,7 @@ Napi::Value osn::ISource::GetProperties(const Napi::CallbackInfo& info, uint32_t
 			propertyObject.Set("items", itemsobj);
 			break;
 		}
-		case OBS_PROPERTY_COLOR_ALPHA: {
-			propertyObject.Set("type", Napi::String::New(info.Env(), "OBS_PROPERTY_COLOR_ALPHA"));
-			propertyObject.Set("value",
-				Napi::Number::New(info.Env(), obs_data_get_int(settings, name.c_str())));
-			switch (obs_property_float_type(p))
-			{
-			case OBS_NUMBER_SCROLLER: {
-				propertyObject.Set("fieldType", Napi::String::New(info.Env(), "OBS_NUMBER_SCROLLER"));
-				break;
-			}
-			case OBS_NUMBER_SLIDER: {
-				propertyObject.Set("fieldType", Napi::String::New(info.Env(), "OBS_NUMBER_SLIDER"));
-				break;
-			}
-			}
-			break;
-		}
+		case OBS_PROPERTY_COLOR_ALPHA:
 		case OBS_PROPERTY_COLOR: {
 			propertyObject.Set("type", Napi::String::New(info.Env(), "OBS_PROPERTY_COLOR"));
 			propertyObject.Set("value",
