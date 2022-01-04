@@ -274,17 +274,17 @@ nlohmann::json RequestProcessList()
 //////////////////
 std::wstring util::CrashManager::GetMemoryDumpEventName_Start()
 {
-	return L"Global\\SLOBSMEMORYDUMPEVENT";
+	return L"Global\\SLOBSMEMORYDUMPEVENT" + std::to_wstring(GetCurrentProcessId());
 }
 
 std::wstring util::CrashManager::GetMemoryDumpEventName_Fail()
 {
-	return L"Global\\SLOBSMEMORYDUMPEVENTFAIL";
+	return L"Global\\SLOBSMEMORYDUMPEVENTFAIL" + std::to_wstring(GetCurrentProcessId());
 }
 
 std::wstring util::CrashManager::GetMemoryDumpEventName_Success()
 {
-	return L"Global\\SLOBSMEMORYDUMPEVENTSUCCESS";
+	return L"Global\\SLOBSMEMORYDUMPEVENTSUCCESS" + std::to_wstring(GetCurrentProcessId());
 }
 
 #ifdef WIN32
