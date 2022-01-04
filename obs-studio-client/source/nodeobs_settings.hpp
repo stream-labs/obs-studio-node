@@ -18,6 +18,8 @@
 
 #include <napi.h>
 
+extern Napi::Reference<Napi::Array> currentAudioSettings;
+
 namespace settings
 {
 	struct DeviceInfo

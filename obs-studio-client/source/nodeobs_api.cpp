@@ -23,6 +23,7 @@
 #include "utility.hpp"
 #include "volmeter.hpp"
 #include "callback-manager.hpp"
+#include "nodeobs_settings.hpp"
 
 #include "server/nodeobs_api-server.h"
 
@@ -63,6 +64,9 @@ Napi::Value api::OBS_API_destroyOBS_API(const Napi::CallbackInfo& info)
 	if (js_thread)
 		js_thread.Release();
 #endif
+
+	if (!currentAudioSettings.IsEmpty())
+		currentAudioSettings.Reset();
 
 	return info.Env().Undefined();
 }
