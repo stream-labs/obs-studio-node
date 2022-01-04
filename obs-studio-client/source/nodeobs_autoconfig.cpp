@@ -52,7 +52,7 @@ void JSCallback(AutoConfigInfo* data, void* jsThread)
 
 	Napi::ThreadSafeFunction& l_jsThread =
 		*reinterpret_cast<Napi::ThreadSafeFunction*>(jsThread);
-	l_jsThread.NonBlockingCall(data, sources_callback);
+	l_jsThread.BlockingCall(data, sources_callback);
 }
 
 Napi::Value autoConfig::InitializeAutoConfig(const Napi::CallbackInfo& info)

@@ -168,7 +168,7 @@ void OBSCallback(
 	Napi::ThreadSafeFunction& jsThread =
 		*reinterpret_cast<Napi::ThreadSafeFunction*>(meter->m_jsThread);
 	if (jsThread != NULL)
-		jsThread.NonBlockingCall(data, volmeter_callback);
+		jsThread.BlockingCall(data, volmeter_callback);
 }
 
 Napi::Value osn::Volmeter::AddCallback(const Napi::CallbackInfo& info)

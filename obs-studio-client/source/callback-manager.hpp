@@ -21,13 +21,15 @@
 #include <thread>
 #include <map>
 #include "utility-v8.hpp"
+#include "obs.h"
 
 struct SourceSizeInfo
 {
 	std::string name;
-	uint32_t    width;
-	uint32_t    height;
-	uint32_t    flags;
+	obs_source_t* source;
+	uint32_t width;
+	uint32_t height;
+	uint32_t flags;
 };
 
 struct SourceSizeInfoData
@@ -51,11 +53,10 @@ namespace globalCallback
 	void start_worker(napi_env env, Napi::Function async_callback);
 	void stop_worker(void);
 
-	void add_volmeter(napi_env env, uint64_t id, Napi::Function cb);
-	void remove_volmeter(uint64_t id);
-
 	void Init(Napi::Env env, Napi::Object exports);
 
 	Napi::Value RegisterGlobalCallback(const Napi::CallbackInfo& info);
 	Napi::Value RemoveGlobalCallback(const Napi::CallbackInfo& info);
+	void addSource(obs_source_t* source);
+	void removeSource(obs_source_t* source);
 }

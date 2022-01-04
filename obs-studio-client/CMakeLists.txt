@@ -244,7 +244,6 @@ SET(osn-client_SOURCES
 	"source/callback-manager.hpp"
 
 	###### obs-studio-server ######
-	# "source/server/main.cpp"
 	"source/server/shared-server.cpp"
 	"source/server/shared-server.hpp"
 	"source/server/utility-server.cpp"
@@ -281,39 +280,35 @@ SET(osn-client_SOURCES
 	"source/server/osn-volmeter.hpp"
 
 	###### utlity graphics ######
-	"source/server//gs-limits.h"
-	"source/server//gs-vertex.h"
-	"source/server//gs-vertex.cpp"
-	"source/server//gs-vertexbuffer.h"
-	"source/server//gs-vertexbuffer.cpp"
+	"source/server/gs-limits.h"
+	"source/server/gs-vertex.h"
+	"source/server/gs-vertex.cpp"
+	"source/server/gs-vertexbuffer.h"
+	"source/server/gs-vertexbuffer.cpp"
 
 	###### node-obs ######
-	"source/server//nodeobs_api-server.cpp"
-	"source/server//nodeobs_api-server.h"
-	"source/server//nodeobs_audio_encoders.cpp"
-	"source/server//nodeobs_audio_encoders.h"
-	"source/server//nodeobs_autoconfig-server.cpp"
-	"source/server//nodeobs_autoconfig-server.h"
-	"source/server//nodeobs_configManager.cpp"
-	"source/server//nodeobs_configManager.hpp"
-	"source/server//nodeobs_display-server.cpp"
-	"source/server//nodeobs_display-server.h"
-	"source/server//nodeobs_content.h"
-	"source/server//nodeobs_common.cpp"
-	"source/server//nodeobs_service-server.cpp"
-	"source/server//nodeobs_service-server.h"
-	"source/server//util-memory.cpp"
-	"source/server//util-memory.h"
+	"source/server/nodeobs_api-server.cpp"
+	"source/server/nodeobs_api-server.h"
+	"source/server/nodeobs_audio_encoders.cpp"
+	"source/server/nodeobs_audio_encoders.h"
+	"source/server/nodeobs_autoconfig-server.cpp"
+	"source/server/nodeobs_autoconfig-server.h"
+	"source/server/nodeobs_configManager.cpp"
+	"source/server/nodeobs_configManager.hpp"
+	"source/server/nodeobs_display-server.cpp"
+	"source/server/nodeobs_display-server.h"
+	"source/server/nodeobs_content.h"
+	"source/server/nodeobs_common.cpp"
+	"source/server/nodeobs_service-server.cpp"
+	"source/server/nodeobs_service-server.h"
+	"source/server/util-memory.cpp"
+	"source/server/util-memory.h"
 
 	###### crash-manager ######
-	"source/server//util-crashmanager.cpp"
-	"source/server//util-crashmanager.h"
-	"source/server//util-metricsprovider.cpp"
-	"source/server//util-metricsprovider.h"
-	
-	###### callback-manager ######
-	"source/server//callback-manager.cpp"
-	"source/server//callback-manager.h"
+	"source/server/util-crashmanager.cpp"
+	"source/server/util-crashmanager.h"
+	"source/server/util-metricsprovider.cpp"
+	"source/server/util-metricsprovider.h"
 
 	###### memory-manager ######
 	"source/server//memory-manager.cpp"

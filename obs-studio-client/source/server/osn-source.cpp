@@ -23,86 +23,86 @@
 #include <obs.h>
 #include <obs.hpp>
 #include "shared-server.hpp"
-#include "callback-manager.h"
+#include "../callback-manager.hpp"
 #include "memory-manager.h"
 
 void obs::Source::initialize_global_signals()
 {
-	// signal_handler_t* sh = obs_get_signal_handler();
-	// signal_handler_connect(sh, "source_create", obs::Source::global_source_create_cb, nullptr);
-	// signal_handler_connect(sh, "source_activate", obs::Source::global_source_activate_cb, nullptr);
-	// signal_handler_connect(sh, "source_deactivate", obs::Source::global_source_deactivate_cb, nullptr);
+	signal_handler_t* sh = obs_get_signal_handler();
+	signal_handler_connect(sh, "source_create", obs::Source::global_source_create_cb, nullptr);
+	signal_handler_connect(sh, "source_activate", obs::Source::global_source_activate_cb, nullptr);
+	signal_handler_connect(sh, "source_deactivate", obs::Source::global_source_deactivate_cb, nullptr);
 }
 
 void obs::Source::finalize_global_signals()
 {
-	// signal_handler_t* sh = obs_get_signal_handler();
-	// signal_handler_disconnect(sh, "source_create", obs::Source::global_source_create_cb, nullptr);
+	signal_handler_t* sh = obs_get_signal_handler();
+	signal_handler_disconnect(sh, "source_create", obs::Source::global_source_create_cb, nullptr);
 }
 
 void obs::Source::attach_source_signals(obs_source_t* src)
 {
-	// signal_handler_t* sh = obs_source_get_signal_handler(src);
-	// if (!sh)
-	// 	return;
-	// signal_handler_connect(sh, "destroy", obs::Source::global_source_destroy_cb, nullptr);
+	signal_handler_t* sh = obs_source_get_signal_handler(src);
+	if (!sh)
+		return;
+	signal_handler_connect(sh, "destroy", obs::Source::global_source_destroy_cb, nullptr);
 }
 
 void obs::Source::detach_source_signals(obs_source_t* src)
 {
-	// signal_handler_t* sh = obs_source_get_signal_handler(src);
-	// if (!sh)
-	// 	return;
-	// signal_handler_disconnect(sh, "destroy", obs::Source::global_source_destroy_cb, nullptr);
+	signal_handler_t* sh = obs_source_get_signal_handler(src);
+	if (!sh)
+		return;
+	signal_handler_disconnect(sh, "destroy", obs::Source::global_source_destroy_cb, nullptr);
 }
 
 void obs::Source::global_source_create_cb(void* ptr, calldata_t* cd)
 {
-	// obs_source_t* source = nullptr;
-	// if (!calldata_get_ptr(cd, "source", &source)) {
-	// 	throw std::runtime_error("calldata did not contain source pointer");
-	// }
+	obs_source_t* source = nullptr;
+	if (!calldata_get_ptr(cd, "source", &source)) {
+		throw std::runtime_error("calldata did not contain source pointer");
+	}
 
-	// obs::Source::Manager::GetInstance().allocate(source);
-	// obs::Source::attach_source_signals(source);
-	// CallbackManager::addSource(source);
-	// MemoryManager::GetInstance().registerSource(source);
+	obs::Source::Manager::GetInstance().allocate(source);
+	obs::Source::attach_source_signals(source);
+	globalCallback::addSource(source);
+	MemoryManager::GetInstance().registerSource(source);
 }
 
 void obs::Source::global_source_activate_cb(void* ptr, calldata_t* cd)
 {
-	// obs_source_t* source = nullptr;
-	// if (!calldata_get_ptr(cd, "source", &source)) {
-	// 	throw std::runtime_error("calldata did not contain source pointer");
-	// }
-	// MemoryManager::GetInstance().updateSourceCache(source);
+	obs_source_t* source = nullptr;
+	if (!calldata_get_ptr(cd, "source", &source)) {
+		throw std::runtime_error("calldata did not contain source pointer");
+	}
+	MemoryManager::GetInstance().updateSourceCache(source);
 }
 
 void obs::Source::global_source_deactivate_cb(void* ptr, calldata_t* cd)
 {
-	// blog(LOG_INFO, "global_source_deactivate_cb");
-	// obs_source_t* source = nullptr;
-	// if (!calldata_get_ptr(cd, "source", &source)) {
-	// 	throw std::runtime_error("calldata did not contain source pointer");
-	// }
-	// blog(LOG_INFO, "global_source_deactivate_cb - %s", obs_source_get_name(source));
-	// MemoryManager::GetInstance().updateSourceCache(source);
+	blog(LOG_INFO, "global_source_deactivate_cb");
+	obs_source_t* source = nullptr;
+	if (!calldata_get_ptr(cd, "source", &source)) {
+		throw std::runtime_error("calldata did not contain source pointer");
+	}
+	blog(LOG_INFO, "global_source_deactivate_cb - %s", obs_source_get_name(source));
+	MemoryManager::GetInstance().updateSourceCache(source);
 }
 
 void obs::Source::global_source_destroy_cb(void* ptr, calldata_t* cd)
 {
-	// blog(LOG_INFO, "global_source_destroy_cb");
-	// obs_source_t* source = nullptr;
-	// if (!calldata_get_ptr(cd, "source", &source)) {
-	// 	throw std::runtime_error("calldata did not contain source pointer");
-	// }
+	blog(LOG_INFO, "global_source_destroy_cb");
+	obs_source_t* source = nullptr;
+	if (!calldata_get_ptr(cd, "source", &source)) {
+		throw std::runtime_error("calldata did not contain source pointer");
+	}
 
-	// blog(LOG_INFO, "global_source_destroy_cb - %s", obs_source_get_name(source));
+	blog(LOG_INFO, "global_source_destroy_cb - %s", obs_source_get_name(source));
 
-	// CallbackManager::removeSource(source);
-	// detach_source_signals(source);
-	// obs::Source::Manager::GetInstance().free(source);
-	// MemoryManager::GetInstance().unregisterSource(source);
+	globalCallback::removeSource(source);
+	detach_source_signals(source);
+	obs::Source::Manager::GetInstance().free(source);
+	MemoryManager::GetInstance().unregisterSource(source);
 }
 
 void obs::Source::Remove(obs_source_t* source)
