@@ -7,7 +7,7 @@ import { deleteConfigFiles } from '../util/general';
 import { EOBSInputTypes } from '../util/obs_enums';
 import { ETestErrorMsg, GetErrorMessage } from '../util/error_messages';
 
-const testName = 'osn-scene';
+const testName = 'osn-scenes';
 
 describe(testName, () => {
     let obs: OBSHandler;
