@@ -58,6 +58,8 @@ void callJS(SignalInfo* data)
 			Napi::String::New(env, "error"),
 			Napi::String::New(env, data->m_errorMessage));
 
+		std::cout << "Calling JS callback for signal " << data->m_outputType.c_str()
+			<< " : " << data->m_signal.c_str() << std::endl;
 		jsCallback.Call({ result });
 		} catch (...) {}
 
