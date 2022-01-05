@@ -164,6 +164,7 @@ void JSCallbackOutputSignal(void* data, calldata_t* params)
 
 	if (signal->m_jsThread)
 		callJS(signal);
+	std::cout << "JSCallbackOutputSignal - end" << std::endl;
 }
 
 Napi::Value service::OBS_service_connectOutputSignals(const Napi::CallbackInfo& info)
