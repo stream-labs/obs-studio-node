@@ -1074,13 +1074,16 @@ bool OBS_service::updateRecordingEncoders(bool isSimpleMode)
 
 bool OBS_service::startRecording(callbackService callJS)
 {
+	blog(LOG_INFO, "startRecording - 0");
 	if (recordingOutput)
 		obs_output_release(recordingOutput);
 
+	blog(LOG_INFO, "startRecording - 1");
 	recordingOutput = obs_output_create("ffmpeg_muxer", "simple_file_output", nullptr, nullptr);
 	if (!recordingOutput)
 		return false;
 
+	blog(LOG_INFO, "startRecording - 2");
 	connectOutputSignals();
 
 	std::string currentOutputMode = config_get_string(ConfigManager::getInstance().getBasic(), "Output", "Mode");
@@ -1088,6 +1091,7 @@ bool OBS_service::startRecording(callbackService callJS)
 	std::string simpleQuality =
 	    config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecQuality");
 
+	blog(LOG_INFO, "startRecording - 3");
 	bool useStreamEncoder = false;
 
 	usingRecordingPreset = true;
@@ -1101,6 +1105,7 @@ bool OBS_service::startRecording(callbackService callJS)
 			useStreamEncoder = updateRecordingEncoders(isSimpleMode);
 		}
 	}
+	blog(LOG_INFO, "startRecording - 4");
 	updateFfmpegOutput(isSimpleMode, recordingOutput);
 
 	obs_output_set_video_encoder(recordingOutput, useStreamEncoder ? videoStreamingEncoder : videoRecordingEncoder);
@@ -1120,7 +1125,9 @@ bool OBS_service::startRecording(callbackService callJS)
 		}
 	}
 
+	blog(LOG_INFO, "startRecording - 5");
 	isRecording = obs_output_start(recordingOutput);
+	blog(LOG_INFO, "startRecording - 6");
 	if (!isRecording) {
 		SignalInfo* signal = new SignalInfo(
 			std::string("recording"),
@@ -1144,6 +1151,7 @@ bool OBS_service::startRecording(callbackService callJS)
 
 		callJS(signal);
 	}
+	blog(LOG_INFO, "startRecording - 7");
 	return isRecording;
 }
 
