@@ -67,6 +67,11 @@
 
 #define MAX_AUDIO_MIXES 6
 
+struct ServiceWaitData {
+	std::condition_variable cv;
+	std::mutex mtx_output_stop;
+};
+
 class SignalInfo {
 	public:
 	SignalInfo(

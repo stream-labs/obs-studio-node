@@ -74,6 +74,8 @@ bool        rpUsesStream         = false;
 void* g_jsThread = nullptr;
 signal_callback_t g_ouput_callback;
 
+ServiceWaitData* streamingWaitData = nullptr;
+
 OBS_service::OBS_service() {}
 OBS_service::~OBS_service() {}
 
@@ -814,6 +816,15 @@ bool OBS_service::startStreaming(callbackService callJS)
 
 	connectOutputSignals();
 
+	streamingWaitData = new ServiceWaitData();
+	auto on_stopped = [](void* data, calldata_t*) {
+		blog(LOG_INFO, "Streaming stop signal received");
+		streamingWaitData->cv.notify_one();
+	};
+
+	signal_handler* sh = obs_output_get_signal_handler(streamingOutput);
+	signal_handler_connect(sh, "stop", on_stopped, nullptr);
+
 	std::string currentOutputMode = config_get_string(ConfigManager::getInstance().getBasic(), "Output", "Mode");
 	bool        isSimpleMode      = currentOutputMode.compare("Simple") == 0;
 
@@ -1124,9 +1135,9 @@ void OBS_service::stopStreaming(bool forceStop)
 	else
 		obs_output_stop(streamingOutput);
 
-	waitReleaseWorker();
-
 	releaseWorker = std::thread(releaseStreamingOutput);
+
+	waitReleaseWorker();
 
 	isStreaming = false;
 }
@@ -2301,12 +2312,10 @@ void OBS_service::duplicate_encoder(obs_encoder_t** dst, obs_encoder_t* src, uin
 
 void OBS_service::releaseStreamingOutput()
 {
-	if (config_get_bool(ConfigManager::getInstance().getBasic(), "Output", "DelayEnable")) {
-		uint32_t delay = obs_output_get_active_delay(streamingOutput);
-		while (delay != 0) {
-			delay = obs_output_get_active_delay(streamingOutput);
-		}
-	}
+	std::unique_lock<std::mutex> lock(
+		streamingWaitData->mtx_output_stop);
+
+	streamingWaitData->cv.wait_for(lock, std::chrono::seconds(60));
 
 	if (twitchSoundtrackEnabled)
 		stopTwitchSoundtrackAudio();

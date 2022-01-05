@@ -141,6 +141,8 @@ void JSCallbackOutputSignal(void* data, calldata_t* params)
 
 		if (signal->m_outputType.compare("streaming") == 0) {
 			output = streamingOutput;
+			if (!isStreaming)
+				return;
 			isStreaming = false;
 		} else if (signal->m_outputType.compare("recording") == 0) {
 			output = recordingOutput;
