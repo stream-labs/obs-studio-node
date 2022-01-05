@@ -2322,21 +2322,26 @@ void OBS_service::duplicate_encoder(obs_encoder_t** dst, obs_encoder_t* src, uin
 
 void OBS_service::releaseStreamingOutput()
 {
+	blog(LOG_INFO, "releaseStreamingOutput - 0");
 	std::unique_lock<std::mutex> lock(
 		streamingWaitData->mtx_output_stop);
 
+	blog(LOG_INFO, "releaseStreamingOutput - 1");
 	streamingWaitData->cv.wait_for(lock, std::chrono::seconds(60));
 
+	blog(LOG_INFO, "releaseStreamingOutput - 2");
 	if (twitchSoundtrackEnabled)
 		stopTwitchSoundtrackAudio();
 	else
 		clearArchiveVodEncoder();
 
+	blog(LOG_INFO, "releaseStreamingOutput - 3");
 	twitchSoundtrackEnabled = false;
 
 	blog(LOG_INFO, "release streaming output 0");
 	obs_output_release(streamingOutput);
 	streamingOutput = nullptr;
+	blog(LOG_INFO, "releaseStreamingOutput - 4");
 }
 
 void OBS_service::waitReleaseWorker()
