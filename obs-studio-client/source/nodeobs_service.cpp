@@ -58,8 +58,6 @@ void callJS(SignalInfo* data)
 			Napi::String::New(env, "error"),
 			Napi::String::New(env, data->m_errorMessage));
 
-		std::cout << "Calling JS callback for signal " << data->m_outputType.c_str()
-			<< " : " << data->m_signal.c_str() << std::endl;
 		jsCallback.Call({ result });
 		} catch (...) {}
 
@@ -133,6 +131,10 @@ static v8::Persistent<v8::Object> serviceCallbackObject;
 void JSCallbackOutputSignal(void* data, calldata_t* params)
 {
 	SignalInfo* signal = reinterpret_cast<SignalInfo*>(data);
+
+	std::cout << "Calling JS callback for signal " << signal->m_outputType.c_str()
+		<< " : " << signal->m_signal.c_str() << " : "
+		<< (int)calldata_int(params, "code") << std::endl;
 
 	if (signal->m_signal.compare("stop") == 0) {
 		signal->m_code = (int)calldata_int(params, "code");
