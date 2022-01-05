@@ -95,7 +95,7 @@ export const enum EPropertyType {
     Int = 'OBS_PROPERTY_INT',
     Float = 'OBS_PROPERTY_FLOAT',
     Text = 'OBS_PROPERTY_TEXT',
-    Path = 'OBS_PROPERTY_PATH',
+    Path = 'OBS_PROPERTY_FILE',
     List = 'OBS_PROPERTY_LIST',
     Color = 'OBS_PROPERTY_COLOR',
     Button = 'OBS_PROPERTY_BUTTON',

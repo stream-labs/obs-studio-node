@@ -155,7 +155,7 @@ Napi::Value osn::ISource::GetProperties(const Napi::CallbackInfo& info, uint32_t
 			break;
 		}
 		case OBS_PROPERTY_PATH: {
-			propertyObject.Set("type", Napi::String::New(info.Env(), "OBS_PROPERTY_PATH"));
+			propertyObject.Set("type", Napi::String::New(info.Env(), "OBS_PROPERTY_FILE"));
 			propertyObject.Set("defaultPath",
 				Napi::String::New(info.Env(), getSafeOBSstr(obs_property_path_default_path(p))));
 			propertyObject.Set("filter",

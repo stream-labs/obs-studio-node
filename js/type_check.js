@@ -11,7 +11,7 @@ function isTextProperty(property) {
 }
 exports.isTextProperty = isTextProperty;
 function isPathProperty(property) {
-    return property.type === "OBS_PROPERTY_PATH";
+    return property.type === "OBS_PROPERTY_FILE";
 }
 exports.isPathProperty = isPathProperty;
 function isListProperty(property) {
