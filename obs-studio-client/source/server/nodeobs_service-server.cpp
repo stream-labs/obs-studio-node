@@ -1405,6 +1405,8 @@ bool OBS_service::isStreamingOutputActive(void)
 
 bool OBS_service::isRecordingOutputActive(void)
 {
+	if (!recordingOutput)
+		return false;
 	return obs_output_active(recordingOutput);
 }
 
