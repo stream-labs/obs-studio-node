@@ -103,14 +103,20 @@ describe(testName, function() {
     });
 
     it('Simple mode - Start recording and stop', async function() {
+        console.log('test: recording 0');
         // Preparing environment
         obs.setSetting(EOBSSettingsCategories.Output, 'Mode', 'Simple');
+        console.log('test: recording 1');
         obs.setSetting(EOBSSettingsCategories.Output, 'StreamEncoder', obs.os === 'win32' ? 'x264' : 'obs_x264');
+        console.log('test: recording 2');
         obs.setSetting(EOBSSettingsCategories.Output, 'FilePath', path.join(path.normalize(__dirname), '..', 'osnData'));
+        console.log('test: recording 3');
 
         let signalInfo: IOBSOutputSignalInfo;
 
+        console.log('test: recording 4');
         osn.NodeObs.OBS_service_startRecording();
+        console.log('test: recording 5');
 
         signalInfo = await obs.getNextSignalInfo(EOBSOutputType.Recording, EOBSOutputSignal.Start);
 
