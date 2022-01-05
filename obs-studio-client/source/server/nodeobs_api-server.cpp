@@ -1323,7 +1323,7 @@ void OBS_API::destroyOBS_API(void)
 	blog(LOG_INFO, "destroyOBS_API - 3");
 	OBS_service::setService(nullptr);
 	blog(LOG_INFO, "destroyOBS_API - 3.1");
-    OBS_service::waitReleaseWorker();
+    OBS_service::waitReleaseWorker(true);
 	blog(LOG_INFO, "destroyOBS_API - 3.2");
     OBS_service::clearAudioEncoder();
 	blog(LOG_INFO, "destroyOBS_API - 3.3");

@@ -801,6 +801,10 @@ void OBS_service::updateStreamingEncoders(bool isSimpleMode)
 	}
 }
 
+std::condition_variable cv_streaming;
+std::mutex mtx_output_stop;
+bool ready = false;
+
 bool OBS_service::startStreaming(callbackService callJS)
 {
 	const char* type = obs_service_get_output_type(service);
@@ -818,14 +822,32 @@ bool OBS_service::startStreaming(callbackService callJS)
 
 	connectOutputSignals();
 
-	streamingWaitData = new ServiceWaitData();
-	auto on_stopped = [](void* data, calldata_t*) {
-		blog(LOG_INFO, "Streaming deactivate signal received");
-		streamingWaitData->cv.notify_one();
+	// streamingWaitData = new ServiceWaitData();
+	releaseWorker = std::thread(releaseStreamingOutput);
+	auto on_stopped = [&]() {
+		std::unique_lock<std::mutex> lck(mtx_output_stop);
+		ready = true;
+		std::cout << "Streaming deactivate signal received" << std::endl;
+		cv_streaming.notify_all();
+		std::cout << "notified" << std::endl;
 	};
 
+	using on_stopped_t = decltype(on_stopped);
+	auto pre_on_stopped = [](void* data, calldata_t*) {
+		on_stopped_t& on_stopped = *reinterpret_cast<on_stopped_t*>(data);
+		on_stopped();
+	};
+	
+	// auto on_stopped = [&](void* data, calldata_t*) {
+	// 	std::cout << "Streaming deactivate signal received" << std::endl;
+	// 	ServiceWaitData* streamingWaitData = reinterpret_cast<ServiceWaitData*>(data);
+	// 	// blog(LOG_INFO, "Streaming deactivate signal received");
+	// 	streamingWaitData->cv.notify_one();
+	// 	std::cout << "notified" << std::endl;
+	// };
+
 	signal_handler* sh = obs_output_get_signal_handler(streamingOutput);
-	signal_handler_connect(sh, "stop", on_stopped, nullptr);
+	signal_handler_connect(sh, "deactivate", pre_on_stopped, &on_stopped);
 
 	std::string currentOutputMode = config_get_string(ConfigManager::getInstance().getBasic(), "Output", "Mode");
 	bool        isSimpleMode      = currentOutputMode.compare("Simple") == 0;
@@ -1140,9 +1162,6 @@ void OBS_service::stopStreaming(bool forceStop, callbackService callJS)
 	else
 		obs_output_stop(streamingOutput);
 
-	blog(LOG_INFO, "stopStreaming - 2");
-	releaseWorker = std::thread(releaseStreamingOutput);
-
 	blog(LOG_INFO, "stopStreaming - 3");
 	waitReleaseWorker();
 
@@ -1152,11 +1171,12 @@ void OBS_service::stopStreaming(bool forceStop, callbackService callJS)
 
 	SignalInfo* signal = new SignalInfo(
 		std::string("streaming"),
-		std::string("stop"),
+		std::string("deactivate"),
 		0,
 		std::string(""),
 		g_jsThread
 	);
+	callJS(signal);
 }
 
 void OBS_service::stopRecording(void)
@@ -2118,12 +2138,12 @@ void OBS_service::OBS_service_connectOutputSignals(signal_callback_t callback, v
 		0,
 		std::string(""),
 		g_jsThread));
-	// streamingSignals.push_back(new SignalInfo(
-	// 	std::string("streaming"),
-	// 	std::string("stop"),
-	// 	0,
-	// 	std::string(""),
-	// 	g_jsThread));
+	streamingSignals.push_back(new SignalInfo(
+		std::string("streaming"),
+		std::string("stop"),
+		0,
+		std::string(""),
+		g_jsThread));
 	streamingSignals.push_back(new SignalInfo(
 		std::string("streaming"),
 		std::string("starting"),
@@ -2142,12 +2162,12 @@ void OBS_service::OBS_service_connectOutputSignals(signal_callback_t callback, v
 		0,
 		std::string(""),
 		g_jsThread));
-	streamingSignals.push_back(new SignalInfo(
-		std::string("streaming"),
-		std::string("deactivate"),
-		0,
-		std::string(""),
-		g_jsThread));
+	// streamingSignals.push_back(new SignalInfo(
+	// 	std::string("streaming"),
+	// 	std::string("deactivate"),
+	// 	0,
+	// 	std::string(""),
+	// 	g_jsThread));
 	streamingSignals.push_back(new SignalInfo(
 		std::string("streaming"),
 		std::string("reconnect"),
@@ -2332,10 +2352,12 @@ void OBS_service::releaseStreamingOutput()
 {
 	blog(LOG_INFO, "releaseStreamingOutput - 0");
 	std::unique_lock<std::mutex> lock(
-		streamingWaitData->mtx_output_stop);
+		mtx_output_stop);
 
 	blog(LOG_INFO, "releaseStreamingOutput - 1");
-	streamingWaitData->cv.wait_for(lock, std::chrono::seconds(60));
+	// cv_streaming.wait_for(lock, std::chrono::seconds(60));
+	while (!ready) cv_streaming.wait(lock);
+	ready = false;
 
 	blog(LOG_INFO, "releaseStreamingOutput - 2");
 	if (twitchSoundtrackEnabled)
@@ -2352,8 +2374,14 @@ void OBS_service::releaseStreamingOutput()
 	blog(LOG_INFO, "releaseStreamingOutput - 4");
 }
 
-void OBS_service::waitReleaseWorker()
+void OBS_service::waitReleaseWorker(bool force)
 {
+	if (force) {
+		std::unique_lock<std::mutex> lck(mtx_output_stop);
+		ready = true;
+		cv_streaming.notify_all();
+	}
+
 	if (releaseWorker.joinable()) {
 		releaseWorker.join();
 	}

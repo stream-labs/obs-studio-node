@@ -136,6 +136,10 @@ void JSCallbackOutputSignal(void* data, calldata_t* params)
 		<< " : " << signal->m_signal.c_str() << " : "
 		<< (int)calldata_int(params, "code") << std::endl;
 
+	// if (signal->m_outputType.compare("streaming") == 0 &&
+	// 	signal->m_signal.compare("deactivate") == 0)
+	// 	return;
+
 	if (signal->m_signal.compare("stop") == 0) {
 		signal->m_code = (int)calldata_int(params, "code");
 
@@ -143,8 +147,8 @@ void JSCallbackOutputSignal(void* data, calldata_t* params)
 
 		if (signal->m_outputType.compare("streaming") == 0) {
 			output = streamingOutput;
-			if (!isStreaming)
-				return;
+			// if (!isStreaming)
+			// 	return;
 			isStreaming = false;
 		} else if (signal->m_outputType.compare("recording") == 0) {
 			output = recordingOutput;

@@ -204,7 +204,7 @@ class OBS_service
 	static void          setReplayBufferOutput(obs_output_t* output);
 	static obs_output_t* getVirtualWebcamOutput(void);
 	static void          setVirtualWebcamOutput(obs_output_t* output);
-	static void          waitReleaseWorker(void);
+	static void          waitReleaseWorker(bool force = false);
 
 	// Update settings
 	static void updateStreamingOutput();
