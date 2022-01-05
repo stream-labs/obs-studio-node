@@ -825,7 +825,7 @@ bool OBS_service::startStreaming(callbackService callJS)
 	};
 
 	signal_handler* sh = obs_output_get_signal_handler(streamingOutput);
-	signal_handler_connect(sh, "stop", on_stopped, nullptr);
+	signal_handler_connect(sh, "deactivate", on_stopped, nullptr);
 
 	std::string currentOutputMode = config_get_string(ConfigManager::getInstance().getBasic(), "Output", "Mode");
 	bool        isSimpleMode      = currentOutputMode.compare("Simple") == 0;
