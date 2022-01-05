@@ -807,8 +807,10 @@ bool OBS_service::startStreaming(callbackService callJS)
 	if (!type)
 		type = "rtmp_output";
 
-	if (streamingOutput)
+	if (streamingOutput) {
+		blog(LOG_INFO, "release streaming output 1");
 		obs_output_release(streamingOutput);
+	}
 
 	streamingOutput = obs_output_create(type, "simple_stream", nullptr, nullptr);
 	if (!streamingOutput)
@@ -888,6 +890,7 @@ void OBS_service::updateAudioStreamingEncoder(bool isSimpleMode)
 			return;
 
 		codec = obs_output_get_supported_audio_codecs(currentOutput);
+		blog(LOG_INFO, "release streaming output 2");
 		obs_output_release(currentOutput);
 	}
 
@@ -2000,6 +2003,7 @@ obs_output_t* OBS_service::getStreamingOutput(void)
 
 void OBS_service::setStreamingOutput(obs_output_t* output)
 {
+	blog(LOG_INFO, "release streaming output 3");
 	obs_output_release(streamingOutput);
 	streamingOutput = output;
 }
@@ -2324,6 +2328,7 @@ void OBS_service::releaseStreamingOutput()
 
 	twitchSoundtrackEnabled = false;
 
+	blog(LOG_INFO, "release streaming output 0");
 	obs_output_release(streamingOutput);
 	streamingOutput = nullptr;
 }
