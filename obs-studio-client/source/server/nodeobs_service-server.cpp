@@ -1127,22 +1127,28 @@ bool OBS_service::startRecording(callbackService callJS)
 
 void OBS_service::stopStreaming(bool forceStop)
 {
+	blog(LOG_INFO, "stopStreaming - 0");
 	if (!obs_output_active(streamingOutput) && !obs_output_reconnecting(streamingOutput))
 	{
 		blog(LOG_WARNING, "stopStreaming was ignored as stream not active or reconnecting");
 		return;
 	}
 
+	blog(LOG_INFO, "stopStreaming - 1");
 	if (forceStop)
 		obs_output_force_stop(streamingOutput);
 	else
 		obs_output_stop(streamingOutput);
 
+	blog(LOG_INFO, "stopStreaming - 2");
 	releaseWorker = std::thread(releaseStreamingOutput);
 
+	blog(LOG_INFO, "stopStreaming - 3");
 	waitReleaseWorker();
 
+	blog(LOG_INFO, "stopStreaming - 4");
 	isStreaming = false;
+	blog(LOG_INFO, "stopStreaming - 5");
 }
 
 void OBS_service::stopRecording(void)
