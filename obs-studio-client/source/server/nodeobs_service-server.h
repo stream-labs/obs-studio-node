@@ -131,7 +131,7 @@ class OBS_service
 	static void OBS_service_startStreaming(callbackService callJS);
 	static void OBS_service_startRecording(callbackService callJS);
 	static void OBS_service_startReplayBuffer(callbackService callJS);
-	static void OBS_service_stopStreaming(bool forceStop);
+	static void OBS_service_stopStreaming(bool forceStop, callbackService callJS);
 	static void OBS_service_stopRecording();
 	static void OBS_service_stopReplayBuffer(bool forceStop);
 	static void OBS_service_connectOutputSignals(signal_callback_t callbac, void* jsThread);
@@ -145,7 +145,7 @@ class OBS_service
 
 	private:
 	static bool startStreaming(callbackService callJS);
-	static void stopStreaming(bool forceStop);
+	static void stopStreaming(bool forceStop, callbackService callJS);
 	static bool startRecording(callbackService callJS);
 	static bool startReplayBuffer(callbackService callJS);
 	static void stopReplayBuffer(bool forceStop);

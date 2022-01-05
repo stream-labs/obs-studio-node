@@ -105,7 +105,7 @@ Napi::Value service::OBS_service_stopStreaming(const Napi::CallbackInfo& info)
 {
 	bool forceStop = info[0].ToBoolean().Value();
 
-	OBS_service::OBS_service_stopStreaming(forceStop);
+	OBS_service::OBS_service_stopStreaming(forceStop, callJS);
 
 	return info.Env().Undefined();
 }

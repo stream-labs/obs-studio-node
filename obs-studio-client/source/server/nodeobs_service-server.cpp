@@ -117,9 +117,9 @@ void OBS_service::OBS_service_startReplayBuffer(callbackService callJS)
 		blog(LOG_ERROR,  "Failed to start the replay buffer!");
 }
 
-void OBS_service::OBS_service_stopStreaming(bool forceStop)
+void OBS_service::OBS_service_stopStreaming(bool forceStop, callbackService callJS)
 {
-	stopStreaming(forceStop);
+	stopStreaming(forceStop, callJS);
 }
 
 void OBS_service::OBS_service_stopRecording()
@@ -820,12 +820,12 @@ bool OBS_service::startStreaming(callbackService callJS)
 
 	streamingWaitData = new ServiceWaitData();
 	auto on_stopped = [](void* data, calldata_t*) {
-		blog(LOG_INFO, "Streaming stop signal received");
+		blog(LOG_INFO, "Streaming deactivate signal received");
 		streamingWaitData->cv.notify_one();
 	};
 
 	signal_handler* sh = obs_output_get_signal_handler(streamingOutput);
-	signal_handler_connect(sh, "deactivate", on_stopped, nullptr);
+	signal_handler_connect(sh, "stop", on_stopped, nullptr);
 
 	std::string currentOutputMode = config_get_string(ConfigManager::getInstance().getBasic(), "Output", "Mode");
 	bool        isSimpleMode      = currentOutputMode.compare("Simple") == 0;
@@ -1125,7 +1125,7 @@ bool OBS_service::startRecording(callbackService callJS)
 	return isRecording;
 }
 
-void OBS_service::stopStreaming(bool forceStop)
+void OBS_service::stopStreaming(bool forceStop, callbackService callJS)
 {
 	blog(LOG_INFO, "stopStreaming - 0");
 	if (!obs_output_active(streamingOutput) && !obs_output_reconnecting(streamingOutput))
@@ -1149,6 +1149,14 @@ void OBS_service::stopStreaming(bool forceStop)
 	blog(LOG_INFO, "stopStreaming - 4");
 	isStreaming = false;
 	blog(LOG_INFO, "stopStreaming - 5");
+
+	SignalInfo* signal = new SignalInfo(
+		std::string("streaming"),
+		std::string("stop"),
+		0,
+		std::string(""),
+		g_jsThread
+	);
 }
 
 void OBS_service::stopRecording(void)
@@ -2110,12 +2118,12 @@ void OBS_service::OBS_service_connectOutputSignals(signal_callback_t callback, v
 		0,
 		std::string(""),
 		g_jsThread));
-	streamingSignals.push_back(new SignalInfo(
-		std::string("streaming"),
-		std::string("stop"),
-		0,
-		std::string(""),
-		g_jsThread));
+	// streamingSignals.push_back(new SignalInfo(
+	// 	std::string("streaming"),
+	// 	std::string("stop"),
+	// 	0,
+	// 	std::string(""),
+	// 	g_jsThread));
 	streamingSignals.push_back(new SignalInfo(
 		std::string("streaming"),
 		std::string("starting"),
@@ -2401,7 +2409,7 @@ void OBS_service::OBS_service_stopVirtualWebcam()
 void OBS_service::stopAllOutputs()
 {
 	if (streamingOutput && obs_output_active(streamingOutput))
-		stopStreaming(true);
+		stopStreaming(true, NULL);
 
 	if (replayBufferOutput && obs_output_active(replayBufferOutput))
 		stopReplayBuffer(true);
