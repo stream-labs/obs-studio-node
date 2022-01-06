@@ -539,31 +539,7 @@ describe(testName, () => {
     //     });
     // });
 
-    it('Set flags and get them for all input source types', () => {
-        obs.inputTypes.forEach(function(inputType) {
-            // Creating input source
-            const input = osn.InputFactory.create(inputType, 'input');
-
-            // Checking if input source was created correctly
-            expect(input).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateInput, inputType));
-            expect(input.id).to.equal(inputType, GetErrorMessage(ETestErrorMsg.InputId, inputType));
-            expect(input.name).to.equal('input', GetErrorMessage(ETestErrorMsg.InputName, inputType));
-
-            // Setting input source flags
-            input.flags = osn.ESourceFlags.ForceMono;
-
-            // Getting input source flags
-            const flags = input.flags;
-
-            // Checking if flags were returned correctly
-            expect(flags).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Flags, inputType));
-            expect(flags).to.equal(osn.ESourceFlags.ForceMono, GetErrorMessage(ETestErrorMsg.FlagsWrongValue, inputType));
-
-            input.release();
-        });
-    });
-
-    // it('Set muted and get it for all input source types', () => {
+    // it('Set flags and get them for all input source types', () => {
     //     obs.inputTypes.forEach(function(inputType) {
     //         // Creating input source
     //         const input = osn.InputFactory.create(inputType, 'input');
@@ -574,18 +550,42 @@ describe(testName, () => {
     //         expect(input.name).to.equal('input', GetErrorMessage(ETestErrorMsg.InputName, inputType));
 
     //         // Setting input source flags
-    //         input.muted = true;
+    //         input.flags = osn.ESourceFlags.ForceMono;
 
     //         // Getting input source flags
-    //         const muted = input.muted;
+    //         const flags = input.flags;
 
     //         // Checking if flags were returned correctly
-    //         expect(muted).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Muted, inputType));
-    //         expect(muted).to.equal(true, GetErrorMessage(ETestErrorMsg.MutedWrongValue, inputType));
+    //         expect(flags).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Flags, inputType));
+    //         expect(flags).to.equal(osn.ESourceFlags.ForceMono, GetErrorMessage(ETestErrorMsg.FlagsWrongValue, inputType));
 
     //         input.release();
     //     });
     // });
+
+    it('Set muted and get it for all input source types', () => {
+        obs.inputTypes.forEach(function(inputType) {
+            // Creating input source
+            const input = osn.InputFactory.create(inputType, 'input');
+
+            // Checking if input source was created correctly
+            expect(input).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateInput, inputType));
+            expect(input.id).to.equal(inputType, GetErrorMessage(ETestErrorMsg.InputId, inputType));
+            expect(input.name).to.equal('input', GetErrorMessage(ETestErrorMsg.InputName, inputType));
+
+            // Setting input source flags
+            input.muted = true;
+
+            // Getting input source flags
+            const muted = input.muted;
+
+            // Checking if flags were returned correctly
+            expect(muted).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Muted, inputType));
+            expect(muted).to.equal(true, GetErrorMessage(ETestErrorMsg.MutedWrongValue, inputType));
+
+            input.release();
+        });
+    });
 
     // it('Set enabled and get it for all filter types', () => {
     //     obs.filterTypes.forEach(function(filterType) {
