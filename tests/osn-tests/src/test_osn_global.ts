@@ -51,8 +51,8 @@ describe(testName, () => {
         expect(input.id).to.equal(EOBSInputTypes.ImageSource, GetErrorMessage(ETestErrorMsg.InputId, EOBSInputTypes.ImageSource));
         expect(input.name).to.equal('test_osn_global_source', GetErrorMessage(ETestErrorMsg.InputName, EOBSInputTypes.ImageSource));
 
-        // // Setting input source to output channel
-        // osn.Global.setOutputSource(1, input);
+        // Setting input source to output channel
+        osn.Global.setOutputSource(1, input);
 
         // // Getting input source from output channel
         // const channel = 1;
