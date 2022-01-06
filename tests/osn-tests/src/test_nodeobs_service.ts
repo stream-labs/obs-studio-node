@@ -54,52 +54,74 @@ describe(testName, function() {
 
     it('Simple mode - Start and stop streaming', async function() {
         // Preparing environment
+        console.log('test: streaming 0');
         obs.setSetting(EOBSSettingsCategories.Output, 'Mode', 'Simple');
         obs.setSetting(EOBSSettingsCategories.Output, 'StreamEncoder', obs.os === 'win32' ? 'x264' : 'obs_x264');
         obs.setSetting(EOBSSettingsCategories.Output, 'FilePath', path.join(path.normalize(__dirname), '..', 'osnData'));
 
+        console.log('test: streaming 1');
         let signalInfo: IOBSOutputSignalInfo;
 
         osn.NodeObs.OBS_service_startStreaming();
 
+        console.log('test: streaming 2');
         signalInfo = await obs.getNextSignalInfo(EOBSOutputType.Streaming, EOBSOutputSignal.Starting);
         expect(signalInfo.type).to.equal(EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
         expect(signalInfo.signal).to.equal(EOBSOutputSignal.Starting, GetErrorMessage(ETestErrorMsg.StreamOutput));
 
+        console.log('test: streaming 3');
         signalInfo = await obs.getNextSignalInfo(EOBSOutputType.Streaming, EOBSOutputSignal.Activate);
 
+        console.log('test: streaming 4');
         if (signalInfo.signal == EOBSOutputSignal.Stop) {
             throw Error(GetErrorMessage(ETestErrorMsg.StreamOutputDidNotStart, signalInfo.code.toString(), signalInfo.error));
         }
 
+        console.log('test: streaming 5');
         expect(signalInfo.type).to.equal(EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
         expect(signalInfo.signal).to.equal(EOBSOutputSignal.Activate, GetErrorMessage(ETestErrorMsg.StreamOutput));
 
+        console.log('test: streaming 6');
         signalInfo = await obs.getNextSignalInfo(EOBSOutputType.Streaming, EOBSOutputSignal.Start);
         expect(signalInfo.type).to.equal(EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
         expect(signalInfo.signal).to.equal(EOBSOutputSignal.Start, GetErrorMessage(ETestErrorMsg.StreamOutput));
 
         await sleep(500);
 
+        console.log('test: streaming 7');
         osn.NodeObs.OBS_service_stopStreaming(false);
 
+
+        console.log('test: streaming 8');
         signalInfo = await obs.getNextSignalInfo(EOBSOutputType.Streaming, EOBSOutputSignal.Stopping);
 
+
+        console.log('test: streaming 9');
         expect(signalInfo.type).to.equal(EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
         expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stopping, GetErrorMessage(ETestErrorMsg.StreamOutput));
 
+
+        console.log('test: streaming 10');
         signalInfo = await obs.getNextSignalInfo(EOBSOutputType.Streaming, EOBSOutputSignal.Stop);
 
+
+        console.log('test: streaming 11');
         if (signalInfo.code != 0) {
             throw Error(GetErrorMessage(ETestErrorMsg.StreamOutputStoppedWithError, signalInfo.code.toString(), signalInfo.error));
         }
 
+
+        console.log('test: streaming 12');
         expect(signalInfo.type).to.equal(EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
         expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stop, GetErrorMessage(ETestErrorMsg.StreamOutput));
 
+
+        console.log('test: streaming 13');
         signalInfo = await obs.getNextSignalInfo(EOBSOutputType.Streaming, EOBSOutputSignal.Deactivate);
         expect(signalInfo.type).to.equal(EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
         expect(signalInfo.signal).to.equal(EOBSOutputSignal.Deactivate, GetErrorMessage(ETestErrorMsg.StreamOutput));
+
+        console.log('test: streaming 14');
     });
 
     it('Simple mode - Start recording and stop', async function() {
