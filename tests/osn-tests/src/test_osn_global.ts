@@ -65,58 +65,58 @@ describe(testName, () => {
         input.release();
     });
 
-    it('Get flags (capabilities) of a source type', () => {
-        let flags: number = undefined;
+    // it('Get flags (capabilities) of a source type', () => {
+    //     let flags: number = undefined;
 
-        // For each input type available get their flags and check if they are not undefined
-        obs.inputTypes.forEach(inputType => {
-            flags = osn.Global.getOutputFlagsFromId(inputType);
-            expect(flags).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.GetOutputFlags, inputType));
-            flags = undefined;
-        });
-    });
+    //     // For each input type available get their flags and check if they are not undefined
+    //     obs.inputTypes.forEach(inputType => {
+    //         flags = osn.Global.getOutputFlagsFromId(inputType);
+    //         expect(flags).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.GetOutputFlags, inputType));
+    //         flags = undefined;
+    //     });
+    // });
 
-    it('Get lagged frames value', () => {
-        let laggedFrames: number = undefined;
+    // it('Get lagged frames value', () => {
+    //     let laggedFrames: number = undefined;
 
-        // Getting lagged frames value
-        laggedFrames = osn.Global.laggedFrames;
+    //     // Getting lagged frames value
+    //     laggedFrames = osn.Global.laggedFrames;
 
-        // Checking if lagged frames was returned correctly
-        expect(laggedFrames).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.LaggedFrames));
-    });
+    //     // Checking if lagged frames was returned correctly
+    //     expect(laggedFrames).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.LaggedFrames));
+    // });
 
-    it('Get total frames value', () => {
-        let totalFrames: number = undefined;
+    // it('Get total frames value', () => {
+    //     let totalFrames: number = undefined;
 
-        // Getting total frames value
-        totalFrames = osn.Global.totalFrames;
+    //     // Getting total frames value
+    //     totalFrames = osn.Global.totalFrames;
 
-        // Checking if total frames was returned correctly
-        expect(totalFrames).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.TotalFrames));
-    });
+    //     // Checking if total frames was returned correctly
+    //     expect(totalFrames).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.TotalFrames));
+    // });
 
-    it('Set locale and get it', () => {
-        let locale: string;
+    // it('Set locale and get it', () => {
+    //     let locale: string;
 
-        // Setting locale
-        osn.Global.locale = 'pt-BR';
+    //     // Setting locale
+    //     osn.Global.locale = 'pt-BR';
 
-        // Getting locale
-        locale = osn.Global.locale;
+    //     // Getting locale
+    //     locale = osn.Global.locale;
 
-        // Checking if locale was returned correctly
-        expect(locale).to.equal('pt-BR', GetErrorMessage(ETestErrorMsg.Locale));
-    });
+    //     // Checking if locale was returned correctly
+    //     expect(locale).to.equal('pt-BR', GetErrorMessage(ETestErrorMsg.Locale));
+    // });
 
-    it('Fail test - Get source from empty output channel', () => {
-        let input: ISource;
-        let channel: number = 5;
+    // it('Fail test - Get source from empty output channel', () => {
+    //     let input: ISource;
+    //     let channel: number = 5;
 
-        // Trying to get source from empty channel
-        input = osn.Global.getOutputSource(channel);
+    //     // Trying to get source from empty channel
+    //     input = osn.Global.getOutputSource(channel);
 
-        // Checking if source is undefined	            
-        expect(input).to.equal(undefined, GetErrorMessage(ETestErrorMsg.ChannelNotEmpty, channel.toString()));
-    });
+    //     // Checking if source is undefined	            
+    //     expect(input).to.equal(undefined, GetErrorMessage(ETestErrorMsg.ChannelNotEmpty, channel.toString()));
+    // });
 });
