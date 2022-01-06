@@ -80,12 +80,12 @@ describe(testName, () => {
             // Checking if properties were returned properly
             expect(properties).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Properties, inputType));
 
-            // // Getting input settings
-            // let settings = undefined;
-            // settings = input.settings;
+            // Getting input settings
+            let settings = undefined;
+            settings = input.settings;
 
-            // // Checking if settings were returned properly
-            // expect(settings).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Settings, inputType));
+            // Checking if settings were returned properly
+            expect(settings).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Settings, inputType));
 
             // // Getting output flags
             // let outputFlags = undefined;
