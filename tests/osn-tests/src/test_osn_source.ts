@@ -58,13 +58,13 @@ describe(testName, () => {
             expect(id).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.SourceId,inputType));
             expect(id).to.equal(inputType, GetErrorMessage(ETestErrorMsg.InputId, inputType));
 
-            // // Getting input name
-            // let inputName = undefined;
-            // inputName = input.name;
+            // Getting input name
+            let inputName = undefined;
+            inputName = input.name;
 
-            // // Checking if name was returned correctly
-            // expect(inputName).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.SourceName, inputType));
-            // expect(inputName).to.equal('input', GetErrorMessage(ETestErrorMsg.InputName, inputType));
+            // Checking if name was returned correctly
+            expect(inputName).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.SourceName, inputType));
+            expect(inputName).to.equal('input', GetErrorMessage(ETestErrorMsg.InputName, inputType));
 
             // // Getting input configurable value
             // let configurableValue = undefined;
