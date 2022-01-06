@@ -101,6 +101,8 @@ Napi::Value osn::Global::setOutputSource(const Napi::CallbackInfo& info)
 		if (!source)
 			return info.Env().Undefined();
 		obs::Global::SetOutputSource(channel, source);
+	} else {
+		obs::Global::SetOutputSource(channel, nullptr);
 	}
 
 	return info.Env().Undefined();

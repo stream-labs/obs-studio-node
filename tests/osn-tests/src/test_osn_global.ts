@@ -65,6 +65,7 @@ describe(testName, () => {
         expect(returnSource.id).to.equal(transitionType, GetErrorMessage(ETestErrorMsg.TransitionId));
         expect(returnSource.name).to.equal(transitionName, GetErrorMessage(ETestErrorMsg.TransitionName));
         transition.release();
+        osn.Global.setOutputSource(channel, null);
     });
 
     // it('Get flags (capabilities) of a source type', () => {

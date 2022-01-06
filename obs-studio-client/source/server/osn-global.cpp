@@ -41,6 +41,7 @@ void obs::Global::SetOutputSource(uint32_t channel, obs_source_t* source)
 
 	if (!source) {
 		blog(LOG_ERROR, "Source reference is not valid.");
+		obs_set_output_source(channel, nullptr);
 		return;
 	}
 
