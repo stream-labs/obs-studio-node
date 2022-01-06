@@ -935,217 +935,217 @@ jobs:
     displayName: 'Upload tag artifact to S3'
     condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
 
-- job: 'WindowsDebug'
-  pool: 'Default'
-  workspace:
-    clean: all
-  variables:
-    ReleaseName: debug
-  steps:
-  - powershell: |
-      Write-Host "##vso[task.setvariable variable=tagartifact]osn-$((git.exe describe --tags --abbrev=0) | Out-String)"
-      'yarn install'
-    displayName: 'Install dependencies'
+# - job: 'WindowsDebug'
+#   pool: 'Default'
+#   workspace:
+#     clean: all
+#   variables:
+#     ReleaseName: debug
+#   steps:
+#   - powershell: |
+#       Write-Host "##vso[task.setvariable variable=tagartifact]osn-$((git.exe describe --tags --abbrev=0) | Out-String)"
+#       'yarn install'
+#     displayName: 'Install dependencies'
 
-  - script: 'yarn add electron@%ElectronVersion% -D'
-    displayName: 'Install Electron'
+#   - script: 'yarn add electron@%ElectronVersion% -D'
+#     displayName: 'Install Electron'
 
-  - script: 'git submodule update --init --recursive'
-    displayName: 'Update submodules'
+#   - script: 'git submodule update --init --recursive'
+#     displayName: 'Update submodules'
 
-  - script: ./ci/configure-osn.cmd
-    displayName: 'Configure obs-studio-node'
+#   - script: ./ci/configure-osn.cmd
+#     displayName: 'Configure obs-studio-node'
 
-  - script: 'node ci/bump-version.js'
-    displayName: 'Bump version number'
-    condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
+#   - script: 'node ci/bump-version.js'
+#     displayName: 'Bump version number'
+#     condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
 
-  - script: ./ci/build-osn.cmd
-    displayName: 'Build obs-studio-node'
+#   - script: ./ci/build-osn.cmd
+#     displayName: 'Build obs-studio-node'
 
-  - script: 'yarn run test --grep nodeobs_api'
-    env:
-      SLOBS_BE_STREAMKEY: $(testsStreamKey)
-      SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
-      OSN_ACCESS_KEY_ID: $(awsAccessKeyId)
-      OSN_SECRET_ACCESS_KEY: $(awsSecretAccessKey)
-      RELEASE_NAME: $(ReleaseName)
-    displayName: 'Run tests - nodeobs_api'
+#   - script: 'yarn run test --grep nodeobs_api'
+#     env:
+#       SLOBS_BE_STREAMKEY: $(testsStreamKey)
+#       SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
+#       OSN_ACCESS_KEY_ID: $(awsAccessKeyId)
+#       OSN_SECRET_ACCESS_KEY: $(awsSecretAccessKey)
+#       RELEASE_NAME: $(ReleaseName)
+#     displayName: 'Run tests - nodeobs_api'
 
-  - script: 'yarn run test --grep nodeobs_autoconfig'
-    env:
-      SLOBS_BE_STREAMKEY: $(testsStreamKey)
-      SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
-      OSN_ACCESS_KEY_ID: $(awsAccessKeyId)
-      OSN_SECRET_ACCESS_KEY: $(awsSecretAccessKey)
-      RELEASE_NAME: $(ReleaseName)
-    displayName: 'Run tests - nodeobs_autoconfig'
+#   - script: 'yarn run test --grep nodeobs_autoconfig'
+#     env:
+#       SLOBS_BE_STREAMKEY: $(testsStreamKey)
+#       SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
+#       OSN_ACCESS_KEY_ID: $(awsAccessKeyId)
+#       OSN_SECRET_ACCESS_KEY: $(awsSecretAccessKey)
+#       RELEASE_NAME: $(ReleaseName)
+#     displayName: 'Run tests - nodeobs_autoconfig'
 
-  - script: 'yarn run test --grep nodeobs_service'
-    env:
-      SLOBS_BE_STREAMKEY: $(testsStreamKey)
-      SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
-      OSN_ACCESS_KEY_ID: $(awsAccessKeyId)
-      OSN_SECRET_ACCESS_KEY: $(awsSecretAccessKey)
-      RELEASE_NAME: $(ReleaseName)
-    displayName: 'Run tests - nodeobs_service'
+#   - script: 'yarn run test --grep nodeobs_service'
+#     env:
+#       SLOBS_BE_STREAMKEY: $(testsStreamKey)
+#       SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
+#       OSN_ACCESS_KEY_ID: $(awsAccessKeyId)
+#       OSN_SECRET_ACCESS_KEY: $(awsSecretAccessKey)
+#       RELEASE_NAME: $(ReleaseName)
+#     displayName: 'Run tests - nodeobs_service'
 
-  - script: 'yarn run test --grep nodeobs_settings'
-    env:
-      SLOBS_BE_STREAMKEY: $(testsStreamKey)
-      SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
-      OSN_ACCESS_KEY_ID: $(awsAccessKeyId)
-      OSN_SECRET_ACCESS_KEY: $(awsSecretAccessKey)
-      RELEASE_NAME: $(ReleaseName)
-    displayName: 'Run tests - nodeobs_settings'
+#   - script: 'yarn run test --grep nodeobs_settings'
+#     env:
+#       SLOBS_BE_STREAMKEY: $(testsStreamKey)
+#       SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
+#       OSN_ACCESS_KEY_ID: $(awsAccessKeyId)
+#       OSN_SECRET_ACCESS_KEY: $(awsSecretAccessKey)
+#       RELEASE_NAME: $(ReleaseName)
+#     displayName: 'Run tests - nodeobs_settings'
 
-  - script: 'yarn run test --grep osn-fader'
-    env:
-      SLOBS_BE_STREAMKEY: $(testsStreamKey)
-      SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
-      OSN_ACCESS_KEY_ID: $(awsAccessKeyId)
-      OSN_SECRET_ACCESS_KEY: $(awsSecretAccessKey)
-      RELEASE_NAME: $(ReleaseName)
-    displayName: 'Run tests - osn-fader'
+#   - script: 'yarn run test --grep osn-fader'
+#     env:
+#       SLOBS_BE_STREAMKEY: $(testsStreamKey)
+#       SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
+#       OSN_ACCESS_KEY_ID: $(awsAccessKeyId)
+#       OSN_SECRET_ACCESS_KEY: $(awsSecretAccessKey)
+#       RELEASE_NAME: $(ReleaseName)
+#     displayName: 'Run tests - osn-fader'
 
-  - script: 'yarn run test --grep osn-filter'
-    env:
-      SLOBS_BE_STREAMKEY: $(testsStreamKey)
-      SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
-      OSN_ACCESS_KEY_ID: $(awsAccessKeyId)
-      OSN_SECRET_ACCESS_KEY: $(awsSecretAccessKey)
-      RELEASE_NAME: $(ReleaseName)
-    displayName: 'Run tests - osn-filter'
+#   - script: 'yarn run test --grep osn-filter'
+#     env:
+#       SLOBS_BE_STREAMKEY: $(testsStreamKey)
+#       SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
+#       OSN_ACCESS_KEY_ID: $(awsAccessKeyId)
+#       OSN_SECRET_ACCESS_KEY: $(awsSecretAccessKey)
+#       RELEASE_NAME: $(ReleaseName)
+#     displayName: 'Run tests - osn-filter'
 
-  - script: 'yarn run test --grep osn-global'
-    env:
-      SLOBS_BE_STREAMKEY: $(testsStreamKey)
-      SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
-      OSN_ACCESS_KEY_ID: $(awsAccessKeyId)
-      OSN_SECRET_ACCESS_KEY: $(awsSecretAccessKey)
-      RELEASE_NAME: $(ReleaseName)
-    displayName: 'Run tests - osn-global'
+#   - script: 'yarn run test --grep osn-global'
+#     env:
+#       SLOBS_BE_STREAMKEY: $(testsStreamKey)
+#       SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
+#       OSN_ACCESS_KEY_ID: $(awsAccessKeyId)
+#       OSN_SECRET_ACCESS_KEY: $(awsSecretAccessKey)
+#       RELEASE_NAME: $(ReleaseName)
+#     displayName: 'Run tests - osn-global'
 
-  - script: 'yarn run test --grep osn-input'
-    env:
-      SLOBS_BE_STREAMKEY: $(testsStreamKey)
-      SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
-      OSN_ACCESS_KEY_ID: $(awsAccessKeyId)
-      OSN_SECRET_ACCESS_KEY: $(awsSecretAccessKey)
-      RELEASE_NAME: $(ReleaseName)
-    displayName: 'Run tests - osn-input'
+#   - script: 'yarn run test --grep osn-input'
+#     env:
+#       SLOBS_BE_STREAMKEY: $(testsStreamKey)
+#       SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
+#       OSN_ACCESS_KEY_ID: $(awsAccessKeyId)
+#       OSN_SECRET_ACCESS_KEY: $(awsSecretAccessKey)
+#       RELEASE_NAME: $(ReleaseName)
+#     displayName: 'Run tests - osn-input'
 
-  - script: 'yarn run test --grep osn-module'
-    env:
-      SLOBS_BE_STREAMKEY: $(testsStreamKey)
-      SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
-      OSN_ACCESS_KEY_ID: $(awsAccessKeyId)
-      OSN_SECRET_ACCESS_KEY: $(awsSecretAccessKey)
-      RELEASE_NAME: $(ReleaseName)
-    displayName: 'Run tests - osn-module'
+#   - script: 'yarn run test --grep osn-module'
+#     env:
+#       SLOBS_BE_STREAMKEY: $(testsStreamKey)
+#       SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
+#       OSN_ACCESS_KEY_ID: $(awsAccessKeyId)
+#       OSN_SECRET_ACCESS_KEY: $(awsSecretAccessKey)
+#       RELEASE_NAME: $(ReleaseName)
+#     displayName: 'Run tests - osn-module'
 
-  - script: 'yarn run test --grep osn-scenes'
-    env:
-      SLOBS_BE_STREAMKEY: $(testsStreamKey)
-      SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
-      OSN_ACCESS_KEY_ID: $(awsAccessKeyId)
-      OSN_SECRET_ACCESS_KEY: $(awsSecretAccessKey)
-      RELEASE_NAME: $(ReleaseName)
-    displayName: 'Run tests - osn-scenes'
+#   - script: 'yarn run test --grep osn-scenes'
+#     env:
+#       SLOBS_BE_STREAMKEY: $(testsStreamKey)
+#       SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
+#       OSN_ACCESS_KEY_ID: $(awsAccessKeyId)
+#       OSN_SECRET_ACCESS_KEY: $(awsSecretAccessKey)
+#       RELEASE_NAME: $(ReleaseName)
+#     displayName: 'Run tests - osn-scenes'
 
-  - script: 'yarn run test --grep osn-sceneitem'
-    env:
-      SLOBS_BE_STREAMKEY: $(testsStreamKey)
-      SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
-      OSN_ACCESS_KEY_ID: $(awsAccessKeyId)
-      OSN_SECRET_ACCESS_KEY: $(awsSecretAccessKey)
-      RELEASE_NAME: $(ReleaseName)
-    displayName: 'Run tests - osn-sceneitem'
+#   - script: 'yarn run test --grep osn-sceneitem'
+#     env:
+#       SLOBS_BE_STREAMKEY: $(testsStreamKey)
+#       SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
+#       OSN_ACCESS_KEY_ID: $(awsAccessKeyId)
+#       OSN_SECRET_ACCESS_KEY: $(awsSecretAccessKey)
+#       RELEASE_NAME: $(ReleaseName)
+#     displayName: 'Run tests - osn-sceneitem'
 
-  - script: 'yarn run test --grep osn-source'
-    env:
-      SLOBS_BE_STREAMKEY: $(testsStreamKey)
-      SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
-      OSN_ACCESS_KEY_ID: $(awsAccessKeyId)
-      OSN_SECRET_ACCESS_KEY: $(awsSecretAccessKey)
-      RELEASE_NAME: $(ReleaseName)
-    displayName: 'Run tests - osn-source'
+#   - script: 'yarn run test --grep osn-source'
+#     env:
+#       SLOBS_BE_STREAMKEY: $(testsStreamKey)
+#       SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
+#       OSN_ACCESS_KEY_ID: $(awsAccessKeyId)
+#       OSN_SECRET_ACCESS_KEY: $(awsSecretAccessKey)
+#       RELEASE_NAME: $(ReleaseName)
+#     displayName: 'Run tests - osn-source'
 
-  - script: 'yarn run test --grep osn-transition'
-    env:
-      SLOBS_BE_STREAMKEY: $(testsStreamKey)
-      SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
-      OSN_ACCESS_KEY_ID: $(awsAccessKeyId)
-      OSN_SECRET_ACCESS_KEY: $(awsSecretAccessKey)
-      RELEASE_NAME: $(ReleaseName)
-    displayName: 'Run tests - osn-transition'
+#   - script: 'yarn run test --grep osn-transition'
+#     env:
+#       SLOBS_BE_STREAMKEY: $(testsStreamKey)
+#       SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
+#       OSN_ACCESS_KEY_ID: $(awsAccessKeyId)
+#       OSN_SECRET_ACCESS_KEY: $(awsSecretAccessKey)
+#       RELEASE_NAME: $(ReleaseName)
+#     displayName: 'Run tests - osn-transition'
 
-  - script: 'yarn run test --grep osn-video'
-    env:
-      SLOBS_BE_STREAMKEY: $(testsStreamKey)
-      SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
-      OSN_ACCESS_KEY_ID: $(awsAccessKeyId)
-      OSN_SECRET_ACCESS_KEY: $(awsSecretAccessKey)
-      RELEASE_NAME: $(ReleaseName)
-    displayName: 'Run tests - osn-video'
+#   - script: 'yarn run test --grep osn-video'
+#     env:
+#       SLOBS_BE_STREAMKEY: $(testsStreamKey)
+#       SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
+#       OSN_ACCESS_KEY_ID: $(awsAccessKeyId)
+#       OSN_SECRET_ACCESS_KEY: $(awsSecretAccessKey)
+#       RELEASE_NAME: $(ReleaseName)
+#     displayName: 'Run tests - osn-video'
 
-  - script: 'yarn run test --grep osn-volmeter'
-    env:
-      SLOBS_BE_STREAMKEY: $(testsStreamKey)
-      SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
-      OSN_ACCESS_KEY_ID: $(awsAccessKeyId)
-      OSN_SECRET_ACCESS_KEY: $(awsSecretAccessKey)
-      RELEASE_NAME: $(ReleaseName)
-    displayName: 'Run tests - osn-volmeter'
+#   - script: 'yarn run test --grep osn-volmeter'
+#     env:
+#       SLOBS_BE_STREAMKEY: $(testsStreamKey)
+#       SLOBS_TEST_USER_POOL_TOKEN: $(userPoolToken)
+#       OSN_ACCESS_KEY_ID: $(awsAccessKeyId)
+#       OSN_SECRET_ACCESS_KEY: $(awsSecretAccessKey)
+#       RELEASE_NAME: $(ReleaseName)
+#     displayName: 'Run tests - osn-volmeter'
 
-  - script: ./ci/copy-files.cmd
-    displayName: 'Copy necessary dll files'
+#   - script: ./ci/copy-files.cmd
+#     displayName: 'Copy necessary dll files'
 
-  - task: ArchiveFiles@2
-    inputs:
-      rootFolderOrFile: $(SLFullDistributePath)\obs-studio-node
-      includeRootFolder: true
-      archiveType: tar
-      tarCompression: gz
-      archiveFile: '$(SLFullDistributePath)\$(tagartifact)-debug-win64.tar.gz'
-    displayName: 'Generate build artifact'
+#   - task: ArchiveFiles@2
+#     inputs:
+#       rootFolderOrFile: $(SLFullDistributePath)\obs-studio-node
+#       includeRootFolder: true
+#       archiveType: tar
+#       tarCompression: gz
+#       archiveFile: '$(SLFullDistributePath)\$(tagartifact)-debug-win64.tar.gz'
+#     displayName: 'Generate build artifact'
 
-  - task: PublishBuildArtifacts@1
-    inputs: 
-      pathtoPublish: $(SLFullDistributePath)\$(tagartifact)-debug-win64.tar.gz
-      artifactName: $(tagartifact)-debug-win64.tar.gz
-    displayName: 'Publish build artifact'
+#   - task: PublishBuildArtifacts@1
+#     inputs: 
+#       pathtoPublish: $(SLFullDistributePath)\$(tagartifact)-debug-win64.tar.gz
+#       artifactName: $(tagartifact)-debug-win64.tar.gz
+#     displayName: 'Publish build artifact'
 
-  - script: ./ci/prepare-artifact.cmd
-    displayName: 'Prepare tag artifact'
-    condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
+#   - script: ./ci/prepare-artifact.cmd
+#     displayName: 'Prepare tag artifact'
+#     condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
 
-  - task: ArchiveFiles@2
-    inputs:
-      rootFolderOrFile: $(SLFullDistributePath)\obs-studio-node
-      includeRootFolder: true
-      archiveType: tar
-      tarCompression: gz
-      archiveFile: $(tagartifact)-debug-win64.tar.gz
-    displayName: 'Generate tag artifact'
-    condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
+#   - task: ArchiveFiles@2
+#     inputs:
+#       rootFolderOrFile: $(SLFullDistributePath)\obs-studio-node
+#       includeRootFolder: true
+#       archiveType: tar
+#       tarCompression: gz
+#       archiveFile: $(tagartifact)-debug-win64.tar.gz
+#     displayName: 'Generate tag artifact'
+#     condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
 
-  - task: PublishBuildArtifacts@1
-    inputs: 
-      pathtoPublish: $(Build.SourcesDirectory)\$(tagartifact)-debug-win64.tar.gz
-      artifactName: $(tagartifact)-debug-win64.tar.gz
-    displayName: 'Publish tag artifact'
-    condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
+#   - task: PublishBuildArtifacts@1
+#     inputs: 
+#       pathtoPublish: $(Build.SourcesDirectory)\$(tagartifact)-debug-win64.tar.gz
+#       artifactName: $(tagartifact)-debug-win64.tar.gz
+#     displayName: 'Publish tag artifact'
+#     condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
 
-  - task: S3Upload@1
-    inputs:
-      awsCredentials: 'Streamlabs AWS'
-      regionName: 'us-west-2'
-      bucketName: 'obsstudionodes3.streamlabs.com'
-      globExpressions: '$(tagartifact)-debug-win64.tar.gz'
-      filesAcl: 'public-read'
-    displayName: 'Upload tag artifact to S3'
-    condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
+#   - task: S3Upload@1
+#     inputs:
+#       awsCredentials: 'Streamlabs AWS'
+#       regionName: 'us-west-2'
+#       bucketName: 'obsstudionodes3.streamlabs.com'
+#       globExpressions: '$(tagartifact)-debug-win64.tar.gz'
+#       filesAcl: 'public-read'
+#     displayName: 'Upload tag artifact to S3'
+#     condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
 
 # - job: 'MacOSX'
 #   pool:
