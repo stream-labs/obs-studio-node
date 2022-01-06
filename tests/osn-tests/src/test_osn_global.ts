@@ -43,26 +43,26 @@ describe(testName, () => {
     });
 
     it('Set source to output channel and get it', () => {
-        // Creating input source
-        const input = osn.InputFactory.create(EOBSInputTypes.ImageSource, 'test_osn_global_source');
+        // // Creating input source
+        // const input = osn.InputFactory.create(EOBSInputTypes.ImageSource, 'test_osn_global_source');
 
-        // Checking if input source was created correctly
-        expect(input).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateInput, EOBSInputTypes.ImageSource));
-        expect(input.id).to.equal(EOBSInputTypes.ImageSource, GetErrorMessage(ETestErrorMsg.InputId, EOBSInputTypes.ImageSource));
-        expect(input.name).to.equal('test_osn_global_source', GetErrorMessage(ETestErrorMsg.InputName, EOBSInputTypes.ImageSource));
+        // // Checking if input source was created correctly
+        // expect(input).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateInput, EOBSInputTypes.ImageSource));
+        // expect(input.id).to.equal(EOBSInputTypes.ImageSource, GetErrorMessage(ETestErrorMsg.InputId, EOBSInputTypes.ImageSource));
+        // expect(input.name).to.equal('test_osn_global_source', GetErrorMessage(ETestErrorMsg.InputName, EOBSInputTypes.ImageSource));
 
-        // Setting input source to output channel
-        osn.Global.setOutputSource(1, input);
+        // // Setting input source to output channel
+        // osn.Global.setOutputSource(1, input);
 
-        // Getting input source from output channel
-        const channel = 1;
-        const returnSource = osn.Global.getOutputSource(channel);
+        // // Getting input source from output channel
+        // const channel = 1;
+        // const returnSource = osn.Global.getOutputSource(channel);
 
-        // Checking if input source returned previously is correct
-        expect(returnSource).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.NoInputInChannel, channel.toString()));
-        expect(returnSource.id).to.equal(EOBSInputTypes.ImageSource, GetErrorMessage(ETestErrorMsg.InputFromChannelId));
-        expect(returnSource.name).to.equal('test_osn_global_source', GetErrorMessage(ETestErrorMsg.InputFromChannelName));
-        input.release();
+        // // Checking if input source returned previously is correct
+        // expect(returnSource).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.NoInputInChannel, channel.toString()));
+        // expect(returnSource.id).to.equal(EOBSInputTypes.ImageSource, GetErrorMessage(ETestErrorMsg.InputFromChannelId));
+        // expect(returnSource.name).to.equal('test_osn_global_source', GetErrorMessage(ETestErrorMsg.InputFromChannelName));
+        // input.release();
     });
 
     // it('Get flags (capabilities) of a source type', () => {
