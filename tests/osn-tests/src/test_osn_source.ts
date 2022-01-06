@@ -42,117 +42,117 @@ describe(testName, () => {
         }
     });
 
-    it('Get all osn-source info from all input types', () => {
-        obs.inputTypes.forEach(function(inputType) {
-            // Creating input source
-            const input = osn.InputFactory.create(inputType, 'input');
+    // it('Get all osn-source info from all input types', () => {
+    //     obs.inputTypes.forEach(function(inputType) {
+    //         // Creating input source
+    //         const input = osn.InputFactory.create(inputType, 'input');
 
-            // Checking if input source was created correctly
-            expect(input).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateInput, inputType));
+    //         // Checking if input source was created correctly
+    //         expect(input).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateInput, inputType));
 
-            // Getting input id
-            let id = undefined;
-            id = input.id;
-
-            // Checking if id was returned correctly
-            expect(id).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.SourceId,inputType));
-            expect(id).to.equal(inputType, GetErrorMessage(ETestErrorMsg.InputId, inputType));
-
-            // Getting input name
-            let inputName = undefined;
-            inputName = input.name;
-
-            // Checking if name was returned correctly
-            expect(inputName).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.SourceName, inputType));
-            expect(inputName).to.equal('input', GetErrorMessage(ETestErrorMsg.InputName, inputType));
-
-            // Getting input configurable value
-            let configurableValue = undefined;
-            configurableValue = input.configurable;
-
-            // Checking if configurable value was returned properly
-            expect(configurableValue).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Configurable, inputType));
-
-            // Getting input property
-            let properties = undefined;
-            properties = input.properties;
-
-            // Checking if properties were returned properly
-            expect(properties).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Properties, inputType));
-
-            // Getting input settings
-            let settings = undefined;
-            settings = input.settings;
-
-            // Checking if settings were returned properly
-            expect(settings).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Settings, inputType));
-
-            // Getting output flags
-            let outputFlags = undefined;
-            outputFlags = input.outputFlags;
-
-            // Checking if output flags were returned properly
-            expect(outputFlags).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.OutputFlags, inputType));
-
-            input.release();
-        });
-    });
-
-    // it('Get all osn-source info from all filter types', () => {
-    //     obs.filterTypes.forEach(function(filterType) {
-    //         // Creating filter
-    //         const filter = osn.FilterFactory.create(filterType, 'filter');
-
-    //         // Checking if filter source was created correctly
-    //         expect(filter).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateFilter, filterType));
-
-    //         // Getting filter id
+    //         // Getting input id
     //         let id = undefined;
-    //         id = filter.id;
+    //         id = input.id;
 
     //         // Checking if id was returned correctly
-    //         expect(id).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.SourceId, filterType));
-    //         expect(id).to.equal(filterType, GetErrorMessage(ETestErrorMsg.FilterId, filterType));
+    //         expect(id).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.SourceId,inputType));
+    //         expect(id).to.equal(inputType, GetErrorMessage(ETestErrorMsg.InputId, inputType));
 
-    //         // Getting filter name
-    //         let filterName = undefined;
-    //         filterName = filter.name;
+    //         // Getting input name
+    //         let inputName = undefined;
+    //         inputName = input.name;
 
     //         // Checking if name was returned correctly
-    //         expect(filterName).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.SourceName, filterType));
-    //         expect(filterName).to.equal('filter', GetErrorMessage(ETestErrorMsg.FilterName, filterType));
+    //         expect(inputName).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.SourceName, inputType));
+    //         expect(inputName).to.equal('input', GetErrorMessage(ETestErrorMsg.InputName, inputType));
 
-    //         // Getting filter configurable value
+    //         // Getting input configurable value
     //         let configurableValue = undefined;
-    //         configurableValue = filter.configurable;
+    //         configurableValue = input.configurable;
 
     //         // Checking if configurable value was returned properly
-    //         expect(configurableValue).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Configurable, filterType));
+    //         expect(configurableValue).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Configurable, inputType));
 
-    //         // Getting filter property
+    //         // Getting input property
     //         let properties = undefined;
-    //         properties = filter.properties;
+    //         properties = input.properties;
 
     //         // Checking if properties were returned properly
-    //         expect(properties).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Properties, filterType));
+    //         expect(properties).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Properties, inputType));
 
-    //         // Getting filter settings
+    //         // Getting input settings
     //         let settings = undefined;
-    //         settings = filter.settings;
+    //         settings = input.settings;
 
     //         // Checking if settings were returned properly
-    //         expect(settings).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Settings, filterType));
+    //         expect(settings).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Settings, inputType));
 
     //         // Getting output flags
     //         let outputFlags = undefined;
-    //         outputFlags = filter.outputFlags;
+    //         outputFlags = input.outputFlags;
 
     //         // Checking if output flags were returned properly
-    //         expect(outputFlags).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.OutputFlags, filterType));
+    //         expect(outputFlags).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.OutputFlags, inputType));
 
-    //         filter.release();
+    //         input.release();
     //     });
     // });
+
+    it('Get all osn-source info from all filter types', () => {
+        obs.filterTypes.forEach(function(filterType) {
+            // Creating filter
+            const filter = osn.FilterFactory.create(filterType, 'filter');
+
+            // Checking if filter source was created correctly
+            expect(filter).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateFilter, filterType));
+
+            // Getting filter id
+            let id = undefined;
+            id = filter.id;
+
+            // Checking if id was returned correctly
+            expect(id).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.SourceId, filterType));
+            expect(id).to.equal(filterType, GetErrorMessage(ETestErrorMsg.FilterId, filterType));
+
+            // Getting filter name
+            let filterName = undefined;
+            filterName = filter.name;
+
+            // Checking if name was returned correctly
+            expect(filterName).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.SourceName, filterType));
+            expect(filterName).to.equal('filter', GetErrorMessage(ETestErrorMsg.FilterName, filterType));
+
+            // Getting filter configurable value
+            let configurableValue = undefined;
+            configurableValue = filter.configurable;
+
+            // Checking if configurable value was returned properly
+            expect(configurableValue).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Configurable, filterType));
+
+            // Getting filter property
+            let properties = undefined;
+            properties = filter.properties;
+
+            // Checking if properties were returned properly
+            expect(properties).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Properties, filterType));
+
+            // Getting filter settings
+            let settings = undefined;
+            settings = filter.settings;
+
+            // Checking if settings were returned properly
+            expect(settings).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Settings, filterType));
+
+            // Getting output flags
+            let outputFlags = undefined;
+            outputFlags = filter.outputFlags;
+
+            // Checking if output flags were returned properly
+            expect(outputFlags).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.OutputFlags, filterType));
+
+            filter.release();
+        });
+    });
 
     // it('Get all osn-source info from all transition types', () => {
     //     obs.transitionTypes.forEach(function(transitionType) {
