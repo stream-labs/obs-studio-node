@@ -210,167 +210,167 @@ describe(testName, () => {
     //     });
     // });
 
-    it('Get all osn-source info of a scene', () => {
-        const sceneName = 'test_osn_scene';
+    // it('Get all osn-source info of a scene', () => {
+    //     const sceneName = 'test_osn_scene';
 
-        // Creating scene
-        const scene = osn.SceneFactory.create('test_osn_scene'); 
+    //     // Creating scene
+    //     const scene = osn.SceneFactory.create('test_osn_scene'); 
 
-        // Checking if scene was created correctly
-        expect(scene).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateScene, sceneName));
+    //     // Checking if scene was created correctly
+    //     expect(scene).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateScene, sceneName));
 
-        // Getting scene id
-        let id = undefined;
-        id = scene.id;
+    //     // Getting scene id
+    //     let id = undefined;
+    //     id = scene.id;
 
-        // Checking if id was returned correctly
-        expect(id).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.SourceId, sceneName));
-        expect(id).to.equal('scene', GetErrorMessage(ETestErrorMsg.SceneType, sceneName));
+    //     // Checking if id was returned correctly
+    //     expect(id).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.SourceId, sceneName));
+    //     expect(id).to.equal('scene', GetErrorMessage(ETestErrorMsg.SceneType, sceneName));
 
-        // Getting scene name
-        let returnedSceneName = undefined;
-        returnedSceneName = scene.name;
+    //     // Getting scene name
+    //     let returnedSceneName = undefined;
+    //     returnedSceneName = scene.name;
 
-        // Checking if name was returned correctly
-        expect(returnedSceneName).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.SourceName, sceneName));
-        expect(returnedSceneName).to.equal('test_osn_scene', GetErrorMessage(ETestErrorMsg.SceneName, sceneName));
+    //     // Checking if name was returned correctly
+    //     expect(returnedSceneName).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.SourceName, sceneName));
+    //     expect(returnedSceneName).to.equal('test_osn_scene', GetErrorMessage(ETestErrorMsg.SceneName, sceneName));
 
-        // Getting scene configurable value
-        let configurableValue = undefined;
-        configurableValue = scene.configurable;
+    //     // Getting scene configurable value
+    //     let configurableValue = undefined;
+    //     configurableValue = scene.configurable;
 
-        // Checking if configurable value was returned properly
-        expect(configurableValue).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Configurable, sceneName));
+    //     // Checking if configurable value was returned properly
+    //     expect(configurableValue).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Configurable, sceneName));
 
-        // Getting scene properties
-        let properties = undefined;
-        properties = scene.properties;
+    //     // Getting scene properties
+    //     let properties = undefined;
+    //     properties = scene.properties;
 
-        // Checking if properties were returned properly
-        expect(properties).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Properties, sceneName));
+    //     // Checking if properties were returned properly
+    //     expect(properties).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Properties, sceneName));
 
-        // Getting scene settings
-        let settings = undefined;
-        settings = scene.settings;
+    //     // Getting scene settings
+    //     let settings = undefined;
+    //     settings = scene.settings;
 
-        // Checking if settings were returned properly
-        expect(settings).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Settings, sceneName));
+    //     // Checking if settings were returned properly
+    //     expect(settings).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Settings, sceneName));
 
-        // Getting output flags
-        let outputFlags = undefined;
-        outputFlags = scene.outputFlags;
+    //     // Getting output flags
+    //     let outputFlags = undefined;
+    //     outputFlags = scene.outputFlags;
 
-        // Checking if output flags were returned properly
-        expect(outputFlags).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.OutputFlags, sceneName));
+    //     // Checking if output flags were returned properly
+    //     expect(outputFlags).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.OutputFlags, sceneName));
 
-        scene.release();
-    });
-
-    // it('Update settings of all inputs', () => {
-    //     let settings: ISettings = {};
-
-    //     obs.inputTypes.forEach(function(inputType) {
-    //         // Creating input source
-    //         const input = osn.InputFactory.create(inputType, 'input');
-
-    //         // Checking if input source was created correctly
-    //         expect(input).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateInput, inputType));
-    //         expect(input.id).to.equal(inputType, GetErrorMessage(ETestErrorMsg.InputId, inputType));
-    //         expect(input.name).to.equal('input', GetErrorMessage(ETestErrorMsg.InputName, inputType));
-
-    //         // Preparing settings object
-    //         settings = input.settings;
-            
-    //         switch(inputType) {
-    //             case EOBSInputTypes.ImageSource: {
-    //                 settings['unload'] = true;
-    //                 break;
-    //             }
-    //             case EOBSInputTypes.ColorSource: {
-    //                 settings['height'] = 500;
-    //                 settings['width'] = 600;
-    //                 break;
-    //             }
-    //             case EOBSInputTypes.Slideshow: {
-    //                 settings['loop'] = false;
-    //                 settings['slide_time'] = 9000;
-    //                 settings['transition_speed'] = 800;
-    //                 break;
-    //             }
-    //             case EOBSInputTypes.BrowserSource: {
-    //                 settings['fps'] = 60;
-    //                 settings['height'] = 500;
-    //                 settings['restart_when_active'] = true;
-    //                 settings['shutdown'] = true;
-    //                 break;
-    //             }
-    //             case EOBSInputTypes.FFMPEGSource: {
-    //                 settings['buffering_mb'] = 3;
-    //                 settings['clear_on_media_end'] = false;
-    //                 settings['looping'] = true;
-    //                 settings['speed_percent'] = 80;
-    //                 settings['caching'] = true;
-    //                 break;
-    //             }
-    //             case EOBSInputTypes.TextGDI: {
-    //                 settings['align'] = 'right';
-    //                 settings['extents_cx'] = 90;
-    //                 settings['extents_cy'] = 90;
-    //                 settings['valign'] = 'bottom';
-    //                 break;
-    //             }
-    //             case EOBSInputTypes.TextFT2: {
-    //                 settings['color1'] = 4294967296;
-    //                 settings['color2'] = 5294967295;
-    //                 break;
-    //             }
-    //             case EOBSInputTypes.MonitorCapture: {
-    //                 settings['capture_cursor'] = false;
-    //                 settings['monitor'] = 1;
-    //                 break;
-    //             }
-    //             case EOBSInputTypes.WindowCapture: {
-    //                 settings['compatibility'] = true;
-    //                 settings['cursor'] = false;
-    //                 break;
-    //             }
-    //             case EOBSInputTypes.GameCapture: {
-    //                 settings['allow_transparency'] = true;
-    //                 settings['force_scaling'] = true;
-    //                 settings['hook_rate'] = 2;
-    //                 break;
-    //             }
-    //             case EOBSInputTypes.DShowInput: {
-    //                 settings['audio_output_mode'] = 1;
-    //                 settings['res_type'] = 1;
-    //                 settings['video_format'] = 2;
-    //                 break;
-    //             }
-    //             case EOBSInputTypes.WASAPIInput: {
-    //                 settings['use_device_timing'] = true;
-    //                 break;
-    //             }
-    //             case EOBSInputTypes.WASAPIOutput: {
-    //                 settings['use_device_timing'] = false;
-    //                 break;
-    //             }
-    //         }
-
-    //         // Updating settings of source
-    //         input.update(settings);
-
-    //         // Sending save signal to source
-    //         expect(function() {
-    //             input.save();
-    //         }).to.not.throw();
-
-    //         // Checking if setting was added to source
-    //         expect(input.settings).to.eql(settings, GetErrorMessage(ETestErrorMsg.SaveSettings, inputType));
-
-    //         settings = {};
-    //         input.release();
-    //     });
+    //     scene.release();
     // });
+
+    it('Update settings of all inputs', () => {
+        let settings: ISettings = {};
+
+        obs.inputTypes.forEach(function(inputType) {
+            // Creating input source
+            const input = osn.InputFactory.create(inputType, 'input');
+
+            // Checking if input source was created correctly
+            expect(input).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateInput, inputType));
+            expect(input.id).to.equal(inputType, GetErrorMessage(ETestErrorMsg.InputId, inputType));
+            expect(input.name).to.equal('input', GetErrorMessage(ETestErrorMsg.InputName, inputType));
+
+            // Preparing settings object
+            settings = input.settings;
+            
+            switch(inputType) {
+                case EOBSInputTypes.ImageSource: {
+                    settings['unload'] = true;
+                    break;
+                }
+                case EOBSInputTypes.ColorSource: {
+                    settings['height'] = 500;
+                    settings['width'] = 600;
+                    break;
+                }
+                case EOBSInputTypes.Slideshow: {
+                    settings['loop'] = false;
+                    settings['slide_time'] = 9000;
+                    settings['transition_speed'] = 800;
+                    break;
+                }
+                case EOBSInputTypes.BrowserSource: {
+                    settings['fps'] = 60;
+                    settings['height'] = 500;
+                    settings['restart_when_active'] = true;
+                    settings['shutdown'] = true;
+                    break;
+                }
+                case EOBSInputTypes.FFMPEGSource: {
+                    settings['buffering_mb'] = 3;
+                    settings['clear_on_media_end'] = false;
+                    settings['looping'] = true;
+                    settings['speed_percent'] = 80;
+                    settings['caching'] = true;
+                    break;
+                }
+                case EOBSInputTypes.TextGDI: {
+                    settings['align'] = 'right';
+                    settings['extents_cx'] = 90;
+                    settings['extents_cy'] = 90;
+                    settings['valign'] = 'bottom';
+                    break;
+                }
+                case EOBSInputTypes.TextFT2: {
+                    settings['color1'] = 4294967296;
+                    settings['color2'] = 5294967295;
+                    break;
+                }
+                case EOBSInputTypes.MonitorCapture: {
+                    settings['capture_cursor'] = false;
+                    settings['monitor'] = 1;
+                    break;
+                }
+                case EOBSInputTypes.WindowCapture: {
+                    settings['compatibility'] = true;
+                    settings['cursor'] = false;
+                    break;
+                }
+                case EOBSInputTypes.GameCapture: {
+                    settings['allow_transparency'] = true;
+                    settings['force_scaling'] = true;
+                    settings['hook_rate'] = 2;
+                    break;
+                }
+                case EOBSInputTypes.DShowInput: {
+                    settings['audio_output_mode'] = 1;
+                    settings['res_type'] = 1;
+                    settings['video_format'] = 2;
+                    break;
+                }
+                case EOBSInputTypes.WASAPIInput: {
+                    settings['use_device_timing'] = true;
+                    break;
+                }
+                case EOBSInputTypes.WASAPIOutput: {
+                    settings['use_device_timing'] = false;
+                    break;
+                }
+            }
+
+            // Updating settings of source
+            input.update(settings);
+
+            // Sending save signal to source
+            expect(function() {
+                input.save();
+            }).to.not.throw();
+
+            // Checking if setting was added to source
+            expect(input.settings).to.eql(settings, GetErrorMessage(ETestErrorMsg.SaveSettings, inputType));
+
+            settings = {};
+            input.release();
+        });
+    });
 
     // it('Update settings of all filters', () => {
     //     let settings: ISettings = {};
