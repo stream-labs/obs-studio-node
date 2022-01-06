@@ -43,8 +43,8 @@ describe(testName, () => {
     });
 
     it('Set source to output channel and get it', () => {
-        // // Creating input source
-        // const input = osn.InputFactory.create(EOBSInputTypes.ImageSource, 'test_osn_global_source');
+        // Creating input source
+        const input = osn.InputFactory.create(EOBSInputTypes.ImageSource, 'test_osn_global_source');
 
         // // Checking if input source was created correctly
         // expect(input).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateInput, EOBSInputTypes.ImageSource));
@@ -62,7 +62,7 @@ describe(testName, () => {
         // expect(returnSource).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.NoInputInChannel, channel.toString()));
         // expect(returnSource.id).to.equal(EOBSInputTypes.ImageSource, GetErrorMessage(ETestErrorMsg.InputFromChannelId));
         // expect(returnSource.name).to.equal('test_osn_global_source', GetErrorMessage(ETestErrorMsg.InputFromChannelName));
-        // input.release();
+        input.release();
     });
 
     // it('Get flags (capabilities) of a source type', () => {
