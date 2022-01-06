@@ -788,12 +788,19 @@ void OBS_service::setupAudioEncoder(void)
 
 void OBS_service::clearAudioEncoder(void)
 {
+	std::cout << "clearAudioEncoder - 0" << std::endl;
 	for (int i = 0; i < MAX_AUDIO_MIXES; i++) {
+		std::cout << "clearAudioEncoder - 1: " << i << std::endl;
 		if (aacTracks[i]) {
+			std::cout << "clearAudioEncoder - 2: " << i << std::endl;
 			obs_encoder_release(aacTracks[i]);
+			std::cout << "clearAudioEncoder - 3: " << i << std::endl;
 			aacTracks[i] = nullptr;
+			std::cout << "clearAudioEncoder - 4: " << i << std::endl;
 		}
+		std::cout << "clearAudioEncoder - 5: " << i << std::endl;
 	}
+	std::cout << "clearAudioEncoder - 6" << std::endl;
 }
 
 void OBS_service::updateStreamingEncoders(bool isSimpleMode)
