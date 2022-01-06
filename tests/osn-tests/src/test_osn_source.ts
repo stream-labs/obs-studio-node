@@ -493,75 +493,75 @@ describe(testName, () => {
     //     });
     // });
 
-    it('Update settings of all transitions', () => {
-        let settings: ISettings = {};
+    // it('Update settings of all transitions', () => {
+    //     let settings: ISettings = {};
 
-        obs.transitionTypes.forEach(function(transitionType) {
-            if(transitionType == EOBSTransitionTypes.FadeToColor ||
-                transitionType == EOBSTransitionTypes.Wipe) {
-                // Creating filter
-                const transition = osn.FilterFactory.create(transitionType, 'transition');
+    //     obs.transitionTypes.forEach(function(transitionType) {
+    //         if(transitionType == EOBSTransitionTypes.FadeToColor ||
+    //             transitionType == EOBSTransitionTypes.Wipe) {
+    //             // Creating filter
+    //             const transition = osn.FilterFactory.create(transitionType, 'transition');
     
-                // Checking if filter source was created correctly
-                expect(transition).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateTransition, transitionType));
-                expect(transition.id).to.equal(transitionType, GetErrorMessage(ETestErrorMsg.TransitionId, transitionType));
-                expect(transition.name).to.equal('transition', GetErrorMessage(ETestErrorMsg.TransitionName, transitionType));
+    //             // Checking if filter source was created correctly
+    //             expect(transition).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateTransition, transitionType));
+    //             expect(transition.id).to.equal(transitionType, GetErrorMessage(ETestErrorMsg.TransitionId, transitionType));
+    //             expect(transition.name).to.equal('transition', GetErrorMessage(ETestErrorMsg.TransitionName, transitionType));
 
-                // Preparing settings object
-                settings = transition.settings;
+    //             // Preparing settings object
+    //             settings = transition.settings;
 
-                switch(transitionType) {
-                    case EOBSTransitionTypes.FadeToColor: {
-                        settings['color'] = 5278190080;
-                        settings['switch_point'] = 80;
-                        break;
-                    }
-                    case EOBSTransitionTypes.Wipe: {
-                        settings['luma_invert'] = true;
-                        settings['luma_softness'] = 0.05;
-                        break;
-                    }
-                }
+    //             switch(transitionType) {
+    //                 case EOBSTransitionTypes.FadeToColor: {
+    //                     settings['color'] = 5278190080;
+    //                     settings['switch_point'] = 80;
+    //                     break;
+    //                 }
+    //                 case EOBSTransitionTypes.Wipe: {
+    //                     settings['luma_invert'] = true;
+    //                     settings['luma_softness'] = 0.05;
+    //                     break;
+    //                 }
+    //             }
     
-                // Updating settings of transition
-                transition.update(settings);
+    //             // Updating settings of transition
+    //             transition.update(settings);
 
-                // Sending save signal to transition
-                expect(function() {
-                    transition.save();
-                }).to.not.throw();
+    //             // Sending save signal to transition
+    //             expect(function() {
+    //                 transition.save();
+    //             }).to.not.throw();
 
-                // Checking if setting was added to transition
-                expect(transition.settings).to.include(settings, GetErrorMessage(ETestErrorMsg.SaveSettings, transitionType));
+    //             // Checking if setting was added to transition
+    //             expect(transition.settings).to.include(settings, GetErrorMessage(ETestErrorMsg.SaveSettings, transitionType));
     
-                transition.release();
-            }
-        });
-    });
-
-    // it('Set flags and get them for all input source types', () => {
-    //     obs.inputTypes.forEach(function(inputType) {
-    //         // Creating input source
-    //         const input = osn.InputFactory.create(inputType, 'input');
-
-    //         // Checking if input source was created correctly
-    //         expect(input).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateInput, inputType));
-    //         expect(input.id).to.equal(inputType, GetErrorMessage(ETestErrorMsg.InputId, inputType));
-    //         expect(input.name).to.equal('input', GetErrorMessage(ETestErrorMsg.InputName, inputType));
-
-    //         // Setting input source flags
-    //         input.flags = osn.ESourceFlags.ForceMono;
-
-    //         // Getting input source flags
-    //         const flags = input.flags;
-
-    //         // Checking if flags were returned correctly
-    //         expect(flags).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Flags, inputType));
-    //         expect(flags).to.equal(osn.ESourceFlags.ForceMono, GetErrorMessage(ETestErrorMsg.FlagsWrongValue, inputType));
-
-    //         input.release();
+    //             transition.release();
+    //         }
     //     });
     // });
+
+    it('Set flags and get them for all input source types', () => {
+        obs.inputTypes.forEach(function(inputType) {
+            // Creating input source
+            const input = osn.InputFactory.create(inputType, 'input');
+
+            // Checking if input source was created correctly
+            expect(input).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateInput, inputType));
+            expect(input.id).to.equal(inputType, GetErrorMessage(ETestErrorMsg.InputId, inputType));
+            expect(input.name).to.equal('input', GetErrorMessage(ETestErrorMsg.InputName, inputType));
+
+            // Setting input source flags
+            input.flags = osn.ESourceFlags.ForceMono;
+
+            // Getting input source flags
+            const flags = input.flags;
+
+            // Checking if flags were returned correctly
+            expect(flags).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Flags, inputType));
+            expect(flags).to.equal(osn.ESourceFlags.ForceMono, GetErrorMessage(ETestErrorMsg.FlagsWrongValue, inputType));
+
+            input.release();
+        });
+    });
 
     // it('Set muted and get it for all input source types', () => {
     //     obs.inputTypes.forEach(function(inputType) {
