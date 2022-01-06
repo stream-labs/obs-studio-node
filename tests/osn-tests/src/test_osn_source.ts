@@ -98,117 +98,117 @@ describe(testName, () => {
     //     });
     // });
 
-    it('Get all osn-source info from all filter types', () => {
-        obs.filterTypes.forEach(function(filterType) {
-            // Creating filter
-            const filter = osn.FilterFactory.create(filterType, 'filter');
+    // it('Get all osn-source info from all filter types', () => {
+    //     obs.filterTypes.forEach(function(filterType) {
+    //         // Creating filter
+    //         const filter = osn.FilterFactory.create(filterType, 'filter');
 
-            // Checking if filter source was created correctly
-            expect(filter).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateFilter, filterType));
+    //         // Checking if filter source was created correctly
+    //         expect(filter).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateFilter, filterType));
 
-            // Getting filter id
-            let id = undefined;
-            id = filter.id;
-
-            // Checking if id was returned correctly
-            expect(id).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.SourceId, filterType));
-            expect(id).to.equal(filterType, GetErrorMessage(ETestErrorMsg.FilterId, filterType));
-
-            // Getting filter name
-            let filterName = undefined;
-            filterName = filter.name;
-
-            // Checking if name was returned correctly
-            expect(filterName).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.SourceName, filterType));
-            expect(filterName).to.equal('filter', GetErrorMessage(ETestErrorMsg.FilterName, filterType));
-
-            // Getting filter configurable value
-            let configurableValue = undefined;
-            configurableValue = filter.configurable;
-
-            // Checking if configurable value was returned properly
-            expect(configurableValue).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Configurable, filterType));
-
-            // Getting filter property
-            let properties = undefined;
-            properties = filter.properties;
-
-            // Checking if properties were returned properly
-            expect(properties).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Properties, filterType));
-
-            // Getting filter settings
-            let settings = undefined;
-            settings = filter.settings;
-
-            // Checking if settings were returned properly
-            expect(settings).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Settings, filterType));
-
-            // Getting output flags
-            let outputFlags = undefined;
-            outputFlags = filter.outputFlags;
-
-            // Checking if output flags were returned properly
-            expect(outputFlags).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.OutputFlags, filterType));
-
-            filter.release();
-        });
-    });
-
-    // it('Get all osn-source info from all transition types', () => {
-    //     obs.transitionTypes.forEach(function(transitionType) {
-    //         // Creating transition
-    //         const transition = osn.TransitionFactory.create(transitionType, 'transition');
-
-    //         // Checking if transition was created correctly
-    //         expect(transition).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateTransition, transitionType));
-
-    //         // Getting transition id
+    //         // Getting filter id
     //         let id = undefined;
-    //         id = transition.id;
+    //         id = filter.id;
 
     //         // Checking if id was returned correctly
-    //         expect(id).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.SourceId, transitionType));
-    //         expect(id).to.equal(transitionType, GetErrorMessage(ETestErrorMsg.TransitionId, transitionType));
+    //         expect(id).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.SourceId, filterType));
+    //         expect(id).to.equal(filterType, GetErrorMessage(ETestErrorMsg.FilterId, filterType));
 
-    //         // Getting transition name
-    //         let transitionName = undefined;
-    //         transitionName = transition.name;
+    //         // Getting filter name
+    //         let filterName = undefined;
+    //         filterName = filter.name;
 
     //         // Checking if name was returned correctly
-    //         expect(transitionName).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.SourceName, transitionType));
-    //         expect(transitionName).to.equal('transition', GetErrorMessage(ETestErrorMsg.TransitionName, transitionType));
+    //         expect(filterName).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.SourceName, filterType));
+    //         expect(filterName).to.equal('filter', GetErrorMessage(ETestErrorMsg.FilterName, filterType));
 
-    //         // Getting transition configurable value
+    //         // Getting filter configurable value
     //         let configurableValue = undefined;
-    //         configurableValue = transition.configurable;
+    //         configurableValue = filter.configurable;
 
     //         // Checking if configurable value was returned properly
-    //         expect(configurableValue).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Configurable, transitionType));
+    //         expect(configurableValue).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Configurable, filterType));
 
-    //         // Getting transition property
+    //         // Getting filter property
     //         let properties = undefined;
-    //         properties = transition.properties;
+    //         properties = filter.properties;
 
     //         // Checking if properties were returned properly
-    //         expect(properties).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Properties, transitionType));
+    //         expect(properties).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Properties, filterType));
 
-    //         // Getting transition settings
+    //         // Getting filter settings
     //         let settings = undefined;
-    //         settings = transition.settings;
+    //         settings = filter.settings;
 
     //         // Checking if settings were returned properly
-    //         expect(settings).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Settings, transitionType));
+    //         expect(settings).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Settings, filterType));
 
     //         // Getting output flags
     //         let outputFlags = undefined;
-    //         outputFlags = transition.outputFlags;
+    //         outputFlags = filter.outputFlags;
 
     //         // Checking if output flags were returned properly
-    //         expect(outputFlags).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.OutputFlags, transitionType));
+    //         expect(outputFlags).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.OutputFlags, filterType));
 
-    //         transition.release();
+    //         filter.release();
     //     });
     // });
+
+    it('Get all osn-source info from all transition types', () => {
+        obs.transitionTypes.forEach(function(transitionType) {
+            // Creating transition
+            const transition = osn.TransitionFactory.create(transitionType, 'transition');
+
+            // Checking if transition was created correctly
+            expect(transition).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateTransition, transitionType));
+
+            // Getting transition id
+            let id = undefined;
+            id = transition.id;
+
+            // Checking if id was returned correctly
+            expect(id).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.SourceId, transitionType));
+            expect(id).to.equal(transitionType, GetErrorMessage(ETestErrorMsg.TransitionId, transitionType));
+
+            // Getting transition name
+            let transitionName = undefined;
+            transitionName = transition.name;
+
+            // Checking if name was returned correctly
+            expect(transitionName).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.SourceName, transitionType));
+            expect(transitionName).to.equal('transition', GetErrorMessage(ETestErrorMsg.TransitionName, transitionType));
+
+            // Getting transition configurable value
+            let configurableValue = undefined;
+            configurableValue = transition.configurable;
+
+            // Checking if configurable value was returned properly
+            expect(configurableValue).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Configurable, transitionType));
+
+            // Getting transition property
+            let properties = undefined;
+            properties = transition.properties;
+
+            // Checking if properties were returned properly
+            expect(properties).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Properties, transitionType));
+
+            // Getting transition settings
+            let settings = undefined;
+            settings = transition.settings;
+
+            // Checking if settings were returned properly
+            expect(settings).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Settings, transitionType));
+
+            // Getting output flags
+            let outputFlags = undefined;
+            outputFlags = transition.outputFlags;
+
+            // Checking if output flags were returned properly
+            expect(outputFlags).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.OutputFlags, transitionType));
+
+            transition.release();
+        });
+    });
 
     // it('Get all osn-source info of a scene', () => {
     //     const sceneName = 'test_osn_scene';
