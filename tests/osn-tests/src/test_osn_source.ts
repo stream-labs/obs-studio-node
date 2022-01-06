@@ -73,12 +73,12 @@ describe(testName, () => {
             // Checking if configurable value was returned properly
             expect(configurableValue).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Configurable, inputType));
 
-            // // Getting input property
-            // let properties = undefined;
-            // properties = input.properties;
+            // Getting input property
+            let properties = undefined;
+            properties = input.properties;
 
-            // // Checking if properties were returned properly
-            // expect(properties).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Properties, inputType));
+            // Checking if properties were returned properly
+            expect(properties).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Properties, inputType));
 
             // // Getting input settings
             // let settings = undefined;
