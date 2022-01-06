@@ -87,12 +87,12 @@ describe(testName, () => {
             // Checking if settings were returned properly
             expect(settings).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Settings, inputType));
 
-            // // Getting output flags
-            // let outputFlags = undefined;
-            // outputFlags = input.outputFlags;
+            // Getting output flags
+            let outputFlags = undefined;
+            outputFlags = input.outputFlags;
 
-            // // Checking if output flags were returned properly
-            // expect(outputFlags).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.OutputFlags, inputType));
+            // Checking if output flags were returned properly
+            expect(outputFlags).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.OutputFlags, inputType));
 
             input.release();
         });
