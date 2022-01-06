@@ -154,117 +154,117 @@ describe(testName, () => {
         });
     });
 
-    // it('Get all osn-source info from all transition types', () => {
-    //     obs.transitionTypes.forEach(function(transitionType) {
-    //         // Creating transition
-    //         const transition = osn.TransitionFactory.create(transitionType, 'transition');
+    it('Get all osn-source info from all transition types', () => {
+        obs.transitionTypes.forEach(function(transitionType) {
+            // Creating transition
+            const transition = osn.TransitionFactory.create(transitionType, 'transition');
 
-    //         // Checking if transition was created correctly
-    //         expect(transition).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateTransition, transitionType));
+            // Checking if transition was created correctly
+            expect(transition).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateTransition, transitionType));
 
-    //         // Getting transition id
-    //         let id = undefined;
-    //         id = transition.id;
+            // Getting transition id
+            let id = undefined;
+            id = transition.id;
 
-    //         // Checking if id was returned correctly
-    //         expect(id).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.SourceId, transitionType));
-    //         expect(id).to.equal(transitionType, GetErrorMessage(ETestErrorMsg.TransitionId, transitionType));
+            // Checking if id was returned correctly
+            expect(id).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.SourceId, transitionType));
+            expect(id).to.equal(transitionType, GetErrorMessage(ETestErrorMsg.TransitionId, transitionType));
 
-    //         // Getting transition name
-    //         let transitionName = undefined;
-    //         transitionName = transition.name;
+            // Getting transition name
+            let transitionName = undefined;
+            transitionName = transition.name;
 
-    //         // Checking if name was returned correctly
-    //         expect(transitionName).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.SourceName, transitionType));
-    //         expect(transitionName).to.equal('transition', GetErrorMessage(ETestErrorMsg.TransitionName, transitionType));
+            // Checking if name was returned correctly
+            expect(transitionName).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.SourceName, transitionType));
+            expect(transitionName).to.equal('transition', GetErrorMessage(ETestErrorMsg.TransitionName, transitionType));
 
-    //         // Getting transition configurable value
-    //         let configurableValue = undefined;
-    //         configurableValue = transition.configurable;
+            // Getting transition configurable value
+            let configurableValue = undefined;
+            configurableValue = transition.configurable;
 
-    //         // Checking if configurable value was returned properly
-    //         expect(configurableValue).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Configurable, transitionType));
+            // Checking if configurable value was returned properly
+            expect(configurableValue).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Configurable, transitionType));
 
-    //         // Getting transition property
-    //         let properties = undefined;
-    //         properties = transition.properties;
+            // Getting transition property
+            let properties = undefined;
+            properties = transition.properties;
 
-    //         // Checking if properties were returned properly
-    //         expect(properties).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Properties, transitionType));
+            // Checking if properties were returned properly
+            expect(properties).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Properties, transitionType));
 
-    //         // Getting transition settings
-    //         let settings = undefined;
-    //         settings = transition.settings;
+            // Getting transition settings
+            let settings = undefined;
+            settings = transition.settings;
 
-    //         // Checking if settings were returned properly
-    //         expect(settings).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Settings, transitionType));
+            // Checking if settings were returned properly
+            expect(settings).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Settings, transitionType));
 
-    //         // Getting output flags
-    //         let outputFlags = undefined;
-    //         outputFlags = transition.outputFlags;
+            // Getting output flags
+            let outputFlags = undefined;
+            outputFlags = transition.outputFlags;
 
-    //         // Checking if output flags were returned properly
-    //         expect(outputFlags).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.OutputFlags, transitionType));
+            // Checking if output flags were returned properly
+            expect(outputFlags).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.OutputFlags, transitionType));
 
-    //         transition.release();
-    //     });
-    // });
+            transition.release();
+        });
+    });
 
-    // it('Get all osn-source info of a scene', () => {
-    //     const sceneName = 'test_osn_scene';
+    it('Get all osn-source info of a scene', () => {
+        const sceneName = 'test_osn_scene';
 
-    //     // Creating scene
-    //     const scene = osn.SceneFactory.create('test_osn_scene'); 
+        // Creating scene
+        const scene = osn.SceneFactory.create('test_osn_scene'); 
 
-    //     // Checking if scene was created correctly
-    //     expect(scene).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateScene, sceneName));
+        // Checking if scene was created correctly
+        expect(scene).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateScene, sceneName));
 
-    //     // Getting scene id
-    //     let id = undefined;
-    //     id = scene.id;
+        // Getting scene id
+        let id = undefined;
+        id = scene.id;
 
-    //     // Checking if id was returned correctly
-    //     expect(id).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.SourceId, sceneName));
-    //     expect(id).to.equal('scene', GetErrorMessage(ETestErrorMsg.SceneType, sceneName));
+        // Checking if id was returned correctly
+        expect(id).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.SourceId, sceneName));
+        expect(id).to.equal('scene', GetErrorMessage(ETestErrorMsg.SceneType, sceneName));
 
-    //     // Getting scene name
-    //     let returnedSceneName = undefined;
-    //     returnedSceneName = scene.name;
+        // Getting scene name
+        let returnedSceneName = undefined;
+        returnedSceneName = scene.name;
 
-    //     // Checking if name was returned correctly
-    //     expect(returnedSceneName).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.SourceName, sceneName));
-    //     expect(returnedSceneName).to.equal('test_osn_scene', GetErrorMessage(ETestErrorMsg.SceneName, sceneName));
+        // Checking if name was returned correctly
+        expect(returnedSceneName).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.SourceName, sceneName));
+        expect(returnedSceneName).to.equal('test_osn_scene', GetErrorMessage(ETestErrorMsg.SceneName, sceneName));
 
-    //     // Getting scene configurable value
-    //     let configurableValue = undefined;
-    //     configurableValue = scene.configurable;
+        // Getting scene configurable value
+        let configurableValue = undefined;
+        configurableValue = scene.configurable;
 
-    //     // Checking if configurable value was returned properly
-    //     expect(configurableValue).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Configurable, sceneName));
+        // Checking if configurable value was returned properly
+        expect(configurableValue).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Configurable, sceneName));
 
-    //     // Getting scene properties
-    //     let properties = undefined;
-    //     properties = scene.properties;
+        // Getting scene properties
+        let properties = undefined;
+        properties = scene.properties;
 
-    //     // Checking if properties were returned properly
-    //     expect(properties).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Properties, sceneName));
+        // Checking if properties were returned properly
+        expect(properties).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Properties, sceneName));
 
-    //     // Getting scene settings
-    //     let settings = undefined;
-    //     settings = scene.settings;
+        // Getting scene settings
+        let settings = undefined;
+        settings = scene.settings;
 
-    //     // Checking if settings were returned properly
-    //     expect(settings).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Settings, sceneName));
+        // Checking if settings were returned properly
+        expect(settings).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Settings, sceneName));
 
-    //     // Getting output flags
-    //     let outputFlags = undefined;
-    //     outputFlags = scene.outputFlags;
+        // Getting output flags
+        let outputFlags = undefined;
+        outputFlags = scene.outputFlags;
 
-    //     // Checking if output flags were returned properly
-    //     expect(outputFlags).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.OutputFlags, sceneName));
+        // Checking if output flags were returned properly
+        expect(outputFlags).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.OutputFlags, sceneName));
 
-    //     scene.release();
-    // });
+        scene.release();
+    });
 
     // it('Update settings of all inputs', () => {
     //     let settings: ISettings = {};
