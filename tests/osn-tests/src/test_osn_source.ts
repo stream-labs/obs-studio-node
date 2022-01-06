@@ -372,126 +372,126 @@ describe(testName, () => {
         });
     });
 
-    it('Update settings of all filters', () => {
-        let settings: ISettings = {};
+    // it('Update settings of all filters', () => {
+    //     let settings: ISettings = {};
 
-        obs.filterTypes.forEach(function(filterType) {
-            if (filterType != EOBSFilterTypes.GPUDelay &&
-                filterType != EOBSFilterTypes.AsyncDelay &&
-                filterType != EOBSFilterTypes.InvertPolarity &&
-                filterType != EOBSFilterTypes.PremultipliedAlpha &&
-                filterType != EOBSFilterTypes.VST) {
-                // Creating filter
-                const filter = osn.FilterFactory.create(filterType, 'filter');
+    //     obs.filterTypes.forEach(function(filterType) {
+    //         if (filterType != EOBSFilterTypes.GPUDelay &&
+    //             filterType != EOBSFilterTypes.AsyncDelay &&
+    //             filterType != EOBSFilterTypes.InvertPolarity &&
+    //             filterType != EOBSFilterTypes.PremultipliedAlpha &&
+    //             filterType != EOBSFilterTypes.VST) {
+    //             // Creating filter
+    //             const filter = osn.FilterFactory.create(filterType, 'filter');
     
-                // Checking if filter source was created correctly
-                expect(filter).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateFilter, filterType));
-                expect(filter.id).to.equal(filterType, GetErrorMessage(ETestErrorMsg.FilterId, filterType));
-                expect(filter.name).to.equal('filter', GetErrorMessage(ETestErrorMsg.FilterName, filterType));
+    //             // Checking if filter source was created correctly
+    //             expect(filter).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateFilter, filterType));
+    //             expect(filter.id).to.equal(filterType, GetErrorMessage(ETestErrorMsg.FilterId, filterType));
+    //             expect(filter.name).to.equal('filter', GetErrorMessage(ETestErrorMsg.FilterName, filterType));
 
-                // Preparing settings object
-                settings = filter.settings;
+    //             // Preparing settings object
+    //             settings = filter.settings;
 
-                switch(filterType) {
-                    case EOBSFilterTypes.Mask: {
-                        settings['color'] = 26777215;
-                        settings['opacity'] = 80;
-                        break;
-                    }
-                    case EOBSFilterTypes.Crop: {
-                        settings['relative'] = false;
-                        break;
-                    }
-                    case EOBSFilterTypes.Gain: {
-                        settings['db'] = 5;
-                        break;
-                    }
-                    case EOBSFilterTypes.Color: {
-                        settings['brightness'] = 10;
-                        settings['contrast'] = 15;
-                        settings['saturation'] = 55;
-                        break;
-                    }
-                    case EOBSFilterTypes.Scale: {
-                        settings['sampling'] = 'bilinear';
-                        settings['undistort'] = true;
-                        break;
-                    }
-                    case EOBSFilterTypes.Scroll: {
-                        settings['cx'] = 80;
-                        settings['cy'] = 60;
-                        settings['limit_size'] = true;
-                        break;
-                    }
-                    case EOBSFilterTypes.ColorKey: {
-                        settings['gamma'] = 60;
-                        settings['key_color_type'] = 'red';
-                        settings['similarity'] = 55;
-                        break;
-                    }
-                    case EOBSFilterTypes.Clut: {
-                        settings['clut_amount'] = 2;
-                        break;
-                    }
-                    case EOBSFilterTypes.Sharpness: {
-                        settings['sharpness'] = 0.05;
-                        break;
-                    }
-                    case EOBSFilterTypes.ChromaKey: {
-                        settings['key_color'] = 68280;
-                        settings['smoothness'] = 20;
-                        settings['spill'] = 90;
-                        break;
-                    }
-                    case EOBSFilterTypes.NoiseSuppress: {
-                        settings['suppress_level'] = -10;
-                        settings['']
-                        break;
-                    }
-                    case EOBSFilterTypes.NoiseGate: {
-                        settings['hold_time'] = 120;
-                        settings['open_threshold'] = -12;
-                        settings['release_time'] = 80;
-                        break;
-                    }
-                    case EOBSFilterTypes.Compressor: {
-                        settings['attack_time'] = 8;
-                        settings['output_gain'] = 4;
-                        settings['threshold'] = -9;
-                        break;
-                    }
-                    case EOBSFilterTypes.Limiter: {
-                        settings['release_time'] = 30;
-                        settings['threshold'] = -12;
-                        break;
-                    }
-                    case EOBSFilterTypes.Expander: {
-                        settings['attack_time'] = 15;
-                        settings['ratio'] = 5;
-                        settings['threshold'] = -20;
-                        break;
-                    }
-                    case EOBSFilterTypes.NDI:
-                    case EOBSFilterTypes.NDIAudio: {
-                        settings['ndi_filter_name'] = 'Test Filter';
-                    }
-                }
+    //             switch(filterType) {
+    //                 case EOBSFilterTypes.Mask: {
+    //                     settings['color'] = 26777215;
+    //                     settings['opacity'] = 80;
+    //                     break;
+    //                 }
+    //                 case EOBSFilterTypes.Crop: {
+    //                     settings['relative'] = false;
+    //                     break;
+    //                 }
+    //                 case EOBSFilterTypes.Gain: {
+    //                     settings['db'] = 5;
+    //                     break;
+    //                 }
+    //                 case EOBSFilterTypes.Color: {
+    //                     settings['brightness'] = 10;
+    //                     settings['contrast'] = 15;
+    //                     settings['saturation'] = 55;
+    //                     break;
+    //                 }
+    //                 case EOBSFilterTypes.Scale: {
+    //                     settings['sampling'] = 'bilinear';
+    //                     settings['undistort'] = true;
+    //                     break;
+    //                 }
+    //                 case EOBSFilterTypes.Scroll: {
+    //                     settings['cx'] = 80;
+    //                     settings['cy'] = 60;
+    //                     settings['limit_size'] = true;
+    //                     break;
+    //                 }
+    //                 case EOBSFilterTypes.ColorKey: {
+    //                     settings['gamma'] = 60;
+    //                     settings['key_color_type'] = 'red';
+    //                     settings['similarity'] = 55;
+    //                     break;
+    //                 }
+    //                 case EOBSFilterTypes.Clut: {
+    //                     settings['clut_amount'] = 2;
+    //                     break;
+    //                 }
+    //                 case EOBSFilterTypes.Sharpness: {
+    //                     settings['sharpness'] = 0.05;
+    //                     break;
+    //                 }
+    //                 case EOBSFilterTypes.ChromaKey: {
+    //                     settings['key_color'] = 68280;
+    //                     settings['smoothness'] = 20;
+    //                     settings['spill'] = 90;
+    //                     break;
+    //                 }
+    //                 case EOBSFilterTypes.NoiseSuppress: {
+    //                     settings['suppress_level'] = -10;
+    //                     settings['']
+    //                     break;
+    //                 }
+    //                 case EOBSFilterTypes.NoiseGate: {
+    //                     settings['hold_time'] = 120;
+    //                     settings['open_threshold'] = -12;
+    //                     settings['release_time'] = 80;
+    //                     break;
+    //                 }
+    //                 case EOBSFilterTypes.Compressor: {
+    //                     settings['attack_time'] = 8;
+    //                     settings['output_gain'] = 4;
+    //                     settings['threshold'] = -9;
+    //                     break;
+    //                 }
+    //                 case EOBSFilterTypes.Limiter: {
+    //                     settings['release_time'] = 30;
+    //                     settings['threshold'] = -12;
+    //                     break;
+    //                 }
+    //                 case EOBSFilterTypes.Expander: {
+    //                     settings['attack_time'] = 15;
+    //                     settings['ratio'] = 5;
+    //                     settings['threshold'] = -20;
+    //                     break;
+    //                 }
+    //                 case EOBSFilterTypes.NDI:
+    //                 case EOBSFilterTypes.NDIAudio: {
+    //                     settings['ndi_filter_name'] = 'Test Filter';
+    //                 }
+    //             }
     
-                // Updating settings of filter
-                filter.update(settings);
+    //             // Updating settings of filter
+    //             filter.update(settings);
 
-                // Sending save signal to filter
-                expect(function() {
-                    filter.save();
-                }).to.not.throw;
+    //             // Sending save signal to filter
+    //             expect(function() {
+    //                 filter.save();
+    //             }).to.not.throw;
 
-                // Checking if setting was added to filter
-                expect(filter.settings).to.eql(settings, GetErrorMessage(ETestErrorMsg.SaveSettings, filterType));
+    //             // Checking if setting was added to filter
+    //             expect(filter.settings).to.eql(settings, GetErrorMessage(ETestErrorMsg.SaveSettings, filterType));
     
-                filter.release();
-            }
-        });
-    });
+    //             filter.release();
+    //         }
+    //     });
+    // });
 
     // it('Update settings of all transitions', () => {
     //     let settings: ISettings = {};
