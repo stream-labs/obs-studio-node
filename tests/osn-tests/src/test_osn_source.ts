@@ -563,51 +563,51 @@ describe(testName, () => {
     //     });
     // });
 
-    it('Set muted and get it for all input source types', () => {
-        obs.inputTypes.forEach(function(inputType) {
-            // Creating input source
-            const input = osn.InputFactory.create(inputType, 'input');
+    // it('Set muted and get it for all input source types', () => {
+    //     obs.inputTypes.forEach(function(inputType) {
+    //         // Creating input source
+    //         const input = osn.InputFactory.create(inputType, 'input');
 
-            // Checking if input source was created correctly
-            expect(input).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateInput, inputType));
-            expect(input.id).to.equal(inputType, GetErrorMessage(ETestErrorMsg.InputId, inputType));
-            expect(input.name).to.equal('input', GetErrorMessage(ETestErrorMsg.InputName, inputType));
+    //         // Checking if input source was created correctly
+    //         expect(input).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateInput, inputType));
+    //         expect(input.id).to.equal(inputType, GetErrorMessage(ETestErrorMsg.InputId, inputType));
+    //         expect(input.name).to.equal('input', GetErrorMessage(ETestErrorMsg.InputName, inputType));
 
-            // Setting input source flags
-            input.muted = true;
+    //         // Setting input source flags
+    //         input.muted = true;
 
-            // Getting input source flags
-            const muted = input.muted;
+    //         // Getting input source flags
+    //         const muted = input.muted;
 
-            // Checking if flags were returned correctly
-            expect(muted).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Muted, inputType));
-            expect(muted).to.equal(true, GetErrorMessage(ETestErrorMsg.MutedWrongValue, inputType));
+    //         // Checking if flags were returned correctly
+    //         expect(muted).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Muted, inputType));
+    //         expect(muted).to.equal(true, GetErrorMessage(ETestErrorMsg.MutedWrongValue, inputType));
 
-            input.release();
-        });
-    });
-
-    // it('Set enabled and get it for all filter types', () => {
-    //     obs.filterTypes.forEach(function(filterType) {
-    //         // Creating filter
-    //         const filter = osn.FilterFactory.create(filterType, 'filter');
-
-    //         // Checking if filter source was created correctly
-    //         expect(filter).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateFilter, filterType));
-    //         expect(filter.id).to.equal(filterType, GetErrorMessage(ETestErrorMsg.FilterId, filterType));
-    //         expect(filter.name).to.equal('filter', GetErrorMessage(ETestErrorMsg.FilterName, filterType));
-
-    //         // Setting enabled
-    //         filter.enabled = true;
-
-    //         // Getting enabled
-    //         const enabled = filter.enabled;
-
-    //         // Checking if enabled was returnd correctly
-    //         expect(enabled).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Enabled, filterType));
-    //         expect(enabled).to.equal(true, GetErrorMessage(ETestErrorMsg.EnabledWrongValue, filterType));
-
-    //         filter.release();
+    //         input.release();
     //     });
     // });
+
+    it('Set enabled and get it for all filter types', () => {
+        obs.filterTypes.forEach(function(filterType) {
+            // Creating filter
+            const filter = osn.FilterFactory.create(filterType, 'filter');
+
+            // Checking if filter source was created correctly
+            expect(filter).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateFilter, filterType));
+            expect(filter.id).to.equal(filterType, GetErrorMessage(ETestErrorMsg.FilterId, filterType));
+            expect(filter.name).to.equal('filter', GetErrorMessage(ETestErrorMsg.FilterName, filterType));
+
+            // Setting enabled
+            filter.enabled = true;
+
+            // Getting enabled
+            const enabled = filter.enabled;
+
+            // Checking if enabled was returnd correctly
+            expect(enabled).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Enabled, filterType));
+            expect(enabled).to.equal(true, GetErrorMessage(ETestErrorMsg.EnabledWrongValue, filterType));
+
+            filter.release();
+        });
+    });
 });
