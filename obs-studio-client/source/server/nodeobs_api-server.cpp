@@ -1431,7 +1431,9 @@ void OBS_API::destroyOBS_API(void)
 	if (totalLeaks) {
 		// throw "OBS has memory leaks";
 	}
+	std::cout << "end destroy 0" << std::endl;
 	blog(LOG_DEBUG, "OBS_API::destroyOBS_API after obs_shutdown, objects allocated %d", bnum_allocs());
+	std::cout << "end destroy 1" << std::endl;
 }
 
 struct ci_char_traits : public std::char_traits<char>
