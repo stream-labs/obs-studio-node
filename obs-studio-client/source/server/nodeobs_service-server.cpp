@@ -101,11 +101,14 @@ void OBS_service::OBS_service_startStreaming(callbackService callJS)
 
 void OBS_service::OBS_service_startRecording(callbackService callJS)
 {
+	std::cout << "OBS_service_startRecording - 0" << std::endl;
 	if (isRecordingOutputActive())
 		return;
 
+	std::cout << "OBS_service_startRecording - 1" << std::endl;
 	if (!startRecording(callJS))
 		blog(LOG_ERROR, "Failed to start recording!");
+	std::cout << "OBS_service_startRecording - 2" << std::endl;
 }
 
 void OBS_service::OBS_service_startReplayBuffer(callbackService callJS)

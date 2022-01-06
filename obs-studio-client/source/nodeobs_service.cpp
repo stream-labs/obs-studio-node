@@ -45,6 +45,9 @@ void callJS(SignalInfo* data)
 		try {
 		Napi::Object result = Napi::Object::New(env);
 
+		std::cout << "Calling JS callback for signal " << data->m_outputType.c_str()
+			<< " : " << data->m_signal.c_str() << std::endl;
+
 		result.Set(
 			Napi::String::New(env, "type"),
 			Napi::String::New(env, data->m_outputType));
