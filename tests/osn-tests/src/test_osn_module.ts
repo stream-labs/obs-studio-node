@@ -52,26 +52,40 @@ describe(testName, () => {
             modulePath = path.normalize(osn.DefaultPluginPath);
         }
 
+        // DLL that are safe to open and close multiple times
+        const safeModules = [
+            'win-wasapi.dll',
+            'win-openvr.dll',
+            'win-dshow.dll',
+            'win-capture.dll',
+            'vlc-video.dll',
+            'obs-x264.dll',
+            'obs-vst.dll',
+            'obs-virtualoutput.dll',
+            'obs-transitions.dll',
+            'obs-text.dll',
+            'obs-filters.dll',
+            'motion-transition.dll',
+            'image-source.dll',
+            'coreaudio-encoder.dll'
+        ];
+
         fs.readdirSync(modulePath).forEach(file => {
-            if (file.endsWith('.dll')) {
-                if (file != 'chrome_elf.dll' && 
-                    file != 'libcef.dll' &&
-                    file != 'libEGL.dll' &&
-                    file != 'libGLESv2.dll') {
-                    // Opening module
-                    const moduleType = osn.ModuleFactory.open(path.join(modulePath, '/' + file), path.normalize(osn.DefaultDataPath));
+            if (file.endsWith('.dll') && safeModules.includes(file)) {
+                console.log(`Loading: ${file}`);
+                // Opening module
+                const moduleType = osn.ModuleFactory.open(path.join(modulePath, '/' + file), path.normalize(osn.DefaultDataPath));
 
-                    // Checking if module was opened properly
-                    expect(moduleType).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.OpenModule, file));
+                // Checking if module was opened properly
+                expect(moduleType).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.OpenModule, file));
 
-                    // Initializing module
-                    expect(function () {
-                        moduleType.initialize();
-                    }).to.not.throw();
+                // Initializing module
+                expect(function () {
+                    moduleType.initialize();
+                }).to.not.throw();
 
-                    // Adding to moduleArrays to use in check later
-                    moduleTypes.push(file);
-                }   
+                // Adding to moduleArrays to use in check later
+                moduleTypes.push(file);
             }
         });
 
