@@ -100,7 +100,7 @@ Napi::Value osn::Global::setOutputSource(const Napi::CallbackInfo& info)
 		auto source = sourcesStore[input->id];
 		if (!source)
 			return info.Env().Undefined();
-		obs::Global::SetOutputSource(channel, source);
+		// obs::Global::SetOutputSource(channel, source);
 	}
 
 	return info.Env().Undefined();
