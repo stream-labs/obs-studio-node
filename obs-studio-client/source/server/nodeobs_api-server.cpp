@@ -1341,10 +1341,11 @@ void OBS_API::destroyOBS_API(void)
 		obs::Transition::Manager::GetInstance().size() > 0	||
 		obs::Filter::Manager::GetInstance().size() > 0		||
 		obs::Input::Manager::GetInstance().size() > 0) {
-
+		std::cout << "destroyOBS_API - 4.1" << std::endl;
 		for (int i = 0; i < MAX_CHANNELS; i++)
 			obs_set_output_source(i, nullptr);
 
+		std::cout << "destroyOBS_API - 4.2" << std::endl;
 		std::vector<obs_source_t*> sources;
 		obs::Source::Manager::GetInstance().for_each([&sources](obs_source_t* source)
 		{
@@ -1352,6 +1353,7 @@ void OBS_API::destroyOBS_API(void)
 				sources.push_back(source);
 		});
 
+		std::cout << "destroyOBS_API - 4.3" << std::endl;
 		for (const auto &source: sources) {
 			if (!source)
 				continue;
@@ -1375,6 +1377,7 @@ void OBS_API::destroyOBS_API(void)
 			}
 		}
 
+		std::cout << "destroyOBS_API - 4.4" << std::endl;
 		// Release filters only
 		for (int i = 0; i < sources.size(); i++) {
 			if (sources[i] && obs_source_get_type(sources[i]) == OBS_SOURCE_TYPE_FILTER) {
@@ -1383,6 +1386,7 @@ void OBS_API::destroyOBS_API(void)
 			}
 		}
 
+		std::cout << "destroyOBS_API - 4.5" << std::endl;
 		// Release all remaining sources that are not transitions
 		for (int i = 0; i < sources.size(); i++) {
 			if (sources[i] && obs_source_get_type(sources[i]) != OBS_SOURCE_TYPE_TRANSITION) {
@@ -1391,11 +1395,13 @@ void OBS_API::destroyOBS_API(void)
 			}
 		}
 
+		std::cout << "destroyOBS_API - 4.6" << std::endl;
 		// Release all remaning transitions
 		for (auto source: sources) {
 			if (source)
 				obs_source_release(source);
 		}
+		std::cout << "destroyOBS_API - 4.7" << std::endl;
 
 #ifdef WIN32
 		// Directly blame the frontend since it didn't release all objects and that could cause 

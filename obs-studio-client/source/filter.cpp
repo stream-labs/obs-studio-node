@@ -108,14 +108,17 @@ Napi::Value osn::Filter::Create(const Napi::CallbackInfo& info)
 		settings = stringify.Call(json, { setobj }).As<Napi::String>();
 	}
 
+	std::cout << "Creating - 0 " << std::endl;
 	std::string settings_str = settings.Utf8Value();
 	auto source = obs::Filter::Create(type, name, settings_str);
 
+	std::cout << "Creating - 1 " << std::endl;
     auto instance =
         osn::Filter::constructor.New({
             Napi::External<obs_source_t*>::New(info.Env(), &source)
 		});
 
+	std::cout << "Creating - 2 " << std::endl;
     return instance;
 }
 

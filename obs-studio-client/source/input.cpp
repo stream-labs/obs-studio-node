@@ -128,6 +128,7 @@ Napi::Value osn::Input::Create(const Napi::CallbackInfo& info)
 	Napi::Object json = info.Env().Global().Get("JSON").As<Napi::Object>();
 	Napi::Function stringify = json.Get("stringify").As<Napi::Function>();
 
+	std::cout << "Creating input - 0 " << std::endl;
 	// Check if caller provided settings to send across.
 	if (info.Length() >= 4) {
 		if (!info[3].IsUndefined()) {
@@ -135,6 +136,7 @@ Napi::Value osn::Input::Create(const Napi::CallbackInfo& info)
 			hotkeys = stringify.Call(json, { hksobj }).As<Napi::String>();
 		}
 	}
+	std::cout << "Creating input - 1 " << std::endl;
 	if (info.Length() >= 3) {
 		if (!info[2].IsUndefined()) {
 			Napi::Object setobj = info[2].ToObject();
@@ -142,13 +144,16 @@ Napi::Value osn::Input::Create(const Napi::CallbackInfo& info)
 		}
 	}
 
+	std::cout << "Creating input - 2 " << std::endl;
 	auto source = obs::Input::Create(type, name, settings.Utf8Value(), hotkeys.Utf8Value());
 
+	std::cout << "Creating input - 3 " << std::endl;
     auto instance =
         osn::Input::constructor.New({
             Napi::External<obs_source_t*>::New(info.Env(), &source)
 		});
 
+	std::cout << "Creating input - 4 " << std::endl;
     return instance;
 }
 
