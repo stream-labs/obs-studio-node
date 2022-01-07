@@ -1402,9 +1402,9 @@ void OBS_API::destroyOBS_API(void)
 		// a crash on the backend
 		// This is necessary since the frontend could still finish after the backend, causing the
 		// crash manager to think the backend crashed first while the real culprit is the frontend
-		util::CrashManager::GetMetricsProvider()->BlameFrontend();
+		// util::CrashManager::GetMetricsProvider()->BlameFrontend();
 
-		util::CrashManager::DisableReports();
+		// util::CrashManager::DisableReports();
 #endif
 		blog(LOG_DEBUG, "OBS_API::destroyOBS_API unreleased objects detected before obs_shutdown, objects allocated %d", bnum_allocs());
 		// Try-catch should suppress any error message that could be thrown to the user
