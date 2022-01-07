@@ -44,57 +44,60 @@ describe(testName, () => {
 
     it('Get all osn-source info from all input types', () => {
         obs.inputTypes.forEach(function(inputType) {
-            // Creating input source
-            const input = osn.InputFactory.create(inputType, 'input');
+            if (inputType != 'wasapi_input_capture' &&
+                inputType != 'wasapi_output_capture') {
+                // Creating input source
+                const input = osn.InputFactory.create(inputType, 'input');
+                console.log(inputType);
+                // Checking if input source was created correctly
+                expect(input).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateInput, inputType));
 
-            // Checking if input source was created correctly
-            expect(input).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateInput, inputType));
+                // Getting input id
+                let id = undefined;
+                id = input.id;
 
-            // Getting input id
-            let id = undefined;
-            // id = input.id;
+                // Checking if id was returned correctly
+                expect(id).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.SourceId,inputType));
+                expect(id).to.equal(inputType, GetErrorMessage(ETestErrorMsg.InputId, inputType));
 
-            // // Checking if id was returned correctly
-            // expect(id).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.SourceId,inputType));
-            // expect(id).to.equal(inputType, GetErrorMessage(ETestErrorMsg.InputId, inputType));
+                // Getting input name
+                let inputName = undefined;
+                inputName = input.name;
 
-            // // Getting input name
-            // let inputName = undefined;
-            // inputName = input.name;
+                // Checking if name was returned correctly
+                expect(inputName).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.SourceName, inputType));
+                expect(inputName).to.equal('input', GetErrorMessage(ETestErrorMsg.InputName, inputType));
 
-            // // Checking if name was returned correctly
-            // expect(inputName).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.SourceName, inputType));
-            // expect(inputName).to.equal('input', GetErrorMessage(ETestErrorMsg.InputName, inputType));
+                // Getting input configurable value
+                let configurableValue = undefined;
+                configurableValue = input.configurable;
 
-            // // Getting input configurable value
-            // let configurableValue = undefined;
-            // configurableValue = input.configurable;
+                // Checking if configurable value was returned properly
+                expect(configurableValue).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Configurable, inputType));
 
-            // // Checking if configurable value was returned properly
-            // expect(configurableValue).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Configurable, inputType));
+                // Getting input property
+                let properties = undefined;
+                properties = input.properties;
 
-            // // Getting input property
-            // let properties = undefined;
-            // properties = input.properties;
+                // Checking if properties were returned properly
+                expect(properties).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Properties, inputType));
 
-            // // Checking if properties were returned properly
-            // expect(properties).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Properties, inputType));
+                // Getting input settings
+                let settings = undefined;
+                settings = input.settings;
 
-            // // Getting input settings
-            // let settings = undefined;
-            // settings = input.settings;
+                // Checking if settings were returned properly
+                expect(settings).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Settings, inputType));
 
-            // // Checking if settings were returned properly
-            // expect(settings).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Settings, inputType));
+                // Getting output flags
+                let outputFlags = undefined;
+                outputFlags = input.outputFlags;
 
-            // // Getting output flags
-            // let outputFlags = undefined;
-            // outputFlags = input.outputFlags;
+                // Checking if output flags were returned properly
+                expect(outputFlags).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.OutputFlags, inputType));
 
-            // // Checking if output flags were returned properly
-            // expect(outputFlags).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.OutputFlags, inputType));
-
-            input.release();
+                input.release();
+            }
         });
     });
 
