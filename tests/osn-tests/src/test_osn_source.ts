@@ -52,11 +52,11 @@ describe(testName, () => {
 
             // Getting input id
             let id = undefined;
-            id = input.id;
+            // id = input.id;
 
-            // Checking if id was returned correctly
-            expect(id).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.SourceId,inputType));
-            expect(id).to.equal(inputType, GetErrorMessage(ETestErrorMsg.InputId, inputType));
+            // // Checking if id was returned correctly
+            // expect(id).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.SourceId,inputType));
+            // expect(id).to.equal(inputType, GetErrorMessage(ETestErrorMsg.InputId, inputType));
 
             // // Getting input name
             // let inputName = undefined;
