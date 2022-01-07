@@ -99,6 +99,7 @@ Napi::Value osn::Filter::Create(const Napi::CallbackInfo& info)
 	std::string name = info[1].ToString().Utf8Value();
 	Napi::String settings = Napi::String::New(info.Env(), "");
 
+	std::cout << "Creating: " << type.c_str() <<std::endl;
 	if (info.Length() >= 3) {
 		Napi::Object json = info.Env().Global().Get("JSON").As<Napi::Object>();
 		Napi::Function stringify = json.Get("stringify").As<Napi::Function>();
