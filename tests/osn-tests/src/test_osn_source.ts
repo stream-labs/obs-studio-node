@@ -43,11 +43,10 @@ describe(testName, () => {
     });
 
     it('Get all osn-source info from all input types', () => {
-        // obs.inputTypes.forEach(function(inputType) {
-        //     if (inputType != 'wasapi_input_capture' &&
-        //         inputType != 'wasapi_output_capture') {
+        obs.inputTypes.forEach(function(inputType) {
+            if (inputType != 'wasapi_input_capture' &&
+                inputType != 'wasapi_output_capture') {
                 // Creating input source
-                const inputType = 'image_source';
                 const input = osn.InputFactory.create(inputType, 'input');
                 console.log(inputType);
                 // Checking if input source was created correctly
@@ -98,8 +97,8 @@ describe(testName, () => {
                 expect(outputFlags).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.OutputFlags, inputType));
 
                 input.release();
-            // }
-        // });
+            }
+        });
     });
 
     it('Get all osn-source info from all filter types', () => {
@@ -273,10 +272,9 @@ describe(testName, () => {
     it('Update settings of all inputs', () => {
         let settings: ISettings = {};
 
-        // obs.inputTypes.forEach(function(inputType) {
-        //     if (inputType != 'wasapi_input_capture' &&
-        //         inputType != 'wasapi_output_capture') {
-                const inputType = 'image_source';
+        obs.inputTypes.forEach(function(inputType) {
+            if (inputType != 'wasapi_input_capture' &&
+                inputType != 'wasapi_output_capture') {
                 // Creating input source
                 const input = osn.InputFactory.create(inputType, 'input');
     
@@ -293,74 +291,74 @@ describe(testName, () => {
                         settings['unload'] = true;
                         break;
                     }
-                    // case EOBSInputTypes.ColorSource: {
-                    //     settings['height'] = 500;
-                    //     settings['width'] = 600;
-                    //     break;
-                    // }
-                    // case EOBSInputTypes.Slideshow: {
-                    //     settings['loop'] = false;
-                    //     settings['slide_time'] = 9000;
-                    //     settings['transition_speed'] = 800;
-                    //     break;
-                    // }
-                    // case EOBSInputTypes.BrowserSource: {
-                    //     settings['fps'] = 60;
-                    //     settings['height'] = 500;
-                    //     settings['restart_when_active'] = true;
-                    //     settings['shutdown'] = true;
-                    //     break;
-                    // }
-                    // case EOBSInputTypes.FFMPEGSource: {
-                    //     settings['buffering_mb'] = 3;
-                    //     settings['clear_on_media_end'] = false;
-                    //     settings['looping'] = true;
-                    //     settings['speed_percent'] = 80;
-                    //     settings['caching'] = true;
-                    //     break;
-                    // }
-                    // case EOBSInputTypes.TextGDI: {
-                    //     settings['align'] = 'right';
-                    //     settings['extents_cx'] = 90;
-                    //     settings['extents_cy'] = 90;
-                    //     settings['valign'] = 'bottom';
-                    //     break;
-                    // }
-                    // case EOBSInputTypes.TextFT2: {
-                    //     settings['color1'] = 4294967296;
-                    //     settings['color2'] = 5294967295;
-                    //     break;
-                    // }
-                    // case EOBSInputTypes.MonitorCapture: {
-                    //     settings['capture_cursor'] = false;
-                    //     settings['monitor'] = 1;
-                    //     break;
-                    // }
-                    // case EOBSInputTypes.WindowCapture: {
-                    //     settings['compatibility'] = true;
-                    //     settings['cursor'] = false;
-                    //     break;
-                    // }
-                    // case EOBSInputTypes.GameCapture: {
-                    //     settings['allow_transparency'] = true;
-                    //     settings['force_scaling'] = true;
-                    //     settings['hook_rate'] = 2;
-                    //     break;
-                    // }
-                    // case EOBSInputTypes.DShowInput: {
-                    //     settings['audio_output_mode'] = 1;
-                    //     settings['res_type'] = 1;
-                    //     settings['video_format'] = 2;
-                    //     break;
-                    // }
-                    // case EOBSInputTypes.WASAPIInput: {
-                    //     settings['use_device_timing'] = true;
-                    //     break;
-                    // }
-                    // case EOBSInputTypes.WASAPIOutput: {
-                    //     settings['use_device_timing'] = false;
-                    //     break;
-                    // }
+                    case EOBSInputTypes.ColorSource: {
+                        settings['height'] = 500;
+                        settings['width'] = 600;
+                        break;
+                    }
+                    case EOBSInputTypes.Slideshow: {
+                        settings['loop'] = false;
+                        settings['slide_time'] = 9000;
+                        settings['transition_speed'] = 800;
+                        break;
+                    }
+                    case EOBSInputTypes.BrowserSource: {
+                        settings['fps'] = 60;
+                        settings['height'] = 500;
+                        settings['restart_when_active'] = true;
+                        settings['shutdown'] = true;
+                        break;
+                    }
+                    case EOBSInputTypes.FFMPEGSource: {
+                        settings['buffering_mb'] = 3;
+                        settings['clear_on_media_end'] = false;
+                        settings['looping'] = true;
+                        settings['speed_percent'] = 80;
+                        settings['caching'] = true;
+                        break;
+                    }
+                    case EOBSInputTypes.TextGDI: {
+                        settings['align'] = 'right';
+                        settings['extents_cx'] = 90;
+                        settings['extents_cy'] = 90;
+                        settings['valign'] = 'bottom';
+                        break;
+                    }
+                    case EOBSInputTypes.TextFT2: {
+                        settings['color1'] = 4294967296;
+                        settings['color2'] = 5294967295;
+                        break;
+                    }
+                    case EOBSInputTypes.MonitorCapture: {
+                        settings['capture_cursor'] = false;
+                        settings['monitor'] = 1;
+                        break;
+                    }
+                    case EOBSInputTypes.WindowCapture: {
+                        settings['compatibility'] = true;
+                        settings['cursor'] = false;
+                        break;
+                    }
+                    case EOBSInputTypes.GameCapture: {
+                        settings['allow_transparency'] = true;
+                        settings['force_scaling'] = true;
+                        settings['hook_rate'] = 2;
+                        break;
+                    }
+                    case EOBSInputTypes.DShowInput: {
+                        settings['audio_output_mode'] = 1;
+                        settings['res_type'] = 1;
+                        settings['video_format'] = 2;
+                        break;
+                    }
+                    case EOBSInputTypes.WASAPIInput: {
+                        settings['use_device_timing'] = true;
+                        break;
+                    }
+                    case EOBSInputTypes.WASAPIOutput: {
+                        settings['use_device_timing'] = false;
+                        break;
+                    }
                 }
     
                 // Updating settings of source
@@ -376,8 +374,8 @@ describe(testName, () => {
     
                 settings = {};
                 input.release();
-        //     }
-        // });
+            }
+        });
     });
 
     it('Update settings of all filters', () => {
@@ -548,10 +546,9 @@ describe(testName, () => {
     });
 
     it('Set flags and get them for all input source types', () => {
-        // obs.inputTypes.forEach(function(inputType) {
-        //     if (inputType != 'wasapi_input_capture' &&
-        //         inputType != 'wasapi_output_capture') {
-                const inputType = 'image_source';
+        obs.inputTypes.forEach(function(inputType) {
+            if (inputType != 'wasapi_input_capture' &&
+                inputType != 'wasapi_output_capture') {
                 // Creating input source
                 const input = osn.InputFactory.create(inputType, 'input');
     
@@ -571,15 +568,14 @@ describe(testName, () => {
                 expect(flags).to.equal(osn.ESourceFlags.ForceMono, GetErrorMessage(ETestErrorMsg.FlagsWrongValue, inputType));
     
                 input.release();
-        //     }
-        // });
+            }
+        });
     });
 
     it('Set muted and get it for all input source types', () => {
-        // obs.inputTypes.forEach(function(inputType) {
-        //     if (inputType != 'wasapi_input_capture' &&
-        //         inputType != 'wasapi_output_capture') {
-                const inputType = 'image_source';
+        obs.inputTypes.forEach(function(inputType) {
+            if (inputType != 'wasapi_input_capture' &&
+                inputType != 'wasapi_output_capture') {
                 // Creating input source
                 const input = osn.InputFactory.create(inputType, 'input');
     
@@ -599,8 +595,8 @@ describe(testName, () => {
                 expect(muted).to.equal(true, GetErrorMessage(ETestErrorMsg.MutedWrongValue, inputType));
     
                 input.release();
-        //     }
-        // });
+            }
+        });
     });
 
     it('Set enabled and get it for all filter types', () => {
