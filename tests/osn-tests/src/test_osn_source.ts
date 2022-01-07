@@ -73,26 +73,26 @@ describe(testName, () => {
             // Checking if configurable value was returned properly
             expect(configurableValue).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Configurable, inputType));
 
-            // Getting input property
-            let properties = undefined;
-            properties = input.properties;
+            // // Getting input property
+            // let properties = undefined;
+            // properties = input.properties;
 
-            // Checking if properties were returned properly
-            expect(properties).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Properties, inputType));
+            // // Checking if properties were returned properly
+            // expect(properties).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Properties, inputType));
 
-            // Getting input settings
-            let settings = undefined;
-            settings = input.settings;
+            // // Getting input settings
+            // let settings = undefined;
+            // settings = input.settings;
 
-            // Checking if settings were returned properly
-            expect(settings).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Settings, inputType));
+            // // Checking if settings were returned properly
+            // expect(settings).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Settings, inputType));
 
-            // Getting output flags
-            let outputFlags = undefined;
-            outputFlags = input.outputFlags;
+            // // Getting output flags
+            // let outputFlags = undefined;
+            // outputFlags = input.outputFlags;
 
-            // Checking if output flags were returned properly
-            expect(outputFlags).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.OutputFlags, inputType));
+            // // Checking if output flags were returned properly
+            // expect(outputFlags).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.OutputFlags, inputType));
 
             input.release();
         });
