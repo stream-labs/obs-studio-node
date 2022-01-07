@@ -47,16 +47,16 @@ describe(testName, () => {
             // Creating input source
             const input = osn.InputFactory.create(inputType, 'input');
 
-            // // Checking if input source was created correctly
-            // expect(input).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateInput, inputType));
+            // Checking if input source was created correctly
+            expect(input).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateInput, inputType));
 
-            // // Getting input id
-            // let id = undefined;
-            // id = input.id;
+            // Getting input id
+            let id = undefined;
+            id = input.id;
 
-            // // Checking if id was returned correctly
-            // expect(id).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.SourceId,inputType));
-            // expect(id).to.equal(inputType, GetErrorMessage(ETestErrorMsg.InputId, inputType));
+            // Checking if id was returned correctly
+            expect(id).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.SourceId,inputType));
+            expect(id).to.equal(inputType, GetErrorMessage(ETestErrorMsg.InputId, inputType));
 
             // // Getting input name
             // let inputName = undefined;
