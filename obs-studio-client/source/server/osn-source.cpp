@@ -91,25 +91,25 @@ void obs::Source::global_source_deactivate_cb(void* ptr, calldata_t* cd)
 
 void obs::Source::global_source_destroy_cb(void* ptr, calldata_t* cd)
 {
-	std::cout << "global_source_destroy_cb - 0" << std::endl;
-	obs_source_t* source = nullptr;
-	if (!calldata_get_ptr(cd, "source", &source)) {
-		std::cout << "global_source_destroy_cb - 1" << std::endl;
-		throw std::runtime_error("calldata did not contain source pointer");
-	}
+	// std::cout << "global_source_destroy_cb - 0" << std::endl;
+	// obs_source_t* source = nullptr;
+	// if (!calldata_get_ptr(cd, "source", &source)) {
+	// 	std::cout << "global_source_destroy_cb - 1" << std::endl;
+	// 	throw std::runtime_error("calldata did not contain source pointer");
+	// }
 
-	std::cout << "global_source_destroy_cb - 2" << std::endl;
-	blog(LOG_INFO, "global_source_destroy_cb - %s", obs_source_get_name(source));
+	// std::cout << "global_source_destroy_cb - 2" << std::endl;
+	// blog(LOG_INFO, "global_source_destroy_cb - %s", obs_source_get_name(source));
 
-	std::cout << "global_source_destroy_cb - 3" << std::endl;
-	globalCallback::removeSource(source);
-	std::cout << "global_source_destroy_cb - 4" << std::endl;
-	detach_source_signals(source);
-	std::cout << "global_source_destroy_cb - 5" << std::endl;
-	obs::Source::Manager::GetInstance().free(source);
-	std::cout << "global_source_destroy_cb - 6" << std::endl;
-	MemoryManager::GetInstance().unregisterSource(source);
-	std::cout << "global_source_destroy_cb - 7" << std::endl;
+	// std::cout << "global_source_destroy_cb - 3" << std::endl;
+	// globalCallback::removeSource(source);
+	// std::cout << "global_source_destroy_cb - 4" << std::endl;
+	// detach_source_signals(source);
+	// std::cout << "global_source_destroy_cb - 5" << std::endl;
+	// obs::Source::Manager::GetInstance().free(source);
+	// std::cout << "global_source_destroy_cb - 6" << std::endl;
+	// MemoryManager::GetInstance().unregisterSource(source);
+	// std::cout << "global_source_destroy_cb - 7" << std::endl;
 }
 
 void obs::Source::Remove(obs_source_t* source)
