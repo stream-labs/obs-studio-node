@@ -63,6 +63,8 @@ void obs::Source::global_source_create_cb(void* ptr, calldata_t* cd)
 		throw std::runtime_error("calldata did not contain source pointer");
 	}
 
+	std::cout << "CREATE SOURCE received: " << obs_source_get_name(source) << std::endl;
+
 	// obs::Source::Manager::GetInstance().allocate(source);
 	obs::Source::attach_source_signals(source);
 	globalCallback::addSource(source);
@@ -97,7 +99,7 @@ void obs::Source::global_source_destroy_cb(void* ptr, calldata_t* cd)
 		throw std::runtime_error("calldata did not contain source pointer");
 	}
 
-	blog(LOG_INFO, "global_source_destroy_cb - %s", obs_source_get_name(source));
+	std::cout << "DESTROY SOURCE received: " << obs_source_get_name(source) << std::endl;
 
 	globalCallback::removeSource(source);
 	detach_source_signals(source);

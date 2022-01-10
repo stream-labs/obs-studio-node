@@ -44,60 +44,57 @@ describe(testName, () => {
 
     it('Get all osn-source info from all input types', () => {
         obs.inputTypes.forEach(function(inputType) {
-            if (inputType != 'wasapi_input_capture' &&
-                inputType != 'wasapi_output_capture') {
-                // Creating input source
-                const input = osn.InputFactory.create(inputType, 'input');
-                console.log(inputType);
-                // Checking if input source was created correctly
-                expect(input).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateInput, inputType));
+            // Creating input source
+            const input = osn.InputFactory.create(inputType, 'input');
+            console.log(inputType);
+            // Checking if input source was created correctly
+            expect(input).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateInput, inputType));
 
-                // Getting input id
-                let id = undefined;
-                id = input.id;
+            // Getting input id
+            let id = undefined;
+            id = input.id;
 
-                // Checking if id was returned correctly
-                expect(id).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.SourceId,inputType));
-                expect(id).to.equal(inputType, GetErrorMessage(ETestErrorMsg.InputId, inputType));
+            // Checking if id was returned correctly
+            expect(id).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.SourceId,inputType));
+            expect(id).to.equal(inputType, GetErrorMessage(ETestErrorMsg.InputId, inputType));
 
-                // Getting input name
-                let inputName = undefined;
-                inputName = input.name;
+            // Getting input name
+            let inputName = undefined;
+            inputName = input.name;
 
-                // Checking if name was returned correctly
-                expect(inputName).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.SourceName, inputType));
-                expect(inputName).to.equal('input', GetErrorMessage(ETestErrorMsg.InputName, inputType));
+            // Checking if name was returned correctly
+            expect(inputName).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.SourceName, inputType));
+            expect(inputName).to.equal('input', GetErrorMessage(ETestErrorMsg.InputName, inputType));
 
-                // Getting input configurable value
-                let configurableValue = undefined;
-                configurableValue = input.configurable;
+            // Getting input configurable value
+            let configurableValue = undefined;
+            configurableValue = input.configurable;
 
-                // Checking if configurable value was returned properly
-                expect(configurableValue).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Configurable, inputType));
+            // Checking if configurable value was returned properly
+            expect(configurableValue).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Configurable, inputType));
 
-                // Getting input property
-                let properties = undefined;
-                properties = input.properties;
+            // Getting input property
+            let properties = undefined;
+            properties = input.properties;
 
-                // Checking if properties were returned properly
-                expect(properties).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Properties, inputType));
+            // Checking if properties were returned properly
+            expect(properties).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Properties, inputType));
 
-                // Getting input settings
-                let settings = undefined;
-                settings = input.settings;
+            // Getting input settings
+            let settings = undefined;
+            settings = input.settings;
 
-                // Checking if settings were returned properly
-                expect(settings).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Settings, inputType));
+            // Checking if settings were returned properly
+            expect(settings).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Settings, inputType));
 
-                // Getting output flags
-                let outputFlags = undefined;
-                outputFlags = input.outputFlags;
+            // Getting output flags
+            let outputFlags = undefined;
+            outputFlags = input.outputFlags;
 
-                // Checking if output flags were returned properly
-                expect(outputFlags).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.OutputFlags, inputType));
+            // Checking if output flags were returned properly
+            expect(outputFlags).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.OutputFlags, inputType));
 
-                input.release();
-            }
+            input.release();
         });
     });
 
@@ -273,108 +270,105 @@ describe(testName, () => {
         let settings: ISettings = {};
 
         obs.inputTypes.forEach(function(inputType) {
-            if (inputType != 'wasapi_input_capture' &&
-                inputType != 'wasapi_output_capture') {
-                // Creating input source
-                const input = osn.InputFactory.create(inputType, 'input');
-    
-                // Checking if input source was created correctly
-                expect(input).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateInput, inputType));
-                expect(input.id).to.equal(inputType, GetErrorMessage(ETestErrorMsg.InputId, inputType));
-                expect(input.name).to.equal('input', GetErrorMessage(ETestErrorMsg.InputName, inputType));
-    
-                // Preparing settings object
-                settings = input.settings;
-                
-                switch(inputType) {
-                    case EOBSInputTypes.ImageSource: {
-                        settings['unload'] = true;
-                        break;
-                    }
-                    case EOBSInputTypes.ColorSource: {
-                        settings['height'] = 500;
-                        settings['width'] = 600;
-                        break;
-                    }
-                    case EOBSInputTypes.Slideshow: {
-                        settings['loop'] = false;
-                        settings['slide_time'] = 9000;
-                        settings['transition_speed'] = 800;
-                        break;
-                    }
-                    case EOBSInputTypes.BrowserSource: {
-                        settings['fps'] = 60;
-                        settings['height'] = 500;
-                        settings['restart_when_active'] = true;
-                        settings['shutdown'] = true;
-                        break;
-                    }
-                    case EOBSInputTypes.FFMPEGSource: {
-                        settings['buffering_mb'] = 3;
-                        settings['clear_on_media_end'] = false;
-                        settings['looping'] = true;
-                        settings['speed_percent'] = 80;
-                        settings['caching'] = true;
-                        break;
-                    }
-                    case EOBSInputTypes.TextGDI: {
-                        settings['align'] = 'right';
-                        settings['extents_cx'] = 90;
-                        settings['extents_cy'] = 90;
-                        settings['valign'] = 'bottom';
-                        break;
-                    }
-                    case EOBSInputTypes.TextFT2: {
-                        settings['color1'] = 4294967296;
-                        settings['color2'] = 5294967295;
-                        break;
-                    }
-                    case EOBSInputTypes.MonitorCapture: {
-                        settings['capture_cursor'] = false;
-                        settings['monitor'] = 1;
-                        break;
-                    }
-                    case EOBSInputTypes.WindowCapture: {
-                        settings['compatibility'] = true;
-                        settings['cursor'] = false;
-                        break;
-                    }
-                    case EOBSInputTypes.GameCapture: {
-                        settings['allow_transparency'] = true;
-                        settings['force_scaling'] = true;
-                        settings['hook_rate'] = 2;
-                        break;
-                    }
-                    case EOBSInputTypes.DShowInput: {
-                        settings['audio_output_mode'] = 1;
-                        settings['res_type'] = 1;
-                        settings['video_format'] = 2;
-                        break;
-                    }
-                    case EOBSInputTypes.WASAPIInput: {
-                        settings['use_device_timing'] = true;
-                        break;
-                    }
-                    case EOBSInputTypes.WASAPIOutput: {
-                        settings['use_device_timing'] = false;
-                        break;
-                    }
+            // Creating input source
+            const input = osn.InputFactory.create(inputType, 'input');
+
+            // Checking if input source was created correctly
+            expect(input).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateInput, inputType));
+            expect(input.id).to.equal(inputType, GetErrorMessage(ETestErrorMsg.InputId, inputType));
+            expect(input.name).to.equal('input', GetErrorMessage(ETestErrorMsg.InputName, inputType));
+
+            // Preparing settings object
+            settings = input.settings;
+            
+            switch(inputType) {
+                case EOBSInputTypes.ImageSource: {
+                    settings['unload'] = true;
+                    break;
                 }
-    
-                // Updating settings of source
-                input.update(settings);
-    
-                // Sending save signal to source
-                expect(function() {
-                    input.save();
-                }).to.not.throw();
-    
-                // Checking if setting was added to source
-                expect(input.settings).to.eql(settings, GetErrorMessage(ETestErrorMsg.SaveSettings, inputType));
-    
-                settings = {};
-                input.release();
+                case EOBSInputTypes.ColorSource: {
+                    settings['height'] = 500;
+                    settings['width'] = 600;
+                    break;
+                }
+                case EOBSInputTypes.Slideshow: {
+                    settings['loop'] = false;
+                    settings['slide_time'] = 9000;
+                    settings['transition_speed'] = 800;
+                    break;
+                }
+                case EOBSInputTypes.BrowserSource: {
+                    settings['fps'] = 60;
+                    settings['height'] = 500;
+                    settings['restart_when_active'] = true;
+                    settings['shutdown'] = true;
+                    break;
+                }
+                case EOBSInputTypes.FFMPEGSource: {
+                    settings['buffering_mb'] = 3;
+                    settings['clear_on_media_end'] = false;
+                    settings['looping'] = true;
+                    settings['speed_percent'] = 80;
+                    settings['caching'] = true;
+                    break;
+                }
+                case EOBSInputTypes.TextGDI: {
+                    settings['align'] = 'right';
+                    settings['extents_cx'] = 90;
+                    settings['extents_cy'] = 90;
+                    settings['valign'] = 'bottom';
+                    break;
+                }
+                case EOBSInputTypes.TextFT2: {
+                    settings['color1'] = 4294967296;
+                    settings['color2'] = 5294967295;
+                    break;
+                }
+                case EOBSInputTypes.MonitorCapture: {
+                    settings['capture_cursor'] = false;
+                    settings['monitor'] = 1;
+                    break;
+                }
+                case EOBSInputTypes.WindowCapture: {
+                    settings['compatibility'] = true;
+                    settings['cursor'] = false;
+                    break;
+                }
+                case EOBSInputTypes.GameCapture: {
+                    settings['allow_transparency'] = true;
+                    settings['force_scaling'] = true;
+                    settings['hook_rate'] = 2;
+                    break;
+                }
+                case EOBSInputTypes.DShowInput: {
+                    settings['audio_output_mode'] = 1;
+                    settings['res_type'] = 1;
+                    settings['video_format'] = 2;
+                    break;
+                }
+                case EOBSInputTypes.WASAPIInput: {
+                    settings['use_device_timing'] = true;
+                    break;
+                }
+                case EOBSInputTypes.WASAPIOutput: {
+                    settings['use_device_timing'] = false;
+                    break;
+                }
             }
+
+            // Updating settings of source
+            input.update(settings);
+
+            // Sending save signal to source
+            expect(function() {
+                input.save();
+            }).to.not.throw();
+
+            // Checking if setting was added to source
+            expect(input.settings).to.eql(settings, GetErrorMessage(ETestErrorMsg.SaveSettings, inputType));
+
+            settings = {};
+            input.release();
         });
     });
 
@@ -547,28 +541,25 @@ describe(testName, () => {
 
     it('Set flags and get them for all input source types', () => {
         obs.inputTypes.forEach(function(inputType) {
-            if (inputType != 'wasapi_input_capture' &&
-                inputType != 'wasapi_output_capture') {
-                // Creating input source
-                const input = osn.InputFactory.create(inputType, 'input');
-    
-                // Checking if input source was created correctly
-                expect(input).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateInput, inputType));
-                expect(input.id).to.equal(inputType, GetErrorMessage(ETestErrorMsg.InputId, inputType));
-                expect(input.name).to.equal('input', GetErrorMessage(ETestErrorMsg.InputName, inputType));
-    
-                // Setting input source flags
-                input.flags = osn.ESourceFlags.ForceMono;
-    
-                // Getting input source flags
-                const flags = input.flags;
-    
-                // Checking if flags were returned correctly
-                expect(flags).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Flags, inputType));
-                expect(flags).to.equal(osn.ESourceFlags.ForceMono, GetErrorMessage(ETestErrorMsg.FlagsWrongValue, inputType));
-    
-                input.release();
-            }
+            // Creating input source
+            const input = osn.InputFactory.create(inputType, 'input');
+
+            // Checking if input source was created correctly
+            expect(input).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateInput, inputType));
+            expect(input.id).to.equal(inputType, GetErrorMessage(ETestErrorMsg.InputId, inputType));
+            expect(input.name).to.equal('input', GetErrorMessage(ETestErrorMsg.InputName, inputType));
+
+            // Setting input source flags
+            input.flags = osn.ESourceFlags.ForceMono;
+
+            // Getting input source flags
+            const flags = input.flags;
+
+            // Checking if flags were returned correctly
+            expect(flags).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.Flags, inputType));
+            expect(flags).to.equal(osn.ESourceFlags.ForceMono, GetErrorMessage(ETestErrorMsg.FlagsWrongValue, inputType));
+
+            input.release();
         });
     });
 
