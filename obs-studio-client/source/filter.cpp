@@ -200,18 +200,18 @@ void osn::Filter::CallSetEnabled(const Napi::CallbackInfo& info, const Napi::Val
 
 Napi::Value osn::Filter::CallRelease(const Napi::CallbackInfo& info)
 {
-	// osn::ISource::Release(this->id);
-	pushTask(osn::ISource::Release, this->id);
+	osn::ISource::Release(this->id);
+	// pushTask(osn::ISource::Release, this->id);
 
 	return info.Env().Undefined();
 }
 
 Napi::Value osn::Filter::CallRemove(const Napi::CallbackInfo& info)
 {
-	pushTask([&, this] {
+	// pushTask([&, this] {
 		osn::ISource::Remove(this->id);
 		this->id = UINT32_MAX;
-	});
+	// });
 
 	return info.Env().Undefined();
 }

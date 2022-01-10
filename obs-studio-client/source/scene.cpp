@@ -146,8 +146,8 @@ Napi::Value osn::Scene::Release(const Napi::CallbackInfo& info)
 	if (!source)
 		return info.Env().Undefined();
 
-	pushTask(obs::Scene::Release, source);
-	// obs::Scene::Release(source);
+	// pushTask(obs::Scene::Release, source);
+	obs::Scene::Release(source);
 
 	return info.Env().Undefined();
 }
@@ -159,8 +159,8 @@ Napi::Value osn::Scene::Remove(const Napi::CallbackInfo& info)
 	if (!source)
 		return info.Env().Undefined();
 
-	pushTask(obs::Scene::Remove, source);
-	// obs::Scene::Remove(source);
+	// pushTask(obs::Scene::Remove, source);
+	obs::Scene::Remove(source);
 
 	return info.Env().Undefined();
 }
@@ -460,18 +460,18 @@ void osn::Scene::CallSetEnabled(const Napi::CallbackInfo& info, const Napi::Valu
 
 Napi::Value osn::Scene::CallRelease(const Napi::CallbackInfo& info)
 {
-	pushTask(osn::ISource::Release, this->id);
-	// osn::ISource::Release(this->id);
+	// pushTask(osn::ISource::Release, this->id);
+	osn::ISource::Release(this->id);
 
 	return info.Env().Undefined();
 }
 
 Napi::Value osn::Scene::CallRemove(const Napi::CallbackInfo& info)
 {
-	pushTask([&, this] {
+	// pushTask([&, this] {
 		osn::ISource::Remove(this->id);
 		this->id = UINT32_MAX;
-	});
+	// });
 
 	return info.Env().Undefined();
 }
