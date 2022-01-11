@@ -1187,14 +1187,16 @@ void OBS_service::stopStreaming(bool forceStop, callbackService callJS)
 	isStreaming = false;
 	blog(LOG_INFO, "stopStreaming - 5");
 
-	SignalInfo* signal = new SignalInfo(
-		std::string("streaming"),
-		std::string("deactivate"),
-		0,
-		std::string(""),
-		g_jsThread
-	);
-	callJS(signal);
+	if (callJS) {
+		SignalInfo* signal = new SignalInfo(
+			std::string("streaming"),
+			std::string("deactivate"),
+			0,
+			std::string(""),
+			g_jsThread
+		);
+		callJS(signal);
+	}
 }
 
 void OBS_service::stopRecording(void)
