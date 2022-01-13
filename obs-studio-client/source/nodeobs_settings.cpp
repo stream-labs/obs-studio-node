@@ -1762,6 +1762,8 @@ void getAdvancedSettings(Napi::Object& settings, Napi::Env env)
 		}, env
 	));
 
+	OBS_API::SetProcessPriority(processPriorityCurrentValue);
+
 	general.Set("nameSubCategory", Napi::String::New(env, "General"));
 	general.Set("parameters", generalObjects);
 	subCategories.Set(indexSubCategories++, general);

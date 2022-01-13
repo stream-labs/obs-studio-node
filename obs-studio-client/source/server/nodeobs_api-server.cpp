@@ -857,6 +857,8 @@ int OBS_API::OBS_API_initAPI(
 
 	util::CrashManager::setAppState("idle");
 
+	OBS_API::UpdateProcessPriority();
+
 	// We are returning a video result here because the frontend needs to know if we sucessfully
 	// initialized the Dx11 API
 	return OBS_VIDEO_SUCCESS;
