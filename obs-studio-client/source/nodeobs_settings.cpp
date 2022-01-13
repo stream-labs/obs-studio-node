@@ -1842,7 +1842,7 @@ void getAdvancedSettings(Napi::Object& settings, Napi::Env env)
 #endif
 
 	audio.Set("nameSubCategory", Napi::String::New(env, "Audio"));
-	audio.Set("parameters", videoObjects);
+	audio.Set("parameters", audioObjects);
 	subCategories.Set(indexSubCategories++, audio);
 
 	// Recording
@@ -2042,16 +2042,13 @@ Napi::Value settings::OBS_settings_getSettings(const Napi::CallbackInfo& info)
 		getGeneralSettings(settings, info.Env());
 	} else if (category.compare("Stream") == 0) {
 		getStreamSettings(settings, info.Env());
-	}
-	else if (category.compare("Output") == 0) {
+	} else if (category.compare("Output") == 0) {
 		getOutputSettings(settings, info.Env());
 	} else if (category.compare("Audio") == 0) {
 		getAudioSettings(settings, info.Env());
-	} 
-	else if (category.compare("Video") == 0) {
+	} else if (category.compare("Video") == 0) {
 		getVideoSettings(settings, info.Env());
-	}
-	else if (category.compare("Advanced") == 0) {
+	} else if (category.compare("Advanced") == 0) {
 		getAdvancedSettings(settings, info.Env());
 	}
 
