@@ -134,6 +134,15 @@ Napi::Value osn::ISource::GetProperties(const Napi::CallbackInfo& info, uint64_t
 			pr                                       = std::static_pointer_cast<osn::Property>(pr2);
 			break;
 		}
+		case obs::Property::Type::Capture: {
+			std::shared_ptr<obs::CaptureProperty> cast_property =
+			    std::dynamic_pointer_cast<obs::CaptureProperty>(raw_property);
+			std::shared_ptr<osn::NumberProperty> pr2 = std::make_shared<osn::NumberProperty>();
+			pr2->field_type                          = osn::NumberProperty::Type(cast_property->field_type);
+			pr2->int_value.value                     = cast_property->value;
+			pr                                       = std::static_pointer_cast<osn::Property>(pr2);
+			break;
+		}
 		case obs::Property::Type::Float: {
 			std::shared_ptr<obs::FloatProperty> cast_property =
 			    std::dynamic_pointer_cast<obs::FloatProperty>(raw_property);
@@ -234,22 +243,27 @@ Napi::Value osn::ISource::GetProperties(const Napi::CallbackInfo& info, uint64_t
 		case obs::Property::Type::FrameRate: {
 			std::shared_ptr<obs::FrameRateProperty> cast_property =
 			    std::dynamic_pointer_cast<obs::FrameRateProperty>(raw_property);
-			std::shared_ptr<osn::FrameRateProperty> pr2 = std::make_shared<osn::FrameRateProperty>();
+			std::shared_ptr<osn::ListProperty> pr2 = std::make_shared<osn::ListProperty>();
+			pr2->field_type                        = osn::ListProperty::Type::LIST;
+			pr2->item_format                       = osn::ListProperty::Format::STRING;
+
+			nlohmann::json fps;
+			fps["numerator"] = cast_property->current_numerator;
+			fps["denominator"] = cast_property->current_denominator;
+			pr2->current_value_str = fps.dump();
+
 			for (auto& option : cast_property->ranges) {
-				std::pair<osn::FrameRateProperty::FrameRate, osn::FrameRateProperty::FrameRate> range2;
-				range2.first.numerator    = option.minimum.first;
-				range2.first.denominator  = option.minimum.second;
-				range2.second.numerator   = option.maximum.first;
-				range2.second.denominator = option.maximum.second;
-				pr2->ranges.push_back(std::move(range2));
-			}
-			for (auto& option : cast_property->options) {
-				osn::FrameRateProperty::Option option2;
-				option2.name        = option.name;
-				option2.description = option.description;
-				pr2->options.push_back(std::move(option2));
+				nlohmann::json fps;
+				fps["numerator"] = option.maximum.first;
+				fps["denominator"] = option.maximum.second;
+				osn::ListProperty::Item item2;
+				item2.name     = std::to_string(option.maximum.first / option.maximum.second);
+				item2.disabled = false;
+				item2.value_str = fps.dump();
+				pr2->items.push_back(std::move(item2));
 			}
 
+			pr = std::static_pointer_cast<osn::Property>(pr2);
 			break;
 		}
 		default: {
@@ -263,6 +277,8 @@ Napi::Value osn::ISource::GetProperties(const Napi::CallbackInfo& info, uint64_t
 			pr->description      = raw_property->description;
 			pr->long_description = raw_property->long_description;
 			pr->type             = osn::Property::Type(raw_property->type());
+			if (pr->type == osn::Property::Type::FRAMERATE)
+				pr->type = osn::Property::Type::LIST;
 			pr->enabled          = raw_property->enabled;
 			pr->visible          = raw_property->visible;
 

@@ -31,6 +31,8 @@
 #include <string>
 #include <thread>
 #include <vector>
+#include <filesystem>
+#include <random>
 
 #ifdef WIN32
 #include "StackWalker.h"
@@ -66,14 +68,17 @@ std::vector<std::string>                   handledOBSCrashes;
 PDH_HQUERY                                 cpuQuery;
 PDH_HCOUNTER                               cpuTotal;
 std::vector<nlohmann::json>                breadcrumbs;
-std::queue<std::pair<int, nlohmann::json>> lastActions;
+std::queue<std::pair<int, std::string>>    lastActions;
 std::vector<std::string>                   warnings;
 std::mutex                                 messageMutex;
 util::MetricsProvider                      metricsClient;
 LPTOP_LEVEL_EXCEPTION_FILTER               crashpadInternalExceptionFilterMethod = nullptr;
+HANDLE                                     memoryDumpEvent = INVALID_HANDLE_VALUE;
+std::filesystem::path                      memoryDumpFolder;
 #endif
 
 std::string                                appState = "starting"; // "starting","idle","encoding","shutdown"
+std::string                                reportServerUrl = "";
 // Crashpad variables
 #ifdef ENABLE_CRASHREPORT
 std::wstring                                   appdata_path;
@@ -97,7 +102,7 @@ std::map<std::string, std::string>             annotations;
 /////////////
 
 std::string    FormatVAString(const char* const format, va_list args);
-nlohmann::json RewindCallStack(std::string& crashedMethod);
+void           RewindCallStack();
 
 typedef long long LongLong;
 
@@ -150,7 +155,7 @@ void RequestComputerUsageParams(
 
 	totalPhysMem    = memInfo.ullTotalPhys;
 	physMemUsed     = (memInfo.ullTotalPhys - memInfo.ullAvailPhys);
-	physMemUsedByMe = pmc.WorkingSetSize;
+	physMemUsedByMe = pmc.WorkingSetSize + pmc.PagefileUsage;
 	totalCPUUsed    = counterVal.doubleValue;
 	perfInfo.cb = sizeof(PERFORMANCE_INFORMATION);
 	if (GetPerformanceInfo(&perfInfo, sizeof(PERFORMANCE_INFORMATION))) {
@@ -200,7 +205,9 @@ nlohmann::json RequestProcessList()
 
 	// Calculate how many process identifiers were returned
 	cProcesses = cbNeeded / sizeof(DWORD);
-
+	unsigned reported_processes_count = 0;
+	unsigned skipped_processes_count = 0;
+	unsigned unprocessed_processes_count = 0;
 	// Get the name and process identifier for each process
 	for (unsigned i = 0; i < cProcesses; i++) {
 		if (aProcesses[i] != 0) {
@@ -217,16 +224,44 @@ nlohmann::json RequestProcessList()
 
 				if (EnumProcessModules(hProcess, &hMod, sizeof(hMod), &cbNeeded)) {
 					GetModuleBaseName(hProcess, hMod, szProcessName, sizeof(szProcessName) / sizeof(TCHAR));
+					
+					PROCESS_MEMORY_COUNTERS pmc = {};
+					if (GetProcessMemoryInfo(hProcess, &pmc, sizeof(pmc))) {
+						SIZE_T totalProcessMemory = pmc.PagefileUsage + pmc.WorkingSetSize;
+						if (totalProcessMemory > 1024*1024 * 32) {
+							result.push_back(
+							{std::to_string(processID),
+							std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t>().to_bytes(szProcessName)
+							+ std::string(", ")
+							+ std::to_string(totalProcessMemory/1024/1024)
+							+ std::string("Mb") });
 
-					result.push_back(
-					    {std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t>().to_bytes(szProcessName),
-					     std::to_string(processID)});
+							reported_processes_count++;
+						} else {
+							skipped_processes_count++;
+						}
+					}
 
 					CloseHandle(hProcess);
 				}
+			} else {
+				skipped_processes_count++;
 			}
+		} else {
+			skipped_processes_count++;
+		}
+		if (reported_processes_count >= 149) {
+			unprocessed_processes_count = cProcesses - i;
+			break;
 		}
 	}
+	result.push_back({std::string("0"),
+		std::string("Total:")
+		+ std::to_string(cProcesses)
+		+ std::string(", Skipped:")
+		+ std::to_string(skipped_processes_count)
+		+ std::string(", Unprocessd:")
+		+ std::to_string(unprocessed_processes_count)});
     
     return result;
 #else
@@ -237,10 +272,149 @@ nlohmann::json RequestProcessList()
 //////////////////
 // CrashManager //
 //////////////////
+std::wstring util::CrashManager::GetMemoryDumpEventName_Start()
+{
+#ifdef WIN32
+	return L"Global\\SLOBSMEMORYDUMPEVENT" + std::to_wstring(GetCurrentProcessId());
+#else
+	return L"Global\\SLOBSMEMORYDUMPEVENT";
+#endif
+}
+
+std::wstring util::CrashManager::GetMemoryDumpEventName_Fail()
+{
+#ifdef WIN32
+	return L"Global\\SLOBSMEMORYDUMPEVENTFAIL" + std::to_wstring(GetCurrentProcessId());
+#else
+	return L"Global\\SLOBSMEMORYDUMPEVENTFAIL";
+#endif
+}
+
+std::wstring util::CrashManager::GetMemoryDumpEventName_Success()
+{
+#ifdef WIN32
+	return L"Global\\SLOBSMEMORYDUMPEVENTSUCCESS" + std::to_wstring(GetCurrentProcessId());
+#else
+	return L"Global\\SLOBSMEMORYDUMPEVENTSUCCESS";
+#endif
+}
+
+#ifdef WIN32
+bool util::CrashManager::IsMemoryDumpEnabled()
+{
+	if (std::filesystem::exists( memoryDumpFolder ) && std::filesystem::is_directory( memoryDumpFolder )) {
+		return true;
+	} else {
+		return false;
+	}
+}
+
+bool util::CrashManager::InitializeMemoryDump()
+{
+	bool ret = false;
+	if (!IsMemoryDumpEnabled())
+		return ret;
+
+	PSECURITY_DESCRIPTOR securityDescriptor = (PSECURITY_DESCRIPTOR) LocalAlloc(LPTR, SECURITY_DESCRIPTOR_MIN_LENGTH);
+	if (InitializeSecurityDescriptor(securityDescriptor, SECURITY_DESCRIPTOR_REVISION)) {
+		if (SetSecurityDescriptorDacl( securityDescriptor, TRUE, NULL, FALSE)) {
+			SECURITY_ATTRIBUTES eventSecurityAttr = {0};
+			eventSecurityAttr.nLength = sizeof(SECURITY_ATTRIBUTES);
+			eventSecurityAttr.lpSecurityDescriptor = securityDescriptor;
+			eventSecurityAttr.bInheritHandle = FALSE;
+
+			memoryDumpEvent = CreateEvent( &eventSecurityAttr, TRUE, FALSE, GetMemoryDumpEventName_Start().c_str());
+			if (memoryDumpEvent != NULL && memoryDumpEvent != INVALID_HANDLE_VALUE) {
+				ret = true;
+			}
+		}
+	}
+	LocalFree(securityDescriptor);
+
+	return ret;
+}
+
+bool util::CrashManager::SignalMemoryDump()
+{
+	bool result = false;
+
+	if (memoryDumpEvent != NULL && memoryDumpEvent != INVALID_HANDLE_VALUE) {
+		if (SetEvent(memoryDumpEvent)) {
+			
+			constexpr int failEvent = 0;
+			constexpr int successEvent = 1;
+
+			HANDLE handles[2] = { 
+				OpenEvent(EVENT_ALL_ACCESS, FALSE, GetMemoryDumpEventName_Fail().c_str()),
+				OpenEvent(EVENT_ALL_ACCESS, FALSE, GetMemoryDumpEventName_Success().c_str())
+			};
+
+			if (handles[0] != NULL && handles[0] != INVALID_HANDLE_VALUE && handles[1] != NULL && handles[1] != INVALID_HANDLE_VALUE) {				
+				DWORD ret = WaitForMultipleObjects(2, handles, FALSE, INFINITE);
+
+				if (ret - WAIT_OBJECT_0 == successEvent) {
+					result = true;
+				}
+			} 
+
+			if (handles[0] != NULL && handles[0] != INVALID_HANDLE_VALUE)
+				CloseHandle(handles[0]);
+			
+			if (handles[1] != NULL && handles[1] != INVALID_HANDLE_VALUE)
+				CloseHandle(handles[1]);
+		}
+
+		CloseHandle(memoryDumpEvent);
+		memoryDumpEvent = INVALID_HANDLE_VALUE;
+	}
+
+	return result;
+}
+
+std::wstring util::CrashManager::GetMemoryDumpPath()
+{
+	return memoryDumpFolder.generic_wstring();
+}
+
+std::wstring util::CrashManager::GetMemoryDumpName()
+{
+	static std::wstring dmpName;
+
+	if (!dmpName.empty())
+		return dmpName;
+
+	std::mt19937 rangen(std::random_device{}());
+	
+	auto randomCharacter = [&]() {
+		auto crand = [&](char min, char max) {
+			std::uniform_int_distribution<char> distribution(min, max);
+			return distribution(rangen);
+		};	
+		
+		// ascinum for simplicity
+		return crand(0, 1) == 0 ? crand('A', 'Z') : crand('0', '9');
+	};
+
+	std::wstring randomCode;
+
+	for (int i = 0; i < 15; ++i)
+		randomCode.push_back(randomCharacter());
+	
+	using namespace std::chrono;
+	seconds ms = duration_cast<seconds>(system_clock::now().time_since_epoch());
+	return dmpName = L"obs." + std::to_wstring(ms.count()) + L"." + randomCode;
+}
+
+#else
+bool util::CrashManager::IsMemoryDumpEnabled() { return false; }
+bool util::CrashManager::InitializeMemoryDump() { return IsMemoryDumpEnabled(); }
+bool util::CrashManager::SignalMemoryDump() {}
+std::wstring util::CrashManager::GetMemoryDumpPath() {return L""; }
+std::wstring util::CrashManager::GetMemoryDumpName() {return L""; }
+#endif
 
 bool util::CrashManager::Initialize(char* path, std::string appdata)
 {
-
 #ifdef ENABLE_CRASHREPORT
 	appStateFile = appdata + "\\appState";
 
@@ -272,6 +446,10 @@ bool util::CrashManager::Initialize(char* path, std::string appdata)
 	std::set_terminate([]() { HandleCrash("Direct call to std::terminate"); });
 	
 #ifdef WIN32
+	memoryDumpFolder = std::filesystem::u8path(appdata+"\\CrashMemoryDump");
+
+	// There's a static local wstring inside this function, now it's cached for thread safe read access
+	util::CrashManager::GetMemoryDumpName();
 
 	// Setup the windows exeption filter
 	auto ExceptionHandlerMethod = [](struct _EXCEPTION_POINTERS* ExceptionInfo) {
@@ -320,7 +498,7 @@ void util::CrashManager::Configure()
 
 bool util::CrashManager::SetupCrashpad()
 {
-	if (!reportsEnabled) {
+	if (!reportsEnabled || reportServerUrl.size() == 0) {
 		return false;
 	}
 
@@ -350,10 +528,6 @@ bool util::CrashManager::SetupCrashpad()
 	handler_path.append("crashpad_handler");
 #endif
 
-	url = isPreview
-	          ? std::string("https://sentry.io/api/1406061/minidump/?sentry_key=7376a60665cd40bebbd59d6bf8363172")
-	          : std::string("https://sentry.io/api/1283431/minidump/?sentry_key=ec98eac4e3ce49c7be1d83c8fb2005ef");
-
 #ifdef __APPLE__
 	std::string appdata_path = g_util_osx->getUserDataPath();
 #endif
@@ -366,7 +540,7 @@ bool util::CrashManager::SetupCrashpad()
 
 	database->GetSettings()->SetUploadsEnabled(true);
 
-	bool rc = client.StartHandler(handler, db, db, url, annotations, arguments, true, true);
+	bool rc = client.StartHandler(handler, db, db, reportServerUrl, annotations, arguments, true, true);
 	if (!rc)
 		return false;
 
@@ -398,6 +572,8 @@ void util::CrashManager::HandleExit() noexcept
 
 void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noexcept
 {
+	const bool uploadedFullDump = SignalMemoryDump();
+
 #ifdef ENABLE_CRASHREPORT
 
 	// If for any reason this is true, it means that we are crashing inside this same
@@ -407,33 +583,13 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 	static bool insideRewindCallstack = false; //if this is true then we already crashed inside StackWalker and try to skip it this time.
 	if (insideCrashMethod && !insideRewindCallstack)
 		abort();
-	
+
 	SaveToAppStateFile();
 
-	insideCrashMethod = true;
 	annotations.clear();
-	// This will manually rewind the callstack, we will use this info to populate an
-	// crash report attribute, avoiding some cases that the memory dump is corrupted
-	// and we don't have access to the callstack.
-	std::string    crashedMethodName;
-	nlohmann::json callStack;
-	try {
-		if(!insideRewindCallstack)
-		{
-			insideRewindCallstack = true;
-			callStack = RewindCallStack(crashedMethodName);
-			insideRewindCallstack = false;
-		} else {
-			annotations.insert({{"Recrashed_in", "RewindCallStack" }});
-			callStack =  nlohmann::json::array();
-		}
-	} catch (...) {
-		//ignore exceptions to not loose current crash info 
-		callStack =  nlohmann::json::array();
-	}
-	
+
 	int  known_crash_id = 0;
-	
+
 	if (is_allocator_failed()) {
 		known_crash_id = 0x1;
 	}
@@ -446,7 +602,7 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 	long long commitMemTotal = 0ll;
 	long long commitMemLimit = 1ll;
 	std::string computerName;
-	
+
 	try {
 		RequestComputerUsageParams(
 		    totalPhysMem, physMemUsed, physMemUsedByMe, totalCPUUsed, commitMemTotal, commitMemLimit);
@@ -455,7 +611,6 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 	} catch (...) { }
 
 	auto timeElapsed = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - initialTime);
-
 
 	// Setup all the custom annotations that are important too our crash report
 	nlohmann::json systemResources = nlohmann::json::object();
@@ -478,7 +633,7 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 	try {
 		annotations.insert({{"Process List", RequestProcessList().dump(4)}});
 	} catch (...) {}
-	
+
 	try {
 		annotations.insert({{"OBS log general", RequestOBSLog(OBSLogType::General).dump(4)}});
 		annotations.insert({{"Crash reason", _crashInfo}});
@@ -492,19 +647,55 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 	annotations.insert({{"sentry[user][username]", OBS_API::getUsername()}});
 	annotations.insert({{"sentry[environment]", getAppState()}});
 
-	// If the callstack rewind operation returned an error, use it instead its result
-	annotations.insert({{"Manual callstack", callStack.dump(4)}});
+	// if saved memory dump
+	if (uploadedFullDump) {
+		std::string dmpNameA;
+		std::wstring dmpNameW = util::CrashManager::GetMemoryDumpName();		
+		std::transform(dmpNameW.begin(), dmpNameW.end(), std::back_inserter(dmpNameA), [] (wchar_t c) { return (char)c;});
+		annotations.insert({{"sentry[tags][memorydump]", "true"}});
+		annotations.insert({{"sentry[tags][s3dmp]", dmpNameA.c_str()}});
+	}
+
+	insideCrashMethod = true;
+	try {
+		if (!insideRewindCallstack) {
+			insideRewindCallstack = true;
+			RewindCallStack();
+			insideRewindCallstack = false;
+		} else {
+			blog(LOG_INFO, "Recrashed in RewindCallStack");
+		}
+	} catch (...) {
+		//ignore exceptions to not loose current crash info 
+	}
 
 	// Recreate crashpad instance, this is a well defined/supported operation
 	SetupCrashpad();
 
-	// Finish the execution and let crashpad handle the crash
+	// This value is true by default and only false if we're planning to let crashpad handle cleanup
 	if (callAbort)
 		abort();
+	else
+		blog(LOG_INFO, "Server finished 'HandleCrash', crashpad will now make a sentry report");
 
 	insideCrashMethod = false;
 
 #endif
+}
+
+void util::CrashManager::SetReportServerUrl(std::string url)
+{
+	// dev environment
+	//url = "https://o114354.ingest.sentry.io/api/252950/minidump/?sentry_key=8f444a81edd446b69ce75421d5e91d4d";
+
+	if (url.length()) {
+		reportServerUrl = url;
+	} else {
+		bool isPreview = OBS_API::getCurrentVersion().find("preview") != std::string::npos;
+		reportServerUrl = isPreview
+	          ? std::string("https://sentry.io/api/1406061/minidump/?sentry_key=7376a60665cd40bebbd59d6bf8363172")
+	          : std::string("https://sentry.io/api/1283431/minidump/?sentry_key=ec98eac4e3ce49c7be1d83c8fb2005ef");
+	}
 }
 
 void util::CrashManager::SetVersionName(std::string name) {
@@ -586,15 +777,13 @@ std::string FormatVAString(const char* const format, va_list args)
 	return std::string{temp.data(), length};
 }
 
-nlohmann::json RewindCallStack(std::string& crashedMethod)
+void RewindCallStack()
 {
 #ifdef WIN32
 	class MyStackWalker : public StackWalker
 	{
 		public:
-		MyStackWalker(nlohmann::json& _outJson, std::string& _crashMethod)
-		    : StackWalker(), m_OutJson(_outJson), m_OutCrashMethodName(_crashMethod)
-		{}
+		MyStackWalker(): StackWalker(){}
 
 		protected:
 		virtual void OnCallstackEntry(CallstackEntryType eType, CallstackEntry& entry)
@@ -608,48 +797,38 @@ nlohmann::json RewindCallStack(std::string& crashedMethod)
 			if (fileName.find("util-crashmanager.cpp") != std::string::npos
 			    || fileName.find("stackwalker.cpp") != std::string::npos)
 				return;
-
-			nlohmann::json jsonEntry;
-			if(strlen(entry.name) > 0)
-			{
-				jsonEntry["function"] = std::string(entry.name);
+			if (strlen(entry.name) > 0) {
+				std::string function = std::string(entry.name);
 				entry.name[0] = 0x00;
 
 				if(strlen(entry.lineFileName) > 0 )
-					jsonEntry["filename"] = entry.lineFileName;
+					function += std::string(" ") + std::string(entry.lineFileName);
 				entry.lineFileName[0] = 0x00;
 
 				if(entry.lineNumber > 0)
-					jsonEntry["lineno"] = entry.lineNumber;
+					function += std::string(":") + std::to_string(entry.lineNumber);
 
 				if(strlen(entry.moduleName) > 0)
-					jsonEntry["module"] = std::string(entry.moduleName);
-					entry.moduleName[0] = 0x00;
+					function += std::string(" ") + std::string(entry.moduleName);
+				entry.moduleName[0] = 0x00;
 
+				blog(LOG_INFO, "ST: %s", function.c_str());
 			} else {
-				jsonEntry["function"] = "unknown";
+				std::string function = std::string("unknown function");
+
+				if(strlen(entry.moduleName) > 0)
+					function += std::string(" ") + std::string(entry.moduleName);
+				entry.moduleName[0] = 0x00;
+
+				blog(LOG_INFO, "ST: %s", function.c_str());
 			}
-			
-			// Check if we should update the crash method variable
-			if (m_OutCrashMethodName.length() == 0)
-				m_OutCrashMethodName = std::string(entry.name);
-
-			m_OutJson.push_back(jsonEntry);
 		}
-
-		private:
-		nlohmann::json& m_OutJson;
-		std::string&    m_OutCrashMethodName;
 	};
 
-	nlohmann::json result = nlohmann::json::array();
-	MyStackWalker  sw(result, crashedMethod);
+	MyStackWalker  sw;
 	sw.ShowCallstack();
-
-	return result;
-#else
-    return NULL;
 #endif
+	return;
 }
 
 nlohmann::json util::CrashManager::RequestOBSLog(OBSLogType type)
@@ -712,7 +891,7 @@ nlohmann::json util::CrashManager::ComputeActions()
 
 		// Update the message to reflect the count amount, if applicable
 		if (counter > 0) {
-			message["repeat"] = counter;
+			message = message + std::string("|") + std::to_string(counter);
 		}
 
 		result.push_back(message);
@@ -900,14 +1079,14 @@ void util::CrashManager::AddWarning(const std::string& warning)
 #endif
 }
 
-void RegisterAction(const nlohmann::json& message)
+void RegisterAction(const std::string& message)
 {
 #ifdef WIN32
 	static const int            MaximumActionsRegistered = 50;
 	std::lock_guard<std::mutex> lock(messageMutex);
 
 	// Check if this and the last message are the same, if true just add a counter
-	if (lastActions.size() > 0 && lastActions.back().second == message) {
+	if (lastActions.size() > 0 && message.compare(lastActions.back().second) == 0) {
 		lastActions.back().first++;
 	} else {
 		lastActions.push({0, message});
@@ -984,9 +1163,7 @@ std::string util::CrashManager::getAppState()
 
 void util::CrashManager::ProcessPreServerCall(std::string cname, std::string fname, const std::vector<ipc::value>& args)
 {
-	nlohmann::json jsonEntry;
-	jsonEntry["cname"] = cname;
-	jsonEntry["fname"] = fname;
+	std::string jsonEntry = cname + std::string("::") + fname;
 
 	// Perform this only if this user have a high crash rate (TODO: this check must be implemented)
 	/*

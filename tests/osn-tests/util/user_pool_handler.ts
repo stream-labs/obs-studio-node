@@ -17,6 +17,7 @@ interface ITestUser {
     apiToken: string;
     widgetToken: string;
     streamKey: string;
+    platforms: any;
 }
 
 export class UserPoolHandler {
@@ -73,7 +74,7 @@ export class UserPoolHandler {
         }
 
         logInfo(this.osnTestName, 'Got user ' + this.user.email);
-        return this.user.streamKey;
+        return this.user.platforms.twitch.streamKey;
     }
 
     async releaseUser() {

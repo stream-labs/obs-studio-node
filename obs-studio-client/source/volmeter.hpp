@@ -41,6 +41,7 @@ namespace osn
 		Volmeter(const Napi::CallbackInfo& info);
 
 		static Napi::Value Create(const Napi::CallbackInfo& info);
+		Napi::Value Destroy(const Napi::CallbackInfo& info);
 		Napi::Value Attach(const Napi::CallbackInfo& info);
 		Napi::Value Detach(const Napi::CallbackInfo& info);
 		Napi::Value AddCallback(const Napi::CallbackInfo& info);

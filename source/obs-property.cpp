@@ -48,6 +48,9 @@ std::shared_ptr<obs::Property> obs::Property::deserialize(std::vector<char> cons
 	case Type::Color:
 		prop = std::make_shared<ColorProperty>();
 		break;
+	case Type::Capture:
+		prop = std::make_shared<CaptureProperty>();
+		break;
 	case Type::Button:
 		prop = std::make_shared<ButtonProperty>();
 		break;
@@ -748,6 +751,52 @@ bool obs::ColorProperty::read(std::vector<char> const& buf)
 	return true;
 }
 
+obs::Property::Type obs::CaptureProperty::type()
+{
+	return Type::Capture;
+}
+
+size_t obs::CaptureProperty::size()
+{
+	size_t total = NumberProperty::size();
+	total += sizeof(int64_t);
+	return total;
+}
+
+bool obs::CaptureProperty::serialize(std::vector<char>& buf)
+{
+	if (buf.size() < size()) {
+		return false;
+	}
+
+	if (!NumberProperty::serialize(buf)) {
+		return false;
+	}
+
+	size_t offset                             = NumberProperty::size();
+	*reinterpret_cast<int64_t*>(&buf[offset]) = value;
+	offset += sizeof(int64_t);
+
+	return true;
+}
+
+bool obs::CaptureProperty::read(std::vector<char> const& buf)
+{
+	if (buf.size() < size()) {
+		return false;
+	}
+
+    if (!NumberProperty::read(buf)) {
+		return false;
+	}
+
+    size_t offset = NumberProperty::size();
+	value         = *reinterpret_cast<const int64_t*>(&buf[offset]);
+	offset += sizeof(int64_t);
+
+	return true;
+}
+
 obs::Property::Type obs::ButtonProperty::type()
 {
 	return obs::Property::Type::Button;
@@ -995,6 +1044,8 @@ size_t obs::FrameRateProperty::size()
 		total += sizeof(size_t);
 		total += option.description.size();
 	}
+	total += sizeof(uint32_t); // current_numerator
+	total += sizeof(uint32_t); // current_denominator
 	return total;
 }
 
@@ -1039,6 +1090,11 @@ bool obs::FrameRateProperty::serialize(std::vector<char>& buf)
 			offset += option.description.size();
 		}
 	}
+
+	reinterpret_cast<uint32_t&>(buf[offset]) = current_numerator;
+	offset += sizeof(uint32_t);
+	reinterpret_cast<uint32_t&>(buf[offset]) = current_denominator;
+	offset += sizeof(uint32_t);
 
 	return true;
 }
@@ -1087,6 +1143,11 @@ bool obs::FrameRateProperty::read(std::vector<char> const& buf)
 		}
 		options.push_back(std::move(option));
 	}
+
+	current_numerator = reinterpret_cast<const uint32_t&>(buf[offset]);
+	offset += sizeof(uint32_t);
+	current_denominator = reinterpret_cast<const uint32_t&>(buf[offset]);
+	offset += sizeof(uint32_t);
 
 	return true;
 }

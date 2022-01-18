@@ -91,45 +91,52 @@ void globalCallback::stop_worker(void)
 	if (worker_thread->joinable()) {
 		worker_thread->join();
 	}
+	js_thread.Release();
 }
 
 void globalCallback::worker()
 {
-    auto sources_callback = []( Napi::Env env, 
+	auto sources_callback = []( Napi::Env env, 
 			Napi::Function jsCallback,
 			SourceSizeInfoData* data ) {
-		Napi::Array result = Napi::Array::New(env, data->items.size());
+		try {
+			Napi::Array result = Napi::Array::New(env, data->items.size());
 
-		for (size_t i = 0; i < data->items.size(); i++) {
-			Napi::Object obj = Napi::Object::New(env);
-			obj.Set("name", Napi::String::New(env, data->items[i]->name));
-			obj.Set("width", Napi::Number::New(env, data->items[i]->width));
-			obj.Set("height", Napi::Number::New(env, data->items[i]->height));
-			obj.Set("flags", Napi::Number::New(env, data->items[i]->flags));
-			result.Set(i, obj);
-		}
-		jsCallback.Call({ result });
-    };
+			for (size_t i = 0; i < data->items.size(); i++) {
+				Napi::Object obj = Napi::Object::New(env);
+				obj.Set("name", Napi::String::New(env, data->items[i]->name));
+				obj.Set("width", Napi::Number::New(env, data->items[i]->width));
+				obj.Set("height", Napi::Number::New(env, data->items[i]->height));
+				obj.Set("flags", Napi::Number::New(env, data->items[i]->flags));
+				result.Set(i, obj);
+			}
+			jsCallback.Call({ result });
+		} catch (...) {}
+		delete data;
+	};
 
-    auto volmeter_callback = []( Napi::Env env, Napi::Function jsCallback, VolmeterData* data ) {
-		Napi::Array magnitude = Napi::Array::New(env);
-		Napi::Array peak = Napi::Array::New(env);
-		Napi::Array input_peak = Napi::Array::New(env);
+	auto volmeter_callback = []( Napi::Env env, Napi::Function jsCallback, VolmeterData* data ) {
+		try {
+			Napi::Array magnitude = Napi::Array::New(env);
+			Napi::Array peak = Napi::Array::New(env);
+			Napi::Array input_peak = Napi::Array::New(env);
 
-		for (size_t i = 0; i < data->magnitude.size(); i++) {
-			magnitude.Set(i, Napi::Number::New(env, data->magnitude[i]));
-		}
-		for (size_t i = 0; i < data->peak.size(); i++) {
-			peak.Set(i, Napi::Number::New(env, data->peak[i]));
-		}
-		for (size_t i = 0; i < data->input_peak.size(); i++) {
-			input_peak.Set(i, Napi::Number::New(env, data->input_peak[i]));
-		}
+			for (size_t i = 0; i < data->magnitude.size(); i++) {
+				magnitude.Set(i, Napi::Number::New(env, data->magnitude[i]));
+			}
+			for (size_t i = 0; i < data->peak.size(); i++) {
+				peak.Set(i, Napi::Number::New(env, data->peak[i]));
+			}
+			for (size_t i = 0; i < data->input_peak.size(); i++) {
+				input_peak.Set(i, Napi::Number::New(env, data->input_peak[i]));
+			}
 
-		if (data->magnitude.size() > 0 && data->peak.size() > 0 && data->input_peak.size() > 0) {
-			jsCallback.Call({ magnitude, peak, input_peak });
-		}
-    };
+			if (data->magnitude.size() > 0 && data->peak.size() > 0 && data->input_peak.size() > 0) {
+				jsCallback.Call({ magnitude, peak, input_peak });
+			}
+		} catch (...) {}
+		delete data;
+	};
 
 	size_t totalSleepMS = 0;
 
@@ -176,26 +183,37 @@ void globalCallback::worker()
 				index = i;
 			}
 
-			if (data->items.size() > 0)
-				js_thread.NonBlockingCall( data, sources_callback );
+			if (data->items.size() > 0) {
+				napi_status status = js_thread.NonBlockingCall( data, sources_callback );
+				if (status != napi_ok) {
+					delete data;
+				}
+			}
 
 			index++;
 
 			for (auto vol: volmeters) {
 				VolmeterData* data     = new VolmeterData{{}, {}, {}};
 				size_t channels = response[index++].value_union.i32;
+				bool isMuted = response[index++].value_union.i32;
 				if (!channels)
 					continue;
-				data->magnitude.resize(channels);
-				data->peak.resize(channels);
-				data->input_peak.resize(channels);
-				for (size_t ch = 0; ch < channels; ch++) {
-					data->magnitude[ch]  = response[index + ch * 3 + 0].value_union.fp32;
-					data->peak[ch]       = response[index + ch * 3 + 1].value_union.fp32;
-					data->input_peak[ch] = response[index + ch * 3 + 2].value_union.fp32;
+				if (!isMuted) {
+					data->magnitude.resize(channels);
+					data->peak.resize(channels);
+					data->input_peak.resize(channels);
+					for (size_t ch = 0; ch < channels; ch++) {
+						data->magnitude[ch]  = response[index + ch * 3 + 0].value_union.fp32;
+						data->peak[ch]       = response[index + ch * 3 + 1].value_union.fp32;
+						data->input_peak[ch] = response[index + ch * 3 + 2].value_union.fp32;
+					}
+					napi_status status = vol.second.NonBlockingCall(data, volmeter_callback);
+					if (status != napi_ok) {
+						delete data;
+					}
+
+					index += (3 * channels);
 				}
-				vol.second.NonBlockingCall(data, volmeter_callback);
-				index += (3 * channels);
 			}
 
 		}

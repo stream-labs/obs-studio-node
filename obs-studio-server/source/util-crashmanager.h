@@ -73,7 +73,18 @@ namespace util
 		static void ProcessPostServerCall(std::string cname, std::string fname, const std::vector<ipc::value>& args);
 
 		static void SetVersionName(std::string name);
+		static void SetReportServerUrl(std::string url);
 		static void SetUsername(std::string name);
+
+		static bool InitializeMemoryDump();
+		static bool SignalMemoryDump();
+		static bool IsMemoryDumpEnabled();
+		static std::wstring GetMemoryDumpEventName_Start();
+		static std::wstring GetMemoryDumpEventName_Fail();
+		static std::wstring GetMemoryDumpEventName_Success();
+		static std::wstring GetMemoryDumpPath();
+		static std::wstring GetMemoryDumpName();
+
 
 		private:
 		static nlohmann::json RequestOBSLog(OBSLogType type);

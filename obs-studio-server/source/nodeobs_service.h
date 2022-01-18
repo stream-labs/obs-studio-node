@@ -61,8 +61,10 @@
 
 #define ENCODER_NEW_NVENC "jim_nvenc"
 
-#define APPLE_SOFTWARE_VIDEO_ENCODER "vt_h264_sw"
-#define APPLE_HARDWARE_VIDEO_ENCODER "vt_h264_hw"
+#define APPLE_SOFTWARE_VIDEO_ENCODER "com.apple.videotoolbox.videoencoder.h264"
+#define APPLE_HARDWARE_VIDEO_ENCODER "com.apple.videotoolbox.videoencoder.h264.gva"
+
+#define ARCHIVE_NAME "archive_aac"
 
 #define MAX_AUDIO_MIXES 6
 
@@ -242,6 +244,7 @@ class OBS_service
 	static void           setAudioAdvancedStreamingEncoder(obs_encoder_t* encoder);
 	static void           setupAudioEncoder(void);
 	static void           clearAudioEncoder(void);
+	static obs_encoder_t* getArchiveEncoder(void);
 
 	// Outputs
 	static bool          createStreamingOutput(void);
@@ -300,6 +303,8 @@ class OBS_service
 	static bool EncoderAvailable(const char* encoder);
 	static void stopAllOutputs(void);
 
-	static void startTwitchSoundtrackAudio(void);
+	static bool startTwitchSoundtrackAudio(void);
 	static void stopTwitchSoundtrackAudio(void);
+	static void setupVodTrack(bool isSimpleMode);
+	static void clearArchiveVodEncoder();
 };

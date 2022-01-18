@@ -625,9 +625,18 @@ Napi::Value osn::PropertyObject::ButtonClicked(const Napi::CallbackInfo& info)
 	if (!ValidateResponse(info, rval))
 		return Napi::Boolean::New(info.Env(), false);
 
+	rval = conn->call_synchronous_helper(
+	    "Properties",
+	    "Modified",
+	    {ipc::value(parent->sourceId), ipc::value(iter->second->name), ipc::value("")});
+	bool settings_changed = false;
+	if (ValidateResponse(info, rval))
+		settings_changed = true;
+
 	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(parent->sourceId);
 	if (sdi) {
 		sdi->propertiesChanged = true;
+		sdi->settingsChanged   = settings_changed;
 	}
 
 	return Napi::Boolean::New(info.Env(), true);

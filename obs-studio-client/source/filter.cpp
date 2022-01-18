@@ -156,7 +156,13 @@ Napi::Value osn::Filter::CallGetProperties(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Filter::CallGetSettings(const Napi::CallbackInfo& info)
 {
-	return osn::ISource::GetSettings(info, this->sourceId);
+	Napi::Value ret = osn::ISource::GetSettings(info, this->sourceId);
+
+	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(this->sourceId);
+	if (sdi && sdi->obs_sourceId.compare("vst_filter") == 0) {
+		sdi->settingsChanged = true;
+	}
+	return ret;
 }
 
 
@@ -238,6 +244,11 @@ Napi::Value osn::Filter::CallRemove(const Napi::CallbackInfo& info)
 Napi::Value osn::Filter::CallUpdate(const Napi::CallbackInfo& info)
 {
 	osn::ISource::Update(info, this->sourceId);
+
+	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(this->sourceId);
+	if (sdi && sdi->obs_sourceId.compare("vst_filter") == 0) {
+		sdi->settingsChanged = true;
+	}
 
 	return info.Env().Undefined();
 }

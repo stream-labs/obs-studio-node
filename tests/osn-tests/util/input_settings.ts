@@ -31,6 +31,7 @@ let browserSource: ISettings = {
     fps: 30,
     fps_custom: false,
     height: 600,
+    is_media_flag: false,
     reroute_audio: false,
     restart_when_active: false,
     shutdown: false,
@@ -44,6 +45,7 @@ let ffmpegSource: ISettings = {
     caching: false,
     clear_on_media_end: true,
     is_local_file: true,
+    linear_alpha: false,
     looping: false,
     restart_on_activate: true,
     speed_percent: 100
@@ -51,6 +53,7 @@ let ffmpegSource: ISettings = {
 export {ffmpegSource};
 
 let ndiSource: ISettings = {
+    latency: 0,
     ndi_bw_mode: 0,
     ndi_fix_alpha_blending: false,
     ndi_sync: 1,
@@ -122,7 +125,6 @@ export {macWindowCapture};
 let gameCapture: ISettings = {
     allow_transparency: false,
     anti_cheat_hook: true,
-    auto_capture_list_path: "",
     auto_capture_rules_path: '',
     auto_fit_to_output: true,
     auto_placeholder_image: "",
@@ -140,6 +142,17 @@ let gameCapture: ISettings = {
     user_placeholder_use: false
 };
 export {gameCapture};
+
+let simpleCapture: ISettings = {
+    auto_capture_rules_path: '',
+    auto_placeholder_image: '',
+    auto_placeholder_message: 'Looking for a game to capture',
+    capture_source_list: 'game:0',
+    capture_cursor: false,
+    capture_window_line: '',
+    user_placeholder_use: false
+};
+export {simpleCapture};
 
 let dshowInput: ISettings = {
   active: true,

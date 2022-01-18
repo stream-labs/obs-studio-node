@@ -49,8 +49,8 @@
 #include <locale>
 #include <mutex>
 #include <string>
-#include "nodeobs_content.h"
 #endif
+#include "nodeobs_content.h"
 
 #ifdef _MSC_VER
 #include <direct.h>
@@ -88,6 +88,13 @@
 #define GBYTE (1024ULL * 1024ULL * 1024ULL)
 #define TBYTE (1024ULL * 1024ULL * 1024ULL * 1024ULL)
 
+enum crashHandlerCommand {
+	REGISTER = 0,
+	UNREGISTER = 1,
+	REGISTERMEMORYDUMP = 2,
+	CRASHWITHCODE = 3
+};
+
 std::string g_moduleDirectory = "";
 os_cpu_usage_info_t* cpuUsageInfo      = nullptr;
 #ifdef WIN32
@@ -111,7 +118,7 @@ void OBS_API::Register(ipc::server& srv)
 
 	cls->register_function(std::make_shared<ipc::function>(
 	    "OBS_API_initAPI",
-	    std::vector<ipc::type>{ipc::type::String, ipc::type::String, ipc::type::String},
+	    std::vector<ipc::type>{ipc::type::String, ipc::type::String, ipc::type::String, ipc::type::String},
 	    OBS_API_initAPI));
 	cls->register_function(
 	    std::make_shared<ipc::function>("OBS_API_destroyOBS_API", std::vector<ipc::type>{}, OBS_API_destroyOBS_API));
@@ -376,6 +383,8 @@ void outdated_driver_error::catch_error(const char* msg)
 
 inline std::string nodeobs_log_formatted_message(const char* format, va_list args)
 {
+	if (!format)
+		return "";
 #ifdef WIN32
 	size_t            length  = _vscprintf(format, args);
 #else
@@ -545,7 +554,7 @@ uint32_t pid = (uint32_t)getpid();
 std::vector<char> registerProcess(void)
 {
 	std::vector<char> buffer;
-	uint8_t action     = 0;
+	uint8_t action     = crashHandlerCommand::REGISTER;
 	bool    isCritical = true;
 	buffer.resize(sizeof(action) + sizeof(isCritical) + sizeof(pid));
 
@@ -560,10 +569,78 @@ std::vector<char> registerProcess(void)
 	return buffer;
 }
 
+std::vector<char> registerMemoryDump(void)
+{
+	const uint8_t action = crashHandlerCommand::REGISTERMEMORYDUMP;
+
+	//str
+	std::wstring eventName_Start = util::CrashManager::GetMemoryDumpEventName_Start();
+	uint32_t eventName_Start_Size = (eventName_Start.size() + 1) * sizeof(wchar_t);
+
+	//str
+	std::wstring eventName_Fail = util::CrashManager::GetMemoryDumpEventName_Fail();
+	uint32_t eventName_Fail_Size = (eventName_Fail.size() + 1) * sizeof(wchar_t);
+
+	//str
+	std::wstring eventName_Success = util::CrashManager::GetMemoryDumpEventName_Success();
+	uint32_t eventName_Success_Size = (eventName_Success.size() + 1) * sizeof(wchar_t);
+
+	//str
+	std::wstring dumpPath = util::CrashManager::GetMemoryDumpPath();
+	uint32_t dumpPathSize = (dumpPath.size() + 1) * sizeof(wchar_t);
+
+	//str
+	std::wstring dumpName = util::CrashManager::GetMemoryDumpName();
+	uint32_t dumpNameSize = (dumpName.size() + 1) * sizeof(wchar_t);
+
+	// Buffer
+	std::vector<char> buffer;
+	buffer.resize(sizeof(action) + sizeof(pid) + sizeof(int) + eventName_Start_Size + sizeof(int) + eventName_Fail_Size + sizeof(int) + eventName_Success_Size + sizeof(int) + dumpPathSize + sizeof(int) + dumpNameSize);
+	uint32_t offset = 0;
+
+	//@uint32_t - pid
+	memcpy(buffer.data(), &action, sizeof(action));
+	offset++;
+	memcpy(buffer.data() + offset, &pid, sizeof(pid));
+	offset += sizeof(pid);
+
+	//@str - eventName_Start
+	memcpy(buffer.data() + offset, &eventName_Start_Size, sizeof(eventName_Start_Size));
+	offset += sizeof(eventName_Start_Size);
+	memcpy(buffer.data() + offset, &eventName_Start[0], eventName_Start_Size);
+	offset += eventName_Start_Size;
+
+	//@str - eventName_Fail
+	memcpy(buffer.data() + offset, &eventName_Fail_Size, sizeof(eventName_Fail_Size));
+	offset += sizeof(eventName_Fail_Size);
+	memcpy(buffer.data() + offset, &eventName_Fail[0], eventName_Fail_Size);
+	offset += eventName_Fail_Size;
+
+	//@str - eventName_Success
+	memcpy(buffer.data() + offset, &eventName_Success_Size, sizeof(eventName_Success_Size));
+	offset += sizeof(eventName_Success_Size);
+	memcpy(buffer.data() + offset, &eventName_Success[0], eventName_Success_Size);
+	offset += eventName_Success_Size;
+
+	//@str - dumpPath
+	memcpy(buffer.data() + offset, &dumpPathSize, sizeof(dumpPathSize));
+	offset+=sizeof(dumpPathSize);
+	memcpy(buffer.data() + offset, &dumpPath[0], dumpPathSize);
+	offset+=dumpPathSize;
+
+	//@str - dumpName
+	memcpy(buffer.data() + offset, &dumpNameSize, sizeof(dumpNameSize));
+	offset += sizeof(dumpNameSize);
+	memcpy(buffer.data() + offset, &dumpName[0], dumpNameSize);
+	offset += dumpNameSize;
+
+	return buffer;
+}
+
 std::vector<char> unregisterProcess(void)
 {
 	std::vector<char> buffer;
-	uint8_t action = 1;
+	uint8_t action = crashHandlerCommand::UNREGISTER;
 	buffer.resize(sizeof(action) + sizeof(pid));
 
 	uint32_t offset = 0;
@@ -578,7 +655,7 @@ std::vector<char> unregisterProcess(void)
 std::vector<char> crashedProcess(uint32_t crash_id)
 {
 	std::vector<char> buffer;
-	uint8_t action = 3;
+	uint8_t action = crashHandlerCommand::CRASHWITHCODE;
 	buffer.resize(sizeof(action) + sizeof(crash_id) + sizeof(pid));
 
 	uint32_t offset = 0;
@@ -593,9 +670,19 @@ std::vector<char> crashedProcess(uint32_t crash_id)
 }
 
 #ifdef WIN32
+std::wstring crash_handler_pipe;
+
+void OBS_API::SetCrashHandlerPipe(const std::wstring &new_pipe)
+{
+	crash_handler_pipe = std::wstring(L"\\\\.\\pipe\\") + new_pipe + std::wstring(L"-crash-handler");
+}
+
 void writeCrashHandler(std::vector<char> buffer)
 {
-	HANDLE hPipe = CreateFile( TEXT("\\\\.\\pipe\\slobs-crash-handler"), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+	HANDLE hPipe = CreateFile( crash_handler_pipe.c_str(), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+
+	if (hPipe == INVALID_HANDLE_VALUE)
+		hPipe = CreateFile( TEXT("\\\\.\\pipe\\slobs-crash-handler"), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
 
 	if (hPipe == INVALID_HANDLE_VALUE)
 		return;
@@ -607,11 +694,23 @@ void writeCrashHandler(std::vector<char> buffer)
 	CloseHandle(hPipe);
 }
 #else
+std::string crash_handler_pipe;
+
+void OBS_API::SetCrashHandlerPipe(const std::wstring &new_pipe)
+{
+	crash_handler_pipe = std::string(new_pipe.begin(), new_pipe.end()) + std::string("-crash-handler");
+}
+
 void writeCrashHandler(std::vector<char> buffer)
 {
-	int file_descriptor = open("/tmp/slobs-crash-handler", O_WRONLY | O_DSYNC);
+	int file_descriptor = open(crash_handler_pipe.c_str(), O_WRONLY | O_DSYNC);
 	if (file_descriptor < 0) {
-		return;
+		blog(LOG_DEBUG, "failed to open pipe %s ", crash_handler_pipe.c_str());
+		file_descriptor = open("/tmp/slobs-crash-handler", O_WRONLY | O_DSYNC);
+		if (file_descriptor < 0) {
+			blog(LOG_DEBUG, "failed to open pipe /tmp/slobs-crash-handler ");
+			return;
+		}
 	}
 
 	::write(file_descriptor, buffer.data(), buffer.size());
@@ -637,14 +736,17 @@ void OBS_API::OBS_API_initAPI(
 	std::string locale  = args[1].value_str;
 	currentVersion      = args[2].value_str;
 	utility::osn_current_version(currentVersion);
-	util::CrashManager::SetVersionName(currentVersion);
-
 
 #ifdef ENABLE_CRASHREPORT
-   util::CrashManager crashManager;
+	util::CrashManager crashManager;
+	crashManager.SetVersionName(currentVersion);
+	crashManager.SetReportServerUrl(args[3].value_str);
 	char* path = g_moduleDirectory.data();
 	if (crashManager.Initialize(path, appdata)) {
 		crashManager.Configure();
+		if (crashManager.InitializeMemoryDump()) {
+			writeCrashHandler(registerMemoryDump());
+		}
    }
 
 #ifdef WIN32
@@ -751,16 +853,6 @@ void OBS_API::OBS_API_initAPI(
 		AUTO_DEBUG;
 		return;
 #endif
-	}
-
-	if(!OBS_service::EncoderAvailable(SIMPLE_ENCODER_AMD)) {
-		obs_module_t *module;
-		std::string module_path = g_moduleDirectory + "/enc-amf_old/obs-plugins/64bit/enc-amf";
-		std::string data_path = g_moduleDirectory + "/enc-amf_old/data/obs-plugins/enc-amf/";
-		int res = obs_open_module(&module, module_path.c_str(), data_path.c_str());
-
-		if (res == MODULE_SUCCESS)
-			obs_init_module(module);
 	}
 
 	OBS_service::createService();
@@ -889,6 +981,7 @@ void OBS_API::QueryHotkeys(
 
 		    // Discover the type of object registered with this hotkey
 		    switch (registerer_type) {
+		    case OBS_HOTKEY_REGISTERER_NONE: 
 		    case OBS_HOTKEY_REGISTERER_FRONTEND: {
 			    // Ignore any frontend hotkey
 			    return true;
@@ -1347,6 +1440,7 @@ void OBS_API::destroyOBS_API(void)
 			DisableAudioDucking(false);
 	}
 #endif
+	OBS_content::OBS_content_shutdownDisplays();
 
 	autoConfig::WaitPendingTests();
 
@@ -1367,6 +1461,10 @@ void OBS_API::destroyOBS_API(void)
 	obs_encoder_t* audioRecordingEncoder = OBS_service::getAudioSimpleRecordingEncoder();
 	if (audioRecordingEncoder != NULL && (OBS_service::useRecordingPreset() || obs_get_multiple_rendering()))
 		obs_encoder_release(audioRecordingEncoder);
+
+	obs_encoder_t* archiveEncoder = OBS_service::getArchiveEncoder();
+	if (archiveEncoder != NULL)
+		obs_encoder_release(archiveEncoder);
 
 	obs_output_t* streamingOutput = OBS_service::getStreamingOutput();
 	if (streamingOutput != NULL)
@@ -1407,6 +1505,62 @@ void OBS_API::destroyOBS_API(void)
 		osn::Transition::Manager::GetInstance().size() > 0	||
 		osn::Filter::Manager::GetInstance().size() > 0		||
 		osn::Input::Manager::GetInstance().size() > 0) {
+
+		for (int i = 0; i < MAX_CHANNELS; i++)
+			obs_set_output_source(i, nullptr);
+
+		std::vector<obs_source_t*> sources;
+		osn::Source::Manager::GetInstance().for_each([&sources](obs_source_t* source)
+		{
+			if (source)
+				sources.push_back(source);
+		});
+
+		for (const auto &source: sources) {
+			if (!source)
+				continue;
+
+			const char* source_id = obs_source_get_id(source);
+			if (!source_id)
+				continue;
+
+			if (!strcmp(source_id, "scene")) {
+				std::list<obs_sceneitem_t*> items;
+				auto cb = [](obs_scene_t* scene, obs_sceneitem_t* item, void* data) {
+					if (item) {
+						obs_sceneitem_release(item);
+						obs_sceneitem_remove(item);
+					}
+					return true;
+				};
+				obs_scene_t* scene = obs_scene_from_source(source);
+				if (scene)
+					obs_scene_enum_items(scene, cb, nullptr);
+			}
+		}
+
+		// Release filters only
+		for (int i = 0; i < sources.size(); i++) {
+			if (sources[i] && obs_source_get_type(sources[i]) == OBS_SOURCE_TYPE_FILTER) {
+				obs_source_release(sources[i]);
+				sources[i] = nullptr;
+			}
+		}
+
+		// Release all remaining sources that are not transitions
+		for (int i = 0; i < sources.size(); i++) {
+			if (sources[i] && obs_source_get_type(sources[i]) != OBS_SOURCE_TYPE_TRANSITION) {
+				obs_source_release(sources[i]);
+				sources[i] = nullptr;
+			}
+		}
+
+		// Release all remaning transitions
+		for (auto source: sources) {
+			if (source)
+				obs_source_release(source);
+		}
+
 #ifdef WIN32
 		// Directly blame the frontend since it didn't release all objects and that could cause 
 		// a crash on the backend

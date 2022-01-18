@@ -35,10 +35,13 @@ Napi::Value api::OBS_API_initAPI(const Napi::CallbackInfo& info)
 	std::string path;
 	std::string language;
 	std::string version;
+	std::string crashserverurl;
 
 	ASSERT_GET_VALUE(info, info[0], language);
 	ASSERT_GET_VALUE(info, info[1], path);
 	ASSERT_GET_VALUE(info, info[2], version);
+	if (info.Length()>3)
+		ASSERT_GET_VALUE(info, info[3], crashserverurl);
 
 	auto conn = GetConnection(info);
 	if (!conn)
@@ -47,7 +50,7 @@ Napi::Value api::OBS_API_initAPI(const Napi::CallbackInfo& info)
 	conn->set_freez_callback(ipc_freez_callback, path);
 
 	std::vector<ipc::value> response = conn->call_synchronous_helper(
-	    "API", "OBS_API_initAPI", {ipc::value(path), ipc::value(language), ipc::value(version)});
+	    "API", "OBS_API_initAPI", {ipc::value(path), ipc::value(language), ipc::value(version), ipc::value(crashserverurl)});
 
 	// The API init method will return a response error + graphical error
 	// If there is a problem with the IPC the number of responses here will be zero so we must validate the
@@ -296,11 +299,15 @@ Napi::Value api::RequestPermissions(const Napi::CallbackInfo& info)
 			);
 
 			jsCallback.Call({ result });
+			delete data;
 		};
 		Permissions* perms_status = new Permissions();
 		perms_status->webcam = webcam;
 		perms_status->mic = mic;
-		js_thread.BlockingCall( perms_status, callback );
+		napi_status status = js_thread.BlockingCall( perms_status, callback );
+		if (status != napi_ok) {
+			delete perms_status;
+		}
 	};
 
 	g_util_osx->requestPermissions(js_thread, cb);

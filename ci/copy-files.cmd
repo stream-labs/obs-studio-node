@@ -23,4 +23,4 @@ copy "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\redist\x64\Microsof
 copy "C:\Program Files (x86)\Windows Kits\10\Redist\ucrt\DLLs\x64\ucrtbase.dll" "%SLFullDistributePath%\obs-studio-node\"
 copy "C:\Windows\System32\VCRUNTIME140_1.dll" "%SLFullDistributePath%\obs-studio-node\"
 REM msdia140.dll is used to convert pdb files to upload to Sentry
-copy "C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\DIA SDK\bin\msdia140.dll" "%BUILD_SOURCESDIRECTORY%\"
+copy "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\DIA SDK\bin\msdia140.dll" "%BUILD_SOURCESDIRECTORY%\"

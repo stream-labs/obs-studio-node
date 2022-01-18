@@ -42,6 +42,9 @@ namespace obs
 			Font,
 			EditableList,
 			FrameRate,
+			Group,
+			ColorAlpha,
+			Capture,
 		};
 
 		std::string name;
@@ -226,6 +229,19 @@ namespace obs
 		virtual bool read(std::vector<char> const& buf) override;
 	};
 
+	struct CaptureProperty : NumberProperty
+	{
+		virtual ~CaptureProperty(){};
+
+		virtual obs::Property::Type type() override;
+		virtual size_t              size() override;
+		virtual bool                serialize(std::vector<char>& buf) override;
+		int64_t                     value;
+
+		protected:
+		virtual bool read(std::vector<char> const& buf) override;
+	};
+
 	struct ButtonProperty : Property
 	{
 		virtual ~ButtonProperty(){};
@@ -294,6 +310,9 @@ namespace obs
 			std::string description;
 		};
 		std::list<Option> options;
+
+		uint32_t current_numerator;
+		uint32_t current_denominator;
 
 		virtual ~FrameRateProperty(){};
 
