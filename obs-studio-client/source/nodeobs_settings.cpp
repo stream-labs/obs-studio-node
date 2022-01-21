@@ -1964,7 +1964,7 @@ void getAdvancedSettings(Napi::Object& settings, Napi::Env env)
 	networkObjects.Set(indexNetwork++, buildJSObject(
 		"BindIP", "OBS_PROPERTY_LIST",
 		"Bind to IP", "OBS_COMBO_FORMAT_STRING",
-		data::value(config_get_bool(basic_config, "Output", "BindIP")),
+		data::value(getSafeOBSstr(config_get_string(basic_config, "Output", "BindIP"))),
 		bindIPValues, env
 	));
 	networkObjects.Set(indexNetwork++, buildJSObject(
@@ -1998,10 +1998,10 @@ void getAdvancedSettings(Napi::Object& settings, Napi::Env env)
 	Napi::Array sourcesObjects = Napi::Array::New(env);
 	uint32_t indexSources = 0;
 
-	networkObjects.Set(indexNetwork++, buildJSObject(
+	sourcesObjects.Set(indexSources++, buildJSObject(
 		"browserHWAccel", "OBS_PROPERTY_BOOL",
 		"Enable Browser Source Hardware Acceleration (requires a restart)", "",
-		data::value(config_get_bool(basic_config, "General", "browserHWAccel")),
+		data::value(config_get_bool(global_config, "General", "browserHWAccel")),
 		{}, env
 	));
 
@@ -2017,7 +2017,7 @@ void getAdvancedSettings(Napi::Object& settings, Napi::Env env)
 	fileCachingObjects.Set(indexFileCaching++, buildJSObject(
 		"fileCaching", "OBS_PROPERTY_BOOL",
 		"Enable media file caching", "",
-		data::value(config_get_bool(basic_config, "General", "fileCaching")),
+		data::value(config_get_bool(global_config, "General", "fileCaching")),
 		{}, env
 	));
 
