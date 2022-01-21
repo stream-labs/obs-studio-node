@@ -23,7 +23,7 @@
 #include "shared.hpp"
 #include "utility-v8.hpp"
 #include "utility.hpp"
-#include "server/osn-source.hpp"
+#include "obs-wrapper/osn-source.hpp"
 
 std::map<uint32_t, obs_source_t*> sourcesStore;
 uint32_t idSourcesCount = 0;

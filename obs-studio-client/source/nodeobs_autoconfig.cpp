@@ -18,7 +18,7 @@
 
 #include "nodeobs_autoconfig.hpp"
 #include "shared.hpp"
-#include "server/nodeobs_autoconfig-server.h"
+#include "obs-wrapper/nodeobs_autoconfig-server.h"
 
 Napi::ThreadSafeFunction  autoConfig::js_thread;
 

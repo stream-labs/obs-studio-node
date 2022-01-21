@@ -20,7 +20,7 @@
 #include <napi.h>
 #include "utility-v8.hpp"
 #include "cache-manager.hpp"
-#include "server/osn-source.hpp"
+#include "obs-wrapper/osn-source.hpp"
 
 #undef strtoll
 #include "nlohmann/json.hpp"

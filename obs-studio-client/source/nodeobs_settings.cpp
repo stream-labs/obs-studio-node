@@ -25,8 +25,8 @@
 #include "shared.hpp"
 #include "utility.hpp"
 
-#include "server/nodeobs_api-server.h"
-#include "server/memory-manager.h"
+#include "obs-wrapper/nodeobs_api-server.h"
+#include "obs-wrapper/memory-manager.h"
 #include "data-value.hpp"
 #include <util/lexer.h>
 
@@ -330,10 +330,10 @@ inline void getStreamSettings(Napi::Object& settings, Napi::Env env)
 				value = data::value(obs_service_get_url(currentService));
 			} else if (strcmp(obs_property_name(property), "username") == 0) {
 				type = "OBS_PROPERTY_EDIT_TEXT";
-				value = data::value(obs_service_get_username(currentService));
+				value = data::value(getSafeOBSstr(obs_service_get_username(currentService)));
 			} else if (strcmp(obs_property_name(property), "password") == 0) {
 				type = "OBS_PROPERTY_EDIT_TEXT";
-				value = data::value(obs_service_get_password(currentService));
+				value = data::value(getSafeOBSstr(obs_service_get_password(currentService)));
 			} else if (strcmp(obs_property_name(property), "use_auth") == 0) {
 				type = "OBS_PROPERTY_BOOL";
 				value = data::value(obs_data_get_bool(settingsService, "use_auth"));
@@ -2150,7 +2150,7 @@ bool saveStreamSettings(const Napi::Array& streamSettings)
 	if (serviceChanged) {
 		std::string server = getSafeOBSstr(obs_data_get_string(settings, "server"));
 		bool        serverFound = false;
-		std::string defaultServer;
+		std::string defaultserver;
 
 		// Check if server is valid
 		obs_properties_t* properties = obs_service_properties(newService);
@@ -2167,7 +2167,7 @@ bool saveStreamSettings(const Napi::Array& streamSettings)
 					std::string value = obs_property_list_item_string(property, i);
 
 					if (i == 0)
-						defaultServer = value;
+						defaultserver = value;
 
 					if (value.compare(server) == 0)
 						serverFound = true;
@@ -2178,9 +2178,9 @@ bool saveStreamSettings(const Napi::Array& streamSettings)
 			obs_property_next(&property);
 		}
 
-		if (!serverFound && defaultServer.compare("") != 0) {
-			// Server not found, we set the default server
-			obs_data_set_string(settings, "server", defaultServer.c_str());
+		if (!serverFound && defaultserver.compare("") != 0) {
+			// server not found, we set the default server
+			obs_data_set_string(settings, "server", defaultserver.c_str());
 			obs_service_update(newService, settings);
 		}
 	}

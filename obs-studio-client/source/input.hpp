@@ -20,7 +20,7 @@
 #include <napi.h>
 #include "isource.hpp"
 #include "utility-v8.hpp"
-#include "server/osn-input.hpp"
+#include "obs-wrapper/osn-input.hpp"
 
 namespace osn
 {

@@ -22,7 +22,7 @@
 #include "shared.hpp"
 #include "utility.hpp"
 #include "module.hpp"
-#include "server/osn-module.hpp"
+#include "obs-wrapper/osn-module.hpp"
 
 Napi::FunctionReference osn::Module::constructor;
 

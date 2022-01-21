@@ -25,7 +25,7 @@
 #include "shared.hpp"
 #include "utility.hpp"
 #include "callback-manager.hpp"
-#include "server/nodeobs_content.h"
+#include "obs-wrapper/nodeobs_content.h"
 
 #ifdef WIN32
 static BOOL CALLBACK EnumChromeWindowsProc(HWND hwnd, LPARAM lParam)

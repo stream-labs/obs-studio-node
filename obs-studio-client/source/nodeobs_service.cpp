@@ -24,7 +24,7 @@
 #include <string>
 #include "shared.hpp"
 #include "utility.hpp"
-#include "server/nodeobs_service-server.h"
+#include "obs-wrapper/nodeobs_service-server.h"
 
 #ifdef WIN32
 #include <shellapi.h>

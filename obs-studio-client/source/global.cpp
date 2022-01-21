@@ -23,7 +23,7 @@
 #include "scene.hpp"
 #include "transition.hpp"
 #include "utility-v8.hpp"
-#include "server/osn-global.hpp"
+#include "obs-wrapper/osn-global.hpp"
 
 Napi::FunctionReference osn::Global::constructor;
 

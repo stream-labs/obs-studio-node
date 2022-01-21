@@ -20,7 +20,7 @@
 #include <napi.h>
 #include "isource.hpp"
 #include "utility-v8.hpp"
-#include "server/osn-sceneitem.hpp"
+#include "obs-wrapper/osn-sceneitem.hpp"
 
 extern std::map<uint32_t, obs_sceneitem_t*> sceneItems;
 extern uint32_t idSceneItemsCount;

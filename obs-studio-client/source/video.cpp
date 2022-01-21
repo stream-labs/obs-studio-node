@@ -20,7 +20,7 @@
 #include "shared.hpp"
 #include "utility-v8.hpp"
 #include "utility.hpp"
-#include "server/osn-video.hpp"
+#include "obs-wrapper/osn-video.hpp"
 
 
 Napi::FunctionReference osn::Video::constructor;

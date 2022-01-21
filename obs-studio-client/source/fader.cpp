@@ -22,7 +22,7 @@
 #include "input.hpp"
 #include "shared.hpp"
 #include <iostream>
-#include "server/osn-fader.hpp"
+#include "obs-wrapper/osn-fader.hpp"
 
 Napi::FunctionReference osn::Fader::constructor;
 

@@ -22,7 +22,7 @@
 #include <string>
 #include "shared.hpp"
 #include "utility.hpp"
-#include "server/osn-transition.hpp"
+#include "obs-wrapper/osn-transition.hpp"
 
 Napi::FunctionReference osn::Transition::constructor;
 

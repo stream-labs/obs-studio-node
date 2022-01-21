@@ -20,7 +20,7 @@
 #include <napi.h>
 #include <thread>
 #include "utility-v8.hpp"
-#include "server/osn-volmeter.hpp"
+#include "obs-wrapper/osn-volmeter.hpp"
 
 struct VolmeterData
 {

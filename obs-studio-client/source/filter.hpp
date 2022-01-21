@@ -20,7 +20,7 @@
 #include <napi.h>
 #include "isource.hpp"
 #include "utility-v8.hpp"
-#include "server/osn-filter.hpp"
+#include "obs-wrapper/osn-filter.hpp"
 
 namespace osn
 {
