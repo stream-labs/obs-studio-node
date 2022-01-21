@@ -16,7 +16,7 @@
 
 ******************************************************************************/
 
-#include "nodeobs_api-server.h"
+#include "obs-nodeobs_api.h"
 #include "osn-source.hpp"
 #include "osn-scene.hpp"
 #include "osn-sceneitem.hpp"
@@ -25,7 +25,7 @@
 #include "osn-filter.hpp"
 #include "osn-volmeter.hpp"
 #include "osn-fader.hpp"
-#include "nodeobs_autoconfig-server.h"
+#include "obs-nodeobs_autoconfig.h"
 #include "util/lexer.h"
 #include "util-crashmanager.h"
 #include "util-metricsprovider.h"
@@ -77,7 +77,7 @@
 #include <fcntl.h>
 #endif
 
-#include "shared-server.hpp"
+#include "obs-shared.hpp"
 
 #include <fstream>
 

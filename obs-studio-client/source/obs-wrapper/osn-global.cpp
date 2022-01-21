@@ -19,7 +19,7 @@
 #include "osn-global.hpp"
 #include <obs.h>
 #include "osn-source.hpp"
-#include "shared-server.hpp"
+#include "obs-shared.hpp"
 
 std::pair<obs_source_t*, int32_t> obs::Global::GetOutputSource(uint32_t channel)
 {

@@ -18,7 +18,7 @@
 
 #include "osn-sceneitem.hpp"
 #include "osn-source.hpp"
-#include "shared-server.hpp"
+#include "obs-shared.hpp"
 
 obs_source_t* obs::SceneItem::GetSource(obs_sceneitem_t* item)
 {

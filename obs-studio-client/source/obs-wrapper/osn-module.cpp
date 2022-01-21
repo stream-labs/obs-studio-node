@@ -17,7 +17,7 @@
 ******************************************************************************/
 
 #include "osn-module.hpp"
-#include "shared-server.hpp"
+#include "obs-shared.hpp"
 
 uint64_t obs::Module::Open(std::string bin_path, std::string data_path)
 {

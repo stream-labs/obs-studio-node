@@ -32,8 +32,8 @@
 #include <ctime>
 #include <fstream>
 #include <map>
-#include "nodeobs_api-server.h"
-#include "nodeobs_display-server.h"
+#include "obs-nodeobs_api.h"
+#include "obs-nodeobs_display.h"
 
 struct SourceInfo
 {

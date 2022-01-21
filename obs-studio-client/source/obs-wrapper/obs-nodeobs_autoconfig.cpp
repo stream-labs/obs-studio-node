@@ -16,10 +16,10 @@
 
 ******************************************************************************/
 
-#include "nodeobs_autoconfig-server.h"
+#include "obs-nodeobs_autoconfig.h"
 #include <array>
 #include <future>
-#include "shared-server.hpp"
+#include "obs-shared.hpp"
 
 enum class Type
 {

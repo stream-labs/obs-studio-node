@@ -21,7 +21,7 @@
 #include <memory>
 #include <obs.h>
 #include "osn-source.hpp"
-#include "shared-server.hpp"
+#include "obs-shared.hpp"
 
 std::vector<std::string> obs::Input::Types()
 {

@@ -21,7 +21,7 @@
 #include <queue>
 #include <array>
 #include "obs.h"
-#include "utility-server.hpp"
+#include "obs-utility.hpp"
 
 #define MAKE_FLOAT_SANE(db) (std::isfinite(db) ? db : (db > 0 ? 0.0f : -65535.0f))
 

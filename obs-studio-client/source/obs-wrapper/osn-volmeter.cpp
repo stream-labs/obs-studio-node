@@ -19,8 +19,8 @@
 #include "osn-volmeter.hpp"
 #include "obs.h"
 #include "osn-source.hpp"
-#include "shared-server.hpp"
-#include "utility-server.hpp"
+#include "obs-shared.hpp"
+#include "obs-utility.hpp"
 #include <cmath>
 
 std::mutex mtx;

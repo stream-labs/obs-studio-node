@@ -22,7 +22,7 @@
 #include <obs-data.h>
 #include <obs.h>
 #include <obs.hpp>
-#include "shared-server.hpp"
+#include "obs-shared.hpp"
 #include "../callback-manager.hpp"
 #include "memory-manager.h"
 

@@ -25,8 +25,8 @@
 #include <obs.hpp>
 #include <queue>
 #include <thread>
-#include "nodeobs_api-server.h"
-#include "nodeobs_service-server.h"
+#include "obs-nodeobs_api.h"
+#include "obs-nodeobs_service.h"
 
 class AutoConfigInfo
 {

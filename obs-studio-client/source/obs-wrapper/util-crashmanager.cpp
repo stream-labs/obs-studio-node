@@ -49,8 +49,8 @@
 #include "psapi.h"
 #endif
 
-#include "nodeobs_api-server.h"
-#include "shared-server.hpp"
+#include "obs-nodeobs_api.h"
+#include "obs-shared.hpp"
 
 #ifdef ENABLE_CRASHREPORT
 #include "client/crash_report_database.h"

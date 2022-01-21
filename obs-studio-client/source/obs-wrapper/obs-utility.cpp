@@ -16,7 +16,7 @@
 
 ******************************************************************************/
 
-#include "utility-server.hpp"
+#include "obs-utility.hpp"
 
 std::string utility_server::osn_current_version(std::string _version)
 {

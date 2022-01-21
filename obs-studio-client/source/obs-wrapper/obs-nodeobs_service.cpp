@@ -16,14 +16,14 @@
 
 ******************************************************************************/
 
-#include "nodeobs_service-server.h"
+#include "obs-nodeobs_service.h"
 #ifdef WIN32
 #include <ShlObj.h>
 #include <windows.h>
 #include <filesystem>
 #endif
-#include "shared-server.hpp"
-#include "utility-server.hpp"
+#include "obs-shared.hpp"
+#include "obs-utility.hpp"
 
 #ifdef __APPLE__
 #include <sys/types.h>

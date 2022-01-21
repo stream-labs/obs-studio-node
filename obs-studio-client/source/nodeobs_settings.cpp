@@ -25,7 +25,7 @@
 #include "shared.hpp"
 #include "utility.hpp"
 
-#include "obs-wrapper/nodeobs_api-server.h"
+#include "obs-wrapper/obs-nodeobs_api.h"
 #include "obs-wrapper/memory-manager.h"
 #include "data-value.hpp"
 #include <util/lexer.h>

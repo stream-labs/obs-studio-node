@@ -18,7 +18,7 @@
 
 #pragma once
 #include <obs.h>
-#include "utility-server.hpp"
+#include "obs-utility.hpp"
 
 namespace obs
 {

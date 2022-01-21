@@ -25,7 +25,7 @@
 #include "callback-manager.hpp"
 #include "nodeobs_settings.hpp"
 
-#include "obs-wrapper/nodeobs_api-server.h"
+#include "obs-wrapper/obs-nodeobs_api.h"
 
 Napi::ThreadSafeFunction js_thread;
 OBS_API::OutputStats streamingOutputStats;

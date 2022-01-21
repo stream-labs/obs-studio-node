@@ -24,8 +24,8 @@
 #endif
 
 #include <util/platform.h>
-#include "shared-server.hpp"
-#include "nodeobs_service-server.h"
+#include "obs-shared.hpp"
+#include "obs-nodeobs_service.h"
 
 void ConfigManager::setAppdataPath(std::string path)
 {

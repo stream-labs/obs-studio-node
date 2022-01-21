@@ -19,7 +19,7 @@
 #include "osn-scene.hpp"
 #include <list>
 #include "osn-sceneitem.hpp"
-#include "shared-server.hpp"
+#include "obs-shared.hpp"
 
 obs_source_t* obs::Scene::Create(std::string name)
 {

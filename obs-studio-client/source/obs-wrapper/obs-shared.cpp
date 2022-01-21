@@ -16,7 +16,7 @@
 
 ******************************************************************************/
 
-#include "shared-server.hpp"
+#include "obs-shared.hpp"
 
 #ifdef __APPLE__
     UtilInt* g_util_osx_server;
