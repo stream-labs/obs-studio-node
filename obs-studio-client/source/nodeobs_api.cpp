@@ -261,6 +261,15 @@ Napi::Value api::RequestPermissions(const Napi::CallbackInfo& info)
 	return info.Env().Undefined();
 }
 
+Napi::Value api::SetCrashHandlerPipe(const Napi::CallbackInfo& info)
+{
+	std::string socket_uuid;
+	ASSERT_GET_VALUE(info, info[0], socket_uuid);
+
+	OBS_API::SetCrashHandlerPipe(socket_uuid);
+	return info.Env().Undefined();
+}
+
 void api::Init(Napi::Env env, Napi::Object exports)
 {
 	exports.Set(Napi::String::New(env, "OBS_API_initAPI"), Napi::Function::New(env, api::OBS_API_initAPI));
@@ -273,4 +282,5 @@ void api::Init(Napi::Env env, Napi::Object exports)
 	exports.Set(Napi::String::New(env, "SetUsername"), Napi::Function::New(env, api::SetUsername));
 	exports.Set(Napi::String::New(env, "GetPermissionsStatus"), Napi::Function::New(env, api::GetPermissionsStatus));
 	exports.Set(Napi::String::New(env, "RequestPermissions"), Napi::Function::New(env, api::RequestPermissions));
+	exports.Set(Napi::String::New(env, "SetCrashHandlerPipe"), Napi::Function::New(env, api::SetCrashHandlerPipe));
 }

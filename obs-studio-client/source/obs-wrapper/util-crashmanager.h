@@ -29,9 +29,22 @@
 #undef strtoll
 #include "nlohmann/json.hpp"
 
- #ifndef _DEBUG
+// #ifndef _DEBUG
 #define ENABLE_CRASHREPORT
- #endif
+// #endif
+
+#ifdef WIN32
+#include "StackWalker.h"
+#include <WinBase.h>
+#include "DbgHelp.h"
+#include "Shlobj.h"
+#include <fcntl.h>
+#include <io.h>
+#include <windows.h>
+#include "TCHAR.h"
+#include "pdh.h"
+#include "psapi.h"
+#endif
 
 extern std::string workingDirectory;
 
@@ -94,6 +107,7 @@ namespace util
 		static bool TryHandleCrash(std::string format, std::string crashMessage);
 		static void HandleExit() noexcept;
 		static void HandleCrash(std::string crashInfo, bool callAbort = true) noexcept;
+		static LONG WINAPI VectoredHandler2(struct _EXCEPTION_POINTERS *ExceptionInfo);
 	};
 
 }; // namespace util

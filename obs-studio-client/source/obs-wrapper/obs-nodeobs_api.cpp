@@ -108,7 +108,7 @@ std::chrono::high_resolution_clock::time_point         start_wait_acknowledge;
 
 #ifdef WIN32
 std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-inline std::wstring make_wide_string(std::string text) {
+std::wstring OBS_API::make_wide_string(std::string text) {
 	return converter.from_bytes(text);
 }
 #endif
@@ -508,15 +508,11 @@ uint32_t pid = (uint32_t)getpid();
 std::vector<char> registerProcess(void)
 {
 	std::vector<char> buffer;
-	uint8_t action     = crashHandlerCommand::REGISTER;
-	bool    isCritical = true;
-	buffer.resize(sizeof(action) + sizeof(isCritical) + sizeof(pid));
+	uint8_t action = crashHandlerCommand::REGISTER;
+	buffer.resize(sizeof(action) + sizeof(pid));
 
 	uint32_t offset = 0;
-
 	memcpy(buffer.data(), &action, sizeof(action));
-	offset++;
-	memcpy(buffer.data() + offset, &isCritical, sizeof(isCritical));
 	offset++;
 	memcpy(buffer.data() + offset, &pid, sizeof(pid));
 
@@ -626,9 +622,10 @@ std::vector<char> crashedProcess(uint32_t crash_id)
 #ifdef WIN32
 std::wstring crash_handler_pipe;
 
-void OBS_API::SetCrashHandlerPipe(const std::wstring &new_pipe)
+void OBS_API::SetCrashHandlerPipe(const std::string &new_pipe)
 {
-	crash_handler_pipe = std::wstring(L"\\\\.\\pipe\\") + new_pipe + std::wstring(L"-crash-handler");
+
+	crash_handler_pipe = std::wstring(L"\\\\.\\pipe\\") + make_wide_string(new_pipe) + std::wstring(L"-crash-handler");
 }
 
 void writeCrashHandler(std::vector<char> buffer)
@@ -671,12 +668,32 @@ void writeCrashHandler(std::vector<char> buffer)
 	close(file_descriptor);
 }
 #endif
+
+std::thread* initCrashWorker = nullptr;
+
+void initCrashReporter(std::string appdata, std::string crashserverurl)
+{
+	Sleep(10000);
+	util::CrashManager crashManager;
+	crashManager.SetVersionName(currentVersion);
+	crashManager.SetReportServerUrl(crashserverurl);
+	char* path = new char [g_moduleDirectory.length()+1];
+	std::strcpy (path, g_moduleDirectory.c_str());
+	if (crashManager.Initialize(path, appdata)) {
+		crashManager.Configure();
+		if (crashManager.InitializeMemoryDump()) {
+			writeCrashHandler(registerMemoryDump());
+		}
+   }
+}
+
 int OBS_API::OBS_API_initAPI(
     std::string appdata,
     std::string locale,
     std::string a_currentVersion,
 	std::string crashserverurl)
 {
+	CreateCrashHandlerExitPipe();
 	writeCrashHandler(registerProcess());
 
 	/* Map base DLLs as soon as possible into the current process space.
@@ -688,26 +705,8 @@ int OBS_API::OBS_API_initAPI(
 	utility_server::osn_current_version(currentVersion);
 
 #ifdef ENABLE_CRASHREPORT
-// 	util::CrashManager crashManager;
-// 	crashManager.SetVersionName(currentVersion);
-// 	blog(LOG_INFO, "INIT - 1");
-// 	crashManager.SetReportServerUrl(crashserverurl);
-// 	blog(LOG_INFO, "INIT - 2");
-// 	char* path = new char [g_moduleDirectory.length()+1];
-// 	blog(LOG_INFO, "INIT - 3");
-// 	std::strcpy (path, g_moduleDirectory.c_str());
-// 	blog(LOG_INFO, "INIT - 4");
-// 	if (crashManager.Initialize(path, appdata)) {
-// 		blog(LOG_INFO, "INIT - 5");
-// 		crashManager.Configure();
-// 		blog(LOG_INFO, "INIT - 6");
-// 		if (crashManager.InitializeMemoryDump()) {
-// 			writeCrashHandler(registerMemoryDump());
-// 		}
-// 		blog(LOG_INFO, "INIT - 7");
-//    }
+	initCrashWorker = new std::thread(initCrashReporter, appdata, crashserverurl);
 
-// 	blog(LOG_INFO, "INIT - 1");
 #ifdef WIN32
 	// Register the pre and post server callbacks to log the data into the crashmanager
 	// g_server->set_pre_callback([](std::string cname, std::string fname, const std::vector<ipc::value>& args, void* data)
@@ -728,7 +727,7 @@ int OBS_API::OBS_API_initAPI(
 #ifdef WIN32
 	// Connect the metrics provider with our crash handler process, sending our current version tag
 	// and enabling metrics
-	util::CrashManager::GetMetricsProvider()->Initialize("\\\\.\\pipe\\metrics_pipe", currentVersion, false);
+	// util::CrashManager::GetMetricsProvider()->Initialize("\\\\.\\pipe\\metrics_pipe", currentVersion, false);
 #endif
 	blog(LOG_INFO, "g_moduleDirectory: %s", g_moduleDirectory.c_str());
 	obs_add_data_path((g_moduleDirectory + "/data/libobs/").c_str());
@@ -736,7 +735,6 @@ int OBS_API::OBS_API_initAPI(
 	slobs_plugin.append("/slobs-plugins");
 	obs_add_data_path((slobs_plugin + "/data/").c_str());
 
-	blog(LOG_INFO, "INIT - 0");
 	std::vector<char> userData = std::vector<char>(1024);
 	os_get_config_path(userData.data(), userData.capacity() - 1, "slobs-client/plugin_config");
     if (!obs_startup(locale.c_str(), userData.data(), NULL)) {
@@ -750,13 +748,11 @@ int OBS_API::OBS_API_initAPI(
 #endif
 	}
 
-	blog(LOG_INFO, "INIT - 1");
 	/* Logging */
 	std::string filename = GenerateTimeDateFilename("txt");
 	std::string log_path = appdata;
 	log_path.append("/node-obs/logs/");
 
-	blog(LOG_INFO, "INIT - 2");
 	/* Make sure the path is created
 	before attempting to make a file there. */
 	if (os_mkdirs(log_path.c_str()) == MKDIR_ERROR) {
@@ -766,7 +762,6 @@ int OBS_API::OBS_API_initAPI(
 #endif	
 	}
 
-	blog(LOG_INFO, "INIT - 3");
 	/* Delete oldest file in the folder to imitate rotating */
 	DeleteOldestFile(log_path.c_str(), 3);
 	log_path.append(filename);
@@ -775,8 +770,6 @@ int OBS_API::OBS_API_initAPI(
 	std::fstream* logfile =
 	    new std::fstream(converter.from_bytes(log_path.c_str()).c_str(), std::ios_base::out | std::ios_base::trunc);
 #else
-	blog(LOG_INFO, "INIT - 3.1");
-	blog(LOG_INFO, "log_path: %s", log_path.c_str());
 	std::fstream* logfile = new std::fstream(log_path, std::ios_base::out | std::ios_base::trunc);
 #endif
 	if (!logfile->is_open()) {
@@ -784,9 +777,7 @@ int OBS_API::OBS_API_initAPI(
 		util::CrashManager::AddWarning("Error on log file, failed to open: " + log_path);
 		std::cerr << "Failed to open log file" << std::endl;
 	}
-	blog(LOG_INFO, "INIT - 3.2");
 	base_set_log_handler(node_obs_log, logfile);
-	blog(LOG_INFO, "INIT - 3.3");
 #ifndef _DEBUG
 	// Redirect the ipc log callbacks to our log handler
 	// ipc::register_log_callback([](void* data, const char* fmt, va_list args) { 
@@ -794,7 +785,6 @@ int OBS_API::OBS_API_initAPI(
 	// }, nullptr);
 #endif
 
-	blog(LOG_INFO, "INIT - 4");
 #ifdef _WIN32
 	SetPrivilegeForGPUPriority();
 #endif
@@ -804,7 +794,6 @@ int OBS_API::OBS_API_initAPI(
 	cpuUsageInfo = os_cpu_usage_info_start();
 	ConfigManager::getInstance().setAppdataPath(appdata);
 
-	blog(LOG_INFO, "INIT - 5");
 	/* Set global private settings for whomever it concerns */
 	bool        browserHWAccel   = config_get_bool(ConfigManager::getInstance().getGlobal(), "General", "BrowserHWAccel");
 	obs_data_t* private_settings = obs_data_create();
@@ -1269,17 +1258,6 @@ void OBS_API::CreateCrashHandlerExitPipe()
 	}
 }
 
-void OBS_API::WaitCrashHandlerClose(bool waitBeforeClosing)
-{
-	if (crash_handler_responce_thread) {
-		if (!waitBeforeClosing)
-			crash_handler_exit = true;
-			
-		if (crash_handler_responce_thread->joinable())
-			crash_handler_responce_thread->join();
-	}
-}
-
 void OBS_API::InformCrashHandler(const int crash_id)
 {
 	writeCrashHandler(crashedProcess(crash_id));
@@ -1288,8 +1266,26 @@ void OBS_API::InformCrashHandler(const int crash_id)
 void OBS_API::destroyOBS_API(void)
 {
 	blog(LOG_DEBUG, "OBS_API::destroyOBS_API started, objects allocated %d", bnum_allocs());
-	std::cout << "destroyOBS_API - 0" << std::endl;
+	util::CrashManager::setAppState("shutdown");
+
 	os_cpu_usage_info_destroy(cpuUsageInfo);
+
+	if (crash_handler_responce_thread) {
+		writeCrashHandler(unregisterProcess());
+
+		start_wait_acknowledge = std::chrono::high_resolution_clock::now();
+		crash_handler_timeout_activated = true;
+
+		if (crash_handler_responce_thread->joinable())
+			crash_handler_responce_thread->join();
+	} else {
+		writeCrashHandler(unregisterProcess());
+
+		// Waiting 1 sec to let crash handler process unregister command before continuing 
+		// with shutdown sequence. 
+		// Only for a case when it failed to create a pipe to recieve confirmation from crash handler.  
+		std::this_thread::sleep_for(std::chrono::seconds(1));
+	}
 
 #ifdef _WIN32
 	config_t* basicConfig         = ConfigManager::getInstance().getBasic();
@@ -1301,7 +1297,6 @@ void OBS_API::destroyOBS_API(void)
 #endif
 	OBS_content::OBS_content_shutdownDisplays();
 
-	std::cout << "destroyOBS_API - 1" << std::endl;
 	obs::autoConfig::WaitPendingTests();
 	OBS_service::stopAllOutputs();
 	OBS_service::setStreamingEncoder(nullptr);
@@ -1313,7 +1308,6 @@ void OBS_API::destroyOBS_API(void)
 	OBS_service::setRecordingOutput(nullptr);
 	OBS_service::setReplayBufferOutput(nullptr);
 
-	std::cout << "destroyOBS_API - 2" << std::endl;
 	obs_output* virtualWebcamOutput = OBS_service::getVirtualWebcamOutput();
 	if (virtualWebcamOutput != NULL) {
 		if (obs_output_active(virtualWebcamOutput))
@@ -1322,17 +1316,11 @@ void OBS_API::destroyOBS_API(void)
 		obs_output_release(virtualWebcamOutput);
 	}
 
-	std::cout << "destroyOBS_API - 3" << std::endl;
 	OBS_service::setService(nullptr);
-	std::cout << "destroyOBS_API - 3.1" << std::endl;
     OBS_service::waitReleaseWorker(true);
-	std::cout << "destroyOBS_API - 3.2" << std::endl;
     // OBS_service::clearAudioEncoder();
-	std::cout << "destroyOBS_API - 3.3" << std::endl;
     obs::Fader::ClearFaders();
-	std::cout << "destroyOBS_API - 3" << std::endl;
 
-	std::cout << "destroyOBS_API - 4" << std::endl;
 	// Check if the frontend was able to shutdown correctly:
 	// If there are some sources here it's because it ended unexpectedly, this represents a 
 	// problem since obs doesn't handle releasing leaked sources very well. The best we can
@@ -1343,11 +1331,9 @@ void OBS_API::destroyOBS_API(void)
 		obs::Transition::Manager::GetInstance().size() > 0	||
 		obs::Filter::Manager::GetInstance().size() > 0		||
 		obs::Input::Manager::GetInstance().size() > 0) {
-		std::cout << "destroyOBS_API - 4.1" << std::endl;
 		for (int i = 0; i < MAX_CHANNELS; i++)
 			obs_set_output_source(i, nullptr);
 
-		std::cout << "destroyOBS_API - 4.2" << std::endl;
 		std::vector<obs_source_t*> sources;
 		obs::Source::Manager::GetInstance().for_each([&sources](obs_source_t* source)
 		{
@@ -1355,7 +1341,6 @@ void OBS_API::destroyOBS_API(void)
 				sources.push_back(source);
 		});
 
-		std::cout << "destroyOBS_API - 4.3" << std::endl;
 		for (const auto &source: sources) {
 			if (!source)
 				continue;
@@ -1379,7 +1364,6 @@ void OBS_API::destroyOBS_API(void)
 			}
 		}
 
-		std::cout << "destroyOBS_API - 4.4" << std::endl;
 		// Release filters only
 		for (int i = 0; i < sources.size(); i++) {
 			if (sources[i] && obs_source_get_type(sources[i]) == OBS_SOURCE_TYPE_FILTER) {
@@ -1388,7 +1372,6 @@ void OBS_API::destroyOBS_API(void)
 			}
 		}
 
-		std::cout << "destroyOBS_API - 4.5" << std::endl;
 		// Release all remaining sources that are not transitions
 		for (int i = 0; i < sources.size(); i++) {
 			if (sources[i] && obs_source_get_type(sources[i]) != OBS_SOURCE_TYPE_TRANSITION) {
@@ -1397,13 +1380,11 @@ void OBS_API::destroyOBS_API(void)
 			}
 		}
 
-		std::cout << "destroyOBS_API - 4.6" << std::endl;
 		// Release all remaning transitions
 		for (auto source: sources) {
 			if (source)
 				obs_source_release(source);
 		}
-		std::cout << "destroyOBS_API - 4.7" << std::endl;
 
 #ifdef WIN32
 		// Directly blame the frontend since it didn't release all objects and that could cause 
@@ -1412,7 +1393,7 @@ void OBS_API::destroyOBS_API(void)
 		// crash manager to think the backend crashed first while the real culprit is the frontend
 		// util::CrashManager::GetMetricsProvider()->BlameFrontend();
 
-		// util::CrashManager::DisableReports();
+		util::CrashManager::DisableReports();
 #endif
 		blog(LOG_DEBUG, "OBS_API::destroyOBS_API unreleased objects detected before obs_shutdown, objects allocated %d", bnum_allocs());
 		// Try-catch should suppress any error message that could be thrown to the user
@@ -1425,7 +1406,6 @@ void OBS_API::destroyOBS_API(void)
 		obs_shutdown();
 	}
 
-	std::cout << "destroyOBS_API - 5" << std::endl;
 	// Release each obs module (dlls for windows)
 	// TODO: We should release these modules (dlls) manually and not let the garbage
 	// collector do this for us on shutdown
@@ -1439,9 +1419,7 @@ void OBS_API::destroyOBS_API(void)
 	if (totalLeaks) {
 		// throw "OBS has memory leaks";
 	}
-	std::cout << "end destroy 0" << std::endl;
 	blog(LOG_DEBUG, "OBS_API::destroyOBS_API after obs_shutdown, objects allocated %d", bnum_allocs());
-	std::cout << "end destroy 1" << std::endl;
 }
 
 struct ci_char_traits : public std::char_traits<char>

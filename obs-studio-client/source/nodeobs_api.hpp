@@ -41,4 +41,5 @@ namespace api
 	Napi::Value SetUsername(const Napi::CallbackInfo& info);
 	Napi::Value GetPermissionsStatus(const Napi::CallbackInfo& info);
 	Napi::Value RequestPermissions(const Napi::CallbackInfo& info);
+	Napi::Value SetCrashHandlerPipe(const Napi::CallbackInfo& info);
 }

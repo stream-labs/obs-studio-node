@@ -336,13 +336,9 @@ add_nodejs_module(
 	${osn-client_SOURCES}
 )
 
-set(PROJECT_INCLUDE_PATHS
-	"${nlohmannjson_SOURCE_DIR}/single_include"
-)
-
 if(WIN32)
 	target_sources(obs_studio_client PUBLIC ${PROJECT_BINARY_DIR}/version.rc)
-	target_link_libraries(obs_studio_client ${LIBOBS_LIBRARIES} dwmapi.lib optimized crashpad StackWalker)
+	target_link_libraries(obs_studio_client ${LIBOBS_LIBRARIES} crashpad_client crashpad_util crashpad_base dwmapi.lib)
 else ()
 	target_link_libraries(obs_studio_client ${LIBOBS_LIBRARIES} ${COREFOUNDATION} ${COCOA} ${AVFOUNDATION} ${Security} ${Foundation} crashpad)
 endif()
@@ -351,10 +347,11 @@ target_include_directories(
 	obs_studio_client
 	PUBLIC
 		"${CMAKE_SOURCE_DIR}/source/"
-		${PROJECT_INCLUDE_PATHS}
 		${LIBOBS_INCLUDE_DIRS}
 		"${stackwalker_SOURCE_DIR}/Main/StackWalker"
 		"${nlohmannjson_SOURCE_DIR}/single_include"
+		"${source_dir}/include/third_party/mini_chromium/mini_chromium"
+		"${source_dir}/include"
 		"${thread-pool_SOURCE_DIR}"
 )
 

@@ -71,7 +71,7 @@ std::queue<std::pair<int, std::string>>    lastActions;
 std::vector<std::string>                   warnings;
 std::mutex                                 messageMutex;
 util::MetricsProvider                      metricsClient;
-LPTOP_LEVEL_EXCEPTION_FILTER               crashpadInternalExceptionFilterMethod = nullptr;
+PVECTORED_EXCEPTION_HANDLER               crashpadInternalExceptionFilterMethod = nullptr;
 HANDLE                                     memoryDumpEvent = INVALID_HANDLE_VALUE;
 std::filesystem::path                      memoryDumpFolder;
 #endif
@@ -363,6 +363,15 @@ std::wstring util::CrashManager::GetMemoryDumpPath()
 	return memoryDumpFolder.generic_wstring();
 }
 
+LONG WINAPI util::CrashManager::VectoredHandler2(
+    struct _EXCEPTION_POINTERS *ExceptionInfo)
+{
+    UNREFERENCED_PARAMETER(ExceptionInfo);
+
+    HandleCrash("UnhandledExceptionFilter", false);
+    return EXCEPTION_CONTINUE_SEARCH;
+}
+
 std::wstring util::CrashManager::GetMemoryDumpName()
 {
 	static std::wstring dmpName;
@@ -438,18 +447,24 @@ bool util::CrashManager::Initialize(char* path, std::string appdata)
 	// There's a static local wstring inside this function, now it's cached for thread safe read access
 	util::CrashManager::GetMemoryDumpName();
 
+
+
 	// Setup the windows exeption filter
 	auto ExceptionHandlerMethod = [](struct _EXCEPTION_POINTERS* ExceptionInfo) {
 		HandleCrash("UnhandledExceptionFilter", false);
 
 		// Call the crashpad internal exception filter method since we overrided it here and
 		// it must be called to proper generate a report
-		return crashpadInternalExceptionFilterMethod(ExceptionInfo);
+		// return crashpadInternalExceptionFilterMethod(ExceptionInfo);
+		return EXCEPTION_CONTINUE_SEARCH;
 	};
 
 	// This method will substitute the crashpad unhandled exception filter method by our one, returning
 	// the old method used by it, we will store this method pointer to be able to call it directly
-	crashpadInternalExceptionFilterMethod = SetUnhandledExceptionFilter(ExceptionHandlerMethod);
+	AddVectoredExceptionHandler(1, VectoredHandler2);
+
+	// const char *test = nullptr;
+	// std::cout << test;
 
 	// Setup the metrics query for the CPU usage
 	// Ref: https://stackoverflow.com/questions/63166/how-to-determine-cpu-and-memory-consumption-from-inside-a-process
@@ -509,7 +524,9 @@ bool util::CrashManager::SetupCrashpad()
 	arguments.push_back("--no-rate-limit");
 
 #ifdef WIN32
-	std::wstring handler_path(L"crashpad_handler.exe");
+	std::wstring handler_path = OBS_API::make_wide_string(workingDirectory);
+	handler_path.append(L"/crashpad_handler.exe");
+
 #else
 	std::string handler_path = workingDirectory + '/';
 	handler_path.append("crashpad_handler");
@@ -559,6 +576,11 @@ void util::CrashManager::HandleExit() noexcept
 
 void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noexcept
 {
+	blog(LOG_INFO, "Detected a crash");
+	// bool dbg = true;
+	// while (dbg)
+	// 	Sleep(1);
+
 	const bool uploadedFullDump = SignalMemoryDump();
 
 #ifdef ENABLE_CRASHREPORT
@@ -697,6 +719,10 @@ void util::CrashManager::SetUsername(std::string name) {
 bool util::CrashManager::TryHandleCrash(std::string _format, std::string _crashMessage)
 {
 #ifdef WIN32
+	// bool dbg = true;
+	// while (dbg)
+	// 	Sleep(1);
+
 	// This method can only be called by the obs-studio crash handler method, this means that
 	// an internal error occurred.
 	// handledOBSCrashes will contain all error messages that we should ignore from obs-studio,
@@ -766,55 +792,55 @@ std::string FormatVAString(const char* const format, va_list args)
 
 void RewindCallStack()
 {
-#ifdef WIN32
-	class MyStackWalker : public StackWalker
-	{
-		public:
-		MyStackWalker(): StackWalker(){}
+// #ifdef WIN32
+// 	class MyStackWalker : public StackWalker
+// 	{
+// 		public:
+// 		MyStackWalker(): StackWalker(){}
 
-		protected:
-		virtual void OnCallstackEntry(CallstackEntryType eType, CallstackEntry& entry)
-		{
-			// If this entry is valid
-			if (entry.offset == 0)
-				return;
+// 		protected:
+// 		virtual void OnCallstackEntry(CallstackEntryType eType, CallstackEntry& entry)
+// 		{
+// 			// If this entry is valid
+// 			if (entry.offset == 0)
+// 				return;
 
-			// If the entry is inside this file
-			std::string fileName = std::string(entry.lineFileName);
-			if (fileName.find("util-crashmanager.cpp") != std::string::npos
-			    || fileName.find("stackwalker.cpp") != std::string::npos)
-				return;
-			if (strlen(entry.name) > 0) {
-				std::string function = std::string(entry.name);
-				entry.name[0] = 0x00;
+// 			// If the entry is inside this file
+// 			std::string fileName = std::string(entry.lineFileName);
+// 			if (fileName.find("util-crashmanager.cpp") != std::string::npos
+// 			    || fileName.find("stackwalker.cpp") != std::string::npos)
+// 				return;
+// 			if (strlen(entry.name) > 0) {
+// 				std::string function = std::string(entry.name);
+// 				entry.name[0] = 0x00;
 
-				if(strlen(entry.lineFileName) > 0 )
-					function += std::string(" ") + std::string(entry.lineFileName);
-				entry.lineFileName[0] = 0x00;
+// 				if(strlen(entry.lineFileName) > 0 )
+// 					function += std::string(" ") + std::string(entry.lineFileName);
+// 				entry.lineFileName[0] = 0x00;
 
-				if(entry.lineNumber > 0)
-					function += std::string(":") + std::to_string(entry.lineNumber);
+// 				if(entry.lineNumber > 0)
+// 					function += std::string(":") + std::to_string(entry.lineNumber);
 
-				if(strlen(entry.moduleName) > 0)
-					function += std::string(" ") + std::string(entry.moduleName);
-				entry.moduleName[0] = 0x00;
+// 				if(strlen(entry.moduleName) > 0)
+// 					function += std::string(" ") + std::string(entry.moduleName);
+// 				entry.moduleName[0] = 0x00;
 
-				blog(LOG_INFO, "ST: %s", function.c_str());
-			} else {
-				std::string function = std::string("unknown function");
+// 				blog(LOG_INFO, "ST: %s", function.c_str());
+// 			} else {
+// 				std::string function = std::string("unknown function");
 
-				if(strlen(entry.moduleName) > 0)
-					function += std::string(" ") + std::string(entry.moduleName);
-				entry.moduleName[0] = 0x00;
+// 				if(strlen(entry.moduleName) > 0)
+// 					function += std::string(" ") + std::string(entry.moduleName);
+// 				entry.moduleName[0] = 0x00;
 
-				blog(LOG_INFO, "ST: %s", function.c_str());
-			}
-		}
-	};
+// 				blog(LOG_INFO, "ST: %s", function.c_str());
+// 			}
+// 		}
+// 	};
 
-	MyStackWalker  sw;
-	sw.ShowCallstack();
-#endif
+// 	MyStackWalker  sw;
+// 	sw.ShowCallstack();
+// #endif
 	return;
 }
 
@@ -1182,9 +1208,9 @@ void util::CrashManager::DisableReports()
 
 #ifdef ENABLE_CRASHREPORT
 
-	client.~CrashpadClient();
-	database->~CrashReportDatabase();
-	database = nullptr;
+	// client.~CrashpadClient();
+	// database->~CrashReportDatabase();
+	// database = nullptr;
 
 #endif
 }
