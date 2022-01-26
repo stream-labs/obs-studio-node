@@ -537,7 +537,7 @@ void osn::SceneItem::SetBounds(
 	bounds.x = args[1].value_union.fp32;
 	bounds.y = args[2].value_union.fp32;
 
-	obs_sceneitem_get_bounds(item, &bounds);
+	obs_sceneitem_set_bounds(item, &bounds);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(bounds.x));
 	rval.push_back(ipc::value(bounds.y));
