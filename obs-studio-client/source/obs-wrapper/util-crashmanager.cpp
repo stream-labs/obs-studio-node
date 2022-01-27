@@ -371,7 +371,7 @@ LONG WINAPI util::CrashManager::ExceptionHandlerMethod(
 		ExceptionInfo->ExceptionRecord->ExceptionCode != VC_EXCEPTION[1]) {
 		HandleCrash("UnhandledExceptionFilter", false);
 		auto default = SetUnhandledExceptionFilter(NULL);
-		default(ExceptionInfo);
+		return default(ExceptionInfo);
 	}
 
     return EXCEPTION_CONTINUE_SEARCH;;
@@ -455,9 +455,6 @@ bool util::CrashManager::Initialize(char* path, std::string appdata)
 	// This method will substitute the crashpad unhandled exception filter method by our one, returning
 	// the old method used by it, we will store this method pointer to be able to call it directly
 	AddVectoredExceptionHandler(1, ExceptionHandlerMethod);
-
-	// const char *test = nullptr;
-	// std::cout << test;
 
 	// Setup the metrics query for the CPU usage
 	// Ref: https://stackoverflow.com/questions/63166/how-to-determine-cpu-and-memory-consumption-from-inside-a-process
