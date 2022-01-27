@@ -673,7 +673,6 @@ std::thread* initCrashWorker = nullptr;
 
 void initCrashReporter(std::string appdata, std::string crashserverurl)
 {
-	Sleep(10000);
 	util::CrashManager crashManager;
 	crashManager.SetVersionName(currentVersion);
 	crashManager.SetReportServerUrl(crashserverurl);
