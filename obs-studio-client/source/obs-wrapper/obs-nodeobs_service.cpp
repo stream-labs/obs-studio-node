@@ -1084,8 +1084,6 @@ bool OBS_service::updateRecordingEncoders(bool isSimpleMode)
 
 bool OBS_service::startRecording(callbackService callJS)
 {
-	const char *test = nullptr;
-	std::cout << test;
 	std::cout << "startRecording - 0" << std::endl;
 	if (recordingOutput)
 		obs_output_release(recordingOutput);
