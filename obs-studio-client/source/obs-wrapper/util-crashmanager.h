@@ -29,9 +29,9 @@
 #undef strtoll
 #include "nlohmann/json.hpp"
 
-// #ifndef _DEBUG
+#ifndef _DEBUG
 #define ENABLE_CRASHREPORT
-// #endif
+#endif
 
 #ifdef WIN32
 #include "StackWalker.h"
