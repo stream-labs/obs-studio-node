@@ -630,6 +630,7 @@ void OBS_API::SetCrashHandlerPipe(const std::string &new_pipe)
 {
 
 	crash_handler_pipe = std::wstring(L"\\\\.\\pipe\\") + make_wide_string(new_pipe) + std::wstring(L"-crash-handler");
+	CreateCrashHandlerExitPipe();
 }
 
 void writeCrashHandler(std::vector<char> buffer)
@@ -679,7 +680,6 @@ int OBS_API::OBS_API_initAPI(
     std::string a_currentVersion,
 	std::string crashserverurl)
 {
-	CreateCrashHandlerExitPipe();
 	writeCrashHandler(registerProcess());
 
 	/* Map base DLLs as soon as possible into the current process space.
