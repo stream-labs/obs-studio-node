@@ -363,13 +363,18 @@ std::wstring util::CrashManager::GetMemoryDumpPath()
 	return memoryDumpFolder.generic_wstring();
 }
 
-LONG WINAPI util::CrashManager::VectoredHandler2(
+LONG WINAPI util::CrashManager::ExceptionHandlerMethod(
     struct _EXCEPTION_POINTERS *ExceptionInfo)
 {
-    UNREFERENCED_PARAMETER(ExceptionInfo);
+	const DWORD VC_EXCEPTION[2] =  { 0x406D1388, 0x406D1388 };
+	if (ExceptionInfo->ExceptionRecord->ExceptionCode != VC_EXCEPTION[0] &&
+		ExceptionInfo->ExceptionRecord->ExceptionCode != VC_EXCEPTION[1]) {
+		HandleCrash("UnhandledExceptionFilter", false);
+		auto default = SetUnhandledExceptionFilter(NULL);
+		default(ExceptionInfo);
+	}
 
-    HandleCrash("UnhandledExceptionFilter", false);
-    return EXCEPTION_CONTINUE_SEARCH;
+    return EXCEPTION_CONTINUE_SEARCH;;
 }
 
 std::wstring util::CrashManager::GetMemoryDumpName()
@@ -447,21 +452,9 @@ bool util::CrashManager::Initialize(char* path, std::string appdata)
 	// There's a static local wstring inside this function, now it's cached for thread safe read access
 	util::CrashManager::GetMemoryDumpName();
 
-
-
-	// Setup the windows exeption filter
-	auto ExceptionHandlerMethod = [](struct _EXCEPTION_POINTERS* ExceptionInfo) {
-		HandleCrash("UnhandledExceptionFilter", false);
-
-		// Call the crashpad internal exception filter method since we overrided it here and
-		// it must be called to proper generate a report
-		// return crashpadInternalExceptionFilterMethod(ExceptionInfo);
-		return EXCEPTION_CONTINUE_SEARCH;
-	};
-
 	// This method will substitute the crashpad unhandled exception filter method by our one, returning
 	// the old method used by it, we will store this method pointer to be able to call it directly
-	AddVectoredExceptionHandler(1, VectoredHandler2);
+	AddVectoredExceptionHandler(1, ExceptionHandlerMethod);
 
 	// const char *test = nullptr;
 	// std::cout << test;
@@ -576,11 +569,6 @@ void util::CrashManager::HandleExit() noexcept
 
 void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noexcept
 {
-	blog(LOG_INFO, "Detected a crash");
-	// bool dbg = true;
-	// while (dbg)
-	// 	Sleep(1);
-
 	const bool uploadedFullDump = SignalMemoryDump();
 
 #ifdef ENABLE_CRASHREPORT
@@ -719,10 +707,6 @@ void util::CrashManager::SetUsername(std::string name) {
 bool util::CrashManager::TryHandleCrash(std::string _format, std::string _crashMessage)
 {
 #ifdef WIN32
-	// bool dbg = true;
-	// while (dbg)
-	// 	Sleep(1);
-
 	// This method can only be called by the obs-studio crash handler method, this means that
 	// an internal error occurred.
 	// handledOBSCrashes will contain all error messages that we should ignore from obs-studio,

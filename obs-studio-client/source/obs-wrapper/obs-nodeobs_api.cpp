@@ -509,10 +509,14 @@ std::vector<char> registerProcess(void)
 {
 	std::vector<char> buffer;
 	uint8_t action = crashHandlerCommand::REGISTER;
+	bool isCritical = true;
 	buffer.resize(sizeof(action) + sizeof(pid));
 
 	uint32_t offset = 0;
+
 	memcpy(buffer.data(), &action, sizeof(action));
+	offset++;
+	memcpy(buffer.data() + offset, &isCritical, sizeof(isCritical));
 	offset++;
 	memcpy(buffer.data() + offset, &pid, sizeof(pid));
 
@@ -669,23 +673,6 @@ void writeCrashHandler(std::vector<char> buffer)
 }
 #endif
 
-std::thread* initCrashWorker = nullptr;
-
-void initCrashReporter(std::string appdata, std::string crashserverurl)
-{
-	util::CrashManager crashManager;
-	crashManager.SetVersionName(currentVersion);
-	crashManager.SetReportServerUrl(crashserverurl);
-	char* path = new char [g_moduleDirectory.length()+1];
-	std::strcpy (path, g_moduleDirectory.c_str());
-	if (crashManager.Initialize(path, appdata)) {
-		crashManager.Configure();
-		if (crashManager.InitializeMemoryDump()) {
-			writeCrashHandler(registerMemoryDump());
-		}
-   }
-}
-
 int OBS_API::OBS_API_initAPI(
     std::string appdata,
     std::string locale,
@@ -704,8 +691,17 @@ int OBS_API::OBS_API_initAPI(
 	utility_server::osn_current_version(currentVersion);
 
 #ifdef ENABLE_CRASHREPORT
-	initCrashWorker = new std::thread(initCrashReporter, appdata, crashserverurl);
-
+	util::CrashManager crashManager;
+	crashManager.SetVersionName(currentVersion);
+	crashManager.SetReportServerUrl(crashserverurl);
+	char* path = new char [g_moduleDirectory.length()+1];
+	std::strcpy (path, g_moduleDirectory.c_str());
+	if (crashManager.Initialize(path, appdata)) {
+		crashManager.Configure();
+		if (crashManager.InitializeMemoryDump()) {
+			writeCrashHandler(registerMemoryDump());
+		}
+   }
 #ifdef WIN32
 	// Register the pre and post server callbacks to log the data into the crashmanager
 	// g_server->set_pre_callback([](std::string cname, std::string fname, const std::vector<ipc::value>& args, void* data)
@@ -1262,12 +1258,10 @@ void OBS_API::InformCrashHandler(const int crash_id)
 	writeCrashHandler(crashedProcess(crash_id));
 }
 
-void OBS_API::destroyOBS_API(void)
+void OBS_API::StopCrashHandler()
 {
 	blog(LOG_DEBUG, "OBS_API::destroyOBS_API started, objects allocated %d", bnum_allocs());
 	util::CrashManager::setAppState("shutdown");
-
-	os_cpu_usage_info_destroy(cpuUsageInfo);
 
 	if (crash_handler_responce_thread) {
 		writeCrashHandler(unregisterProcess());
@@ -1285,6 +1279,11 @@ void OBS_API::destroyOBS_API(void)
 		// Only for a case when it failed to create a pipe to recieve confirmation from crash handler.  
 		std::this_thread::sleep_for(std::chrono::seconds(1));
 	}
+}
+
+void OBS_API::destroyOBS_API(void)
+{
+	os_cpu_usage_info_destroy(cpuUsageInfo);
 
 #ifdef _WIN32
 	config_t* basicConfig         = ConfigManager::getInstance().getBasic();

@@ -270,6 +270,12 @@ Napi::Value api::SetCrashHandlerPipe(const Napi::CallbackInfo& info)
 	return info.Env().Undefined();
 }
 
+Napi::Value api::StopCrashHandler(const Napi::CallbackInfo& info)
+{
+	OBS_API::StopCrashHandler();
+	return info.Env().Undefined();
+}
+
 void api::Init(Napi::Env env, Napi::Object exports)
 {
 	exports.Set(Napi::String::New(env, "OBS_API_initAPI"), Napi::Function::New(env, api::OBS_API_initAPI));
@@ -283,4 +289,5 @@ void api::Init(Napi::Env env, Napi::Object exports)
 	exports.Set(Napi::String::New(env, "GetPermissionsStatus"), Napi::Function::New(env, api::GetPermissionsStatus));
 	exports.Set(Napi::String::New(env, "RequestPermissions"), Napi::Function::New(env, api::RequestPermissions));
 	exports.Set(Napi::String::New(env, "SetCrashHandlerPipe"), Napi::Function::New(env, api::SetCrashHandlerPipe));
+	exports.Set(Napi::String::New(env, "StopCrashHandler"), Napi::Function::New(env, api::StopCrashHandler));
 }

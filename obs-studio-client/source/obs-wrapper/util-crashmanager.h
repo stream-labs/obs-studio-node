@@ -107,7 +107,7 @@ namespace util
 		static bool TryHandleCrash(std::string format, std::string crashMessage);
 		static void HandleExit() noexcept;
 		static void HandleCrash(std::string crashInfo, bool callAbort = true) noexcept;
-		static LONG WINAPI VectoredHandler2(struct _EXCEPTION_POINTERS *ExceptionInfo);
+		static LONG WINAPI ExceptionHandlerMethod(struct _EXCEPTION_POINTERS *ExceptionInfo);
 	};
 
 }; // namespace util

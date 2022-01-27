@@ -149,6 +149,7 @@ class OBS_API
 	static void destroyOBS_API(void);
 
 	static void SetCrashHandlerPipe(const std::string&);
+	static void StopCrashHandler();
 	static void CreateCrashHandlerExitPipe();
 	static void WaitCrashHandlerClose(bool waitBeforeClosing);
 #ifdef WIN32
