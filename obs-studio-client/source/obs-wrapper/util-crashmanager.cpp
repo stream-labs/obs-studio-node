@@ -366,7 +366,7 @@ std::wstring util::CrashManager::GetMemoryDumpPath()
 LONG WINAPI util::CrashManager::ExceptionHandlerMethod(
     struct _EXCEPTION_POINTERS *ExceptionInfo)
 {
-	std::cout << "Code: " << ExceptionInfo->ExceptionRecord->ExceptionCode << std::endl;
+	std::cout << "Code: " << ExceptionInfo->ExceptionRecord->ExceptionFlags << std::endl;
 	const DWORD VC_EXCEPTION[2] =  { 0x406D1388, 0x406D1388 };
 	if (ExceptionInfo->ExceptionRecord->ExceptionCode != VC_EXCEPTION[0] &&
 		ExceptionInfo->ExceptionRecord->ExceptionCode != VC_EXCEPTION[1]) {
