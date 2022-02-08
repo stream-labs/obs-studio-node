@@ -99,6 +99,7 @@ std::string g_moduleDirectory = "";
 os_cpu_usage_info_t* cpuUsageInfo      = nullptr;
 #ifdef WIN32
 std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+HMODULE hRtwq;
 #endif
 std::string                                            slobs_plugin;
 std::vector<std::pair<std::string, obs_module_t*>>     obsModules;
@@ -762,7 +763,6 @@ void OBS_API::OBS_API_initAPI(
 		util::CrashManager& crashManager = *static_cast<util::CrashManager*>(data);
 		crashManager.ProcessPostServerCall(cname, fname, args);
 	}, &crashManager);
-
 #endif
 #endif
 
@@ -770,6 +770,12 @@ void OBS_API::OBS_API_initAPI(
 	// Connect the metrics provider with our crash handler process, sending our current version tag
 	// and enabling metrics
 	util::CrashManager::GetMetricsProvider()->Initialize("\\\\.\\pipe\\metrics_pipe", currentVersion, false);
+	hRtwq = LoadLibrary(L"RTWorkQ.dll");
+	if (hRtwq) {
+		typedef HRESULT(STDAPICALLTYPE * PFN_RtwqStartup)();
+		PFN_RtwqStartup func = (PFN_RtwqStartup)GetProcAddress(hRtwq, "RtwqStartup");
+		func();
+	}
 #endif
 	obs_add_data_path((g_moduleDirectory + "/data/libobs/").c_str());
 	slobs_plugin = appdata.substr(0, appdata.size() - strlen("/slobs-client"));
@@ -1586,6 +1592,16 @@ void OBS_API::destroyOBS_API(void)
 	// collector do this for us on shutdown
 	for (auto& moduleInfo : obsModules) {
 	}
+
+#ifdef _WIN32
+	if (hRtwq) {
+		typedef HRESULT(STDAPICALLTYPE * PFN_RtwqShutdown)();
+		PFN_RtwqShutdown func =
+			(PFN_RtwqShutdown)GetProcAddress(hRtwq, "RtwqShutdown");
+		func();
+		FreeLibrary(hRtwq);
+	}
+#endif
 
 	// The goal is to reduce this number to zero and add a throw here, so if in the future
 	// a leak is detected, any developer will know for sure what is causing it
