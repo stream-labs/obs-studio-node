@@ -17,7 +17,7 @@
 ******************************************************************************/
 
 #include "memory-manager.h"
-
+ 
 MemoryManager::MemoryManager()
 {
 #ifdef WIN32
