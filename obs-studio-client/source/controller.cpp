@@ -457,7 +457,7 @@ Napi::Value js_connect(const Napi::CallbackInfo& info)
 	if (!cl) {
 		if (exit_code == ProcessInfo::VERSION_MISMATCH) {
 			std::stringstream ss;
-			ss << "Version mismatch between client and server. Please reinstall Streamlabs OBS " ;
+			ss << "Version mismatch between client and server. Please reinstall Streamlabs Desktop " ;
 			Napi::Error::New(info.Env(), ss.str().c_str()).ThrowAsJavaScriptException();
 			return info.Env().Undefined();
 		}
@@ -494,7 +494,7 @@ Napi::Value js_host(const Napi::CallbackInfo& info)
 	if (!cl) {
 		if (exit_code == ProcessInfo::VERSION_MISMATCH) {
 			std::stringstream ss;
-			ss << "Version mismatch between client and server. Please reinstall Streamlabs OBS " ;
+			ss << "Version mismatch between client and server. Please reinstall Streamlabs Desktop " ;
 			Napi::Error::New(info.Env(), ss.str().c_str()).ThrowAsJavaScriptException();
 			return info.Env().Undefined();
 		}
