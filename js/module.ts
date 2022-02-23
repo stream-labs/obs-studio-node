@@ -1054,6 +1054,36 @@ export interface IInput extends ISource {
      * Height of the underlying source
      */
     readonly height: number;
+
+    /**
+     * get the duration of media file in milliseconds
+     */
+    getDuration(): number;
+
+    /**
+     * get or set the current play position
+     */
+    seek: number;
+    
+    /**
+     * play media source
+     */
+    play(): void;
+    
+    /**
+     * pause media source
+     */
+    pause(): void;
+    
+    /**
+     * restart media source when ended
+     */
+    restart(): void;
+    
+    /**
+     * stop media source
+     */
+    stop(): void;
 }
 
 export interface ISceneFactory {
