@@ -150,7 +150,7 @@ void initBasicDefault(config_t* config)
 	config_set_default_string(config, "AdvOut", "RecType", "Standard");
 
 	config_set_default_string(config, "AdvOut", "RecFilePath", GetDefaultVideoSavePath().c_str());
-	config_set_default_string(config, "AdvOut", "RecFormat", "flv");
+	config_set_default_string(config, "AdvOut", "RecFormat", "mp4");
 	config_set_default_bool(config, "AdvOut", "RecUseRescale", false);
 	config_set_default_uint(config, "AdvOut", "RecTracks", (1 << 0));
 	config_set_default_string(config, "AdvOut", "RecEncoder", "none");
