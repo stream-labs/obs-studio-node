@@ -158,6 +158,7 @@ describe(testName, () => {
                     settings = inputSettings.dshowInput;
                     settings['video_format'] = 1;
                     settings['autorotation'] = true;
+                    settings['hw_decode'] = false;
                     break;
                 }
                 case 'wasapi_input_capture': 
