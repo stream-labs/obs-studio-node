@@ -942,7 +942,9 @@ bool OBS_service::startStreaming(void)
 	if (!twitchSoundtrackEnabled)
 		setupVodTrack(isSimpleMode);
 
+	outdated_driver_error::instance()->set_active(true);
 	isStreaming = obs_output_start(streamingOutput);
+	outdated_driver_error::instance()->set_active(false);
 	if (!isStreaming) {
 		SignalInfo  signal = SignalInfo("streaming", "stop");
 		std::string outdated_driver_error = outdated_driver_error::instance()->get_error();
@@ -1187,7 +1189,9 @@ bool OBS_service::startRecording(void)
 		}
 	}
 
+	outdated_driver_error::instance()->set_active(true);
 	isRecording = obs_output_start(recordingOutput);
+	outdated_driver_error::instance()->set_active(false);
 	if (!isRecording) {
 		SignalInfo signal = SignalInfo("recording", "stop");
 		std::string outdated_driver_error = outdated_driver_error::instance()->get_error();
@@ -1360,7 +1364,9 @@ bool OBS_service::startReplayBuffer(void)
 		}
 	}
 
+	outdated_driver_error::instance()->set_active(true);
 	bool result = obs_output_start(replayBufferOutput);
+	outdated_driver_error::instance()->set_active(false);
 	if (!result) {
 		SignalInfo signal    = SignalInfo("replay-buffer", "stop");
 		isReplayBufferActive = false;
