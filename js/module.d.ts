@@ -68,7 +68,10 @@ export declare const enum EPropertyType {
     Button = 8,
     Font = 9,
     EditableList = 10,
-    FrameRate = 11
+    FrameRate = 11,
+    Group = 12,
+    ColorAlpha = 13,
+    Capture = 14
 }
 export declare const enum EListFormat {
     Invalid = 0,
@@ -482,19 +485,6 @@ export interface IOutputFactory extends IFactoryTypes {
 export declare enum EDelayFlags {
     PreserveDelay = 1
 }
-export interface IServiceFactory extends IFactoryTypes {
-    create(id: string, name: string, settings?: ISettings, hotkeys?: ISettings): IService;
-    createPrivate(id: string, name: string, settings?: ISettings): IService;
-    fromName(name: string): IService;
-}
-export interface IService extends IConfigurable, IReleasable {
-    readonly url: string;
-    readonly key: string;
-    readonly username: string;
-    readonly password: string;
-    readonly name: string;
-    readonly id: string;
-}
 export interface IFilterFactory extends IFactoryTypes {
     create(id: string, name: string, settings?: ISettings): IFilter;
 }
@@ -751,4 +741,18 @@ export interface ISourceSize {
     outputFlags: number;
 }
 export declare function getSourcesSize(sourcesNames: string[]): ISourceSize[];
+export interface IServiceFactory {
+    types(): string[];
+    create(id: string, name: string, settings?: ISettings): IService;
+}
+export interface IService {
+    readonly name: string;
+    readonly properties: IProperties;
+    readonly settings: ISettings;
+    readonly url: string;
+    readonly key: string;
+    readonly username: string;
+    readonly password: string;
+    update(settings: ISettings): void;
+}
 export declare const NodeObs: any;

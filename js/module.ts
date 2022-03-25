@@ -836,45 +836,6 @@ export enum EDelayFlags {
     PreserveDelay = (1<<0)
 }
 
-/** 
- * A service represents the service we're generally streaming to.
- * Note that in order to use a service, you need an output that takes
- * advantage of a service. This makes sense since not all outputs will
- * use a service (think recording or NDI). */
-export interface IServiceFactory extends IFactoryTypes {
-    /**
-     * Create a new instance of a Service
-     * @param id - The type of service source to create, possibly from {@link types}
-     * @param name - Name of the created input source
-     * @param settings - Optional, settings to create input sourc with
-     * @param hotkeys - Optional, hotkey data associated with input
-     * @returns - Returns instance or null if failure
-     */
-    create(id: string, name: string, settings?: ISettings, hotkeys?: ISettings): IService;
-
-    /**
-     * Create a new instance of a Service that's private
-     * Private in this context means any function that returns an 
-     * Service will not return this source
-     * @param id - The type of input source to create, possibly from {@link types}
-     * @param name - Name of the created input source
-     * @param settings - Optional, settings to create input source with
-     * @returns - Returns instance or null if failure
-     */
-    createPrivate(id: string, name: string, settings?: ISettings): IService;
-
-    fromName(name: string): IService;
-}
-
-export interface IService extends IConfigurable, IReleasable {
-    readonly url: string;
-    readonly key: string;
-    readonly username: string;
-    readonly password: string;
-    readonly name: string;
-    readonly id: string;
-}
-
 export interface IFilterFactory extends IFactoryTypes {
     /**
      * Create an instance of an ObsFilter
@@ -1685,6 +1646,46 @@ export function getSourcesSize(sourcesNames: string[]): ISourceSize[] {
         });
     }
     return sourcesSize;
+}
+export interface IServiceFactory {
+    types(): string[];
+    create(id: string, name: string, settings?: ISettings): IService;
+}
+/**
+ * Class representing a service
+ */
+export interface IService {
+    /** The service name */
+    readonly name: string;
+
+    /**
+     * The properties of the service
+     */
+    readonly properties: IProperties;
+
+    /**
+     * Object holding current settings of the service
+     */
+    readonly settings: ISettings;
+
+    /** The service name */
+    readonly url: string;
+
+    /** The service name */
+    readonly key: string;
+
+    /** The service name */
+    readonly username: string;
+
+    /** The service name */
+    readonly password: string;
+
+    /**
+     * Update the settings of the service instance
+     * correlating to the values held within the
+     * object passed. 
+     */
+    update(settings: ISettings): void;
 }
 
 // Initialization and other stuff which needs local data.

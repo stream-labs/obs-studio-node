@@ -24,7 +24,7 @@ void osn::Service::Register(ipc::server& srv)
 {
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Service");
 	cls->register_function(
-	    std::make_shared<ipc::function>("GetServiceTypes", std::vector<ipc::type>{}, GetServiceTypes));
+	    std::make_shared<ipc::function>("GetTypes", std::vector<ipc::type>{}, GetTypes));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "Create", std::vector<ipc::type>{ipc::type::String, ipc::type::String}, Create));
 	cls->register_function(std::make_shared<ipc::function>(
@@ -42,6 +42,8 @@ void osn::Service::Register(ipc::server& srv)
 	cls->register_function(
 	    std::make_shared<ipc::function>("GetName", std::vector<ipc::type>{ipc::type::UInt64}, GetName));
 	cls->register_function(
+	    std::make_shared<ipc::function>("GetProperties", std::vector<ipc::type>{ipc::type::UInt64}, GetProperties));
+	cls->register_function(
 	    std::make_shared<ipc::function>("Update", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String}, Update));
 	cls->register_function(
 	    std::make_shared<ipc::function>("GetSettings", std::vector<ipc::type>{ipc::type::UInt64}, GetSettings));
@@ -57,7 +59,7 @@ void osn::Service::Register(ipc::server& srv)
     srv.register_collection(cls);
 }
 
-void osn::Service::GetServiceTypes(
+void osn::Service::GetTypes(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
@@ -270,11 +272,11 @@ void osn::Service::GetUsername(
 	obs_service_t* service = osn::Service::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!service) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Service reference is not valid.");
+	}
 
     const char* username = obs_service_get_username(service);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
     rval.push_back(ipc::value(username ? username : ""));
-	}
 }
 void osn::Service::GetPassword(
     void*                          data,
