@@ -744,6 +744,8 @@ export declare function getSourcesSize(sourcesNames: string[]): ISourceSize[];
 export interface IServiceFactory {
     types(): string[];
     create(id: string, name: string, settings?: ISettings): IService;
+    getCurrent(): IService;
+    setService(service: IService): void;
 }
 export interface IService {
     readonly name: string;

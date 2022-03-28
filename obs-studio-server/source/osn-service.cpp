@@ -19,6 +19,7 @@
 #include "osn-service.hpp"
 #include <error.hpp>
 #include "shared.hpp"
+#include "nodeobs_service.h"
 
 void osn::Service::Register(ipc::server& srv)
 {
@@ -39,6 +40,9 @@ void osn::Service::Register(ipc::server& srv)
 	    "CreatePrivate",
 	    std::vector<ipc::type>{ipc::type::String, ipc::type::String, ipc::type::String},
 	    CreatePrivate));
+	cls->register_function(std::make_shared<ipc::function>("GetCurrent", std::vector<ipc::type>{}, GetCurrent));
+	cls->register_function(std::make_shared<ipc::function>("SetService",
+	    std::vector<ipc::type>{ipc::type::UInt64}, SetService));
 	cls->register_function(
 	    std::make_shared<ipc::function>("GetName", std::vector<ipc::type>{ipc::type::UInt64}, GetName));
 	cls->register_function(
@@ -112,6 +116,7 @@ void osn::Service::Create(
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(uid));
+	AUTO_DEBUG;
 }
 
 void osn::Service::CreatePrivate(
@@ -146,6 +151,49 @@ void osn::Service::CreatePrivate(
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(uid));
+	AUTO_DEBUG;
+}
+
+void osn::Service::GetCurrent(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	obs_service_t* service = OBS_service::getService();
+	if (!service) {
+		PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "No valid service is currently set.");
+	}
+
+	uint64_t uid = osn::Service::Manager::GetInstance().allocate(service);
+	if (uid == UINT64_MAX) {
+		PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Index list is full.");
+	}
+
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(uid));
+	AUTO_DEBUG;
+}
+
+void osn::Service::SetService(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	obs_service_t* service = osn::Service::Manager::GetInstance().find(args[0].value_union.ui64);
+	if (!service) {
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Service reference is not valid.");
+	}
+
+	obs_service_t* current = OBS_service::getService();
+	if (service == current) {
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Service reference is already set.");
+	}
+
+	OBS_service::setService(service);
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
 }
 
 void osn::Service::GetName(
@@ -163,6 +211,7 @@ void osn::Service::GetName(
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(name ? name : ""));
+	AUTO_DEBUG;
 }
 
 void osn::Service::GetProperties(
@@ -245,6 +294,7 @@ void osn::Service::GetURL(
     const char* url = obs_service_get_url(service);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
     rval.push_back(ipc::value(url ? url : ""));
+	AUTO_DEBUG;
 }
 
 void osn::Service::GetKey(
@@ -261,6 +311,7 @@ void osn::Service::GetKey(
     const char* key = obs_service_get_key(service);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
     rval.push_back(ipc::value(key ? key : ""));
+	AUTO_DEBUG;
 }
 
 void osn::Service::GetUsername(
@@ -277,6 +328,7 @@ void osn::Service::GetUsername(
     const char* username = obs_service_get_username(service);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
     rval.push_back(ipc::value(username ? username : ""));
+	AUTO_DEBUG;
 }
 void osn::Service::GetPassword(
     void*                          data,
@@ -292,6 +344,7 @@ void osn::Service::GetPassword(
     const char* password = obs_service_get_password(service);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
     rval.push_back(ipc::value(password ? password : ""));
+	AUTO_DEBUG;
 }
 
 osn::Service::Manager& osn::Service::Manager::GetInstance()

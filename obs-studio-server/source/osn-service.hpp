@@ -52,6 +52,10 @@ namespace osn
         static void
 		    CreatePrivate(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
         static void
+		    GetCurrent(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
+        static void
+		    SetService(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
+        static void
 		    GetName(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
         static void
 		    GetProperties(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
