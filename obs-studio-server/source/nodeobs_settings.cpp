@@ -1428,8 +1428,8 @@ void OBS_settings::getSimpleOutputSettings(
 	recFormat.push_back(std::make_pair("minVal", ipc::value((double)0)));
 	recFormat.push_back(std::make_pair("maxVal", ipc::value((double)0)));
 	recFormat.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	recFormat.push_back(std::make_pair("flv", ipc::value("flv")));
 	recFormat.push_back(std::make_pair("mp4", ipc::value("mp4")));
+	recFormat.push_back(std::make_pair("flv", ipc::value("flv")));
 	recFormat.push_back(std::make_pair("mov", ipc::value("mov")));
 	recFormat.push_back(std::make_pair("mkv", ipc::value("mkv")));
 	recFormat.push_back(std::make_pair("ts", ipc::value("ts")));
@@ -2129,8 +2129,8 @@ void OBS_settings::getStandardRecordingSettings(
 	recFormat.sizeOfCurrentValue = strlen(recFormatCurrentValue);
 
 	std::vector<std::pair<std::string, std::string>> recFormatValues;
-	recFormatValues.push_back(std::make_pair("flv", "flv"));
 	recFormatValues.push_back(std::make_pair("mp4", "mp4"));
+	recFormatValues.push_back(std::make_pair("flv", "flv"));
 	recFormatValues.push_back(std::make_pair("mov", "mov"));
 	recFormatValues.push_back(std::make_pair("mkv", "mkv"));
 	recFormatValues.push_back(std::make_pair("ts", "ts"));

@@ -109,6 +109,7 @@ describe(testName, () => {
                 case 'clut_filter': {
                     settings = filterSettings.clut;
                     settings['clut_amount'] = 2;
+                    settings['passthrough_alpha'] = false;
                     break;
                 }
                 case 'sharpness_filter_v2':
