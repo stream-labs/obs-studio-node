@@ -490,7 +490,7 @@ void util::CrashManager::Configure()
 	// You don't need to set the entire message, we will just check for a substring match
 	// in the main error message
 	{
-		handledOBSCrashes.push_back("Failed to recreate D3D11");
+		//handledOBSCrashes.push_back("Failed to recreate D3D11");
 		// ...
 	}
 #endif
