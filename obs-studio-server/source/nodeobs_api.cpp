@@ -1502,6 +1502,8 @@ void OBS_API::destroyOBS_API(void)
     osn::Volmeter::ClearVolmeters();
     osn::Fader::ClearFaders();
 
+	obs_wait_for_destroy_queue();
+
 	// Check if the frontend was able to shutdown correctly:
 	// If there are some sources here it's because it ended unexpectedly, this represents a 
 	// problem since obs doesn't handle releasing leaked sources very well. The best we can
