@@ -891,7 +891,8 @@ describe(testName, function() {
     it('Fail test - Stream with invalid stream key', async function() {
         let signalInfo: IOBSOutputSignalInfo;
 
-        obs.setSetting('Stream', 'key', 'invalid');
+        const serviceObj = osn.ServiceFactory.getCurrent();
+        serviceObj.update({ key: 'invalid' });
 
         osn.NodeObs.OBS_service_startStreaming();
 
@@ -904,7 +905,7 @@ describe(testName, function() {
         expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stop, GetErrorMessage(ETestErrorMsg.StreamOutput));
         expect(signalInfo.code).to.equal(-3, GetErrorMessage(ETestErrorMsg.StreamOutput));
 
-        obs.setSetting('Stream', 'key', obs.userStreamKey);
+        obs.setStreamKey(obs.userStreamKey);
     });
 
     it('Fail test - Simple mode - Record with invalid path', async function() {

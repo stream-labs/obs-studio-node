@@ -149,9 +149,9 @@ export class OBSHandler {
         }
 
         logInfo(this.osnTestName, 'Saving stream key');
-        this.setSetting(EOBSSettingsCategories.Stream, 'key', this.userStreamKey);
+        this.setStreamKey(this.userStreamKey);
 
-        let savedStreamKey = this.getSetting(EOBSSettingsCategories.Stream, 'key');
+        let savedStreamKey = this.getStreamKey();
         if (savedStreamKey == this.userStreamKey) {
             logInfo(this.osnTestName, 'Stream key saved successfully');
         } else {
@@ -173,6 +173,17 @@ export class OBSHandler {
             logWarning(this.osnTestName, e);
         }
     };
+
+    setStreamKey(value: string) {
+        const service = osn.ServiceFactory.getCurrent();
+        service.update({ key: value });
+    }
+
+    getStreamKey(): string {
+        const service = osn.ServiceFactory.getCurrent();
+        const settings = service.settings;
+        return settings.key;
+    }
 
     setSetting(category: string, parameter: string, value: any) {
         let oldValue: any;

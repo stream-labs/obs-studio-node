@@ -227,12 +227,7 @@ void osn::Service::GetProperties(
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 
-    const char* serviceId = obs_service_get_id(service);
-    if (!serviceId) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Service id is not valid.");
-    }
-
-	obs_properties_t* prp = obs_get_service_properties(serviceId);
+	obs_properties_t* prp = obs_service_properties(service);
 	obs_data* settings = obs_service_get_settings(service);
 
     bool update = false;
