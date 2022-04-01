@@ -247,9 +247,10 @@ export const enum EZStencilFormat {
 export const enum EScaleType {
     Default,
     Point,
-    FastBilinear,
+    Bicubic,
     Bilinear,
-    Bicubic
+    Lanczos,
+    Area
 }
 
 export const enum ERangeType {
@@ -269,7 +270,13 @@ export const enum EVideoFormat {
     BGRA,
     BGRX,
     Y800,
-    I444
+    I444,
+    BGR3,
+    I422,
+    I40A,
+    I42A,
+    YUVA,
+    AYUV
 }
 
 export const enum EBoundsType {
@@ -285,7 +292,8 @@ export const enum EBoundsType {
 export const enum EColorSpace {
     Default,
     CS601,
-    CS709
+    CS709,
+    CSSRGB
 }
 
 export const enum ESpeakerLayout {
@@ -1524,6 +1532,19 @@ export interface IDisplay {
     setResizeBoxInnerColor(r: number, g: number, b: number, a: number): void;
 }
 
+export interface VideoContext {
+    fpsNum: number;
+    fpsDen: number;
+    baseWidth: number;
+    baseHeight: number;
+    outputWidth: number;
+    outputHeight: number;
+    outputFormat: EVideoFormat;
+    colorspace: EColorSpace;
+    range: ERangeType;
+    scaleType: EScaleType;
+}
+
 /**
  * This represents a video_t structure from within libobs
  * For now, only the global context functions are implemented
@@ -1539,6 +1560,17 @@ export interface IVideo {
      * Number of total encoded frames
      */
     readonly encodedFrames: number;
+
+    /**
+     * Get the current video context
+     */
+    get(): VideoContext;
+
+    /**
+     * Set the new video context causing the
+     * internal graphics to reinitialize
+     */
+    set(video: VideoContext): void;
 }
 
 /**
