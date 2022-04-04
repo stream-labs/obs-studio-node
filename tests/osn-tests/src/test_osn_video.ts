@@ -65,8 +65,10 @@ describe(testName, () => {
         // the default values
         expect(currentVideo.fpsNum).to.equal(30, GetErrorMessage(ETestErrorMsg.VideoSkippedFramesWrongValue));
         expect(currentVideo.fpsDen).to.equal(1, GetErrorMessage(ETestErrorMsg.VideoSkippedFramesWrongValue));
-        expect(currentVideo.baseWidth).to.equal(1920, GetErrorMessage(ETestErrorMsg.VideoSkippedFramesWrongValue));
-        expect(currentVideo.baseHeight).to.equal(1080, GetErrorMessage(ETestErrorMsg.VideoSkippedFramesWrongValue));
+        // The default base resolution is set depending the screen that is connected.
+        // I'm commenting checking for these values since it will vary from a machine to another
+        // expect(currentVideo.baseWidth).to.equal(1920, GetErrorMessage(ETestErrorMsg.VideoSkippedFramesWrongValue));
+        // expect(currentVideo.baseHeight).to.equal(1080, GetErrorMessage(ETestErrorMsg.VideoSkippedFramesWrongValue));
         expect(currentVideo.outputWidth).to.equal(1280, GetErrorMessage(ETestErrorMsg.VideoSkippedFramesWrongValue));
         expect(currentVideo.outputHeight).to.equal(720, GetErrorMessage(ETestErrorMsg.VideoSkippedFramesWrongValue));
         expect(currentVideo.outputFormat).to.equal(osn.EVideoFormat.NV12, GetErrorMessage(ETestErrorMsg.VideoSkippedFramesWrongValue));
