@@ -63,18 +63,18 @@ describe(testName, () => {
 
         // Check if the current video context correctly returns
         // the default values
-        expect(currentVideo.fpsNum).to.equal(30, GetErrorMessage(ETestErrorMsg.VideoSkippedFramesWrongValue));
-        expect(currentVideo.fpsDen).to.equal(1, GetErrorMessage(ETestErrorMsg.VideoSkippedFramesWrongValue));
-        // The default base resolution is set depending the screen that is connected.
+        expect(currentVideo.fpsNum).to.equal(30, GetErrorMessage(ETestErrorMsg.VideoDefaultFPSNum));
+        expect(currentVideo.fpsDen).to.equal(1, GetErrorMessage(ETestErrorMsg.VideoDefaultFPSDen));
+        // The default base resolution is set depending on the screen that is connected.
         // I'm commenting checking for these values since it will vary from a machine to another
-        // expect(currentVideo.baseWidth).to.equal(1920, GetErrorMessage(ETestErrorMsg.VideoSkippedFramesWrongValue));
-        // expect(currentVideo.baseHeight).to.equal(1080, GetErrorMessage(ETestErrorMsg.VideoSkippedFramesWrongValue));
-        expect(currentVideo.outputWidth).to.equal(1280, GetErrorMessage(ETestErrorMsg.VideoSkippedFramesWrongValue));
-        expect(currentVideo.outputHeight).to.equal(720, GetErrorMessage(ETestErrorMsg.VideoSkippedFramesWrongValue));
-        expect(currentVideo.outputFormat).to.equal(osn.EVideoFormat.NV12, GetErrorMessage(ETestErrorMsg.VideoSkippedFramesWrongValue));
-        expect(currentVideo.colorspace).to.equal(osn.EColorSpace.CS601, GetErrorMessage(ETestErrorMsg.VideoSkippedFramesWrongValue));
-        expect(currentVideo.range).to.equal(osn.ERangeType.Partial, GetErrorMessage(ETestErrorMsg.VideoSkippedFramesWrongValue));
-        expect(currentVideo.scaleType).to.equal(osn.EScaleType.Bicubic, GetErrorMessage(ETestErrorMsg.VideoSkippedFramesWrongValue));
+        // expect(currentVideo.baseWidth).to.equal(1920, GetErrorMessage(ETestErrorMsg.VideoDefaultBaseHeight));
+        // expect(currentVideo.baseHeight).to.equal(1080, GetErrorMessage(ETestErrorMsg.VideoDefaultBaseWidth));
+        expect(currentVideo.outputWidth).to.equal(1280, GetErrorMessage(ETestErrorMsg.VideoDefaultOutputWidth));
+        expect(currentVideo.outputHeight).to.equal(720, GetErrorMessage(ETestErrorMsg.VideoDefaultOutputHeight));
+        expect(currentVideo.outputFormat).to.equal(osn.EVideoFormat.NV12, GetErrorMessage(ETestErrorMsg.VideoDefaultOutputFormat));
+        expect(currentVideo.colorspace).to.equal(osn.EColorSpace.CS601, GetErrorMessage(ETestErrorMsg.VideoDefaultColorSpace));
+        expect(currentVideo.range).to.equal(osn.ERangeType.Partial, GetErrorMessage(ETestErrorMsg.VideoDefaultRange));
+        expect(currentVideo.scaleType).to.equal(osn.EScaleType.Bicubic, GetErrorMessage(ETestErrorMsg.VideoDefaultScaleType));
 
 
         const newVideoContext: osn.VideoContext = {
@@ -92,15 +92,15 @@ describe(testName, () => {
         osn.Video.set(newVideoContext);
 
         currentVideo = osn.Video.get();
-        expect(currentVideo.fpsNum).to.equal(120, GetErrorMessage(ETestErrorMsg.VideoSkippedFramesWrongValue));
-        expect(currentVideo.fpsDen).to.equal(2, GetErrorMessage(ETestErrorMsg.VideoSkippedFramesWrongValue));
-        expect(currentVideo.baseWidth).to.equal(3840, GetErrorMessage(ETestErrorMsg.VideoSkippedFramesWrongValue));
-        expect(currentVideo.baseHeight).to.equal(2160, GetErrorMessage(ETestErrorMsg.VideoSkippedFramesWrongValue));
-        expect(currentVideo.outputWidth).to.equal(1920, GetErrorMessage(ETestErrorMsg.VideoSkippedFramesWrongValue));
-        expect(currentVideo.outputHeight).to.equal(1080, GetErrorMessage(ETestErrorMsg.VideoSkippedFramesWrongValue));
-        expect(currentVideo.outputFormat).to.equal(osn.EVideoFormat.I420, GetErrorMessage(ETestErrorMsg.VideoSkippedFramesWrongValue));
-        expect(currentVideo.colorspace).to.equal(osn.EColorSpace.CS709, GetErrorMessage(ETestErrorMsg.VideoSkippedFramesWrongValue));
-        expect(currentVideo.range).to.equal(osn.ERangeType.Full, GetErrorMessage(ETestErrorMsg.VideoSkippedFramesWrongValue));
-        expect(currentVideo.scaleType).to.equal(osn.EScaleType.Lanczos, GetErrorMessage(ETestErrorMsg.VideoSkippedFramesWrongValue));
+        expect(currentVideo.fpsNum).to.equal(120, GetErrorMessage(ETestErrorMsg.VideoSetFPSNum));
+        expect(currentVideo.fpsDen).to.equal(2, GetErrorMessage(ETestErrorMsg.VideoSetFPSDen));
+        expect(currentVideo.baseWidth).to.equal(3840, GetErrorMessage(ETestErrorMsg.VideoSetBaseWidth));
+        expect(currentVideo.baseHeight).to.equal(2160, GetErrorMessage(ETestErrorMsg.VideoSetBaseHeight));
+        expect(currentVideo.outputWidth).to.equal(1920, GetErrorMessage(ETestErrorMsg.VideoSetOutputWidth));
+        expect(currentVideo.outputHeight).to.equal(1080, GetErrorMessage(ETestErrorMsg.VideoSetOutputHeight));
+        expect(currentVideo.outputFormat).to.equal(osn.EVideoFormat.I420, GetErrorMessage(ETestErrorMsg.VideoSetOutputFormat));
+        expect(currentVideo.colorspace).to.equal(osn.EColorSpace.CS709, GetErrorMessage(ETestErrorMsg.VideoSetColorFormat));
+        expect(currentVideo.range).to.equal(osn.ERangeType.Full, GetErrorMessage(ETestErrorMsg.VideoSetRange));
+        expect(currentVideo.scaleType).to.equal(osn.EScaleType.Lanczos, GetErrorMessage(ETestErrorMsg.VideoSetScaleType));
     });
 });
