@@ -46,6 +46,7 @@
 #include "osn-volmeter.hpp"
 #include "callback-manager.h"
 #include "osn-service.hpp"
+#include "osn-audio.hpp"
 
 #include "util-crashmanager.h"
 #include "shared.hpp"
@@ -242,6 +243,7 @@ int main(int argc, char* argv[])
 	OBS_settings::Register(myServer);
 	autoConfig::Register(myServer);
 	osn::Service::Register(myServer);
+	osn::Audio::Register(myServer);
 
 	OBS_API::CreateCrashHandlerExitPipe();
 

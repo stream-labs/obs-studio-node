@@ -39,4 +39,4 @@ namespace osn
 		    const std::vector<ipc::value>& args,
 		    std::vector<ipc::value>&       rval);
 	};
-} // namespace osn
+}

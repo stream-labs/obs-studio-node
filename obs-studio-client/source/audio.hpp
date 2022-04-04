@@ -17,26 +17,18 @@
 ******************************************************************************/
 
 #pragma once
-#include <ipc-server.hpp>
-#include <obs.h>
-#include "utility.hpp"
+#include <napi.h>
 
 namespace osn
 {
-	class Audio
+	class Audio : public Napi::ObjectWrap<osn::Audio>
 	{
 		public:
-		static void Register(ipc::server&);
+		static Napi::FunctionReference constructor;
+		static Napi::Object Init(Napi::Env env, Napi::Object exports);
+		Audio(const Napi::CallbackInfo& info);
 
-		static void GetAudioContext(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void SetAudioContext(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
+		static Napi::Value getAudioContext(const Napi::CallbackInfo& info);
+		static void setAudioContext(const Napi::CallbackInfo& info);
 	};
 }

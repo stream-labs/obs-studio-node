@@ -41,6 +41,7 @@
 #include "nodeobs_autoconfig.hpp"
 #include "callback-manager.hpp"
 #include "service.hpp"
+#include "audio.hpp"
 
 #if defined(_WIN32)
 // Checks ForceGPUAsRenderDevice setting
@@ -111,6 +112,7 @@ Napi::Object main_node(Napi::Env env, Napi::Object exports) {
 	autoConfig::Init(env, exports);
 	globalCallback::Init(env, exports);
 	osn::Service::Init(env, exports);
+	osn::Audio::Init(env, exports);
 	return exports;
 };
 

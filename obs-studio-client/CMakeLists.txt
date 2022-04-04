@@ -92,6 +92,8 @@ SET(osn-client_SOURCES
 	"source/cache-manager.cpp"
 	"source/service.hpp"
 	"source/service.cpp"
+	"source/audio.hpp"
+	"source/audio.cpp"
 
 	###### callback-manager ######
 	"source/callback-manager.cpp"

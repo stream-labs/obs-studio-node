@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.NodeObs = exports.getSourcesSize = exports.createSources = exports.addItems = exports.EDelayFlags = exports.IPC = exports.ModuleFactory = exports.AudioFactory = exports.FaderFactory = exports.VolmeterFactory = exports.DisplayFactory = exports.TransitionFactory = exports.FilterFactory = exports.SceneFactory = exports.InputFactory = exports.ServiceFactory = exports.VideoEncoderFactory = exports.AudioEncoderFactory = exports.OutputFactory = exports.Video = exports.Global = exports.DefaultPluginDataPath = exports.DefaultPluginPath = exports.DefaultDataPath = exports.DefaultBinPath = exports.DefaultDrawPluginPath = exports.DefaultOpenGLPath = exports.DefaultD3D11Path = void 0;
+exports.NodeObs = exports.getSourcesSize = exports.createSources = exports.addItems = exports.EDelayFlags = exports.IPC = exports.ModuleFactory = exports.Audio = exports.FaderFactory = exports.VolmeterFactory = exports.DisplayFactory = exports.TransitionFactory = exports.FilterFactory = exports.SceneFactory = exports.InputFactory = exports.ServiceFactory = exports.VideoEncoderFactory = exports.AudioEncoderFactory = exports.OutputFactory = exports.Video = exports.Global = exports.DefaultPluginDataPath = exports.DefaultPluginPath = exports.DefaultDataPath = exports.DefaultBinPath = exports.DefaultDrawPluginPath = exports.DefaultOpenGLPath = exports.DefaultD3D11Path = void 0;
 const obs = require('./obs_studio_client.node');
 const path = require("path");
 const fs = require("fs");
@@ -24,7 +24,7 @@ exports.TransitionFactory = obs.Transition;
 exports.DisplayFactory = obs.Display;
 exports.VolmeterFactory = obs.Volmeter;
 exports.FaderFactory = obs.Fader;
-exports.AudioFactory = obs.Audio;
+exports.Audio = obs.Audio;
 exports.ModuleFactory = obs.Module;
 exports.IPC = obs.IPC;
 var EDelayFlags;

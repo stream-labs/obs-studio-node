@@ -293,13 +293,10 @@ export const enum ESpeakerLayout {
     Mono,
     Stereo,
     TwoOne,
-    Quad,
+    Four,
     FourOne,
     FiveOne,
-    FiveOneSurround,
-    SevenOne,
-    SevenOneSurround,
-    Surround
+    SevenOne = 8
 }
 
 export const enum ESceneSignalType {
@@ -349,7 +346,7 @@ export const TransitionFactory: ITransitionFactory = obs.Transition;
 export const DisplayFactory: IDisplayFactory = obs.Display;
 export const VolmeterFactory: IVolmeterFactory = obs.Volmeter;
 export const FaderFactory: IFaderFactory = obs.Fader;
-export const AudioFactory: IAudioFactory = obs.Audio;
+export const Audio: IAudio = obs.Audio;
 export const ModuleFactory: IModuleFactory = obs.Module;
 export const IPC: IIPC = obs.IPC;
 
@@ -415,11 +412,6 @@ export interface IVideoInfo {
     readonly colorspace: EColorSpace;
     readonly range: ERangeType;
     readonly scaleType: EScaleType;
-}
-
-export interface IAudioInfo {
-    readonly samplesPerSec: number;
-    readonly speakerLayout: ESpeakerLayout;
 }
 
 export interface IDisplayInit {
@@ -1541,17 +1533,14 @@ export interface IVideo {
     readonly encodedFrames: number;
 }
 
-/**
- * This represents a audio_t structure from within libobs
- * For now, only the global context functions are implemented
- */
-export interface IAudio {
-
+export interface AudioContext {
+    sampleRate: (44100 | 48000),
+    speakers: ESpeakerLayout
 }
 
-export interface IAudioFactory {
-    reset(info: IAudioInfo): boolean;
-    getGlobal(): IAudio;
+export interface IAudio {
+    get(): AudioContext;
+    set(audio: AudioContext): void;
 }
 
 

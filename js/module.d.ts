@@ -221,13 +221,10 @@ export declare const enum ESpeakerLayout {
     Mono = 1,
     Stereo = 2,
     TwoOne = 3,
-    Quad = 4,
+    Four = 4,
     FourOne = 5,
     FiveOne = 6,
-    FiveOneSurround = 7,
-    SevenOne = 8,
-    SevenOneSurround = 9,
-    Surround = 10
+    SevenOne = 8
 }
 export declare const enum ESceneSignalType {
     ItemAdd = 0,
@@ -272,7 +269,7 @@ export declare const TransitionFactory: ITransitionFactory;
 export declare const DisplayFactory: IDisplayFactory;
 export declare const VolmeterFactory: IVolmeterFactory;
 export declare const FaderFactory: IFaderFactory;
-export declare const AudioFactory: IAudioFactory;
+export declare const Audio: IAudio;
 export declare const ModuleFactory: IModuleFactory;
 export declare const IPC: IIPC;
 export interface ISettings {
@@ -315,10 +312,6 @@ export interface IVideoInfo {
     readonly colorspace: EColorSpace;
     readonly range: ERangeType;
     readonly scaleType: EScaleType;
-}
-export interface IAudioInfo {
-    readonly samplesPerSec: number;
-    readonly speakerLayout: ESpeakerLayout;
 }
 export interface IDisplayInit {
     width: number;
@@ -690,11 +683,13 @@ export interface IVideo {
     readonly skippedFrames: number;
     readonly encodedFrames: number;
 }
-export interface IAudio {
+export interface AudioContext {
+    sampleRate: (44100 | 48000);
+    speakers: ESpeakerLayout;
 }
-export interface IAudioFactory {
-    reset(info: IAudioInfo): boolean;
-    getGlobal(): IAudio;
+export interface IAudio {
+    get(): AudioContext;
+    set(audio: AudioContext): void;
 }
 export interface IModuleFactory extends IFactoryTypes {
     open(binPath: string, dataPath: string): IModule;
