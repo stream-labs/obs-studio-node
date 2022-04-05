@@ -72,7 +72,7 @@ describe(testName, function() {
 
     it('Get and set stream settings', function() {
         let availableServices: string[] = [];
-        const serviceObj = osn.ServiceFactory.getCurrent();
+        const serviceObj = osn.ServiceFactory.serviceContext;
 
         {
             const props = serviceObj.properties;

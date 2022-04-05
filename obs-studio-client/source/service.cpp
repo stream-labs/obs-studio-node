@@ -33,8 +33,8 @@ Napi::Object osn::Service::Init(Napi::Env env, Napi::Object exports) {
 		{
 			StaticMethod("types", &osn::Service::Types),
 			StaticMethod("create", &osn::Service::Create),
-			StaticMethod("getCurrent", &osn::Service::GetCurrent),
-			StaticMethod("setService", &osn::Service::SetService),
+			StaticAccessor("serviceContext",
+				&osn::Service::GetCurrent, &osn::Service::SetService),
 
 			InstanceMethod("update", &osn::Service::Update),
 
@@ -156,8 +156,8 @@ Napi::Value osn::Service::GetCurrent(const Napi::CallbackInfo& info) {
     return instance;
 }
 
-void osn::Service::SetService(const Napi::CallbackInfo& info) {
-	osn::Service* service = Napi::ObjectWrap<osn::Service>::Unwrap(info[0].ToObject());
+void osn::Service::SetService(const Napi::CallbackInfo& info, const Napi::Value &value) {
+	osn::Service* service = Napi::ObjectWrap<osn::Service>::Unwrap(value.ToObject());
 
 	if (!service) {
 		Napi::TypeError::New(info.Env(), "Invalid service argument").ThrowAsJavaScriptException();

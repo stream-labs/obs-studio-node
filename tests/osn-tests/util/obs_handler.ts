@@ -175,13 +175,11 @@ export class OBSHandler {
     };
 
     setStreamKey(value: string) {
-        const service = osn.ServiceFactory.getCurrent();
-        service.update({ key: value });
+        osn.ServiceFactory.serviceContext.update({ key: value });
     }
 
     getStreamKey(): string {
-        const service = osn.ServiceFactory.getCurrent();
-        const settings = service.settings;
+        const settings = osn.ServiceFactory.serviceContext.settings;
         return settings.key;
     }
 
