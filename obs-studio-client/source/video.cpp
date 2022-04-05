@@ -91,10 +91,10 @@ Napi::Value osn::Video::get(const Napi::CallbackInfo& info)
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
 
-	Napi::Object video = Napi::Object::New(info.Env());
 	if (response.size() != 11)
 		return info.Env().Undefined();
 
+	Napi::Object video = Napi::Object::New(info.Env());
 	video.Set("fpsNum", response[1].value_union.ui32);
 	video.Set("fpsDen", response[2].value_union.ui32);
 	video.Set("baseWidth", response[3].value_union.ui32);
