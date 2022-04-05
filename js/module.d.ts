@@ -688,8 +688,7 @@ export interface AudioContext {
     speakers: ESpeakerLayout;
 }
 export interface IAudio {
-    get(): AudioContext;
-    set(audio: AudioContext): void;
+    audioContext: AudioContext;
 }
 export interface IModuleFactory extends IFactoryTypes {
     open(binPath: string, dataPath: string): IModule;

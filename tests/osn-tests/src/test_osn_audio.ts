@@ -41,7 +41,7 @@ describe(testName, () => {
     });
 
     it('Get and set audio context', () => {
-        let currentAudio = osn.Audio.get();
+        let currentAudio = osn.Audio.audioContext;
 
         // Check if the current video context correctly returns the default values
         expect(currentAudio.sampleRate).to.equal(44100, GetErrorMessage(ETestErrorMsg.AudioDefaultSampleRate));
@@ -51,9 +51,9 @@ describe(testName, () => {
             sampleRate: 48000,
             speakers: osn.ESpeakerLayout.SevenOne
         }
-        osn.Audio.set(newAudioContext);
+        osn.Audio.audioContext = newAudioContext;
 
-        currentAudio = osn.Audio.get();
+        currentAudio = osn.Audio.audioContext;
         expect(currentAudio.sampleRate).to.equal(48000, GetErrorMessage(ETestErrorMsg.AudioSampleRate));
         expect(currentAudio.speakers).to.equal(osn.ESpeakerLayout.SevenOne, GetErrorMessage(ETestErrorMsg.AudioSpeakers));
     });

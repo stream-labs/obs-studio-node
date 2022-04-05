@@ -1539,8 +1539,7 @@ export interface AudioContext {
 }
 
 export interface IAudio {
-    get(): AudioContext;
-    set(audio: AudioContext): void;
+    audioContext: AudioContext;
 }
 
 

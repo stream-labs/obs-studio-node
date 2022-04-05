@@ -27,14 +27,7 @@ Napi::Object osn::Audio::Init(Napi::Env env, Napi::Object exports) {
 		DefineClass(env,
 		"Audio",
 		{
-			StaticMethod(
-                "get",
-                &osn::Audio::getAudioContext
-            ),
-            StaticMethod(
-                "set",
-                &osn::Audio::setAudioContext
-            ),
+			StaticAccessor("audioContext", &osn::Audio::getAudioContext, &osn::Audio::setAudioContext)
 		});
 	exports.Set("Audio", func);
 	osn::Audio::constructor = Napi::Persistent(func);
@@ -70,9 +63,9 @@ Napi::Value osn::Audio::getAudioContext(const Napi::CallbackInfo& info)
 	return audio;
 }
 
-void osn::Audio::setAudioContext(const Napi::CallbackInfo& info)
+void osn::Audio::setAudioContext(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
-	Napi::Object audio = info[0].ToObject();
+	Napi::Object audio = value.ToObject();
 	if (!audio || !audio.IsObject()) {
 		Napi::Error::New(
 			info.Env(),
