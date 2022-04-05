@@ -115,7 +115,7 @@ void osn::Video::set(const Napi::CallbackInfo& info, const Napi::Value &value)
 	if (!video || !video.IsObject()) {
 		Napi::Error::New(
 			info.Env(),
-			"The video context object passed in invalid.").ThrowAsJavaScriptException();
+			"The video context object passed is invalid.").ThrowAsJavaScriptException();
 		return;
 	}
 
