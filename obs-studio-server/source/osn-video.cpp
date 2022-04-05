@@ -27,21 +27,21 @@
 
 void osn::Video::Register(ipc::server& srv)
 {
-	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Video");
-	cls->register_function(std::make_shared<ipc::function>(
-	    "GetSkippedFrames", std::vector<ipc::type>{}, GetSkippedFrames));
-	cls->register_function(
-	    std::make_shared<ipc::function>("GetTotalFrames", std::vector<ipc::type>{}, GetTotalFrames));
+    std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Video");
+    cls->register_function(std::make_shared<ipc::function>(
+        "GetSkippedFrames", std::vector<ipc::type>{}, GetSkippedFrames));
+    cls->register_function(
+        std::make_shared<ipc::function>("GetTotalFrames", std::vector<ipc::type>{}, GetTotalFrames));
 
-	cls->register_function(
-	    std::make_shared<ipc::function>("GetVideoContext", std::vector<ipc::type>{}, GetVideoContext));
-	cls->register_function(
-	    std::make_shared<ipc::function>("SetVideoContext", std::vector<ipc::type>{
+    cls->register_function(
+        std::make_shared<ipc::function>("GetVideoContext", std::vector<ipc::type>{}, GetVideoContext));
+    cls->register_function(
+        std::make_shared<ipc::function>("SetVideoContext", std::vector<ipc::type>{
             ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32,
             ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32,
             ipc::type::UInt32, ipc::type::UInt32,
         }, SetVideoContext));
-	srv.register_collection(cls);
+    srv.register_collection(cls);
 }
 
 void osn::Video::GetSkippedFrames(
@@ -77,20 +77,20 @@ void osn::Video::GetVideoContext(
         PRETTY_ERROR_RETURN(ErrorCode::Error, "No video context is currently set.");
     }
 
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 
-	rval.push_back(ipc::value(video.fps_num));
-	rval.push_back(ipc::value(video.fps_den));
-	rval.push_back(ipc::value(video.base_width));
-	rval.push_back(ipc::value(video.base_height));
-	rval.push_back(ipc::value(video.output_width));
-	rval.push_back(ipc::value(video.output_height));
-	rval.push_back(ipc::value(video.output_format));
-	rval.push_back(ipc::value(video.colorspace));
-	rval.push_back(ipc::value(video.range));
-	rval.push_back(ipc::value(video.scale_type));
+    rval.push_back(ipc::value(video.fps_num));
+    rval.push_back(ipc::value(video.fps_den));
+    rval.push_back(ipc::value(video.base_width));
+    rval.push_back(ipc::value(video.base_height));
+    rval.push_back(ipc::value(video.output_width));
+    rval.push_back(ipc::value(video.output_height));
+    rval.push_back(ipc::value(video.output_format));
+    rval.push_back(ipc::value(video.colorspace));
+    rval.push_back(ipc::value(video.range));
+    rval.push_back(ipc::value(video.scale_type));
 
-	AUTO_DEBUG;
+    AUTO_DEBUG;
 }
 
 static inline const char* GetScaleType(enum obs_scale_type scaleType)
