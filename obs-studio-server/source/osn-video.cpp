@@ -248,17 +248,15 @@ void osn::Video::SetVideoContext(
     video.adapter = 0;
 	video.gpu_conversion = true;
 
-    uint32_t result = 0;
     try {
-        result = obs_reset_video(&video);
+        obs_reset_video(&video);
 
         // DELETE ME WHEN REMOVING NODEOBS
         SaveVideoSettings(video);
     } catch (const char* error) {
         blog(LOG_ERROR, error);
-        result = OBS_VIDEO_FAIL;
     }
+
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-    rval.push_back(ipc::value(result));
     AUTO_DEBUG;
 }
