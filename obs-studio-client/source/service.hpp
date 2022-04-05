@@ -34,7 +34,7 @@ namespace osn
 		static Napi::Value Types(const Napi::CallbackInfo& info);
 		static Napi::Value Create(const Napi::CallbackInfo& info);
 		static Napi::Value GetCurrent(const Napi::CallbackInfo& info);
-		static void SetService(const Napi::CallbackInfo& info);
+		static void SetService(const Napi::CallbackInfo& info, const Napi::Value &value);
 
 		Napi::Value GetName(const Napi::CallbackInfo& info);
 		Napi::Value GetProperties(const Napi::CallbackInfo& info);
