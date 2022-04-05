@@ -891,8 +891,7 @@ describe(testName, function() {
     it('Fail test - Stream with invalid stream key', async function() {
         let signalInfo: IOBSOutputSignalInfo;
 
-        const serviceObj = osn.ServiceFactory.getCurrent();
-        serviceObj.update({ key: 'invalid' });
+        osn.ServiceFactory.serviceContext.update({ key: 'invalid' });
 
         osn.NodeObs.OBS_service_startStreaming();
 
