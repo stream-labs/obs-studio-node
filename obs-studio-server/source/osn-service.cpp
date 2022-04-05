@@ -175,6 +175,21 @@ void osn::Service::GetCurrent(
 	AUTO_DEBUG;
 }
 
+static inline void SaveStreamSettings(obs_service_t* service)
+{
+	obs_data_t* settings = obs_service_get_settings(service);
+	obs_data_t* data = obs_data_create();
+	obs_data_set_string(data, "type", obs_service_get_type(service));
+	obs_data_set_obj(data, "settings", settings);
+
+	if (!obs_data_save_json_safe(data, ConfigManager::getInstance().getService().c_str(), "tmp", "bak")) {
+		blog(LOG_WARNING, "Failed to save service");
+	}
+
+	obs_data_release(data);
+	obs_data_release(settings);
+}
+
 void osn::Service::SetService(
     void*                          data,
     const int64_t                  id,
@@ -192,6 +207,10 @@ void osn::Service::SetService(
 	}
 
 	OBS_service::setService(service);
+
+	// DELETE ME WHEN REMOVING NODEOBS
+	SaveStreamSettings(service);
+
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }
