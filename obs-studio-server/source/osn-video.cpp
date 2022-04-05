@@ -95,7 +95,7 @@ void osn::Video::GetVideoContext(
 
 static inline const char* GetScaleType(enum obs_scale_type scaleType)
 {
-    switch(scaleType) {
+    switch (scaleType) {
         case OBS_SCALE_BILINEAR:
             return "bilinear";
         case OBS_SCALE_BICUBIC:
@@ -109,7 +109,7 @@ static inline const char* GetScaleType(enum obs_scale_type scaleType)
 
 static inline const char* GetOutputFormat(enum video_format outputFormat)
 {
-    switch(outputFormat) {
+    switch (outputFormat) {
         case VIDEO_FORMAT_I420:
             return "I420";
         case VIDEO_FORMAT_NV12:
@@ -149,7 +149,7 @@ static inline const char* GetOutputFormat(enum video_format outputFormat)
 
 static inline const char* GetColorSpace(enum video_colorspace colorSpace)
 {
-    switch(colorSpace) {
+    switch (colorSpace) {
         case VIDEO_CS_DEFAULT:
             return "709";
         case VIDEO_CS_601:
@@ -165,7 +165,7 @@ static inline const char* GetColorSpace(enum video_colorspace colorSpace)
 
 static inline const char* GetColorRange(enum video_range_type colorRange)
 {
-    switch(colorRange) {
+    switch (colorRange) {
         case VIDEO_RANGE_DEFAULT:
             return "Partial";
         case VIDEO_RANGE_PARTIAL:
