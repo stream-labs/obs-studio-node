@@ -409,22 +409,6 @@ export interface ICropInfo {
     readonly bottom: number;
 }
 
-export interface IVideoInfo {
-    readonly graphicsModule: string;
-    readonly fpsNum: number;
-    readonly fpsDen: number;
-    readonly baseWidth: number;
-    readonly baseHeight: number;
-    readonly outputWidth: number;
-    readonly outputHeight: number;
-    readonly outputFormat: EVideoFormat;
-    readonly adapter: number;
-    readonly gpuConversion: boolean;
-    readonly colorspace: EColorSpace;
-    readonly range: ERangeType;
-    readonly scaleType: EScaleType;
-}
-
 export interface IAudioInfo {
     readonly samplesPerSec: number;
     readonly speakerLayout: ESpeakerLayout;
@@ -1547,7 +1531,6 @@ export interface VideoContext {
 
 /**
  * This represents a video_t structure from within libobs
- * For now, only the global context functions are implemented
  */
 export interface IVideo {
 	
@@ -1562,15 +1545,9 @@ export interface IVideo {
     readonly encodedFrames: number;
 
     /**
-     * Get the current video context
+     * Current video context
      */
-    get(): VideoContext;
-
-    /**
-     * Set the new video context causing the
-     * internal graphics to reinitialize
-     */
-    set(video: VideoContext): void;
+    videoContext: VideoContext;
 }
 
 /**

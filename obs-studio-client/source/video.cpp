@@ -34,9 +34,8 @@ Napi::Object osn::Video::Init(Napi::Env env, Napi::Object exports) {
 		{
 			StaticAccessor("skippedFrames", &osn::Video::skippedFrames, nullptr),
 			StaticAccessor("encodedFrames", &osn::Video::encodedFrames, nullptr),
-
-			StaticMethod("get", &osn::Video::get),
-			StaticMethod("set", &osn::Video::set),
+			
+			StaticAccessor("videoContext", &osn::Video::get, &osn::Video::set)
 		});
 	exports.Set("Video", func);
 	osn::Video::constructor = Napi::Persistent(func);
@@ -110,9 +109,9 @@ Napi::Value osn::Video::get(const Napi::CallbackInfo& info)
 	return video;
 }
 
-void osn::Video::set(const Napi::CallbackInfo& info)
+void osn::Video::set(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
-	Napi::Object video = info[0].ToObject();
+	Napi::Object video = value.ToObject();
 	if (!video || !video.IsObject()) {
 		Napi::Error::New(
 			info.Env(),

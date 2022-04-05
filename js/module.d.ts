@@ -309,21 +309,6 @@ export interface ICropInfo {
     readonly top: number;
     readonly bottom: number;
 }
-export interface IVideoInfo {
-    readonly graphicsModule: string;
-    readonly fpsNum: number;
-    readonly fpsDen: number;
-    readonly baseWidth: number;
-    readonly baseHeight: number;
-    readonly outputWidth: number;
-    readonly outputHeight: number;
-    readonly outputFormat: EVideoFormat;
-    readonly adapter: number;
-    readonly gpuConversion: boolean;
-    readonly colorspace: EColorSpace;
-    readonly range: ERangeType;
-    readonly scaleType: EScaleType;
-}
 export interface IAudioInfo {
     readonly samplesPerSec: number;
     readonly speakerLayout: ESpeakerLayout;
@@ -709,8 +694,7 @@ export interface VideoContext {
 export interface IVideo {
     readonly skippedFrames: number;
     readonly encodedFrames: number;
-    get(): VideoContext;
-    set(video: VideoContext): void;
+    videoContext: VideoContext;
 }
 export interface IAudio {
 }

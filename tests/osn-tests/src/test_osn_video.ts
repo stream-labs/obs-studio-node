@@ -59,7 +59,7 @@ describe(testName, () => {
     });
 
     it('Get and set video context', () => {
-        let currentVideo = osn.Video.get();
+        let currentVideo = osn.Video.videoContext;
 
         // Check if the current video context correctly returns
         // the default values
@@ -89,9 +89,9 @@ describe(testName, () => {
             range: osn.ERangeType.Full,
             scaleType: osn.EScaleType.Lanczos
         };
-        osn.Video.set(newVideoContext);
+        osn.Video.videoContext = newVideoContext;
 
-        currentVideo = osn.Video.get();
+        currentVideo = osn.Video.videoContext;
         expect(currentVideo.fpsNum).to.equal(120, GetErrorMessage(ETestErrorMsg.VideoSetFPSNum));
         expect(currentVideo.fpsDen).to.equal(2, GetErrorMessage(ETestErrorMsg.VideoSetFPSDen));
         expect(currentVideo.baseWidth).to.equal(3840, GetErrorMessage(ETestErrorMsg.VideoSetBaseWidth));
