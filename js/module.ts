@@ -321,6 +321,7 @@ export const VolmeterFactory: IVolmeterFactory = obs.Volmeter;
 export const FaderFactory: IFaderFactory = obs.Fader;
 export const ModuleFactory: IModuleFactory = obs.Module;
 export const IPC: IIPC = obs.IPC;
+export const ServiceFactory: IServiceFactory = obs.Service;
 
 /**
  * Meta object in order to better describe settings

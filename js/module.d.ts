@@ -250,6 +250,7 @@ export declare const VolmeterFactory: IVolmeterFactory;
 export declare const FaderFactory: IFaderFactory;
 export declare const ModuleFactory: IModuleFactory;
 export declare const IPC: IIPC;
+export declare const ServiceFactory: IServiceFactory;
 export interface ISettings {
     [key: string]: any;
 }
