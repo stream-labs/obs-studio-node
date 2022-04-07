@@ -321,6 +321,7 @@ export const VolmeterFactory: IVolmeterFactory = obs.Volmeter;
 export const FaderFactory: IFaderFactory = obs.Fader;
 export const ModuleFactory: IModuleFactory = obs.Module;
 export const IPC: IIPC = obs.IPC;
+export const EncoderFactory: IVideoEncoderFactory = obs.Encoder;
 
 /**
  * Meta object in order to better describe settings
@@ -1368,16 +1369,19 @@ export function addItems(scene: IScene, sceneItems: ISceneItemInfo[]): ISceneIte
     }
     return items;
 }
+
 export interface FilterInfo {
     name: string,
     type: string,
     settings: ISettings,
     enabled: boolean
 }
+
 export interface SyncOffset {
     sec: number,
     nsec: number
 }
+
 export interface SourceInfo {
     filters: FilterInfo[],
     muted: boolean,
@@ -1387,6 +1391,7 @@ export interface SourceInfo {
     volume: number,
     syncOffset: SyncOffset
 }
+
 export function createSources(sources: SourceInfo[]): IInput[] {
     const items: IInput[] = [];
     if (Array.isArray(sources)) {
@@ -1429,6 +1434,81 @@ export function getSourcesSize(sourcesNames: string[]): ISourceSize[] {
         });
     }
     return sourcesSize;
+}
+
+const enum ERecordingFormat {
+    MP4,
+    FLV,
+    MOV,
+    MKV,
+    TS,
+    M3M8
+}
+
+const enum ERecordingQuality {
+    Stream,
+    HighQuality,
+    HigherQuality,
+    Lossless
+}
+
+const enum EVideoEncoderType {
+    Audio,
+    Video
+}
+
+export interface IVideoEncoder extends IConfigurable {
+    name: string,
+    readonly type: EVideoEncoderType,
+    readonly active: boolean,
+    readonly id: string,
+    readonly lastError: string
+}
+
+export interface IVideoEncoderFactory {
+    types(): string[],
+    types(filter: EVideoEncoderType): string[],
+    create(id: string, name: string, settings?: ISettings): IVideoEncoder,
+}
+
+export interface Streaming {
+    videoEncoder: IVideoEncoder,
+    enforceServiceBitrate: boolean,
+    enableTwitchVOD: boolean
+}
+
+export interface SimpleStreaming extends Streaming {
+    audioBitrate: number
+}
+
+export interface AdvancedStreaming extends Streaming {
+    audioTrack: number,
+    twitchTrack: number,
+    rescaling: boolean,
+    outputWidth?: number,
+    outputHeight?: number
+}
+
+export interface Recording {
+    path: string,
+    format: ERecordingFormat,
+    muxerSettings: string
+}
+
+export interface SimpleRecording extends Recording {
+    quality: ERecordingQuality,
+}
+
+export interface AdvancedRecording extends Recording {
+    videoEncoder: IVideoEncoder,
+    mixer: number
+}
+
+export interface ReplayBuffer {
+    enabled: boolean,
+    duration: number,
+    prefix: string,
+    suffix: string
 }
 
 // Initialization and other stuff which needs local data.

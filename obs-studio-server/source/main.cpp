@@ -45,6 +45,7 @@
 #include "osn-video.hpp"
 #include "osn-volmeter.hpp"
 #include "callback-manager.h"
+#include "osn-encoder.hpp"
 
 #include "util-crashmanager.h"
 #include "shared.hpp"
@@ -240,6 +241,7 @@ int main(int argc, char* argv[])
 	OBS_settings::Register(myServer);
 	OBS_settings::Register(myServer);
 	autoConfig::Register(myServer);
+	osn::Encoder::Register(myServer);
 
 	OBS_API::CreateCrashHandlerExitPipe();
 

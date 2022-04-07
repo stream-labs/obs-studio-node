@@ -250,6 +250,7 @@ export declare const VolmeterFactory: IVolmeterFactory;
 export declare const FaderFactory: IFaderFactory;
 export declare const ModuleFactory: IModuleFactory;
 export declare const IPC: IIPC;
+export declare const EncoderFactory: IVideoEncoderFactory;
 export interface ISettings {
     [key: string]: any;
 }
@@ -619,4 +620,68 @@ export interface ISourceSize {
     outputFlags: number;
 }
 export declare function getSourcesSize(sourcesNames: string[]): ISourceSize[];
+declare const enum ERecordingFormat {
+    MP4 = 0,
+    FLV = 1,
+    MOV = 2,
+    MKV = 3,
+    TS = 4,
+    M3M8 = 5
+}
+declare const enum ERecordingQuality {
+    Stream = 0,
+    HighQuality = 1,
+    HigherQuality = 2,
+    Lossless = 3
+}
+declare const enum EVideoEncoderType {
+    Audio = 0,
+    Video = 1
+}
+export interface IVideoEncoder extends IConfigurable {
+    name: string;
+    readonly type: EVideoEncoderType;
+    readonly active: boolean;
+    readonly id: string;
+    readonly lastError: string;
+}
+export interface IVideoEncoderFactory {
+    types(): string[];
+    types(filter: EVideoEncoderType): string[];
+    create(id: string, name: string, settings?: ISettings): IVideoEncoder;
+}
+export interface Streaming {
+    videoEncoder: IVideoEncoder;
+    enforceServiceBitrate: boolean;
+    enableTwitchVOD: boolean;
+}
+export interface SimpleStreaming extends Streaming {
+    audioBitrate: number;
+}
+export interface AdvancedStreaming extends Streaming {
+    audioTrack: number;
+    twitchTrack: number;
+    rescaling: boolean;
+    outputWidth?: number;
+    outputHeight?: number;
+}
+export interface Recording {
+    path: string;
+    format: ERecordingFormat;
+    muxerSettings: string;
+}
+export interface SimpleRecording extends Recording {
+    quality: ERecordingQuality;
+}
+export interface AdvancedRecording extends Recording {
+    videoEncoder: IVideoEncoder;
+    mixer: number;
+}
+export interface ReplayBuffer {
+    enabled: boolean;
+    duration: number;
+    prefix: string;
+    suffix: string;
+}
 export declare const NodeObs: any;
+export {};
