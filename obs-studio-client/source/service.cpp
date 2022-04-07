@@ -53,15 +53,15 @@ Napi::Object osn::Service::Init(Napi::Env env, Napi::Object exports) {
 }
 
 osn::Service::Service(const Napi::CallbackInfo& info)
-    : Napi::ObjectWrap<osn::Service>(info) {
-    Napi::Env env = info.Env();
-    Napi::HandleScope scope(env);
-    int length = info.Length();
+	: Napi::ObjectWrap<osn::Service>(info) {
+	Napi::Env env = info.Env();
+	Napi::HandleScope scope(env);
+	int length = info.Length();
 
-    if (length <= 0 || !info[0].IsNumber()) {
-        Napi::TypeError::New(env, "Number expected").ThrowAsJavaScriptException();
-        return;
-    }
+	if (length <= 0 || !info[0].IsNumber()) {
+		Napi::TypeError::New(env, "Number expected").ThrowAsJavaScriptException();
+		return;
+	}
 
 	this->serviceId = (uint64_t)info[0].ToNumber().Int64Value();
 }
@@ -130,12 +130,12 @@ Napi::Value osn::Service::Create(const Napi::CallbackInfo& info) {
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
 
-    auto instance =
-        osn::Service::constructor.New({
-            Napi::Number::New(info.Env(), response[1].value_union.ui64)
-            });
+	auto instance =
+		osn::Service::constructor.New({
+			Napi::Number::New(info.Env(), response[1].value_union.ui64)
+			});
 
-    return instance;
+	return instance;
 }
 
 Napi::Value osn::Service::GetCurrent(const Napi::CallbackInfo& info) {
@@ -148,12 +148,12 @@ Napi::Value osn::Service::GetCurrent(const Napi::CallbackInfo& info) {
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
 
-    auto instance =
-        osn::Service::constructor.New({
-            Napi::Number::New(info.Env(), response[1].value_union.ui64)
-            });
+	auto instance =
+		osn::Service::constructor.New({
+			Napi::Number::New(info.Env(), response[1].value_union.ui64)
+			});
 
-    return instance;
+	return instance;
 }
 
 void osn::Service::SetService(const Napi::CallbackInfo& info, const Napi::Value &value) {
@@ -161,7 +161,7 @@ void osn::Service::SetService(const Napi::CallbackInfo& info, const Napi::Value 
 
 	if (!service) {
 		Napi::TypeError::New(info.Env(), "Invalid service argument").ThrowAsJavaScriptException();
-        return;
+		return;
 	}
 
 	auto conn = GetConnection(info);
@@ -194,7 +194,7 @@ Napi::Value osn::Service::GetProperties(const Napi::CallbackInfo& info) {
 		return info.Env().Undefined();
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Service", "GetProperties", {ipc::value(this->serviceId)});
+		conn->call_synchronous_helper("Service", "GetProperties", {ipc::value(this->serviceId)});
 
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
@@ -223,17 +223,17 @@ void osn::Service::Update(const Napi::CallbackInfo& info) {
 
 	std::string jsondata = stringify.Call(json, { jsonObj }).As<Napi::String>();
 
-    auto conn = GetConnection(info);
-    if (!conn)
-        return;
+	auto conn = GetConnection(info);
+	if (!conn)
+		return;
 
-    std::vector<ipc::value> response = conn->call_synchronous_helper(
-        "Service",
-        "Update",
-        {ipc::value(this->serviceId), ipc::value(jsondata)});
+	std::vector<ipc::value> response = conn->call_synchronous_helper(
+		"Service",
+		"Update",
+		{ipc::value(this->serviceId), ipc::value(jsondata)});
 
-    if (!ValidateResponse(info, response))
-        return;
+	if (!ValidateResponse(info, response))
+		return;
 }
 
 Napi::Value osn::Service::GetSettings(const Napi::CallbackInfo& info) {
@@ -245,7 +245,7 @@ Napi::Value osn::Service::GetSettings(const Napi::CallbackInfo& info) {
 		return info.Env().Undefined();
 
 	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Service", "GetSettings", {ipc::value(this->serviceId)});
+		conn->call_synchronous_helper("Service", "GetSettings", {ipc::value(this->serviceId)});
 
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
