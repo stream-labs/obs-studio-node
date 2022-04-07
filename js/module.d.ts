@@ -68,7 +68,10 @@ export declare const enum EPropertyType {
     Button = 8,
     Font = 9,
     EditableList = 10,
-    FrameRate = 11
+    FrameRate = 11,
+    Group = 12,
+    ColorAlpha = 13,
+    Capture = 14
 }
 export declare const enum EListFormat {
     Invalid = 0,
