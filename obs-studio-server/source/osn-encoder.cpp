@@ -48,6 +48,8 @@ void osn::Encoder::Register(ipc::server& srv)
 	    "Update", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String}, Update));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "GetProperties", std::vector<ipc::type>{ipc::type::UInt64}, GetProperties));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "GetSettings", std::vector<ipc::type>{ipc::type::UInt64}, GetSettings));
 	srv.register_collection(cls);
 }
 
@@ -249,6 +251,42 @@ void osn::Encoder::GetProperties(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
+	obs_encoder_t* encoder =
+		osn::Encoder::Manager::GetInstance().find(args[0].value_union.ui64);
+	if (!encoder) {
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Encoder reference is not valid.");
+	}
+
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+
+	obs_properties_t* prp = obs_encoder_properties(encoder);
+	obs_data* settings = obs_encoder_get_settings(encoder);
+
+	bool update = false;
+	utility::ProcessProperties(prp, settings, update, rval);
+
+	obs_properties_destroy(prp);
+
+	obs_data_release(settings);
+	AUTO_DEBUG;
+}
+
+void osn::Encoder::GetSettings(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	obs_encoder_t* encoder =
+		osn::Encoder::Manager::GetInstance().find(args[0].value_union.ui64);
+	if (!encoder) {
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Encoder reference is not valid.");
+	}
+
+	obs_data_t* settings = obs_encoder_get_settings(encoder);
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(obs_data_get_full_json(settings)));
+	obs_data_release(settings);
 	AUTO_DEBUG;
 }
 

@@ -45,5 +45,6 @@ namespace osn
 		void Release(const Napi::CallbackInfo& info);
 		void Update(const Napi::CallbackInfo& info);
 		Napi::Value GetProperties(const Napi::CallbackInfo& info);
+		Napi::Value GetSettings(const Napi::CallbackInfo& info);
 	};
 }

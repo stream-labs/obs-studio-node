@@ -216,8 +216,6 @@ Napi::Value osn::Service::GetProperties(const Napi::CallbackInfo& info) {
 
 void osn::Service::Update(const Napi::CallbackInfo& info) {
 	Napi::Object jsonObj = info[0].ToObject();
-	bool shouldUpdate = true;
-
 	Napi::Object json = info.Env().Global().Get("JSON").As<Napi::Object>();
 	Napi::Function stringify = json.Get("stringify").As<Napi::Function>();
 

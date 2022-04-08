@@ -18,6 +18,8 @@
 
 #include "encoder.hpp"
 #include "utility.hpp"
+#include "properties.hpp"
+#include "obs-property.hpp"
 
 Napi::FunctionReference osn::Encoder::constructor;
 
@@ -35,10 +37,11 @@ Napi::Object osn::Encoder::Init(Napi::Env env, Napi::Object exports) {
             InstanceAccessor("active", &osn::Encoder::GetActive, nullptr),
             InstanceAccessor("id", &osn::Encoder::GetId, nullptr),
             InstanceAccessor("lastError", &osn::Encoder::GetLastError, nullptr),
+            InstanceAccessor("properties", &osn::Encoder::GetProperties, nullptr),
+            InstanceAccessor("settings", &osn::Encoder::GetSettings, nullptr),
 
             InstanceMethod("update", &osn::Encoder::Update),
             InstanceMethod("release", &osn::Encoder::Release),
-            InstanceMethod("properties", &osn::Encoder::GetProperties),
 		});
 	exports.Set("Encoder", func);
 	osn::Encoder::constructor = Napi::Persistent(func);
@@ -152,7 +155,7 @@ Napi::Value osn::Encoder::GetType(const Napi::CallbackInfo& info) {
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
     
-    return Napi::String::New(info.Env(), response[1].value_str);
+    return Napi::Number::New(info.Env(), response[1].value_union.ui32);
 }
 
 Napi::Value osn::Encoder::GetActive(const Napi::CallbackInfo& info) {
@@ -206,11 +209,11 @@ void osn::Encoder::Release(const Napi::CallbackInfo& info) {
 }
 
 void osn::Encoder::Update(const Napi::CallbackInfo& info) {
-    Napi::Object json = info.Env().Global().Get("JSON").As<Napi::Object>();
+	Napi::Object jsonObj = info[0].ToObject();
+	Napi::Object json = info.Env().Global().Get("JSON").As<Napi::Object>();
 	Napi::Function stringify = json.Get("stringify").As<Napi::Function>();
-    Napi::String settingsObj = Napi::String::New(info.Env(), "");
-    std::string settings =
-        stringify.Call(json, { settingsObj }).As<Napi::String>().Utf8Value();
+
+	std::string jsondata = stringify.Call(json, { jsonObj }).As<Napi::String>();
 
     auto conn = GetConnection(info);
     if (!conn)
@@ -219,10 +222,53 @@ void osn::Encoder::Update(const Napi::CallbackInfo& info) {
     conn->call(
         "Encoder",
         "Update",
-        {ipc::value(this->uid), ipc::value(settings)});
+        {ipc::value(this->uid), ipc::value(jsondata)});
 
 }
 
 Napi::Value osn::Encoder::GetProperties(const Napi::CallbackInfo& info) {
-    return info.Env().Undefined();
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
+
+	std::vector<ipc::value> response =
+		conn->call_synchronous_helper("Encoder", "GetProperties", {ipc::value(this->uid)});
+
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
+
+	if (response.size() == 1)
+		return info.Env().Undefined();
+
+	osn::property_map_t pmap = osn::ProcessProperties(response, 1);
+
+	std::shared_ptr<property_map_t> pSomeObject = std::make_shared<property_map_t>(pmap);
+	auto prop_ptr = Napi::External<property_map_t>::New(info.Env(), pSomeObject.get());
+	auto instance =
+		osn::Properties::constructor.New({
+			prop_ptr,
+			Napi::Number::New(info.Env(), (uint32_t)this->uid)
+			});
+
+	return instance;
+}
+
+
+Napi::Value osn::Encoder::GetSettings(const Napi::CallbackInfo& info) {
+	Napi::Object json = info.Env().Global().Get("JSON").As<Napi::Object>();
+	Napi::Function parse = json.Get("parse").As<Napi::Function>();
+
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
+
+	std::vector<ipc::value> response =
+		conn->call_synchronous_helper("Encoder", "GetSettings", {ipc::value(this->uid)});
+
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
+
+	Napi::String jsondata = Napi::String::New(info.Env(), response[1].value_str);
+	Napi::Object jsonObj = parse.Call(json, {jsondata}).As<Napi::Object>();
+	return jsonObj;
 }
