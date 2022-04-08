@@ -250,6 +250,7 @@ export declare const VolmeterFactory: IVolmeterFactory;
 export declare const FaderFactory: IFaderFactory;
 export declare const ModuleFactory: IModuleFactory;
 export declare const IPC: IIPC;
+export declare const ServiceFactory: IServiceFactory;
 export interface ISettings {
     [key: string]: any;
 }
@@ -619,4 +620,19 @@ export interface ISourceSize {
     outputFlags: number;
 }
 export declare function getSourcesSize(sourcesNames: string[]): ISourceSize[];
+export interface IServiceFactory {
+    types(): string[];
+    create(id: string, name: string, settings?: ISettings): IService;
+    serviceContext: IService;
+}
+export interface IService {
+    readonly name: string;
+    readonly properties: IProperties;
+    readonly settings: ISettings;
+    readonly url: string;
+    readonly key: string;
+    readonly username: string;
+    readonly password: string;
+    update(settings: ISettings): void;
+}
 export declare const NodeObs: any;

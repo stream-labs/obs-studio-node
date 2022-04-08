@@ -243,4 +243,6 @@ namespace osn
 		Napi::Value Modified(const Napi::CallbackInfo& info);
 		Napi::Value ButtonClicked(const Napi::CallbackInfo& info);
 	};
+
+	property_map_t ProcessProperties(const std::vector<ipc::value> data, size_t index);
 }

@@ -77,7 +77,7 @@ OBS_service::~OBS_service() {}
 
 void OBS_service::Register(ipc::server& srv)
 {
-	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Service");
+	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("NodeOBS_Service");
 
 	cls->register_function(std::make_shared<ipc::function>(
 	    "OBS_service_resetAudioContext", std::vector<ipc::type>{}, OBS_service_resetAudioContext));

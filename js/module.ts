@@ -321,6 +321,7 @@ export const VolmeterFactory: IVolmeterFactory = obs.Volmeter;
 export const FaderFactory: IFaderFactory = obs.Fader;
 export const ModuleFactory: IModuleFactory = obs.Module;
 export const IPC: IIPC = obs.IPC;
+export const ServiceFactory: IServiceFactory = obs.Service;
 
 /**
  * Meta object in order to better describe settings
@@ -1429,6 +1430,47 @@ export function getSourcesSize(sourcesNames: string[]): ISourceSize[] {
         });
     }
     return sourcesSize;
+}
+export interface IServiceFactory {
+    types(): string[];
+    create(id: string, name: string, settings?: ISettings): IService;
+    serviceContext: IService;
+}
+/**
+ * Class representing a service
+ */
+export interface IService {
+    /** The service name */
+    readonly name: string;
+
+    /**
+     * The properties of the service
+     */
+    readonly properties: IProperties;
+
+    /**
+     * Object holding current settings of the service
+     */
+    readonly settings: ISettings;
+
+    /** The service name */
+    readonly url: string;
+
+    /** The service name */
+    readonly key: string;
+
+    /** The service name */
+    readonly username: string;
+
+    /** The service name */
+    readonly password: string;
+
+    /**
+     * Update the settings of the service instance
+     * correlating to the values held within the
+     * object passed. 
+     */
+    update(settings: ISettings): void;
 }
 
 // Initialization and other stuff which needs local data.
