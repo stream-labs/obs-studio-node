@@ -454,24 +454,13 @@ Napi::Value js_connect(const Napi::CallbackInfo& info)
 	std::string uri = info[0].ToString().Utf8Value();
 	auto        cl  = Controller::GetInstance().connect(uri);
 	DWORD        exit_code = Controller::GetInstance().GetExitCode();
-	if (!cl) {
-		if (exit_code == ProcessInfo::VERSION_MISMATCH) {
-			std::stringstream ss;
-			ss << "Version mismatch between client and server. Please reinstall Streamlabs Desktop " ;
-			Napi::Error::New(info.Env(), ss.str().c_str()).ThrowAsJavaScriptException();
-			return info.Env().Undefined();
-		}
-		if (exit_code != ProcessInfo::NORMAL_EXIT) {
-			std::stringstream ss;
-			ss << "Failed to connect. Exit code error: " << ProcessInfo::getDescription(exit_code);
-			Napi::Error::New(info.Env(), ss.str().c_str()).ThrowAsJavaScriptException();
-			return info.Env().Undefined();
-		}
-		Napi::Error::New(info.Env(), "Failed to connect.").ThrowAsJavaScriptException();
-		return info.Env().Undefined();
-	}
 
-	return info.Env().Undefined();
+#ifdef WIN32
+	if (exit_code == STATUS_DLL_NOT_FOUND)
+		exit_code = ProcessInfo::MISSING_DEPENDENCY;
+#endif
+
+	return Napi::Number::New(info.Env(), exit_code);
 }
 
 Napi::Value js_host(const Napi::CallbackInfo& info)
@@ -489,26 +478,14 @@ Napi::Value js_host(const Napi::CallbackInfo& info)
 
 	std::string uri = info[0].ToString().Utf8Value();
 	auto        cl  = Controller::GetInstance().host(uri);
-	DWORD        exit_code = Controller::GetInstance().GetExitCode();
+	DWORD       exit_code = Controller::GetInstance().GetExitCode();
 
-	if (!cl) {
-		if (exit_code == ProcessInfo::VERSION_MISMATCH) {
-			std::stringstream ss;
-			ss << "Version mismatch between client and server. Please reinstall Streamlabs Desktop " ;
-			Napi::Error::New(info.Env(), ss.str().c_str()).ThrowAsJavaScriptException();
-			return info.Env().Undefined();
-		}
-		if (exit_code != ProcessInfo::NORMAL_EXIT) {
-			std::stringstream ss;
-			ss << "Failed to connect. Exit code error: " << ProcessInfo::getDescription(exit_code);
-			Napi::Error::New(info.Env(), ss.str().c_str()).ThrowAsJavaScriptException();
-			return info.Env().Undefined();
-		}
-		Napi::Error::New(info.Env(), "Failed to host and connect.").ThrowAsJavaScriptException();
-		return info.Env().Undefined();
-	}
+#ifdef WIN32
+	if (exit_code == STATUS_DLL_NOT_FOUND)
+		exit_code = ProcessInfo::MISSING_DEPENDENCY;
+#endif
 
-	return info.Env().Undefined();
+	return Napi::Number::New(info.Env(), exit_code);
 }
 
 Napi::Value js_disconnect(const Napi::CallbackInfo& info)
