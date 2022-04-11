@@ -310,6 +310,14 @@ export const enum ERenderingMode {
 	OBS_RECORDING_RENDERING = 2
 }
 
+export const enum EIPCError {
+    STILL_RUNNING = 259,
+    VERSION_MISMATCH = 252,
+    OTHER_ERROR = 253,
+    MISSING_DEPENDENCY = 254,
+    NORMAL_EXIT = 0,
+}
+
 export const Global: IGlobal = obs.Global;
 export const Video: IVideo = obs.Video;
 export const InputFactory: IInputFactory = obs.Input;
@@ -401,7 +409,7 @@ export interface IIPC {
 	 * @throws TypeError if a parameter is of invalid type.
 	 * @throws Error if it failed to host and connect.
      */
-	host(uri: string): void;
+	host(uri: string): EIPCError;
 	
     /**
      * Disconnect from a server.

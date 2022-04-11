@@ -239,6 +239,13 @@ export declare const enum ERenderingMode {
     OBS_STREAMING_RENDERING = 1,
     OBS_RECORDING_RENDERING = 2
 }
+export declare const enum EIPCError {
+    STILL_RUNNING = 259,
+    VERSION_MISMATCH = 252,
+    OTHER_ERROR = 253,
+    MISSING_DEPENDENCY = 254,
+    NORMAL_EXIT = 0
+}
 export declare const Global: IGlobal;
 export declare const Video: IVideo;
 export declare const InputFactory: IInputFactory;
@@ -280,7 +287,7 @@ export interface ICropInfo {
 export interface IIPC {
     setServerPath(binaryPath: string, workingDirectoryPath?: string): void;
     connect(uri: string): void;
-    host(uri: string): void;
+    host(uri: string): EIPCError;
     disconnect(): void;
 }
 export interface IGlobal {
