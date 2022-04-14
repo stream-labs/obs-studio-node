@@ -206,6 +206,21 @@ Napi::Value service::OBS_service_getLastReplay(const Napi::CallbackInfo& info)
 	return Napi::String::New(info.Env(), response.at(1).value_str);
 }
 
+Napi::Value service::OBS_service_getLastRecording(const Napi::CallbackInfo& info)
+{
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
+
+	std::vector<ipc::value> response =
+	    conn->call_synchronous_helper("NodeOBS_Service", "OBS_service_getLastRecording", {});
+
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
+
+	return Napi::String::New(info.Env(), response.at(1).value_str);
+}
+
 void service::worker()
 {
 	const static int maximum_signals_in_queue = 100;
@@ -461,6 +476,9 @@ void service::Init(Napi::Env env, Napi::Object exports)
 	exports.Set(
 		Napi::String::New(env, "OBS_service_getLastReplay"),
 		Napi::Function::New(env, service::OBS_service_getLastReplay));
+	exports.Set(
+		Napi::String::New(env, "OBS_service_getLastRecording"),
+		Napi::Function::New(env, service::OBS_service_getLastRecording));
 	exports.Set(
 		Napi::String::New(env, "OBS_service_createVirtualWebcam"),
 		Napi::Function::New(env, service::OBS_service_createVirtualWebcam));
