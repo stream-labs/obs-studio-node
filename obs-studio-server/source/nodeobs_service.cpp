@@ -2344,7 +2344,7 @@ void OBS_service::OBS_service_getLastReplay(
 
 	proc_handler_t* ph = obs_output_get_proc_handler(replayBufferOutput);
 
-	proc_handler_call(ph, "get_last_replay", &cd);
+	proc_handler_call(ph, "get_last_file", &cd);
 	const char* path = calldata_string(&cd, "path");
 
 	if (path == NULL)
