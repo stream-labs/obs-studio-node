@@ -47,6 +47,7 @@
 #include "callback-manager.h"
 #include "osn-encoder.hpp"
 #include "osn-service.hpp"
+#include "osn-simple-streaming.hpp"
 
 #include "util-crashmanager.h"
 #include "shared.hpp"
@@ -244,6 +245,7 @@ int main(int argc, char* argv[])
 	autoConfig::Register(myServer);
 	osn::Encoder::Register(myServer);
 	osn::Service::Register(myServer);
+	osn::ISimpleStreaming::Register(myServer);
 
 	OBS_API::CreateCrashHandlerExitPipe();
 

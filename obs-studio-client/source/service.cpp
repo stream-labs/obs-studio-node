@@ -63,7 +63,7 @@ osn::Service::Service(const Napi::CallbackInfo& info)
 		return;
 	}
 
-	this->serviceId = (uint64_t)info[0].ToNumber().Int64Value();
+	this->uid = (uint64_t)info[0].ToNumber().Int64Value();
 }
 
 Napi::Value osn::Service::Types(const Napi::CallbackInfo& info) {
@@ -168,7 +168,7 @@ void osn::Service::SetService(const Napi::CallbackInfo& info, const Napi::Value 
 	if (!conn)
 		return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Service", "SetService", {service->serviceId});
+	std::vector<ipc::value> response = conn->call_synchronous_helper("Service", "SetService", {service->uid});
 
 	if (!ValidateResponse(info, response))
 		return;
@@ -180,7 +180,7 @@ Napi::Value osn::Service::GetName(const Napi::CallbackInfo& info) {
 		return info.Env().Undefined();
 
 	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("Service", "GetName", {ipc::value((uint64_t)this->serviceId)});
+		conn->call_synchronous_helper("Service", "GetName", {ipc::value((uint64_t)this->uid)});
 
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
@@ -194,7 +194,7 @@ Napi::Value osn::Service::GetProperties(const Napi::CallbackInfo& info) {
 		return info.Env().Undefined();
 
 	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("Service", "GetProperties", {ipc::value(this->serviceId)});
+		conn->call_synchronous_helper("Service", "GetProperties", {ipc::value(this->uid)});
 
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
@@ -209,7 +209,7 @@ Napi::Value osn::Service::GetProperties(const Napi::CallbackInfo& info) {
 	auto instance =
 		osn::Properties::constructor.New({
 			prop_ptr,
-			Napi::Number::New(info.Env(), (uint32_t)this->serviceId)
+			Napi::Number::New(info.Env(), (uint32_t)this->uid)
 			});
 	return instance;
 }
@@ -228,7 +228,7 @@ void osn::Service::Update(const Napi::CallbackInfo& info) {
 	std::vector<ipc::value> response = conn->call_synchronous_helper(
 		"Service",
 		"Update",
-		{ipc::value(this->serviceId), ipc::value(jsondata)});
+		{ipc::value(this->uid), ipc::value(jsondata)});
 
 	if (!ValidateResponse(info, response))
 		return;
@@ -243,7 +243,7 @@ Napi::Value osn::Service::GetSettings(const Napi::CallbackInfo& info) {
 		return info.Env().Undefined();
 
 	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("Service", "GetSettings", {ipc::value(this->serviceId)});
+		conn->call_synchronous_helper("Service", "GetSettings", {ipc::value(this->uid)});
 
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
@@ -259,7 +259,7 @@ Napi::Value osn::Service::GetURL(const Napi::CallbackInfo& info) {
 		return info.Env().Undefined();
 
 	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("Service", "GetURL", {ipc::value((uint64_t)this->serviceId)});
+		conn->call_synchronous_helper("Service", "GetURL", {ipc::value((uint64_t)this->uid)});
 
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
@@ -273,7 +273,7 @@ Napi::Value osn::Service::GetKey(const Napi::CallbackInfo& info) {
 		return info.Env().Undefined();
 
 	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("Service", "GetKey", {ipc::value((uint64_t)this->serviceId)});
+		conn->call_synchronous_helper("Service", "GetKey", {ipc::value((uint64_t)this->uid)});
 
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
@@ -287,7 +287,7 @@ Napi::Value osn::Service::GetUsername(const Napi::CallbackInfo& info) {
 		return info.Env().Undefined();
 
 	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("Service", "GetUsername", {ipc::value((uint64_t)this->serviceId)});
+		conn->call_synchronous_helper("Service", "GetUsername", {ipc::value((uint64_t)this->uid)});
 
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
@@ -301,7 +301,7 @@ Napi::Value osn::Service::GetPassword(const Napi::CallbackInfo& info) {
 		return info.Env().Undefined();
 
 	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("Service", "GetPassword", {ipc::value((uint64_t)this->serviceId)});
+		conn->call_synchronous_helper("Service", "GetPassword", {ipc::value((uint64_t)this->uid)});
 
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();

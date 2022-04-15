@@ -94,6 +94,8 @@ SET(osn-client_SOURCES
 	"source/encoder.cpp"
 	"source/service.hpp"
 	"source/service.cpp"
+	"source/simple-streaming.hpp"
+	"source/simple-streaming.cpp"
 
 	###### callback-manager ######
 	"source/callback-manager.cpp"

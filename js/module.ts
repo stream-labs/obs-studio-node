@@ -1513,17 +1513,24 @@ export interface IVideoEncoderFactory {
     create(id: string, name: string, settings?: ISettings): IVideoEncoder,
 }
 
-export interface Streaming {
+export interface IStreaming {
     videoEncoder: IVideoEncoder,
+    service: IService,
     enforceServiceBitrate: boolean,
-    enableTwitchVOD: boolean
+    enableTwitchVOD: boolean,
+    start(): void;
+    stop(): void;
 }
 
-export interface SimpleStreaming extends Streaming {
+export interface ISimpleStreaming extends IStreaming {
     audioBitrate: number
 }
 
-export interface AdvancedStreaming extends Streaming {
+export interface IStreamingFactory {
+    create(): IStreaming;
+}
+
+export interface AdvancedStreaming extends IStreaming {
     audioTrack: number,
     twitchTrack: number,
     rescaling: boolean,
@@ -1534,7 +1541,8 @@ export interface AdvancedStreaming extends Streaming {
 export interface Recording {
     path: string,
     format: ERecordingFormat,
-    muxerSettings: string
+    muxerSettings: string,
+    videoEncoder: IVideoEncoder,
 }
 
 export interface SimpleRecording extends Recording {
@@ -1542,8 +1550,10 @@ export interface SimpleRecording extends Recording {
 }
 
 export interface AdvancedRecording extends Recording {
-    videoEncoder: IVideoEncoder,
-    mixer: number
+    mixer: number,
+    rescaling: boolean,
+    outputWidth?: number,
+    outputHeight?: number
 }
 
 export interface ReplayBuffer {

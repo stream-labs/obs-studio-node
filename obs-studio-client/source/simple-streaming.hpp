@@ -1,5 +1,5 @@
 /******************************************************************************
-    Copyright (C) 2016-2019 by Streamlabs (General Workings Inc)
+    Copyright (C) 2016-2022 by Streamlabs (General Workings Inc)
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,28 +21,30 @@
 
 namespace osn
 {
-	class Service : public Napi::ObjectWrap<osn::Service>
+	class SimpleStreaming : public Napi::ObjectWrap<osn::SimpleStreaming>
 	{
 		public:
-		uint64_t uid;
+		uint64_t uid;		
 
 		public:
 		static Napi::FunctionReference constructor;
 		static Napi::Object Init(Napi::Env env, Napi::Object exports);
-		Service(const Napi::CallbackInfo& info);
+		SimpleStreaming(const Napi::CallbackInfo& info);
 
-		static Napi::Value Types(const Napi::CallbackInfo& info);
 		static Napi::Value Create(const Napi::CallbackInfo& info);
-		static Napi::Value GetCurrent(const Napi::CallbackInfo& info);
-		static void SetService(const Napi::CallbackInfo& info, const Napi::Value &value);
 
-		Napi::Value GetName(const Napi::CallbackInfo& info);
-		Napi::Value GetProperties(const Napi::CallbackInfo& info);
-		void Update(const Napi::CallbackInfo& info);
-		Napi::Value GetSettings(const Napi::CallbackInfo& info);
-		Napi::Value GetURL(const Napi::CallbackInfo& info);
-		Napi::Value GetKey(const Napi::CallbackInfo& info);
-		Napi::Value GetUsername(const Napi::CallbackInfo& info);
-		Napi::Value GetPassword(const Napi::CallbackInfo& info);
+		Napi::Value GetService(const Napi::CallbackInfo& info);
+		void SetService(const Napi::CallbackInfo& info, const Napi::Value& value);
+		Napi::Value GetVideoEncoder(const Napi::CallbackInfo& info);
+		void SetVideoEncoder(const Napi::CallbackInfo& info, const Napi::Value& value);
+		Napi::Value GetEnforceServiceBirate(const Napi::CallbackInfo& info);
+		void SetEnforceServiceBirate(const Napi::CallbackInfo& info, const Napi::Value& value);
+		Napi::Value GetEnableTwitchVOD(const Napi::CallbackInfo& info);
+		void SetEnableTwitchVOD(const Napi::CallbackInfo& info, const Napi::Value& value);
+		Napi::Value GetAudioBitrate(const Napi::CallbackInfo& info);
+		void SetAudioBitrate(const Napi::CallbackInfo& info, const Napi::Value& value);
+		
+		void Start(const Napi::CallbackInfo& info);
+		void Stop(const Napi::CallbackInfo& info);
 	};
 }
