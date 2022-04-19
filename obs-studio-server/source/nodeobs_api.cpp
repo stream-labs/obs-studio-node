@@ -1452,7 +1452,7 @@ void OBS_API::destroyOBS_API(void)
 	autoConfig::WaitPendingTests();
 
 	OBS_service::stopAllOutputs();
-    OBS_service::waitReleaseWorker();
+	OBS_service::waitReleaseWorker();
 
 	obs_encoder_t* streamingEncoder = OBS_service::getStreamingEncoder();
 	if (streamingEncoder != NULL)
