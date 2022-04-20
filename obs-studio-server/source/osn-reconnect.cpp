@@ -16,14 +16,14 @@
 
 ******************************************************************************/
 
-#include "osn-delay.hpp"
+#include "osn-reconnect.hpp"
 #include "error.hpp"
 #include "shared.hpp"
 
-void osn::IDelay::Register(ipc::server& srv)
+void osn::IReconnect::Register(ipc::server& srv)
 {
 	std::shared_ptr<ipc::collection> cls =
-        std::make_shared<ipc::collection>("Delay");
+        std::make_shared<ipc::collection>("Reconnect");
 
 	cls->register_function(std::make_shared<ipc::function>(
 	    "Create", std::vector<ipc::type>{}, Create));
@@ -37,33 +37,33 @@ void osn::IDelay::Register(ipc::server& srv)
         std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32},
         SetEnabled));
 	cls->register_function(std::make_shared<ipc::function>(
-	    "GetDelaySec",
+	    "GetRetryDelay",
         std::vector<ipc::type>{ipc::type::UInt64},
-        GetDelaySec));
+        GetRetryDelay));
 	cls->register_function(std::make_shared<ipc::function>(
-	    "SetDelaySec",
+	    "SetRetryDelay",
         std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32},
-        SetDelaySec));
+        SetRetryDelay));
 	cls->register_function(std::make_shared<ipc::function>(
-	    "GetPreserveDelay",
+	    "GetMaxRetries",
         std::vector<ipc::type>{ipc::type::UInt64},
-        GetPreserveDelay));
+        GetMaxRetries));
 	cls->register_function(std::make_shared<ipc::function>(
-	    "SetPreserveDelay",
+	    "SetMaxRetries",
         std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32},
-        SetPreserveDelay));
+        SetMaxRetries));
 
 	srv.register_collection(cls);
 }
 
-void osn::IDelay::Create(
+void osn::IReconnect::Create(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
 	uint64_t uid =
-        osn::IDelay::Manager::GetInstance().allocate(new Delay());
+        osn::IReconnect::Manager::GetInstance().allocate(new Reconnect());
 	if (uid == UINT64_MAX) {
 		PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Index list is full.");
 	}
@@ -73,113 +73,113 @@ void osn::IDelay::Create(
 	AUTO_DEBUG;
 }
 
-void osn::IDelay::GetEnabled(
+void osn::IReconnect::GetEnabled(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	Delay* delay =
-		osn::IDelay::Manager::GetInstance().find(args[0].value_union.ui64);
-	if (!delay) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Delay reference is not valid.");
+	Reconnect* reconnect =
+		osn::IReconnect::Manager::GetInstance().find(args[0].value_union.ui64);
+	if (!reconnect) {
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Reconnect reference is not valid.");
 	}
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-    rval.push_back(ipc::value(delay->enabled));
+    rval.push_back(ipc::value(reconnect->enabled));
 	AUTO_DEBUG;
 }
 
-void osn::IDelay::SetEnabled(
+void osn::IReconnect::SetEnabled(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	Delay* delay =
-		osn::IDelay::Manager::GetInstance().find(args[0].value_union.ui64);
-	if (!delay) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Delay reference is not valid.");
+	Reconnect* reconnect =
+		osn::IReconnect::Manager::GetInstance().find(args[0].value_union.ui64);
+	if (!reconnect) {
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Reconnect reference is not valid.");
 	}
 
-    delay->enabled = args[1].value_union.ui32;
-
-    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	AUTO_DEBUG;
-}
-
-void osn::IDelay::GetDelaySec(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-	Delay* delay =
-		osn::IDelay::Manager::GetInstance().find(args[0].value_union.ui64);
-	if (!delay) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Delay reference is not valid.");
-	}
-
-    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-    rval.push_back(ipc::value(delay->delaySec));
-	AUTO_DEBUG;
-}
-
-void osn::IDelay::SetDelaySec(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-	Delay* delay =
-		osn::IDelay::Manager::GetInstance().find(args[0].value_union.ui64);
-	if (!delay) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Delay reference is not valid.");
-	}
-
-    delay->delaySec = args[1].value_union.ui32;
+    reconnect->enabled = args[1].value_union.ui32;
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }
 
-void osn::IDelay::GetPreserveDelay(
+void osn::IReconnect::GetRetryDelay(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	Delay* delay =
-		osn::IDelay::Manager::GetInstance().find(args[0].value_union.ui64);
-	if (!delay) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Delay reference is not valid.");
+	Reconnect* reconnect =
+		osn::IReconnect::Manager::GetInstance().find(args[0].value_union.ui64);
+	if (!reconnect) {
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Reconnect reference is not valid.");
 	}
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-    rval.push_back(ipc::value(delay->preserveDelay));
-	AUTO_DEBUG; 
+    rval.push_back(ipc::value(reconnect->retryDelay));
+	AUTO_DEBUG;
 }
 
-void osn::IDelay::SetPreserveDelay(
+void osn::IReconnect::SetRetryDelay(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	Delay* delay =
-		osn::IDelay::Manager::GetInstance().find(args[0].value_union.ui64);
-	if (!delay) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Delay reference is not valid.");
+	Reconnect* reconnect =
+		osn::IReconnect::Manager::GetInstance().find(args[0].value_union.ui64);
+	if (!reconnect) {
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Reconnect reference is not valid.");
 	}
 
-    delay->preserveDelay = args[1].value_union.ui32;
+    reconnect->retryDelay = args[1].value_union.ui32;
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }
 
-osn::IDelay::Manager& osn::IDelay::Manager::GetInstance()
+void osn::IReconnect::GetMaxRetries(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
 {
-	static osn::IDelay::Manager _inst;
+	Reconnect* reconnect =
+		osn::IReconnect::Manager::GetInstance().find(args[0].value_union.ui64);
+	if (!reconnect) {
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Reconnect reference is not valid.");
+	}
+
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+    rval.push_back(ipc::value(reconnect->maxRetries));
+	AUTO_DEBUG;
+}
+
+void osn::IReconnect::SetMaxRetries(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	Reconnect* reconnect =
+		osn::IReconnect::Manager::GetInstance().find(args[0].value_union.ui64);
+	if (!reconnect) {
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Reconnect reference is not valid.");
+	}
+
+    reconnect->maxRetries = args[1].value_union.ui32;
+
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
+}
+
+osn::IReconnect::Manager& osn::IReconnect::Manager::GetInstance()
+{
+	static osn::IReconnect::Manager _inst;
 	return _inst;
 }

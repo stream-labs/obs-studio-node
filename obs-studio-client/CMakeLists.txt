@@ -99,6 +99,8 @@ SET(osn-client_SOURCES
 	"source/worker.hpp"
 	"source/delay.hpp"
 	"source/delay.cpp"
+	"source/reconnect.hpp"
+	"source/reconnect.cpp"
 
 	###### callback-manager ######
 	"source/callback-manager.cpp"

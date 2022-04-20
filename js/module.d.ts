@@ -254,6 +254,7 @@ export declare const EncoderFactory: IVideoEncoderFactory;
 export declare const ServiceFactory: IServiceFactory;
 export declare const StreamingFactory: IStreamingFactory;
 export declare const DelayFactory: IDelayFactory;
+export declare const ReconnectFactory: IReconnectFactory;
 export interface ISettings {
     [key: string]: any;
 }
@@ -674,9 +675,10 @@ export interface IStreaming {
     enforceServiceBitrate: boolean;
     enableTwitchVOD: boolean;
     delay: IDelay;
+    reconnect: IReconnect;
     signalHandler: (signal: EOutputSignal) => void;
     start(): void;
-    stop(): void;
+    stop(force?: boolean): void;
 }
 export interface EOutputSignal {
     type: string;
@@ -725,6 +727,14 @@ export interface IDelay {
 }
 export interface IDelayFactory {
     create(): IDelay;
+}
+export interface IReconnect {
+    enabled: boolean;
+    retryDelay: number;
+    maxRetries: number;
+}
+export interface IReconnectFactory {
+    create(): IReconnect;
 }
 export declare const NodeObs: any;
 export {};

@@ -21,6 +21,7 @@
 #include <obs.h>
 #include "utility.hpp"
 #include "osn-delay.hpp"
+#include "osn-reconnect.hpp"
 
 namespace osn
 {
@@ -51,6 +52,7 @@ namespace osn
 				"reconnect_success"
 			};
 			delay = new Delay();
+			reconnect = new Reconnect();
 		}
         ~SimpleStreaming() {}
 
@@ -64,9 +66,12 @@ namespace osn
         uint32_t audioBitrate;
 		std::vector<std::string> signals;
 		Delay* delay;
+		Reconnect* reconnect;
 
 		std::mutex signalsMtx;
 		std::queue<signalInfo> signalsReceived;
+
+		void ConnectSignals();
     };
 
 	struct cbData {
@@ -156,6 +161,16 @@ namespace osn
 		    const std::vector<ipc::value>& args,
 		    std::vector<ipc::value>&       rval);
 		static void SetDelay(
+		    void*                          data,
+		    const int64_t                  id,
+		    const std::vector<ipc::value>& args,
+		    std::vector<ipc::value>&       rval);
+		static void GetReconnect(
+		    void*                          data,
+		    const int64_t                  id,
+		    const std::vector<ipc::value>& args,
+		    std::vector<ipc::value>&       rval);
+		static void SetReconnect(
 		    void*                          data,
 		    const int64_t                  id,
 		    const std::vector<ipc::value>& args,

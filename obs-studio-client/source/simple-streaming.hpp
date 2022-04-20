@@ -51,6 +51,8 @@ namespace osn
 		void SetAudioBitrate(const Napi::CallbackInfo& info, const Napi::Value& value);
 		Napi::Value GetDelay(const Napi::CallbackInfo& info);
 		void SetDelay(const Napi::CallbackInfo& info, const Napi::Value& value);
+		Napi::Value GetReconnect(const Napi::CallbackInfo& info);
+		void SetReconnect(const Napi::CallbackInfo& info, const Napi::Value& value);
 		Napi::Value GetSignalHandler(const Napi::CallbackInfo& info);
 		void SetSignalHandler(const Napi::CallbackInfo& info, const Napi::Value& value);
 		

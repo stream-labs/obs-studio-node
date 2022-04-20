@@ -325,6 +325,7 @@ export const EncoderFactory: IVideoEncoderFactory = obs.Encoder;
 export const ServiceFactory: IServiceFactory = obs.Service;
 export const StreamingFactory: IStreamingFactory = obs.SimpleStreaming;
 export const DelayFactory: IDelayFactory = obs.Delay;
+export const ReconnectFactory: IReconnectFactory = obs.Reconnect;
 
 /**
  * Meta object in order to better describe settings
@@ -1521,6 +1522,7 @@ export interface IStreaming {
     enforceServiceBitrate: boolean,
     enableTwitchVOD: boolean,
     delay: IDelay,
+    reconnect: IReconnect,
     signalHandler: (signal: EOutputSignal) => void,
     start(): void,
     stop(force?: boolean): void,
@@ -1582,6 +1584,16 @@ export interface IDelay {
 
 export interface IDelayFactory {
     create(): IDelay,
+}
+
+export interface IReconnect {
+    enabled: boolean,
+    retryDelay: number,
+    maxRetries: number
+}
+
+export interface IReconnectFactory {
+    create(): IReconnect
 }
 
 // Initialization and other stuff which needs local data.

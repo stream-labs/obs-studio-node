@@ -77,6 +77,14 @@ void osn::ISimpleStreaming::Register(ipc::server& srv)
         std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64},
         SetDelay));
 	cls->register_function(std::make_shared<ipc::function>(
+	    "GetReconnect",
+        std::vector<ipc::type>{ipc::type::UInt64},
+        GetReconnect));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "SetReconnect",
+        std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64},
+        SetReconnect));
+	cls->register_function(std::make_shared<ipc::function>(
 	    "Start", std::vector<ipc::type>{ipc::type::UInt64}, Start));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "Stop", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32}, Stop));
@@ -340,6 +348,50 @@ void osn::ISimpleStreaming::SetDelay(
 	AUTO_DEBUG;
 }
 
+void osn::ISimpleStreaming::GetReconnect(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	SimpleStreaming* simpleStreaming =
+		osn::ISimpleStreaming::Manager::GetInstance().find(args[0].value_union.ui64);
+	if (!simpleStreaming) {
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Streaming reference is not valid.");
+	}
+
+	uint64_t uid =
+        osn::IReconnect::Manager::GetInstance().find(simpleStreaming->reconnect);
+
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(uid));
+	AUTO_DEBUG;
+}
+
+void osn::ISimpleStreaming::SetReconnect(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	SimpleStreaming* simpleStreaming =
+		osn::ISimpleStreaming::Manager::GetInstance().find(args[0].value_union.ui64);
+	if (!simpleStreaming) {
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Simple streaming reference is not valid.");
+	}
+
+    Reconnect* reconnect =
+        osn::IReconnect::Manager::GetInstance().find(args[1].value_union.ui64);
+	if (!reconnect) {
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Reconnect reference is not valid.");
+	}
+
+    simpleStreaming->reconnect = reconnect;
+
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
+}
+
 static inline obs_encoder_t* createAudioEncoder(uint32_t bitrate)
 {
 	obs_encoder_t* audioEncoder = nullptr;
@@ -375,6 +427,24 @@ static inline void calbback(void* data, calldata_t* params)
 	});
 }
 
+void osn::SimpleStreaming::ConnectSignals()
+{
+	if(!this->output)
+		return;
+
+	signal_handler* handler = obs_output_get_signal_handler(this->output);
+	for (const auto &signal: this->signals) {
+		osn::cbData* cd = new cbData();
+		cd->signal = signal;
+		cd->stream = this;
+		signal_handler_connect(
+			handler,
+			signal.c_str(),
+			calbback,
+			cd);
+	}
+}
+
 void osn::ISimpleStreaming::Start(
     void*                          data,
     const int64_t                  id,
@@ -403,6 +473,7 @@ void osn::ISimpleStreaming::Start(
 	if (!simpleStreaming->output) {
 		simpleStreaming->output =
 			obs_output_create(type, "stream", nullptr, nullptr);
+		simpleStreaming->ConnectSignals();
 	} else if (strcmp(obs_output_get_id(simpleStreaming->output), type) != 0) {
 		if (obs_output_active(simpleStreaming->output)) {
 			PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Current streaming output is active.");
@@ -410,6 +481,7 @@ void osn::ISimpleStreaming::Start(
 		obs_output_release(simpleStreaming->output);
 		simpleStreaming->output =
 			obs_output_create(type, "stream", nullptr, nullptr);
+		simpleStreaming->ConnectSignals();
 	}
 
 	if (!simpleStreaming->output) {
@@ -428,20 +500,6 @@ void osn::ISimpleStreaming::Start(
 
 	obs_output_set_service(simpleStreaming->output, simpleStreaming->service);
 
-	signal_handler* handler = obs_output_get_signal_handler(simpleStreaming->output);
-
-	for (const auto &signal: simpleStreaming->signals) {
-		osn::cbData* cd = new cbData();
-		cd->signal = signal;
-		cd->stream = simpleStreaming;
-		signal_handler_connect(
-			handler,
-			signal.c_str(),
-			calbback,
-			cd);
-	}
-
-	// Set delay
 	if (!simpleStreaming->delay) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Invalid delay.");
 	}
@@ -451,6 +509,18 @@ void osn::ISimpleStreaming::Start(
 		simpleStreaming->delay->preserveDelay ? OBS_OUTPUT_DELAY_PRESERVE : 0);
 
 	// Set network advanced settings
+	if (!simpleStreaming->reconnect) {
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Invalid reconnect.");
+	}
+	uint32_t maxReties = 
+		simpleStreaming->reconnect->enabled ?
+		simpleStreaming->reconnect->maxRetries :
+		0;
+
+	obs_output_set_reconnect_settings(
+		simpleStreaming->output,
+		maxReties,
+		simpleStreaming->reconnect->retryDelay);
 
 	obs_output_start(simpleStreaming->output);
 
