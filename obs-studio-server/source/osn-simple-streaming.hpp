@@ -23,6 +23,12 @@
 
 namespace osn
 {
+	struct signalInfo {
+		std::string signal;
+		int code;
+		std::string errorMessage;
+	};
+
     class SimpleStreaming
     {
         public:
@@ -37,8 +43,16 @@ namespace osn
         bool enforceServiceBitrate;
         bool enableTwitchVOD;
         uint32_t audioBitrate;
-		std::string signals[];
+		std::vector<std::string> signals;
+
+		std::mutex signalsMtx;
+		std::queue<signalInfo> signalsReceived;
     };
+
+	struct cbData {
+		std::string signal;
+		SimpleStreaming* stream;
+	};
 
 	class ISimpleStreaming
 	{
@@ -122,6 +136,11 @@ namespace osn
 		    const std::vector<ipc::value>& args,
 		    std::vector<ipc::value>&       rval);
 		static void Stop(
+		    void*                          data,
+		    const int64_t                  id,
+		    const std::vector<ipc::value>& args,
+		    std::vector<ipc::value>&       rval);
+		static void Query(
 		    void*                          data,
 		    const int64_t                  id,
 		    const std::vector<ipc::value>& args,

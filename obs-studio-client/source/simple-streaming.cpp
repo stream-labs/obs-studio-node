@@ -21,6 +21,11 @@
 #include "encoder.hpp"
 #include "service.hpp"
 
+// This is to import SignalInfo
+// Remove me when done
+#include "nodeobs_service.hpp"
+
+
 Napi::FunctionReference osn::SimpleStreaming::constructor;
 
 Napi::Object osn::SimpleStreaming::Init(Napi::Env env, Napi::Object exports) {
@@ -36,6 +41,10 @@ Napi::Object osn::SimpleStreaming::Init(Napi::Env env, Napi::Object exports) {
                 &osn::SimpleStreaming::GetVideoEncoder,
                 &osn::SimpleStreaming::SetVideoEncoder),
             InstanceAccessor(
+                "service",
+                &osn::SimpleStreaming::GetService,
+                &osn::SimpleStreaming::SetService),
+            InstanceAccessor(
                 "enforceServiceBitrate",
                 &osn::SimpleStreaming::GetEnforceServiceBirate,
                 &osn::SimpleStreaming::SetEnforceServiceBirate),
@@ -47,6 +56,10 @@ Napi::Object osn::SimpleStreaming::Init(Napi::Env env, Napi::Object exports) {
                 "audioBitrate",
                 &osn::SimpleStreaming::GetAudioBitrate,
                 &osn::SimpleStreaming::SetAudioBitrate),
+            InstanceAccessor(
+                "signalHandler",
+                &osn::SimpleStreaming::GetSignalHandler,
+                &osn::SimpleStreaming::SetSignalHandler),
 
 			InstanceMethod("start", &osn::SimpleStreaming::Start),
 			InstanceMethod("stop", &osn::SimpleStreaming::Stop)
@@ -60,7 +73,7 @@ Napi::Object osn::SimpleStreaming::Init(Napi::Env env, Napi::Object exports) {
 }
 
 osn::SimpleStreaming::SimpleStreaming(const Napi::CallbackInfo& info)
-	: Napi::ObjectWrap<osn::SimpleStreaming>(info) {
+	: Napi::ObjectWrap<osn::SimpleStreaming>(info), Worker("simpleStreaming") {
 	Napi::Env env = info.Env();
 	Napi::HandleScope scope(env);
 	int length = info.Length();
@@ -256,6 +269,28 @@ void osn::SimpleStreaming::SetAudioBitrate(const Napi::CallbackInfo& info, const
 		{ipc::value(this->uid), ipc::value(value.ToNumber().Uint32Value())});
 }
 
+Napi::Value osn::SimpleStreaming::GetSignalHandler(const Napi::CallbackInfo& info) {
+	if (this->cb.IsEmpty())
+		return info.Env().Undefined();
+
+	return this->cb.Value();
+}
+void osn::SimpleStreaming::SetSignalHandler(const Napi::CallbackInfo& info, const Napi::Value& value) {
+	Napi::Function cb = value.As<Napi::Function>();
+	if (cb.IsNull() || !cb.IsFunction())
+		return;
+
+	if (isWorkerRunning) {
+		stopWorker();
+	}
+
+	this->cb = Napi::Persistent(cb);
+	this->cb.SuppressDestruct();
+
+	startWorker(info.Env(), this->cb.Value());
+	isWorkerRunning = true;
+}
+
 void osn::SimpleStreaming::Start(const Napi::CallbackInfo& info) {
 	auto conn = GetConnection(info);
 	if (!conn)
@@ -270,4 +305,86 @@ void osn::SimpleStreaming::Stop(const Napi::CallbackInfo& info) {
 		return;
 
 	conn->call("SimpleStreaming", "Stop", {ipc::value(this->uid)});
+}
+
+void osn::SimpleStreaming::worker()
+{
+	const static int maximum_signals_in_queue = 100;
+	auto callback = []( Napi::Env env, Napi::Function jsCallback, SignalInfo* data ) {
+		try {
+			Napi::Object result = Napi::Object::New(env);
+
+			result.Set(
+				Napi::String::New(env, "type"),
+				Napi::String::New(env, data->outputType));
+			result.Set(
+				Napi::String::New(env, "signal"),
+				Napi::String::New(env, data->signal));
+			result.Set(
+				Napi::String::New(env, "code"),
+				Napi::Number::New(env, data->code));
+			result.Set(
+				Napi::String::New(env, "error"),
+				Napi::String::New(env, data->errorMessage));
+
+			jsCallback.Call({ result });
+		} catch (...) {
+			data->tosend = true;
+			return;
+		}
+		data->sent = true;
+
+	};
+	size_t totalSleepMS = 0;
+	std::vector<SignalInfo*> signalsList;
+	while (!workerStop) {
+		auto tp_start = std::chrono::high_resolution_clock::now();
+
+		// Validate Connection
+		auto conn = Controller::GetInstance().GetConnection();
+		if (conn) {
+			std::vector<ipc::value> response =
+				conn->call_synchronous_helper("SimpleStreaming", "Query", {ipc::value(this->uid)});
+			if (response.size() && (response.size() == 5) && signalsList.size() < maximum_signals_in_queue) {
+				ErrorCode error = (ErrorCode)response[0].value_union.ui64;
+				if (error == ErrorCode::Ok) {
+					SignalInfo* data = new SignalInfo{ "", "", 0, ""};
+					data->outputType   = response[1].value_str;
+					data->signal       = response[2].value_str;
+					data->code         = response[3].value_union.i32;
+					data->errorMessage = response[4].value_str;
+					data->sent         = false;
+					data->tosend       = true;
+					signalsList.push_back(data);
+				}
+			}
+
+			std::vector<SignalInfo*>::iterator i = signalsList.begin();
+			while (i != signalsList.end()) {
+				if ((*i)->tosend) {
+					(*i)->tosend = false;
+					napi_status status = jsThread.BlockingCall((*i), callback);
+					if (status != napi_ok) {
+						(*i)->tosend = true;
+						break;
+					}
+				}
+				if ((*i)->sent) {
+					i = signalsList.erase(i);
+				} else {
+					i++;
+				}
+			}
+		}
+
+		auto tp_end  = std::chrono::high_resolution_clock::now();
+		auto dur     = std::chrono::duration_cast<std::chrono::milliseconds>(tp_end - tp_start);
+		totalSleepMS = sleepIntervalMS - dur.count();
+		std::this_thread::sleep_for(std::chrono::milliseconds(totalSleepMS));
+	}
+
+	for (auto & signalData : signalsList) {
+		delete signalData;
+	}
+	return;
 }

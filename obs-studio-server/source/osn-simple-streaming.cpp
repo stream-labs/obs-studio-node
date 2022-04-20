@@ -72,6 +72,8 @@ void osn::ISimpleStreaming::Register(ipc::server& srv)
 	    "Start", std::vector<ipc::type>{ipc::type::UInt64}, Start));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "Stop", std::vector<ipc::type>{ipc::type::UInt64}, Stop));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "Query", std::vector<ipc::type>{ipc::type::UInt64}, Query));
 
 	srv.register_collection(cls);
 }
@@ -88,6 +90,16 @@ void osn::ISimpleStreaming::Create(
 	simpleStreaming->audioBitrate = 160;
 	simpleStreaming->enforceServiceBitrate = true;
 	simpleStreaming->enableTwitchVOD = true;
+	simpleStreaming->signals = {
+		"start",
+		"stop",
+		"starting",
+		"stopping",
+		"activate",
+		"deactivate",
+		"reconnect",
+		"reconnect_success"
+	};
 
 	uint64_t uid =
         osn::ISimpleStreaming::Manager::GetInstance().allocate(simpleStreaming);
@@ -303,6 +315,31 @@ static inline obs_encoder_t* createAudioEncoder(uint32_t bitrate)
 	return audioEncoder;
 }
 
+static inline void calbback(void* data, calldata_t* params)
+{
+	auto info =
+		reinterpret_cast<osn::cbData*>(data);
+
+	if (!info)
+		return;
+
+	std::string signal = info->signal;
+	auto stream = info->stream;
+
+	if (!stream->output)
+		return;
+
+	const char* error =
+		obs_output_get_last_error(stream->output);
+
+	std::unique_lock<std::mutex> ulock(stream->signalsMtx);
+	stream->signalsReceived.push({
+		signal,
+		(int)calldata_int(params, "code"),
+		error ? std::string(error) : ""
+	});
+}
+
 void osn::ISimpleStreaming::Start(
     void*                          data,
     const int64_t                  id,
@@ -347,7 +384,18 @@ void osn::ISimpleStreaming::Start(
 
 	obs_output_set_service(simpleStreaming->output, simpleStreaming->service);
 
-	// Connect signals
+	signal_handler* handler = obs_output_get_signal_handler(simpleStreaming->output);
+
+	for (const auto &signal: simpleStreaming->signals) {
+		osn::cbData* cd = new cbData();
+		cd->signal = signal;
+		cd->stream = simpleStreaming;
+		signal_handler_connect(
+			handler,
+			signal.c_str(),
+			calbback,
+			cd);
+	}
 
 	// Set delay
 
@@ -365,7 +413,51 @@ void osn::ISimpleStreaming::Stop(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
+	SimpleStreaming* simpleStreaming =
+		osn::ISimpleStreaming::Manager::GetInstance().find(args[0].value_union.ui64);
+	if (!simpleStreaming) {
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Simple streaming reference is not valid.");
+	}
+
+	if (!simpleStreaming->output) {
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Invalid streaming output.");
+	}
+
+	obs_output_stop(simpleStreaming->output);
+
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
+}
+
+void osn::ISimpleStreaming::Query(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	SimpleStreaming* simpleStreaming =
+		osn::ISimpleStreaming::Manager::GetInstance().find(args[0].value_union.ui64);
+	if (!simpleStreaming) {
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Simple streaming reference is not valid.");
+	}
+
+	std::unique_lock<std::mutex> ulock(simpleStreaming->signalsMtx);
+	if (simpleStreaming->signalsReceived.empty()) {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+		AUTO_DEBUG;
+		return;
+	}
+
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+
+	auto signal = simpleStreaming->signalsReceived.front();
+	rval.push_back(ipc::value("streaming"));
+	rval.push_back(ipc::value(signal.signal));
+	rval.push_back(ipc::value(signal.code));
+	rval.push_back(ipc::value(signal.errorMessage));
+
+	simpleStreaming->signalsReceived.pop();
+
 	AUTO_DEBUG;
 }
 

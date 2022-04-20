@@ -18,13 +18,19 @@
 
 #pragma once
 #include <napi.h>
+#include "worker.hpp"
 
 namespace osn
 {
-	class SimpleStreaming : public Napi::ObjectWrap<osn::SimpleStreaming>
+	class SimpleStreaming :
+		public Napi::ObjectWrap<osn::SimpleStreaming>,
+		public Worker
 	{
 		public:
 		uint64_t uid;		
+
+		private:
+		Napi::Function signalHandler;
 
 		public:
 		static Napi::FunctionReference constructor;
@@ -43,8 +49,12 @@ namespace osn
 		void SetEnableTwitchVOD(const Napi::CallbackInfo& info, const Napi::Value& value);
 		Napi::Value GetAudioBitrate(const Napi::CallbackInfo& info);
 		void SetAudioBitrate(const Napi::CallbackInfo& info, const Napi::Value& value);
+		Napi::Value GetSignalHandler(const Napi::CallbackInfo& info);
+		void SetSignalHandler(const Napi::CallbackInfo& info, const Napi::Value& value);
 		
 		void Start(const Napi::CallbackInfo& info);
 		void Stop(const Napi::CallbackInfo& info);
+
+		void worker(void);
 	};
 }

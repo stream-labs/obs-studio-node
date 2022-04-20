@@ -323,6 +323,7 @@ export const ModuleFactory: IModuleFactory = obs.Module;
 export const IPC: IIPC = obs.IPC;
 export const EncoderFactory: IVideoEncoderFactory = obs.Encoder;
 export const ServiceFactory: IServiceFactory = obs.Service;
+export const StreamingFactory: IStreamingFactory = obs.SimpleStreaming;
 
 /**
  * Meta object in order to better describe settings
@@ -1518,12 +1519,20 @@ export interface IStreaming {
     service: IService,
     enforceServiceBitrate: boolean,
     enableTwitchVOD: boolean,
-    start(): void;
-    stop(): void;
+    signalHandler: (signal: EOutputSignal) => void,
+    start(): void,
+    stop(): void,
+}
+
+export interface EOutputSignal {
+    type: string,
+    signal: string,
+    code: number,
+    error: string
 }
 
 export interface ISimpleStreaming extends IStreaming {
-    audioBitrate: number
+    audioBitrate: number,
 }
 
 export interface IStreamingFactory {

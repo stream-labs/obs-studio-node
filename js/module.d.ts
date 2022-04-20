@@ -252,6 +252,7 @@ export declare const ModuleFactory: IModuleFactory;
 export declare const IPC: IIPC;
 export declare const EncoderFactory: IVideoEncoderFactory;
 export declare const ServiceFactory: IServiceFactory;
+export declare const StreamingFactory: IStreamingFactory;
 export interface ISettings {
     [key: string]: any;
 }
@@ -671,8 +672,15 @@ export interface IStreaming {
     service: IService;
     enforceServiceBitrate: boolean;
     enableTwitchVOD: boolean;
+    signalHandler: (signal: EOutputSignal) => void;
     start(): void;
     stop(): void;
+}
+export interface EOutputSignal {
+    type: string;
+    signal: string;
+    code: number;
+    error: string;
 }
 export interface ISimpleStreaming extends IStreaming {
     audioBitrate: number;
