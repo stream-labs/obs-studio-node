@@ -69,9 +69,17 @@ void osn::ISimpleStreaming::Register(ipc::server& srv)
         std::vector<ipc::type>{ipc::type::UInt64,ipc::type::UInt32},
         SetAudioBitrate));
 	cls->register_function(std::make_shared<ipc::function>(
+	    "GetDelay",
+        std::vector<ipc::type>{ipc::type::UInt64},
+        GetDelay));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "SetDelay",
+        std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64},
+        SetDelay));
+	cls->register_function(std::make_shared<ipc::function>(
 	    "Start", std::vector<ipc::type>{ipc::type::UInt64}, Start));
 	cls->register_function(std::make_shared<ipc::function>(
-	    "Stop", std::vector<ipc::type>{ipc::type::UInt64}, Stop));
+	    "Stop", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32}, Stop));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "Query", std::vector<ipc::type>{ipc::type::UInt64}, Query));
 
@@ -84,25 +92,8 @@ void osn::ISimpleStreaming::Create(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-    SimpleStreaming* simpleStreaming = new SimpleStreaming();
-	simpleStreaming->videoEncoder = nullptr;
-	simpleStreaming->service = nullptr;
-	simpleStreaming->audioBitrate = 160;
-	simpleStreaming->enforceServiceBitrate = true;
-	simpleStreaming->enableTwitchVOD = true;
-	simpleStreaming->signals = {
-		"start",
-		"stop",
-		"starting",
-		"stopping",
-		"activate",
-		"deactivate",
-		"reconnect",
-		"reconnect_success"
-	};
-
 	uint64_t uid =
-        osn::ISimpleStreaming::Manager::GetInstance().allocate(simpleStreaming);
+        osn::ISimpleStreaming::Manager::GetInstance().allocate(new SimpleStreaming());
 	if (uid == UINT64_MAX) {
 		PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Index list is full.");
 	}
@@ -165,7 +156,7 @@ void osn::ISimpleStreaming::GetVideoEncoder(
 	SimpleStreaming* simpleStreaming =
 		osn::ISimpleStreaming::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!simpleStreaming) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Encoder reference is not valid.");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Simple streaming reference is not valid.");
 	}
 
 	uint64_t uid =
@@ -305,6 +296,50 @@ void osn::ISimpleStreaming::SetAudioBitrate(
 	AUTO_DEBUG;
 }
 
+void osn::ISimpleStreaming::GetDelay(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	SimpleStreaming* simpleStreaming =
+		osn::ISimpleStreaming::Manager::GetInstance().find(args[0].value_union.ui64);
+	if (!simpleStreaming) {
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Streaming reference is not valid.");
+	}
+
+	uint64_t uid =
+        osn::IDelay::Manager::GetInstance().find(simpleStreaming->delay);
+
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(uid));
+	AUTO_DEBUG;
+}
+
+void osn::ISimpleStreaming::SetDelay(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	SimpleStreaming* simpleStreaming =
+		osn::ISimpleStreaming::Manager::GetInstance().find(args[0].value_union.ui64);
+	if (!simpleStreaming) {
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Simple streaming reference is not valid.");
+	}
+
+    Delay* delay =
+        osn::IDelay::Manager::GetInstance().find(args[1].value_union.ui64);
+	if (!delay) {
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Encoder reference is not valid.");
+	}
+
+    simpleStreaming->delay = delay;
+
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
+}
+
 static inline obs_encoder_t* createAudioEncoder(uint32_t bitrate)
 {
 	obs_encoder_t* audioEncoder = nullptr;
@@ -353,11 +388,11 @@ void osn::ISimpleStreaming::Start(
 	}
 
 	if (!simpleStreaming->videoEncoder) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Envalid video encoder.");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Invalid video encoder.");
 	}
 
 	if (!simpleStreaming->service) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Envalid service.");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Invalid service.");
 	}
 
 	const char* type =
@@ -398,6 +433,13 @@ void osn::ISimpleStreaming::Start(
 	}
 
 	// Set delay
+	if (!simpleStreaming->delay) {
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Invalid delay.");
+	}
+	obs_output_set_delay(
+	    simpleStreaming->output,
+		simpleStreaming->delay->enabled ? uint32_t(simpleStreaming->delay->delaySec) : 0,
+		simpleStreaming->delay->preserveDelay ? OBS_OUTPUT_DELAY_PRESERVE : 0);
 
 	// Set network advanced settings
 
@@ -423,7 +465,12 @@ void osn::ISimpleStreaming::Stop(
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Invalid streaming output.");
 	}
 
-	obs_output_stop(simpleStreaming->output);
+	bool force = args[1].value_union.ui32;
+
+	if (force)
+		obs_output_force_stop(simpleStreaming->output);
+	else
+		obs_output_stop(simpleStreaming->output);
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;

@@ -49,6 +49,8 @@ namespace osn
 		void SetEnableTwitchVOD(const Napi::CallbackInfo& info, const Napi::Value& value);
 		Napi::Value GetAudioBitrate(const Napi::CallbackInfo& info);
 		void SetAudioBitrate(const Napi::CallbackInfo& info, const Napi::Value& value);
+		Napi::Value GetDelay(const Napi::CallbackInfo& info);
+		void SetDelay(const Napi::CallbackInfo& info, const Napi::Value& value);
 		Napi::Value GetSignalHandler(const Napi::CallbackInfo& info);
 		void SetSignalHandler(const Napi::CallbackInfo& info, const Napi::Value& value);
 		

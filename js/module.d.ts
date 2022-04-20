@@ -253,6 +253,7 @@ export declare const IPC: IIPC;
 export declare const EncoderFactory: IVideoEncoderFactory;
 export declare const ServiceFactory: IServiceFactory;
 export declare const StreamingFactory: IStreamingFactory;
+export declare const DelayFactory: IDelayFactory;
 export interface ISettings {
     [key: string]: any;
 }
@@ -672,6 +673,7 @@ export interface IStreaming {
     service: IService;
     enforceServiceBitrate: boolean;
     enableTwitchVOD: boolean;
+    delay: IDelay;
     signalHandler: (signal: EOutputSignal) => void;
     start(): void;
     stop(): void;
@@ -715,6 +717,14 @@ export interface ReplayBuffer {
     duration: number;
     prefix: string;
     suffix: string;
+}
+export interface IDelay {
+    enabled: boolean;
+    delaySec: number;
+    preserveDelay: number;
+}
+export interface IDelayFactory {
+    create(): IDelay;
 }
 export declare const NodeObs: any;
 export {};

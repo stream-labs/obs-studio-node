@@ -20,6 +20,7 @@
 #include <ipc-server.hpp>
 #include <obs.h>
 #include "utility.hpp"
+#include "osn-delay.hpp"
 
 namespace osn
 {
@@ -32,7 +33,24 @@ namespace osn
     class SimpleStreaming
     {
         public:
-        SimpleStreaming() {}
+        SimpleStreaming() {
+			videoEncoder = nullptr;
+			service = nullptr;
+			audioBitrate = 160;
+			enforceServiceBitrate = true;
+			enableTwitchVOD = false;
+			signals = {
+				"start",
+				"stop",
+				"starting",
+				"stopping",
+				"activate",
+				"deactivate",
+				"reconnect",
+				"reconnect_success"
+			};
+			delay = new Delay();
+		}
         ~SimpleStreaming() {}
 
         public:
@@ -44,6 +62,7 @@ namespace osn
         bool enableTwitchVOD;
         uint32_t audioBitrate;
 		std::vector<std::string> signals;
+		Delay* delay;
 
 		std::mutex signalsMtx;
 		std::queue<signalInfo> signalsReceived;
@@ -126,6 +145,16 @@ namespace osn
 		    const std::vector<ipc::value>& args,
 		    std::vector<ipc::value>&       rval);
 		static void SetAudioBitrate(
+		    void*                          data,
+		    const int64_t                  id,
+		    const std::vector<ipc::value>& args,
+		    std::vector<ipc::value>&       rval);
+		static void GetDelay(
+		    void*                          data,
+		    const int64_t                  id,
+		    const std::vector<ipc::value>& args,
+		    std::vector<ipc::value>&       rval);
+		static void SetDelay(
 		    void*                          data,
 		    const int64_t                  id,
 		    const std::vector<ipc::value>& args,

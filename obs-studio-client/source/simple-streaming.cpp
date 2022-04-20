@@ -20,6 +20,7 @@
 #include "utility.hpp"
 #include "encoder.hpp"
 #include "service.hpp"
+#include "delay.hpp"
 
 // This is to import SignalInfo
 // Remove me when done
@@ -60,6 +61,10 @@ Napi::Object osn::SimpleStreaming::Init(Napi::Env env, Napi::Object exports) {
                 "signalHandler",
                 &osn::SimpleStreaming::GetSignalHandler,
                 &osn::SimpleStreaming::SetSignalHandler),
+            InstanceAccessor(
+                "delay",
+                &osn::SimpleStreaming::GetDelay,
+                &osn::SimpleStreaming::SetDelay),
 
 			InstanceMethod("start", &osn::SimpleStreaming::Start),
 			InstanceMethod("stop", &osn::SimpleStreaming::Stop)
@@ -269,6 +274,48 @@ void osn::SimpleStreaming::SetAudioBitrate(const Napi::CallbackInfo& info, const
 		{ipc::value(this->uid), ipc::value(value.ToNumber().Uint32Value())});
 }
 
+Napi::Value osn::SimpleStreaming::GetDelay(const Napi::CallbackInfo& info) {
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
+
+	std::vector<ipc::value> response =
+		conn->call_synchronous_helper(
+			"SimpleStreaming",
+			"GetDelay",
+			{ipc::value(this->uid)});
+
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
+
+	auto instance =
+		osn::Delay::constructor.New({
+			Napi::Number::New(info.Env(), response[1].value_union.ui64)
+		});
+
+	return instance;
+}
+
+void osn::SimpleStreaming::SetDelay(const Napi::CallbackInfo& info, const Napi::Value& value) {
+	osn::Delay* delay = Napi::ObjectWrap<osn::Delay>::Unwrap(value.ToObject());
+
+	if (!delay) {
+		Napi::TypeError::New(
+			info.Env(),
+			"Invalid delay argument").ThrowAsJavaScriptException();
+		return;
+	}
+
+	auto conn = GetConnection(info);
+	if (!conn)
+		return;
+
+	conn->call(
+		"SimpleStreaming",
+		"SetDelay",
+		{ipc::value(this->uid), ipc::value(delay->uid)});
+}
+
 Napi::Value osn::SimpleStreaming::GetSignalHandler(const Napi::CallbackInfo& info) {
 	if (this->cb.IsEmpty())
 		return info.Env().Undefined();
@@ -286,9 +333,6 @@ void osn::SimpleStreaming::SetSignalHandler(const Napi::CallbackInfo& info, cons
 
 	this->cb = Napi::Persistent(cb);
 	this->cb.SuppressDestruct();
-
-	startWorker(info.Env(), this->cb.Value());
-	isWorkerRunning = true;
 }
 
 void osn::SimpleStreaming::Start(const Napi::CallbackInfo& info) {
@@ -296,15 +340,24 @@ void osn::SimpleStreaming::Start(const Napi::CallbackInfo& info) {
 	if (!conn)
 		return;
 
+	if (!isWorkerRunning) {
+		startWorker(info.Env(), this->cb.Value());
+		isWorkerRunning = true;
+	}
+
 	conn->call("SimpleStreaming", "Start", {ipc::value(this->uid)});
 }
 
 void osn::SimpleStreaming::Stop(const Napi::CallbackInfo& info) {
+	bool force = false;
+	if (info.Length() == 1)
+		force = info[0].ToBoolean().Value();
+
 	auto conn = GetConnection(info);
 	if (!conn)
 		return;
 
-	conn->call("SimpleStreaming", "Stop", {ipc::value(this->uid)});
+	conn->call("SimpleStreaming", "Stop", {ipc::value(this->uid), ipc::value(force)});
 }
 
 void osn::SimpleStreaming::worker()

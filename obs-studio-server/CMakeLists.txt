@@ -254,6 +254,8 @@ SET(osn-server_SOURCES
 	"${PROJECT_SOURCE_DIR}/source/osn-volmeter.hpp"
 	"${PROJECT_SOURCE_DIR}/source/osn-simple-streaming.cpp"
 	"${PROJECT_SOURCE_DIR}/source/osn-simple-streaming.hpp"
+	"${PROJECT_SOURCE_DIR}/source/osn-delay.cpp"
+	"${PROJECT_SOURCE_DIR}/source/osn-delay.hpp"
 
 	###### utlity graphics ######
 	"${PROJECT_SOURCE_DIR}/source/gs-limits.h"
