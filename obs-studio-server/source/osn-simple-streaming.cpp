@@ -400,8 +400,17 @@ void osn::ISimpleStreaming::Start(
 	if (!type)
 		type = "rtmp_output";
 
-	simpleStreaming->output =
-		obs_output_create(type, "stream", nullptr, nullptr);
+	if (!simpleStreaming->output) {
+		simpleStreaming->output =
+			obs_output_create(type, "stream", nullptr, nullptr);
+	} else if (strcmp(obs_output_get_id(simpleStreaming->output), type) != 0) {
+		if (obs_output_active(simpleStreaming->output)) {
+			PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Current streaming output is active.");
+		}
+		obs_output_release(simpleStreaming->output);
+		simpleStreaming->output =
+			obs_output_create(type, "stream", nullptr, nullptr);
+	}
 
 	if (!simpleStreaming->output) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Error while creating the streaming output.");

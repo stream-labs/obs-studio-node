@@ -36,6 +36,7 @@ namespace osn
         SimpleStreaming() {
 			videoEncoder = nullptr;
 			service = nullptr;
+			output = nullptr;
 			audioBitrate = 160;
 			enforceServiceBitrate = true;
 			enableTwitchVOD = false;
