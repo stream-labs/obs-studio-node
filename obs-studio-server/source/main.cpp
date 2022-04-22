@@ -50,6 +50,7 @@
 #include "osn-simple-streaming.hpp"
 #include "osn-delay.hpp"
 #include "osn-reconnect.hpp"
+#include "osn-network.hpp"
 
 #include "util-crashmanager.h"
 #include "shared.hpp"
@@ -250,6 +251,7 @@ int main(int argc, char* argv[])
 	osn::ISimpleStreaming::Register(myServer);
 	osn::IDelay::Register(myServer);
 	osn::IReconnect::Register(myServer);
+	osn::INetwork::Register(myServer);
 
 	OBS_API::CreateCrashHandlerExitPipe();
 

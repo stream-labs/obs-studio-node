@@ -22,6 +22,7 @@
 #include "service.hpp"
 #include "delay.hpp"
 #include "reconnect.hpp"
+#include "network.hpp"
 
 // This is to import SignalInfo
 // Remove me when done
@@ -70,6 +71,10 @@ Napi::Object osn::SimpleStreaming::Init(Napi::Env env, Napi::Object exports) {
                 "reconnect",
                 &osn::SimpleStreaming::GetReconnect,
                 &osn::SimpleStreaming::SetReconnect),
+            InstanceAccessor(
+                "network",
+                &osn::SimpleStreaming::GetNetwork,
+                &osn::SimpleStreaming::SetNetwork),
 
 			InstanceMethod("start", &osn::SimpleStreaming::Start),
 			InstanceMethod("stop", &osn::SimpleStreaming::Stop)
@@ -362,6 +367,49 @@ void osn::SimpleStreaming::SetReconnect(const Napi::CallbackInfo& info, const Na
 		"SimpleStreaming",
 		"SetReconnect",
 		{ipc::value(this->uid), ipc::value(reconnect->uid)});
+}
+
+Napi::Value osn::SimpleStreaming::GetNetwork(const Napi::CallbackInfo& info) {
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
+
+	std::vector<ipc::value> response =
+		conn->call_synchronous_helper(
+			"SimpleStreaming",
+			"GetNetwork",
+			{ipc::value(this->uid)});
+
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
+
+	auto instance =
+		osn::Network::constructor.New({
+			Napi::Number::New(info.Env(), response[1].value_union.ui64)
+		});
+
+	return instance;
+}
+
+void osn::SimpleStreaming::SetNetwork(const Napi::CallbackInfo& info, const Napi::Value& value) {
+	osn::Network* network =
+		Napi::ObjectWrap<osn::Network>::Unwrap(value.ToObject());
+
+	if (!network) {
+		Napi::TypeError::New(
+			info.Env(),
+			"Invalid network argument").ThrowAsJavaScriptException();
+		return;
+	}
+
+	auto conn = GetConnection(info);
+	if (!conn)
+		return;
+
+	conn->call(
+		"SimpleStreaming",
+		"SetNetwork",
+		{ipc::value(this->uid), ipc::value(network->uid)});
 }
 
 Napi::Value osn::SimpleStreaming::GetSignalHandler(const Napi::CallbackInfo& info) {

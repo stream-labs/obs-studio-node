@@ -45,6 +45,7 @@
 #include "simple-streaming.hpp"
 #include "delay.hpp"
 #include "reconnect.hpp"
+#include "network.hpp"
 
 #if defined(_WIN32)
 // Checks ForceGPUAsRenderDevice setting
@@ -119,6 +120,7 @@ Napi::Object main_node(Napi::Env env, Napi::Object exports) {
 	osn::SimpleStreaming::Init(env, exports);
 	osn::Delay::Init(env, exports);
 	osn::Reconnect::Init(env, exports);
+	osn::Network::Init(env, exports);
 	return exports;
 };
 

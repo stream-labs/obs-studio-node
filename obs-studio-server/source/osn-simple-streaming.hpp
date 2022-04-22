@@ -22,6 +22,7 @@
 #include "utility.hpp"
 #include "osn-delay.hpp"
 #include "osn-reconnect.hpp"
+#include "osn-network.hpp"
 
 namespace osn
 {
@@ -53,6 +54,7 @@ namespace osn
 			};
 			delay = new Delay();
 			reconnect = new Reconnect();
+			network = new Network();
 		}
         ~SimpleStreaming() {}
 
@@ -67,6 +69,7 @@ namespace osn
 		std::vector<std::string> signals;
 		Delay* delay;
 		Reconnect* reconnect;
+		Network* network;
 
 		std::mutex signalsMtx;
 		std::queue<signalInfo> signalsReceived;
@@ -171,6 +174,16 @@ namespace osn
 		    const std::vector<ipc::value>& args,
 		    std::vector<ipc::value>&       rval);
 		static void SetReconnect(
+		    void*                          data,
+		    const int64_t                  id,
+		    const std::vector<ipc::value>& args,
+		    std::vector<ipc::value>&       rval);
+		static void GetNetwork(
+		    void*                          data,
+		    const int64_t                  id,
+		    const std::vector<ipc::value>& args,
+		    std::vector<ipc::value>&       rval);
+		static void SetNetwork(
 		    void*                          data,
 		    const int64_t                  id,
 		    const std::vector<ipc::value>& args,

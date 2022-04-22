@@ -258,6 +258,8 @@ SET(osn-server_SOURCES
 	"${PROJECT_SOURCE_DIR}/source/osn-delay.hpp"
 	"${PROJECT_SOURCE_DIR}/source/osn-reconnect.cpp"
 	"${PROJECT_SOURCE_DIR}/source/osn-reconnect.hpp"
+	"${PROJECT_SOURCE_DIR}/source/osn-network.cpp"
+	"${PROJECT_SOURCE_DIR}/source/osn-network.hpp"
 
 	###### utlity graphics ######
 	"${PROJECT_SOURCE_DIR}/source/gs-limits.h"

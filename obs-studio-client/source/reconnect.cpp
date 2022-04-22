@@ -16,7 +16,7 @@
 
 ******************************************************************************/
 
-#include "Reconnect.hpp"
+#include "reconnect.hpp"
 #include "utility.hpp"
 
 Napi::FunctionReference osn::Reconnect::constructor;

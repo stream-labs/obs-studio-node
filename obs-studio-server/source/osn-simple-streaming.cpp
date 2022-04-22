@@ -85,6 +85,14 @@ void osn::ISimpleStreaming::Register(ipc::server& srv)
         std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64},
         SetReconnect));
 	cls->register_function(std::make_shared<ipc::function>(
+	    "GetNetwork",
+        std::vector<ipc::type>{ipc::type::UInt64},
+        GetNetwork));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "SetNetwork",
+        std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64},
+        SetNetwork));
+	cls->register_function(std::make_shared<ipc::function>(
 	    "Start", std::vector<ipc::type>{ipc::type::UInt64}, Start));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "Stop", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32}, Stop));
@@ -392,6 +400,50 @@ void osn::ISimpleStreaming::SetReconnect(
 	AUTO_DEBUG;
 }
 
+void osn::ISimpleStreaming::GetNetwork(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	SimpleStreaming* simpleStreaming =
+		osn::ISimpleStreaming::Manager::GetInstance().find(args[0].value_union.ui64);
+	if (!simpleStreaming) {
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Streaming reference is not valid.");
+	}
+
+	uint64_t uid =
+        osn::INetwork::Manager::GetInstance().find(simpleStreaming->network);
+
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(uid));
+	AUTO_DEBUG;
+}
+
+void osn::ISimpleStreaming::SetNetwork(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	SimpleStreaming* simpleStreaming =
+		osn::ISimpleStreaming::Manager::GetInstance().find(args[0].value_union.ui64);
+	if (!simpleStreaming) {
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Simple streaming reference is not valid.");
+	}
+
+    Network* network =
+        osn::INetwork::Manager::GetInstance().find(args[1].value_union.ui64);
+	if (!network) {
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Network reference is not valid.");
+	}
+
+    simpleStreaming->network = network;
+
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
+}
+
 static inline obs_encoder_t* createAudioEncoder(uint32_t bitrate)
 {
 	obs_encoder_t* audioEncoder = nullptr;
@@ -508,7 +560,6 @@ void osn::ISimpleStreaming::Start(
 		simpleStreaming->delay->enabled ? uint32_t(simpleStreaming->delay->delaySec) : 0,
 		simpleStreaming->delay->preserveDelay ? OBS_OUTPUT_DELAY_PRESERVE : 0);
 
-	// Set network advanced settings
 	if (!simpleStreaming->reconnect) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Invalid reconnect.");
 	}
@@ -516,11 +567,26 @@ void osn::ISimpleStreaming::Start(
 		simpleStreaming->reconnect->enabled ?
 		simpleStreaming->reconnect->maxRetries :
 		0;
-
 	obs_output_set_reconnect_settings(
 		simpleStreaming->output,
 		maxReties,
 		simpleStreaming->reconnect->retryDelay);
+
+	if (!simpleStreaming->network) {
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Invalid network.");
+	}
+
+	obs_data_t* settings = obs_data_create();
+	obs_data_set_string(settings,
+		"bind_ip", simpleStreaming->network->bindIP.c_str());
+	obs_data_set_bool(settings,
+		"dyn_bitrate", simpleStreaming->network->enableDynamicBitrate);
+	obs_data_set_bool(settings,
+		"new_socket_loop_enabled", simpleStreaming->network->enableOptimizations);
+	obs_data_set_bool(settings,
+		"low_latency_mode_enabled", simpleStreaming->network->enableLowLatency);
+	obs_output_update(simpleStreaming->output, settings);
+	obs_data_release(settings);
 
 	obs_output_start(simpleStreaming->output);
 

@@ -255,6 +255,7 @@ export declare const ServiceFactory: IServiceFactory;
 export declare const StreamingFactory: IStreamingFactory;
 export declare const DelayFactory: IDelayFactory;
 export declare const ReconnectFactory: IReconnectFactory;
+export declare const NetworkFactory: INetworkFactory;
 export interface ISettings {
     [key: string]: any;
 }
@@ -735,6 +736,16 @@ export interface IReconnect {
 }
 export interface IReconnectFactory {
     create(): IReconnect;
+}
+export interface INetwork {
+    bindIP: string;
+    readonly networkInterfaces: string[];
+    dynamicBitrate: boolean;
+    enableOptimizations: boolean;
+    enableLowLatency: boolean;
+}
+export interface INetworkFactory {
+    create(): INetwork;
 }
 export declare const NodeObs: any;
 export {};

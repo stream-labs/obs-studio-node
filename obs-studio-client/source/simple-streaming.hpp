@@ -53,6 +53,8 @@ namespace osn
 		void SetDelay(const Napi::CallbackInfo& info, const Napi::Value& value);
 		Napi::Value GetReconnect(const Napi::CallbackInfo& info);
 		void SetReconnect(const Napi::CallbackInfo& info, const Napi::Value& value);
+		Napi::Value GetNetwork(const Napi::CallbackInfo& info);
+		void SetNetwork(const Napi::CallbackInfo& info, const Napi::Value& value);
 		Napi::Value GetSignalHandler(const Napi::CallbackInfo& info);
 		void SetSignalHandler(const Napi::CallbackInfo& info, const Napi::Value& value);
 		
