@@ -37,11 +37,16 @@ namespace osn
         public:
         SimpleStreaming() {
 			videoEncoder = nullptr;
+			audioEncoder = nullptr;
+			streamArchive = nullptr;
 			service = nullptr;
 			output = nullptr;
 			audioBitrate = 160;
 			enforceServiceBitrate = true;
 			enableTwitchVOD = false;
+			twitchVODSupported = false;
+			oldMixer_desktopSource1 = 0;
+			oldMixer_desktopSource2 = 0;
 			signals = {
 				"start",
 				"stop",
@@ -59,13 +64,17 @@ namespace osn
         ~SimpleStreaming() {}
 
         public:
-        obs_encoder_t* videoEncoder;
-        obs_encoder_t* audioEncoder;
+		obs_encoder_t* videoEncoder;
+		obs_encoder_t* audioEncoder;
+		obs_encoder_t* streamArchive;
 		obs_service_t* service;
 		obs_output_t* output;
-        bool enforceServiceBitrate;
-        bool enableTwitchVOD;
-        uint32_t audioBitrate;
+		bool enforceServiceBitrate;
+		bool enableTwitchVOD;
+		bool twitchVODSupported;
+		uint32_t oldMixer_desktopSource1;
+		uint32_t oldMixer_desktopSource2;
+		uint32_t audioBitrate;
 		std::vector<std::string> signals;
 		Delay* delay;
 		Reconnect* reconnect;
@@ -75,6 +84,9 @@ namespace osn
 		std::queue<signalInfo> signalsReceived;
 
 		void ConnectSignals();
+		bool isTwitchVODSupported();
+		void SetupTwitchSoundtrackAudio();
+		void StopTwitchSoundtrackAudio();
     };
 
 	struct cbData {

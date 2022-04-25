@@ -497,6 +497,106 @@ void osn::SimpleStreaming::ConnectSignals()
 	}
 }
 
+bool osn::SimpleStreaming::isTwitchVODSupported()
+{
+	if (!service)
+		return false;
+
+	obs_data_t *settings = obs_service_get_settings(service);
+	const char *serviceName = obs_data_get_string(settings, "service");
+	obs_data_release(settings);
+
+	if (serviceName && strcmp(serviceName, "Twitch") != 0)
+		return false;
+
+	bool sourceExists = false;
+	obs_enum_sources(
+		[](void *param, obs_source_t *source) {
+			auto id = obs_source_get_id(source);
+			if(strcmp(id, "soundtrack_source") == 0) {
+				*reinterpret_cast<bool *>(param) = true;
+				return false;
+			}
+			return true;
+		},
+		&sourceExists);
+
+	if (!sourceExists)
+		return false;
+}
+
+static constexpr int kSoundtrackArchiveEncoderIdx = 1;
+static constexpr int kSoundtrackArchiveTrackIdx = 5;
+
+static inline uint32_t setMixer(obs_source_t *source, const int mixerIdx, const bool checked)
+{
+	uint32_t mixers = obs_source_get_audio_mixers(source);
+	uint32_t new_mixers = mixers;
+	if(checked) {
+		new_mixers |= (1 << mixerIdx);
+	} else {
+		new_mixers &= ~(1 << mixerIdx);
+	}
+	obs_source_set_audio_mixers(source, new_mixers);
+	return mixers;
+}
+
+void osn::SimpleStreaming::SetupTwitchSoundtrackAudio()
+{
+	// These are magic ints provided by OBS for default sources:
+	// 0 is the main scene/transition which you'd see on the main preview,
+	// 1-2 are desktop audio 1 and 2 as you'd see in audio settings,
+	// 2-4 are mic/aux 1-3 as you'd see in audio settings
+	auto desktopSource1 = obs_get_output_source(1);
+	auto desktopSource2 = obs_get_output_source(2);
+
+	// Since our plugin duplicates all of the desktop sources, we want to ensure that both of the
+	// default desktop sources, provided by OBS, are not set to mix on our custom encoder track.
+	oldMixer_desktopSource1 = setMixer(
+		desktopSource1, kSoundtrackArchiveTrackIdx, false);
+	oldMixer_desktopSource2 = setMixer(
+		desktopSource2, kSoundtrackArchiveTrackIdx, false);
+
+	obs_source_release(desktopSource1);
+	obs_source_release(desktopSource2);
+
+	if (streamArchive && obs_encoder_active(streamArchive))
+		return;
+
+	if (!streamArchive) {
+		streamArchive = obs_audio_encoder_create("ffmpeg_aac",
+			"Soundtrack by Twitch Archive Encoder",
+			nullptr,
+			kSoundtrackArchiveTrackIdx,
+			nullptr);
+		obs_encoder_set_audio(streamArchive, obs_get_audio());
+	}
+
+	obs_output_set_audio_encoder(output, streamArchive, kSoundtrackArchiveEncoderIdx);
+
+	obs_data_t *settings = obs_data_create();
+	obs_data_set_int(settings, "bitrate", audioBitrate);
+	obs_encoder_update(streamArchive, settings);
+	obs_data_release(settings);
+}
+
+void osn::SimpleStreaming::StopTwitchSoundtrackAudio()
+{
+	if (streamArchive) {
+		obs_encoder_release(streamArchive);
+		streamArchive = nullptr;
+	}
+
+	auto desktopSource1 = obs_get_output_source(1);
+	auto desktopSource2 = obs_get_output_source(2);
+
+	obs_source_set_audio_mixers(desktopSource1, oldMixer_desktopSource1);
+	obs_source_set_audio_mixers(desktopSource2, oldMixer_desktopSource2);
+
+	obs_source_release(desktopSource1);
+	obs_source_release(desktopSource2);
+}
+
 void osn::ISimpleStreaming::Start(
     void*                          data,
     const int64_t                  id,
@@ -549,6 +649,12 @@ void osn::ISimpleStreaming::Start(
 	obs_output_set_audio_encoder(simpleStreaming->output, simpleStreaming->audioEncoder, 0);
 	obs_encoder_set_video(simpleStreaming->videoEncoder, obs_get_video());
 	obs_output_set_video_encoder(simpleStreaming->output, simpleStreaming->videoEncoder);
+
+	if (simpleStreaming->enableTwitchVOD) {
+		simpleStreaming->twitchVODSupported = simpleStreaming->isTwitchVODSupported();
+		if (simpleStreaming->twitchVODSupported)
+			simpleStreaming->SetupTwitchSoundtrackAudio();
+	}
 
 	obs_output_set_service(simpleStreaming->output, simpleStreaming->service);
 
