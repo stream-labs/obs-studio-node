@@ -174,6 +174,11 @@ if(WIN32)
 	)
 endif()
 
+# Compare current linked libs with prev
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+	COMMAND ${CMAKE_SOURCE_DIR}/dependency_checker/check_dependencies.cmd $<TARGET_FILE:obs_studio_client> ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
 IF( NOT CLANG_ANALYZE_CONFIG)
 	cppcheck_add_project(${PROJECT_NAME})
 ENDIF()
