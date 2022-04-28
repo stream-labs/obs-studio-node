@@ -9,6 +9,12 @@ For %%A in ("%BinaryFilename%") do (
   Set BinaryName=%%~nxA
   Set depsFile=%3/dependencies/%%~nxA.txt
   Set depsCurrent=%2/%%~nxA
+  Set BuildType=%4
+)
+
+IF "%BuildType%" == "Debug" ( 
+  powershell -command "Write-Host 'Skip dependecy check for Debug configuration'"
+  exit 0
 )
 
 rem ##################
