@@ -72,68 +72,48 @@ describe(testName, function() {
 
     it('Get and set stream settings', function() {
         let availableServices: string[] = [];
-        let settings = obs.getSettingsContainer(EOBSSettingsCategories.Stream);
+        const serviceObj = osn.ServiceFactory.serviceContext;
 
-        // Getting available services
-        settings[1].parameters.forEach(parameter => {
-            if (parameter.name === 'service') {
-                parameter.values.forEach(serviceObject => {
-                    const service = serviceObject[Object.keys(serviceObject)[0]];
-                    availableServices.push(service);
-                });
+        {
+            const props = serviceObj.properties;
+            let prop: any = props.first();
+            while (prop) {
+                if (prop.name === 'service') {
+                    for (let item of prop.details.items)
+                        availableServices.push(item.name);
+                    break;
+                }
+                prop = prop.next();
             }
-        });
+        }
 
         // Changing stream settings of all services available
         availableServices.forEach(service => {
-            obs.setSetting(EOBSSettingsCategories.Stream, 'service', service);
+            serviceObj.update({ service: service });
+            const settings = serviceObj.settings;
 
-            // Getting stream settings container
-            let streamSettings = obs.getSettingsContainer(EOBSSettingsCategories.Stream);
+            expect(settings.service).to.equal(service, GetErrorMessage(ETestErrorMsg.SingleStreamSetting, service));
+            settings.key = '123test';
 
-            // Changing stream settings values
-            streamSettings.forEach(subCategory => {
-                subCategory.parameters.forEach(parameter => {
-                    switch(parameter.name) {
-                        case 'service': {
-                            expect(parameter.currentValue).to.equal(service, GetErrorMessage(ETestErrorMsg.SingleStreamSetting, parameter.name));
-                            break;
-                        }
-                        case 'server': {
-                            const value = parameter.values[0];
-                            parameter.currentValue = value[Object.keys(value)[0]];
-                            break;
-                        }
-                        case 'key': {
-                            parameter.currentValue = '123test';
-                            break;
-                        }
-                    }
-                });
-            });
+            const props = serviceObj.properties;
+            let servers = [];
+            let prop: any = props.first();
+            while (prop) {
+                if (prop.name === 'server') {
+                    servers = prop.details.items;
+                    break;
+                }
+                prop = prop.next();
+            }
 
-            // Setting the updated Twitch stream settings
-            obs.setSettingsContainer(EOBSSettingsCategories.Stream, streamSettings);
+            settings.server = servers[0].value;
+            serviceObj.update(settings);
 
-            // Checking if stream settings were updated correctly
-            const updatedStreamSettings = obs.getSettingsContainer(EOBSSettingsCategories.Stream);
-            let index_sc = 0;
-            streamSettings.forEach(subCategory => {
-                subCategory.parameters.forEach(parameter => {
-                    let found = false;
-                    let index_p = -1;
-                    while(!found && index_p < updatedStreamSettings[index_sc].parameters.length) {
-                        index_p++;
-                        found = parameter.name === updatedStreamSettings[index_sc].parameters[index_p].name;
-                    }
-                    let updatedCurVal = updatedStreamSettings[index_sc].parameters[index_p].currentValue;
-                    if (updatedCurVal[updatedCurVal.length-1] == '/') {
-                        updatedCurVal = updatedCurVal.substring(0, updatedCurVal.length-1);
-                    }
-                    expect(parameter.currentValue).to.equal(updatedCurVal);
-                });
-                index_sc++;
-            });
+            const updatedSettings = serviceObj.settings;
+
+            expect(settings.service).to.equal(updatedSettings.service, GetErrorMessage(ETestErrorMsg.SingleStreamSetting, updatedSettings.service));
+            expect(settings.key).to.equal(updatedSettings.key, GetErrorMessage(ETestErrorMsg.SingleStreamSetting, updatedSettings.key));
+            expect(settings.server).to.equal(updatedSettings.server, GetErrorMessage(ETestErrorMsg.SingleStreamSetting, updatedSettings.server));
         });
     });
 

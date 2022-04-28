@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.NodeObs = exports.getSourcesSize = exports.createSources = exports.addItems = exports.ServiceFactory = exports.IPC = exports.ModuleFactory = exports.FaderFactory = exports.VolmeterFactory = exports.DisplayFactory = exports.TransitionFactory = exports.FilterFactory = exports.SceneFactory = exports.InputFactory = exports.Video = exports.Global = exports.DefaultPluginDataPath = exports.DefaultPluginPath = exports.DefaultDataPath = exports.DefaultBinPath = exports.DefaultDrawPluginPath = exports.DefaultOpenGLPath = exports.DefaultD3D11Path = void 0;
 const obs = require('./obs_studio_client.node');
 const path = require("path");
 const fs = require("fs");
@@ -10,12 +11,8 @@ exports.DefaultBinPath = path.resolve(__dirname);
 exports.DefaultDataPath = path.resolve(__dirname, `data`);
 exports.DefaultPluginPath = path.resolve(__dirname, `obs-plugins`);
 exports.DefaultPluginDataPath = path.resolve(__dirname, `data/obs-plugins/%module%`);
-;
 exports.Global = obs.Global;
-exports.OutputFactory = obs.Output;
-exports.AudioEncoderFactory = obs.AudioEncoder;
-exports.VideoEncoderFactory = obs.VideoEncoder;
-exports.ServiceFactory = obs.Service;
+exports.Video = obs.Video;
 exports.InputFactory = obs.Input;
 exports.SceneFactory = obs.Scene;
 exports.FilterFactory = obs.Filter;
@@ -23,14 +20,9 @@ exports.TransitionFactory = obs.Transition;
 exports.DisplayFactory = obs.Display;
 exports.VolmeterFactory = obs.Volmeter;
 exports.FaderFactory = obs.Fader;
-exports.AudioFactory = obs.Audio;
-exports.Video = obs.Video;
 exports.ModuleFactory = obs.Module;
 exports.IPC = obs.IPC;
-var EDelayFlags;
-(function (EDelayFlags) {
-    EDelayFlags[EDelayFlags["PreserveDelay"] = 1] = "PreserveDelay";
-})(EDelayFlags = exports.EDelayFlags || (exports.EDelayFlags = {}));
+exports.ServiceFactory = obs.Service;
 ;
 ;
 ;
@@ -56,7 +48,7 @@ function createSources(sources) {
                 newSource.muted = (source.muted != null) ? source.muted : false;
                 newSource.volume = (source.volume != null) ? source.volume : 1;
                 newSource.syncOffset =
-                (source.syncOffset != null) ? source.syncOffset : {sec: 0, nsec: 0};
+                    (source.syncOffset != null) ? source.syncOffset : { sec: 0, nsec: 0 };
             }
             items.push(newSource);
             const filters = source.filters;

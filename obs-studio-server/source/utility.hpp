@@ -22,6 +22,8 @@
 #include <list>
 #include <map>
 #include <mutex>
+#include <obs.h>
+#include <ipc-server.hpp>
 
 #if defined(_MSC_VER)
 #define __PRETTY_FUNCTION__ __FUNCSIG__
@@ -262,4 +264,10 @@ namespace utility
             object_map.clear();
         }
 	};
+
+	void ProcessProperties(
+		obs_properties_t*              prp,
+		obs_data*                      settings,
+		bool&                          updateSource,
+		std::vector<ipc::value>&       rval);
 } // namespace utility

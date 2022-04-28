@@ -641,3 +641,195 @@ Napi::Value osn::PropertyObject::ButtonClicked(const Napi::CallbackInfo& info)
 
 	return Napi::Boolean::New(info.Env(), true);
 }
+
+osn::property_map_t osn::ProcessProperties(const std::vector<ipc::value> data, size_t index)
+{
+	osn::property_map_t pmap;
+	for (size_t idx = index; idx < data.size(); ++idx) {
+		auto raw_property = obs::Property::deserialize(data[idx].value_bin);
+
+		std::shared_ptr<osn::Property> pr;
+
+		switch (raw_property->type()) {
+		case obs::Property::Type::Boolean: {
+			std::shared_ptr<obs::BooleanProperty> cast_property =
+			    std::dynamic_pointer_cast<obs::BooleanProperty>(raw_property);
+			std::shared_ptr<osn::NumberProperty> pr2 = std::make_shared<osn::NumberProperty>();
+			pr2->bool_value.value                    = cast_property->value;
+			pr                                       = std::static_pointer_cast<osn::Property>(pr2);
+			break;
+		}
+		case obs::Property::Type::Integer: {
+			std::shared_ptr<obs::IntegerProperty> cast_property =
+			    std::dynamic_pointer_cast<obs::IntegerProperty>(raw_property);
+			std::shared_ptr<osn::NumberProperty> pr2 = std::make_shared<osn::NumberProperty>();
+			pr2->field_type                          = osn::NumberProperty::Type(cast_property->field_type);
+			pr2->int_value.min                       = cast_property->minimum;
+			pr2->int_value.max                       = cast_property->maximum;
+			pr2->int_value.step                      = cast_property->step;
+			pr2->int_value.value                     = cast_property->value;
+			pr                                       = std::static_pointer_cast<osn::Property>(pr2);
+			break;
+		}
+		case obs::Property::Type::Color: {
+			std::shared_ptr<obs::ColorProperty> cast_property =
+			    std::dynamic_pointer_cast<obs::ColorProperty>(raw_property);
+			std::shared_ptr<osn::NumberProperty> pr2 = std::make_shared<osn::NumberProperty>();
+			pr2->field_type                          = osn::NumberProperty::Type(cast_property->field_type);
+			pr2->int_value.value                     = cast_property->value;
+			pr                                       = std::static_pointer_cast<osn::Property>(pr2);
+			break;
+		}
+		case obs::Property::Type::Capture: {
+			std::shared_ptr<obs::CaptureProperty> cast_property =
+			    std::dynamic_pointer_cast<obs::CaptureProperty>(raw_property);
+			std::shared_ptr<osn::NumberProperty> pr2 = std::make_shared<osn::NumberProperty>();
+			pr2->field_type                          = osn::NumberProperty::Type(cast_property->field_type);
+			pr2->int_value.value                     = cast_property->value;
+			pr                                       = std::static_pointer_cast<osn::Property>(pr2);
+			break;
+		}
+		case obs::Property::Type::Float: {
+			std::shared_ptr<obs::FloatProperty> cast_property =
+			    std::dynamic_pointer_cast<obs::FloatProperty>(raw_property);
+			std::shared_ptr<osn::NumberProperty> pr2 = std::make_shared<osn::NumberProperty>();
+			pr2->field_type                          = osn::NumberProperty::Type(cast_property->field_type);
+			pr2->float_value.min                     = cast_property->minimum;
+			pr2->float_value.max                     = cast_property->maximum;
+			pr2->float_value.step                    = cast_property->step;
+			pr2->float_value.value                   = cast_property->value;
+			pr                                       = std::static_pointer_cast<osn::Property>(pr2);
+			break;
+		}
+		case obs::Property::Type::Text: {
+			std::shared_ptr<obs::TextProperty> cast_property =
+			    std::dynamic_pointer_cast<obs::TextProperty>(raw_property);
+			std::shared_ptr<osn::TextProperty> pr2 = std::make_shared<osn::TextProperty>();
+			pr2->field_type                        = osn::TextProperty::Type(cast_property->field_type);
+			pr2->value                             = cast_property->value;
+			pr                                     = std::static_pointer_cast<osn::Property>(pr2);
+			break;
+		}
+		case obs::Property::Type::Path: {
+			std::shared_ptr<obs::PathProperty> cast_property =
+			    std::dynamic_pointer_cast<obs::PathProperty>(raw_property);
+			std::shared_ptr<osn::PathProperty> pr2 = std::make_shared<osn::PathProperty>();
+			pr2->field_type                        = osn::PathProperty::Type(cast_property->field_type);
+			pr2->filter                            = cast_property->filter;
+			pr2->default_path                      = cast_property->default_path;
+			pr2->value                             = cast_property->value;
+			pr                                     = std::static_pointer_cast<osn::Property>(pr2);
+			break;
+		}
+		case obs::Property::Type::List: {
+			std::shared_ptr<obs::ListProperty> cast_property =
+			    std::dynamic_pointer_cast<obs::ListProperty>(raw_property);
+			std::shared_ptr<osn::ListProperty> pr2 = std::make_shared<osn::ListProperty>();
+			pr2->field_type                        = osn::ListProperty::Type(cast_property->field_type);
+			pr2->item_format                       = osn::ListProperty::Format(cast_property->format);
+
+			switch (cast_property->format) {
+			case obs::ListProperty::Format::Integer:
+				pr2->current_value_int = cast_property->current_value_int;
+				break;
+			case obs::ListProperty::Format::Float:
+				pr2->current_value_float = cast_property->current_value_float;
+				break;
+			case obs::ListProperty::Format::String:
+				pr2->current_value_str = cast_property->current_value_str;
+				break;
+			}
+
+			for (auto& item : cast_property->items) {
+				osn::ListProperty::Item item2;
+				item2.name     = item.name;
+				item2.disabled = !item.enabled;
+				switch (cast_property->format) {
+				case obs::ListProperty::Format::Integer:
+					item2.value_int = item.value_int;
+					break;
+				case obs::ListProperty::Format::Float:
+					item2.value_float = item.value_float;
+					break;
+				case obs::ListProperty::Format::String:
+					item2.value_str = item.value_string;
+					break;
+				}
+				pr2->items.push_back(std::move(item2));
+			}
+			pr = std::static_pointer_cast<osn::Property>(pr2);
+			break;
+		}
+		case obs::Property::Type::Font: {
+			std::shared_ptr<obs::FontProperty> cast_property =
+			    std::dynamic_pointer_cast<obs::FontProperty>(raw_property);
+			std::shared_ptr<osn::FontProperty> pr2 = std::make_shared<osn::FontProperty>();
+			pr2->face                              = cast_property->face;
+			pr2->style                             = cast_property->style;
+			pr2->path                              = cast_property->path;
+			pr2->sizeF                             = cast_property->sizeF;
+			pr2->flags                             = cast_property->flags;
+			pr                                     = std::static_pointer_cast<osn::Property>(pr2);
+			break;
+		}
+		case obs::Property::Type::EditableList: {
+			std::shared_ptr<obs::EditableListProperty> cast_property =
+			    std::dynamic_pointer_cast<obs::EditableListProperty>(raw_property);
+			std::shared_ptr<osn::EditableListProperty> pr2 = std::make_shared<osn::EditableListProperty>();
+			pr2->field_type                                = osn::EditableListProperty::Type(cast_property->field_type);
+			pr2->filter                                    = cast_property->filter;
+			pr2->default_path                              = cast_property->default_path;
+
+			for (auto& item : cast_property->values) {
+				pr2->values.push_back(item);
+			}
+			pr = std::static_pointer_cast<osn::Property>(pr2);
+			break;
+		}
+		case obs::Property::Type::FrameRate: {
+			std::shared_ptr<obs::FrameRateProperty> cast_property =
+			    std::dynamic_pointer_cast<obs::FrameRateProperty>(raw_property);
+			std::shared_ptr<osn::ListProperty> pr2 = std::make_shared<osn::ListProperty>();
+			pr2->field_type                        = osn::ListProperty::Type::LIST;
+			pr2->item_format                       = osn::ListProperty::Format::STRING;
+
+			nlohmann::json fps;
+			fps["numerator"] = cast_property->current_numerator;
+			fps["denominator"] = cast_property->current_denominator;
+			pr2->current_value_str = fps.dump();
+
+			for (auto& option : cast_property->ranges) {
+				nlohmann::json fps;
+				fps["numerator"] = option.maximum.first;
+				fps["denominator"] = option.maximum.second;
+				osn::ListProperty::Item item2;
+				item2.name     = std::to_string(option.maximum.first / option.maximum.second);
+				item2.disabled = false;
+				item2.value_str = fps.dump();
+				pr2->items.push_back(std::move(item2));
+			}
+
+			pr = std::static_pointer_cast<osn::Property>(pr2);
+			break;
+		}
+		default: {
+			pr = std::make_shared<osn::Property>();
+			break;
+		}
+		}
+
+		if (pr) {
+			pr->name             = raw_property->name;
+			pr->description      = raw_property->description;
+			pr->long_description = raw_property->long_description;
+			pr->type             = osn::Property::Type(raw_property->type());
+			if (pr->type == osn::Property::Type::FRAMERATE)
+				pr->type = osn::Property::Type::LIST;
+			pr->enabled          = raw_property->enabled;
+			pr->visible          = raw_property->visible;
+
+			pmap.emplace(idx - 1, pr);
+		}
+	}
+	return pmap;
+}
