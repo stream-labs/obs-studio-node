@@ -61,6 +61,7 @@ namespace service
 	Napi::Value OBS_service_removeCallback(const Napi::CallbackInfo& info);
 	Napi::Value OBS_service_processReplayBufferHotkey(const Napi::CallbackInfo& info);
 	Napi::Value OBS_service_getLastReplay(const Napi::CallbackInfo& info);
+	Napi::Value OBS_service_getLastRecording(const Napi::CallbackInfo& info);
 
 	Napi::Value OBS_service_createVirtualWebcam(const Napi::CallbackInfo& info);
 	Napi::Value OBS_service_removeVirtualWebcam(const Napi::CallbackInfo& info);
