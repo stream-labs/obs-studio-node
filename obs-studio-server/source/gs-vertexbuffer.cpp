@@ -28,39 +28,18 @@ extern "C" {
 
 GS::VertexBuffer::~VertexBuffer()
 {
-	if (m_positions) {
-		util::free_aligned(m_positions);
-		m_positions = nullptr;
-	}
-	if (m_normals) {
-		util::free_aligned(m_normals);
-		m_normals = nullptr;
-	}
-	if (m_tangents) {
-		util::free_aligned(m_tangents);
-		m_tangents = nullptr;
-	}
-	if (m_colors) {
-		util::free_aligned(m_colors);
-		m_colors = nullptr;
-	}
+	m_positions = nullptr;
+	m_normals = nullptr;
+	m_tangents = nullptr;
+	m_colors = nullptr;
+
 	for (size_t n = 0; n < MAXIMUM_UVW_LAYERS; n++) {
 		if (m_uvs[n]) {
-			util::free_aligned(m_uvs[n]);
 			m_uvs[n] = nullptr;
 		}
 	}
-	if (m_layerdata) {
-		util::free_aligned(m_layerdata);
-		m_layerdata = nullptr;
-	}
-	if (m_vertexbufferdata) {
-		memset(m_vertexbufferdata, 0, sizeof(gs_vb_data));
-		if (!m_vertexbuffer) {
-			gs_vbdata_destroy(m_vertexbufferdata);
-			m_vertexbufferdata = nullptr;
-		}
-	}
+	m_layerdata = nullptr;
+
 	if (m_vertexbuffer) {
 		obs_enter_graphics();
 		gs_vertexbuffer_destroy(m_vertexbuffer);
@@ -157,39 +136,6 @@ void GS::VertexBuffer::operator=(VertexBuffer const&& other)
 {
 	// Move Assignment
 	/// First self-destruct (semi-destruct itself).
-	if (m_positions) {
-		util::free_aligned(m_positions);
-		m_positions = nullptr;
-	}
-	if (m_normals) {
-		util::free_aligned(m_normals);
-		m_normals = nullptr;
-	}
-	if (m_tangents) {
-		util::free_aligned(m_tangents);
-		m_tangents = nullptr;
-	}
-	if (m_colors) {
-		util::free_aligned(m_colors);
-		m_colors = nullptr;
-	}
-	for (size_t n = 0; n < MAXIMUM_UVW_LAYERS; n++) {
-		if (m_uvs[n]) {
-			util::free_aligned(m_uvs[n]);
-			m_uvs[n] = nullptr;
-		}
-	}
-	if (m_layerdata) {
-		util::free_aligned(m_layerdata);
-		m_layerdata = nullptr;
-	}
-	if (m_vertexbufferdata) {
-		memset(m_vertexbufferdata, 0, sizeof(gs_vb_data));
-		if (!m_vertexbuffer) {
-			gs_vbdata_destroy(m_vertexbufferdata);
-			m_vertexbufferdata = nullptr;
-		}
-	}
 	if (m_vertexbuffer) {
 		obs_enter_graphics();
 		gs_vertexbuffer_destroy(m_vertexbuffer);
@@ -344,19 +290,19 @@ void GS::VertexBuffer::SetupVertexBuffer(uint32_t maximumVertices)
 	// Allocate memory for data.
 	m_vertexbufferdata         = gs_vbdata_create();
 	m_vertexbufferdata->num    = m_capacity;
-	m_vertexbufferdata->points = m_positions = (vec3*)util::malloc_aligned(16, sizeof(vec3) * m_capacity);
+	m_vertexbufferdata->points = m_positions = (vec3*)bmalloc(sizeof(vec3) * m_capacity);
 	memset(m_positions, 0, sizeof(vec3) * m_capacity);
-	m_vertexbufferdata->normals = m_normals = (vec3*)util::malloc_aligned(16, sizeof(vec3) * m_capacity);
+	m_vertexbufferdata->normals = m_normals = (vec3*)bmalloc(sizeof(vec3) * m_capacity);
 	memset(m_normals, 0, sizeof(vec3) * m_capacity);
-	m_vertexbufferdata->tangents = m_tangents = (vec3*)util::malloc_aligned(16, sizeof(vec3) * m_capacity);
+	m_vertexbufferdata->tangents = m_tangents = (vec3*)bmalloc(sizeof(vec3) * m_capacity);
 	memset(m_tangents, 0, sizeof(vec3) * m_capacity);
-	m_vertexbufferdata->colors = m_colors = (uint32_t*)util::malloc_aligned(16, sizeof(uint32_t) * m_capacity);
+	m_vertexbufferdata->colors = m_colors = (uint32_t*)bmalloc(sizeof(uint32_t) * m_capacity);
 	memset(m_colors, 0, sizeof(uint32_t) * m_capacity);
 	m_vertexbufferdata->num_tex = m_layers;
 	m_vertexbufferdata->tvarray = m_layerdata =
-	    (gs_tvertarray*)util::malloc_aligned(16, sizeof(gs_tvertarray) * m_layers);
+	    (gs_tvertarray*)bmalloc(sizeof(gs_tvertarray) * m_layers);
 	for (size_t n = 0; n < MAXIMUM_UVW_LAYERS; n++) {
-		m_layerdata[n].array = m_uvs[n] = (vec4*)util::malloc_aligned(16, sizeof(vec4) * m_capacity);
+		m_layerdata[n].array = m_uvs[n] = (vec4*)bmalloc(sizeof(vec4) * m_capacity);
 		m_layerdata[n].width            = 4;
 		memset(m_uvs[n], 0, sizeof(vec4) * m_capacity);
 	}
@@ -364,8 +310,5 @@ void GS::VertexBuffer::SetupVertexBuffer(uint32_t maximumVertices)
 	// Allocate GPU
 	obs_enter_graphics();
 	m_vertexbuffer = gs_vertexbuffer_create(m_vertexbufferdata, GS_DYNAMIC);
-	memset(m_vertexbufferdata, 0, sizeof(gs_vb_data));
-	m_vertexbufferdata->num     = m_capacity;
-	m_vertexbufferdata->num_tex = m_layers;
 	obs_leave_graphics();
 }
