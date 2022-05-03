@@ -1452,6 +1452,7 @@ void OBS_API::destroyOBS_API(void)
 	autoConfig::WaitPendingTests();
 
 	OBS_service::stopAllOutputs();
+	OBS_service::waitReleaseWorker();
 
 	obs_encoder_t* streamingEncoder = OBS_service::getStreamingEncoder();
 	if (streamingEncoder != NULL)
@@ -1497,10 +1498,11 @@ void OBS_API::destroyOBS_API(void)
 	if (service != NULL)
 		obs_service_release(service);
 
-    OBS_service::waitReleaseWorker();
     OBS_service::clearAudioEncoder();
     osn::Volmeter::ClearVolmeters();
     osn::Fader::ClearFaders();
+
+	obs_wait_for_destroy_queue();
 
 	// Check if the frontend was able to shutdown correctly:
 	// If there are some sources here it's because it ended unexpectedly, this represents a 

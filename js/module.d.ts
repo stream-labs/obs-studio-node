@@ -141,10 +141,6 @@ export declare const enum ESourceType {
     Transition = 2,
     Scene = 3
 }
-export declare const enum EEncoderType {
-    Audio = 0,
-    Video = 1
-}
 export declare const enum EFaderType {
     Cubic = 0,
     IEC = 1,
@@ -169,13 +165,6 @@ export declare const enum EColorFormat {
     DXT1 = 15,
     DXT3 = 16,
     DXT5 = 17
-}
-export declare const enum EZStencilFormat {
-    None = 0,
-    Z16 = 1,
-    Z24_S8 = 2,
-    Z32F = 3,
-    Z32F_S8X24 = 4
 }
 export declare const enum EScaleType {
     Default = 0,
@@ -237,15 +226,6 @@ export declare const enum ESpeakerLayout {
     SevenOneSurround = 9,
     Surround = 10
 }
-export declare const enum ESceneSignalType {
-    ItemAdd = 0,
-    ItemRemove = 1,
-    Reorder = 2,
-    ItemVisible = 3,
-    ItemSelect = 4,
-    ItemDeselect = 5,
-    ItemTransform = 6
-}
 export declare const enum EOutputCode {
     Success = 0,
     BadPath = -1,
@@ -267,12 +247,15 @@ export declare const enum ERenderingMode {
     OBS_STREAMING_RENDERING = 1,
     OBS_RECORDING_RENDERING = 2
 }
+export declare const enum EIPCError {
+    STILL_RUNNING = 259,
+    VERSION_MISMATCH = 252,
+    OTHER_ERROR = 253,
+    MISSING_DEPENDENCY = 254,
+    NORMAL_EXIT = 0
+}
 export declare const Global: IGlobal;
 export declare const Video: IVideo;
-export declare const OutputFactory: IOutputFactory;
-export declare const AudioEncoderFactory: IAudioEncoderFactory;
-export declare const VideoEncoderFactory: IVideoEncoderFactory;
-export declare const ServiceFactory: IServiceFactory;
 export declare const InputFactory: IInputFactory;
 export declare const SceneFactory: ISceneFactory;
 export declare const FilterFactory: IFilterFactory;
@@ -280,9 +263,9 @@ export declare const TransitionFactory: ITransitionFactory;
 export declare const DisplayFactory: IDisplayFactory;
 export declare const VolmeterFactory: IVolmeterFactory;
 export declare const FaderFactory: IFaderFactory;
-export declare const AudioFactory: IAudioFactory;
 export declare const ModuleFactory: IModuleFactory;
 export declare const IPC: IIPC;
+export declare const ServiceFactory: IServiceFactory;
 export interface ISettings {
     [key: string]: any;
 }
@@ -309,20 +292,10 @@ export interface ICropInfo {
     readonly top: number;
     readonly bottom: number;
 }
-export interface IAudioInfo {
-    readonly samplesPerSec: number;
-    readonly speakerLayout: ESpeakerLayout;
-}
-export interface IDisplayInit {
-    width: number;
-    height: number;
-    format: EColorFormat;
-    zsformat: EZStencilFormat;
-}
 export interface IIPC {
     setServerPath(binaryPath: string, workingDirectoryPath?: string): void;
     connect(uri: string): void;
-    host(uri: string): void;
+    host(uri: string): EIPCError;
     disconnect(): void;
 }
 export interface IGlobal {
@@ -413,70 +386,6 @@ export interface IFactoryTypes {
 }
 export interface IReleasable {
     release(): void;
-}
-export interface IEncoder extends IConfigurable, IReleasable {
-    name: string;
-    readonly id: string;
-    readonly type: EEncoderType;
-    readonly caps: number;
-    readonly codec: string;
-    readonly active: boolean;
-}
-export interface IVideoEncoderFactory extends IFactoryTypes {
-    create(id: string, name: string, settings?: ISettings, hotkeys?: ISettings): IVideoEncoder;
-    fromName(name: string): IVideoEncoder;
-}
-export interface IVideoEncoder extends IEncoder {
-    setVideo(video: IVideo): void;
-    getVideo(): IVideo;
-    getHeight(): number;
-    getWidth(): number;
-    setScaledSize(width: number, height: number): void;
-    setPreferredFormat(format: EVideoFormat): void;
-    getPreferredFormat(): EVideoFormat;
-}
-export interface IAudioEncoderFactory extends IFactoryTypes {
-    create(id: string, name: string, settings?: ISettings, track?: number, hotkeys?: ISettings): IAudioEncoder;
-    fromName(name: string): IAudioEncoder;
-}
-export interface IAudioEncoder extends IEncoder {
-    setAudio(video: IAudio): void;
-    getAudio(): IAudio;
-    getSampleRate(): number;
-}
-export interface IOutput extends IConfigurable, IReleasable {
-    setMedia(video: IVideo, audio: IAudio): void;
-    getVideo(): IVideo;
-    getAudio(): IAudio;
-    mixer: number;
-    getVideoEncoder(): IVideoEncoder;
-    setVideoEncoder(encoder: IVideoEncoder): void;
-    getAudioEncoder(idx: number): IAudioEncoder;
-    setAudioEncoder(encoder: IAudioEncoder, idx: number): void;
-    service: IService;
-    setReconnectOptions(retry_count: number, retry_sec: number): void;
-    setPreferredSize(width: number, height: number): void;
-    readonly width: number;
-    readonly height: number;
-    readonly congestion: number;
-    readonly connectTime: number;
-    readonly reconnecting: boolean;
-    readonly supportedVideoCodecs: string[];
-    readonly supportedAudioCodecs: string[];
-    readonly framesDropped: number;
-    readonly totalFrames: number;
-    start(): void;
-    stop(): void;
-    setDelay(ms: number, flags: EDelayFlags): void;
-    getDelay(): void;
-    getActiveDelay(): void;
-}
-export interface IOutputFactory extends IFactoryTypes {
-    create(id: string, name: string, settings?: ISettings, hotkeys?: ISettings): IOutput;
-    fromName(name: string): IOutput;
-}
-export declare enum EDelayFlags {
-    PreserveDelay = 1
 }
 export interface IFilterFactory extends IFactoryTypes {
     create(id: string, name: string, settings?: ISettings): IFilter;
@@ -574,8 +483,6 @@ export interface IScene extends ISource {
     findItem(id: string | number): ISceneItem;
     getItemAtIdx(idx: number): ISceneItem;
     getItems(): ISceneItem[];
-    connect(sigType: ESceneSignalType, cb: (info: ISettings) => void): ICallbackData;
-    disconnect(data: ICallbackData): void;
 }
 export interface ISceneItem {
     readonly source: IInput;
@@ -695,12 +602,6 @@ export interface IVideo {
     readonly skippedFrames: number;
     readonly encodedFrames: number;
     videoContext: VideoContext;
-}
-export interface IAudio {
-}
-export interface IAudioFactory {
-    reset(info: IAudioInfo): boolean;
-    getGlobal(): IAudio;
 }
 export interface IModuleFactory extends IFactoryTypes {
     open(binPath: string, dataPath: string): IModule;
