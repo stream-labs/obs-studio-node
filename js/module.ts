@@ -1190,7 +1190,7 @@ export interface ISource extends IConfigurable, IReleasable {
      * Function to get latest version of settings
 	 * Expensive, shouldn't be used unless sure
      */
-    slowUncachedSettings(): ISettings;
+    readonly slowUncachedSettings: ISettings;
 }
 
 export interface IFaderFactory {

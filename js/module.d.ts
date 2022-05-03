@@ -531,7 +531,7 @@ export interface ISource extends IConfigurable, IReleasable {
     flags: ESourceFlags;
     muted: boolean;
     enabled: boolean;
-    slowUncachedSettings(): ISettings;
+    readonly slowUncachedSettings: ISettings;
 }
 export interface IFaderFactory {
     create(type: EFaderType): IFader;
