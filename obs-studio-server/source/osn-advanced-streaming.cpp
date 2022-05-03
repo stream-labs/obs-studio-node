@@ -354,7 +354,7 @@ static inline obs_encoder_t* createAudioEncoder(uint32_t bitrate)
 
 
 static inline bool setAudioEncoder(osn::Streaming* streaming)
-	{
+{
 	osn::AudioTrack* audioTrack =
 		osn::IAudioTrack::audioTracks[streaming->audioTrack];
 	if (!audioTrack)
@@ -420,8 +420,13 @@ static inline void SetupTwitchSoundtrackAudio(osn::Streaming* streaming)
 		streaming->output,
 		streaming->streamArchive, kSoundtrackArchiveEncoderIdx);
 
+	osn::AudioTrack* audioTrack =
+		osn::IAudioTrack::audioTracks[streaming->twitchTrack];
+	if (!audioTrack)
+		return;
+
 	obs_data_t *settings = obs_data_create();
-	obs_data_set_int(settings, "bitrate", streaming->audioBitrate);
+	obs_data_set_int(settings, "bitrate", audioTrack->bitrate);
 	obs_encoder_update(streaming->streamArchive, settings);
 	obs_data_release(settings);
 }
@@ -508,12 +513,12 @@ void osn::IAdvancedStreaming::Start(
 	obs_encoder_set_video(streaming->videoEncoder, obs_get_video());
 	obs_output_set_video_encoder(streaming->output, streaming->videoEncoder);
 
-	// if (streaming->enableTwitchVOD) {
-	// 	streaming->twitchVODSupported =
-	// 		streaming->isTwitchVODSupported();
-	// 	if (streaming->twitchVODSupported)
-	// 		SetupTwitchSoundtrackAudio(streaming);
-	// }
+	if (streaming->enableTwitchVOD) {
+		streaming->twitchVODSupported =
+			streaming->isTwitchVODSupported();
+		if (streaming->twitchVODSupported)
+			SetupTwitchSoundtrackAudio(streaming);
+	}
 
 	obs_output_set_service(streaming->output, streaming->service);
 
