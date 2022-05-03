@@ -1193,6 +1193,12 @@ export interface ISource extends IConfigurable, IReleasable {
      * Easy way to disable a filter.
      */
     enabled: boolean;
+	
+    /**
+     * Function to get latest version of settings
+	 * Expensive, shouldn't be used unless sure
+     */
+    readonly slowUncachedSettings: ISettings;
 }
 
 export interface IFaderFactory {

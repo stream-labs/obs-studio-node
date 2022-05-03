@@ -54,6 +54,7 @@ Napi::Object osn::Scene::Init(Napi::Env env, Napi::Object exports) {
 			InstanceAccessor("configurable", &osn::Scene::CallIsConfigurable, nullptr),
 			InstanceAccessor("properties", &osn::Scene::CallGetProperties, nullptr),
 			InstanceAccessor("settings", &osn::Scene::CallGetSettings, nullptr),
+			InstanceAccessor("slowUncachedSettings", &osn::Scene::CallGetSlowUncachedSettings, nullptr),
 			InstanceAccessor("type", &osn::Scene::CallGetType, nullptr),
 			InstanceAccessor("name", &osn::Scene::CallGetName, &osn::Scene::CallSetName),
 			InstanceAccessor("outputFlags", &osn::Scene::CallGetOutputFlags, nullptr),
@@ -613,6 +614,11 @@ Napi::Value osn::Scene::CallGetProperties(const Napi::CallbackInfo& info)
 Napi::Value osn::Scene::CallGetSettings(const Napi::CallbackInfo& info)
 {
 	return osn::ISource::GetSettings(info, this->sourceId);
+}
+
+Napi::Value osn::Scene::CallGetSlowUncachedSettings(const Napi::CallbackInfo& info)
+{
+	return osn::ISource::GetSlowUncachedSettings(info, this->sourceId);
 }
 
 

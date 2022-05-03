@@ -114,6 +114,32 @@ Napi::Value osn::ISource::GetProperties(const Napi::CallbackInfo& info, uint64_t
 	return instance;
 }
 
+Napi::Value osn::ISource::GetSlowUncachedSettings(const Napi::CallbackInfo& info, uint64_t id)
+{
+	osn::ISource* source =
+		Napi::ObjectWrap<osn::ISource>::Unwrap(info.This().ToObject());
+	if (!source)
+		return info.Env().Undefined();
+	
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
+
+	std::vector<ipc::value> response =
+	    conn->call_synchronous_helper("Source", "GetSettings", {ipc::value(id)});
+
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
+	
+	Napi::Object json = info.Env().Global().Get("JSON").As<Napi::Object>();
+	Napi::Function parse = json.Get("parse").As<Napi::Function>();
+
+	Napi::String jsondata = Napi::String::New(info.Env(), response[1].value_str);
+	Napi::Object jsonObj = parse.Call(json, {jsondata}).As<Napi::Object>();
+
+	return jsonObj;
+}
+
 Napi::Value osn::ISource::GetSettings(const Napi::CallbackInfo& info, uint64_t id)
 {
 	osn::ISource* source =
