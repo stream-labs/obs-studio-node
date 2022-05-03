@@ -246,7 +246,7 @@ void osn::Video::SetVideoContext(
     video.range = (video_range_type)range;
     video.scale_type = (obs_scale_type)scaleType;
     video.adapter = 0;
-	video.gpu_conversion = true;
+    video.gpu_conversion = true;
 
     try {
         obs_reset_video(&video);
