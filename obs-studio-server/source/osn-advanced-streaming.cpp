@@ -22,6 +22,7 @@
 #include "osn-error.hpp"
 #include "shared.hpp"
 #include "nodeobs_audio_encoders.h"
+#include "osn-audio-track.hpp"
 
 void osn::IAdvancedStreaming::Register(ipc::server& srv)
 {
@@ -352,11 +353,19 @@ static inline obs_encoder_t* createAudioEncoder(uint32_t bitrate)
 }
 
 
-static inline void setAudioEncoder(osn::Streaming* streaming)
-{
-	streaming->audioEncoder = createAudioEncoder(streaming->audioBitrate);
-    obs_encoder_set_audio(streaming->audioEncoder, obs_get_audio());
-	obs_output_set_audio_encoder(streaming->output, streaming->audioEncoder, 0);
+static inline bool setAudioEncoder(osn::Streaming* streaming)
+	{
+	osn::AudioTrack* audioTrack =
+		osn::IAudioTrack::audioTracks[streaming->audioTrack];
+	if (!audioTrack)
+		return false;
+	if (!audioTrack->audioEnc)
+		return false;
+
+	obs_encoder_set_audio(audioTrack->audioEnc, obs_get_audio());
+	obs_output_set_audio_encoder(streaming->output, audioTrack->audioEnc, 0);
+
+	return true;
 }
 
 static constexpr int kSoundtrackArchiveEncoderIdx = 1;
@@ -483,11 +492,13 @@ void osn::IAdvancedStreaming::Start(
 
 	if (!streaming->videoEncoder) {
 		PRETTY_ERROR_RETURN(
-            ErrorCode::InvalidReference, "Error while creating the audio encoder.");
+            ErrorCode::InvalidReference, "Error while creating the video encoder.");
 	}
 
-    // FIX ME
-	setAudioEncoder(streaming);
+	if (!setAudioEncoder(streaming)) {
+		PRETTY_ERROR_RETURN(
+            ErrorCode::InvalidReference, "Error while creating the audio encoder.");
+	}
 
     if (streaming->rescaling)
         obs_encoder_set_scaled_size(
