@@ -112,7 +112,7 @@ Napi::Value osn::Video::get(const Napi::CallbackInfo& info)
 void osn::Video::set(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
 	Napi::Object video = value.ToObject();
-	if (!video || !video.IsObject()) {
+	if (!video || video.IsUndefined()) {
 		Napi::Error::New(
 			info.Env(),
 			"The video context object passed is invalid.").ThrowAsJavaScriptException();
