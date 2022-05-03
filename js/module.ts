@@ -323,10 +323,12 @@ export const ModuleFactory: IModuleFactory = obs.Module;
 export const IPC: IIPC = obs.IPC;
 export const EncoderFactory: IVideoEncoderFactory = obs.Encoder;
 export const ServiceFactory: IServiceFactory = obs.Service;
-export const StreamingFactory: IStreamingFactory = obs.SimpleStreaming;
+export const SimpleStreamingFactory: ISimpleStreamingFactory = obs.SimpleStreaming;
+export const AdvancedStreamingFactory: IAdvancedStreamingFactory = obs.AdvancedStreaming;
 export const DelayFactory: IDelayFactory = obs.Delay;
 export const ReconnectFactory: IReconnectFactory = obs.Reconnect;
 export const NetworkFactory: INetworkFactory = obs.Network;
+export const AudioTrackFactory: IAudioTrackFactory = obs.AudioTrack;
 
 /**
  * Meta object in order to better describe settings
@@ -1541,16 +1543,20 @@ export interface ISimpleStreaming extends IStreaming {
     audioBitrate: number,
 }
 
-export interface IStreamingFactory {
-    create(): IStreaming;
+export interface ISimpleStreamingFactory {
+    create(): ISimpleStreaming;
 }
 
-export interface AdvancedStreaming extends IStreaming {
+export interface IAdvancedStreaming extends IStreaming {
     audioTrack: number,
     twitchTrack: number,
     rescaling: boolean,
     outputWidth?: number,
     outputHeight?: number
+}
+
+export interface IAdvancedStreamingFactory {
+    create(): IAdvancedStreaming;
 }
 
 export interface Recording {
@@ -1608,6 +1614,20 @@ export interface INetwork {
 
 export interface INetworkFactory {
     create(): INetwork
+}
+
+export interface IAudioTrack {
+    bitrate: number;
+    name: string
+}
+
+export interface IAudioTrackFactory {
+    create(bitrate: number, name: string): IAudioTrack;
+
+    readonly audioTracks: IAudioTrack[];
+    readonly audioBitrates: number[];
+    getAtIndex(index: number): IAudioTrack;
+    setAtIndex(audioTrack: IAudioTrack, index: number): void;
 }
 
 // Initialization and other stuff which needs local data.

@@ -20,7 +20,7 @@
 #include <ipc-server.hpp>
 #include <memory>
 #include <obs.h>
-#include "error.hpp"
+#include "osn-error.hpp"
 #include "osn-source.hpp"
 #include "shared.hpp"
 

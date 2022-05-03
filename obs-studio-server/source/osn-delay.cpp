@@ -17,7 +17,7 @@
 ******************************************************************************/
 
 #include "osn-delay.hpp"
-#include "error.hpp"
+#include "osn-error.hpp"
 #include "shared.hpp"
 
 void osn::IDelay::Register(ipc::server& srv)

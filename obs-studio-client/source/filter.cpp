@@ -21,7 +21,7 @@
 #include <mutex>
 #include <string>
 #include "controller.hpp"
-#include "error.hpp"
+#include "osn-error.hpp"
 #include "ipc-value.hpp"
 #include "shared.hpp"
 #include "utility.hpp"

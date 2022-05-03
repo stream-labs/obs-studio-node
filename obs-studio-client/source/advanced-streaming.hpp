@@ -22,18 +22,26 @@
 
 namespace osn
 {
-	class SimpleStreaming :
-		public Napi::ObjectWrap<osn::SimpleStreaming>,
+	class AdvancedStreaming :
+		public Napi::ObjectWrap<osn::AdvancedStreaming>,
 		public osn::Streaming
 	{
 		public:
 		static Napi::FunctionReference constructor;
 		static Napi::Object Init(Napi::Env env, Napi::Object exports);
-		SimpleStreaming(const Napi::CallbackInfo& info);
+		AdvancedStreaming(const Napi::CallbackInfo& info);
 
 		static Napi::Value Create(const Napi::CallbackInfo& info);
 
-		Napi::Value GetAudioBitrate(const Napi::CallbackInfo& info);
-		void SetAudioBitrate(const Napi::CallbackInfo& info, const Napi::Value& value);
+		Napi::Value GetAudioTrack(const Napi::CallbackInfo& info);
+		void SetAudioTrack(const Napi::CallbackInfo& info, const Napi::Value& value);
+		Napi::Value GetTwitchTrack(const Napi::CallbackInfo& info);
+		void SetTwitchTrack(const Napi::CallbackInfo& info, const Napi::Value& value);
+		Napi::Value GetRescaling(const Napi::CallbackInfo& info);
+		void SetRescaling(const Napi::CallbackInfo& info, const Napi::Value& value);
+		Napi::Value GetOutputWidth(const Napi::CallbackInfo& info);
+		void SetOutputWidth(const Napi::CallbackInfo& info, const Napi::Value& value);
+		Napi::Value GetOutputHeight(const Napi::CallbackInfo& info);
+		void SetOutputHeight(const Napi::CallbackInfo& info, const Napi::Value& value);
 	};
 }

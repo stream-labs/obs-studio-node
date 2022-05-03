@@ -204,7 +204,7 @@ endif ()
 set(PROJECT_DATA "${PROJECT_SOURCE_DIR}/resources")
 
 SET(osn-server_SOURCES
-	"${CMAKE_SOURCE_DIR}/source/error.hpp"
+	"${CMAKE_SOURCE_DIR}/source/osn-error.hpp"
 	"${CMAKE_SOURCE_DIR}/source/obs-property.hpp"
 	"${CMAKE_SOURCE_DIR}/source/obs-property.cpp"
 
@@ -252,14 +252,20 @@ SET(osn-server_SOURCES
 	"${PROJECT_SOURCE_DIR}/source/osn-video.hpp"
 	"${PROJECT_SOURCE_DIR}/source/osn-volmeter.cpp"
 	"${PROJECT_SOURCE_DIR}/source/osn-volmeter.hpp"
+	"${PROJECT_SOURCE_DIR}/source/osn-streaming.cpp"
+	"${PROJECT_SOURCE_DIR}/source/osn-streaming.hpp"
 	"${PROJECT_SOURCE_DIR}/source/osn-simple-streaming.cpp"
 	"${PROJECT_SOURCE_DIR}/source/osn-simple-streaming.hpp"
+	"${PROJECT_SOURCE_DIR}/source/osn-advanced-streaming.cpp"
+	"${PROJECT_SOURCE_DIR}/source/osn-advanced-streaming.hpp"
 	"${PROJECT_SOURCE_DIR}/source/osn-delay.cpp"
 	"${PROJECT_SOURCE_DIR}/source/osn-delay.hpp"
 	"${PROJECT_SOURCE_DIR}/source/osn-reconnect.cpp"
 	"${PROJECT_SOURCE_DIR}/source/osn-reconnect.hpp"
 	"${PROJECT_SOURCE_DIR}/source/osn-network.cpp"
 	"${PROJECT_SOURCE_DIR}/source/osn-network.hpp"
+	"${PROJECT_SOURCE_DIR}/source/osn-audio-track.cpp"
+	"${PROJECT_SOURCE_DIR}/source/osn-audio-track.hpp"
 
 	###### utlity graphics ######
 	"${PROJECT_SOURCE_DIR}/source/gs-limits.h"

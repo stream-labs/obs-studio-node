@@ -26,7 +26,7 @@
 #include <obs-data.h>
 #include <obs.h>
 #include <obs.hpp>
-#include "error.hpp"
+#include "osn-error.hpp"
 #include "osn-common.hpp"
 #include "shared.hpp"
 #include "callback-manager.h"

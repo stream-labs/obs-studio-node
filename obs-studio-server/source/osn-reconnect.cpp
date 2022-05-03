@@ -17,7 +17,7 @@
 ******************************************************************************/
 
 #include "osn-reconnect.hpp"
-#include "error.hpp"
+#include "osn-error.hpp"
 #include "shared.hpp"
 
 void osn::IReconnect::Register(ipc::server& srv)

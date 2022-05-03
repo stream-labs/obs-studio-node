@@ -23,7 +23,7 @@
 #include <algorithm>
 #include <iterator>
 #include "controller.hpp"
-#include "error.hpp"
+#include "osn-error.hpp"
 #include "filter.hpp"
 #include "ipc-value.hpp"
 #include "shared.hpp"

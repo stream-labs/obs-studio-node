@@ -26,7 +26,7 @@
 #include <memory>
 #include <thread>
 #include <vector>
-#include "error.hpp"
+#include "osn-error.hpp"
 #include "nodeobs_api.h"
 #include "nodeobs_autoconfig.h"
 #include "nodeobs_content.h"
@@ -48,9 +48,11 @@
 #include "osn-encoder.hpp"
 #include "osn-service.hpp"
 #include "osn-simple-streaming.hpp"
+#include "osn-advanced-streaming.hpp"
 #include "osn-delay.hpp"
 #include "osn-reconnect.hpp"
 #include "osn-network.hpp"
+#include "osn-audio-track.hpp"
 
 #include "util-crashmanager.h"
 #include "shared.hpp"
@@ -249,9 +251,11 @@ int main(int argc, char* argv[])
 	osn::Encoder::Register(myServer);
 	osn::Service::Register(myServer);
 	osn::ISimpleStreaming::Register(myServer);
+	osn::IAdvancedStreaming::Register(myServer);
 	osn::IDelay::Register(myServer);
 	osn::IReconnect::Register(myServer);
 	osn::INetwork::Register(myServer);
+	osn::IAudioTrack::Register(myServer);
 
 	OBS_API::CreateCrashHandlerExitPipe();
 

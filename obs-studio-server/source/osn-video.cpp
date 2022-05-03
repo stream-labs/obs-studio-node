@@ -19,7 +19,7 @@
 #include "osn-video.hpp"
 #include <ipc-server.hpp>
 #include <obs.h>
-#include "error.hpp"
+#include "osn-error.hpp"
 #include "shared.hpp"
 
 void osn::Video::Register(ipc::server& srv)

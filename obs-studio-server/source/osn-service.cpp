@@ -17,7 +17,7 @@
 ******************************************************************************/
 
 #include "osn-service.hpp"
-#include <error.hpp>
+#include <osn-error.hpp>
 #include "shared.hpp"
 #include "nodeobs_service.h"
 

@@ -22,7 +22,7 @@
 #include <windows.h>
 #include <filesystem>
 #endif
-#include "error.hpp"
+#include "osn-error.hpp"
 #include "shared.hpp"
 #include "utility.hpp"
 

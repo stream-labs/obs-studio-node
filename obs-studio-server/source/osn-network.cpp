@@ -16,7 +16,7 @@
 
 ******************************************************************************/
 #include "osn-network.hpp"
-#include "error.hpp"
+#include "osn-error.hpp"
 #include "shared.hpp"
 
 void osn::INetwork::Register(ipc::server& srv)

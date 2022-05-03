@@ -17,7 +17,7 @@
 ******************************************************************************/
 
 #include "video.hpp"
-#include <error.hpp>
+#include "osn-error.hpp"
 #include "controller.hpp"
 #include "shared.hpp"
 #include "utility-v8.hpp"

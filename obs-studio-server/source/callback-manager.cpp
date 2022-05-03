@@ -21,7 +21,7 @@
 #ifdef WIN32
 #include <windows.h>
 #endif
-#include "error.hpp"
+#include "osn-error.hpp"
 #include "shared.hpp"
 #include "osn-source.hpp"
 #include "osn-volmeter.hpp"

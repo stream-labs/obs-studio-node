@@ -17,7 +17,7 @@
 ******************************************************************************/
 
 #include "osn-encoder.hpp"
-#include "error.hpp"
+#include "osn-error.hpp"
 #include "shared.hpp"
 
 void osn::Encoder::Register(ipc::server& srv)

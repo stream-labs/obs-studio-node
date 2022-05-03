@@ -16,16 +16,16 @@
 
 ******************************************************************************/
 
-#include "osn-simple-streaming.hpp"
+#include "osn-advanced-streaming.hpp"
 #include "osn-encoder.hpp"
 #include "osn-service.hpp"
 #include "osn-error.hpp"
 #include "shared.hpp"
 #include "nodeobs_audio_encoders.h"
 
-void osn::ISimpleStreaming::Register(ipc::server& srv)
+void osn::IAdvancedStreaming::Register(ipc::server& srv)
 {
-	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("SimpleStreaming");
+	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("AdvancedStreaming");
 	cls->register_function(std::make_shared<ipc::function>(
 	    "Create", std::vector<ipc::type>{}, Create));
 	cls->register_function(std::make_shared<ipc::function>(
@@ -61,13 +61,45 @@ void osn::ISimpleStreaming::Register(ipc::server& srv)
         std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32},
         SetEnableTwitchVOD));
 	cls->register_function(std::make_shared<ipc::function>(
-	    "GetAudioBitrate",
+	    "GetAudioTrack",
         std::vector<ipc::type>{ipc::type::UInt64},
-        GetAudioBitrate));
+        GetAudioTrack));
 	cls->register_function(std::make_shared<ipc::function>(
-	    "SetAudioBitrate",
+	    "SetAudioTrack",
         std::vector<ipc::type>{ipc::type::UInt64,ipc::type::UInt32},
-        SetAudioBitrate));
+        SetAudioTrack));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "GetTwitchTrack",
+        std::vector<ipc::type>{ipc::type::UInt64},
+        GetTwitchTrack));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "SetTwitchTrack",
+        std::vector<ipc::type>{ipc::type::UInt64,ipc::type::UInt32},
+        SetTwitchTrack));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "GetRescaling",
+        std::vector<ipc::type>{ipc::type::UInt64},
+        GetRescaling));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "SetRescaling",
+        std::vector<ipc::type>{ipc::type::UInt64,ipc::type::UInt32},
+        SetRescaling));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "GetOutputWidth",
+        std::vector<ipc::type>{ipc::type::UInt64},
+        GetOutputWidth));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "SetOutputWidth",
+        std::vector<ipc::type>{ipc::type::UInt64,ipc::type::UInt32},
+        SetOutputWidth));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "GetOutputHeight",
+        std::vector<ipc::type>{ipc::type::UInt64},
+        GetOutputHeight));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "SetOutputHeight",
+        std::vector<ipc::type>{ipc::type::UInt64,ipc::type::UInt32},
+        SetOutputHeight));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "GetDelay",
         std::vector<ipc::type>{ipc::type::UInt64},
@@ -102,14 +134,14 @@ void osn::ISimpleStreaming::Register(ipc::server& srv)
 	srv.register_collection(cls);
 }
 
-void osn::ISimpleStreaming::Create(
+void osn::IAdvancedStreaming::Create(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
 	uint64_t uid =
-        osn::ISimpleStreaming::Manager::GetInstance().allocate(new Streaming());
+        osn::IAdvancedStreaming::Manager::GetInstance().allocate(new Streaming());
 	if (uid == UINT64_MAX) {
 		PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Index list is full.");
 	}
@@ -119,37 +151,191 @@ void osn::ISimpleStreaming::Create(
 	AUTO_DEBUG;
 }
 
-void osn::ISimpleStreaming::GetAudioBitrate(
+void osn::IAdvancedStreaming::GetAudioTrack(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
 	Streaming* streaming =
-		osn::ISimpleStreaming::Manager::GetInstance().find(args[0].value_union.ui64);
+		osn::IAdvancedStreaming::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!streaming) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Simple streaming reference is not valid.");
+		PRETTY_ERROR_RETURN(
+            ErrorCode::InvalidReference, "Simple streaming reference is not valid.");
 	}
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-    rval.push_back(ipc::value(streaming->audioBitrate));
+    rval.push_back(ipc::value(streaming->audioTrack));
 	AUTO_DEBUG;
 }
 
-void osn::ISimpleStreaming::SetAudioBitrate(
+void osn::IAdvancedStreaming::SetAudioTrack(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
 	Streaming* streaming =
-		osn::ISimpleStreaming::Manager
+		osn::IAdvancedStreaming::Manager
 			::GetInstance().find(args[0].value_union.ui64);
 	if (!streaming) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Simple streaming reference is not valid.");
+		PRETTY_ERROR_RETURN(
+            ErrorCode::InvalidReference, "Simple streaming reference is not valid.");
 	}
 
-    streaming->audioBitrate = args[1].value_union.ui32;
+    streaming->audioTrack = args[1].value_union.ui32;
+
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
+}
+
+void osn::IAdvancedStreaming::GetTwitchTrack(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	Streaming* streaming =
+		osn::IAdvancedStreaming::Manager::GetInstance().find(args[0].value_union.ui64);
+	if (!streaming) {
+		PRETTY_ERROR_RETURN(
+            ErrorCode::InvalidReference, "Simple streaming reference is not valid.");
+	}
+
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+    rval.push_back(ipc::value(streaming->twitchTrack));
+	AUTO_DEBUG;
+}
+
+void osn::IAdvancedStreaming::SetTwitchTrack(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	Streaming* streaming =
+		osn::IAdvancedStreaming::Manager
+			::GetInstance().find(args[0].value_union.ui64);
+	if (!streaming) {
+		PRETTY_ERROR_RETURN(
+            ErrorCode::InvalidReference, "Simple streaming reference is not valid.");
+	}
+
+    streaming->twitchTrack = args[1].value_union.ui32;
+
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
+}
+
+void osn::IAdvancedStreaming::GetRescaling(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	Streaming* streaming =
+		osn::IAdvancedStreaming::Manager::GetInstance().find(args[0].value_union.ui64);
+	if (!streaming) {
+		PRETTY_ERROR_RETURN(
+            ErrorCode::InvalidReference, "Simple streaming reference is not valid.");
+	}
+
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+    rval.push_back(ipc::value(streaming->rescaling));
+	AUTO_DEBUG;
+}
+
+void osn::IAdvancedStreaming::SetRescaling(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	Streaming* streaming =
+		osn::IAdvancedStreaming::Manager
+			::GetInstance().find(args[0].value_union.ui64);
+	if (!streaming) {
+		PRETTY_ERROR_RETURN(
+            ErrorCode::InvalidReference, "Simple streaming reference is not valid.");
+	}
+
+    streaming->rescaling = args[1].value_union.ui32;
+
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
+}
+
+void osn::IAdvancedStreaming::GetOutputWidth(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	Streaming* streaming =
+		osn::IAdvancedStreaming::Manager::GetInstance().find(args[0].value_union.ui64);
+	if (!streaming) {
+		PRETTY_ERROR_RETURN(
+            ErrorCode::InvalidReference, "Simple streaming reference is not valid.");
+	}
+
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+    rval.push_back(ipc::value(streaming->outputWidth));
+	AUTO_DEBUG;
+}
+
+void osn::IAdvancedStreaming::SetOutputWidth(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	Streaming* streaming =
+		osn::IAdvancedStreaming::Manager
+			::GetInstance().find(args[0].value_union.ui64);
+	if (!streaming) {
+		PRETTY_ERROR_RETURN(
+            ErrorCode::InvalidReference, "Simple streaming reference is not valid.");
+	}
+
+    streaming->outputWidth = args[1].value_union.ui32;
+
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
+}
+
+void osn::IAdvancedStreaming::GetOutputHeight(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	Streaming* streaming =
+		osn::IAdvancedStreaming::Manager::GetInstance().find(args[0].value_union.ui64);
+	if (!streaming) {
+		PRETTY_ERROR_RETURN(
+            ErrorCode::InvalidReference, "Simple streaming reference is not valid.");
+	}
+
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+    rval.push_back(ipc::value(streaming->outputHeight));
+	AUTO_DEBUG;
+}
+
+void osn::IAdvancedStreaming::SetOutputHeight(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	Streaming* streaming =
+		osn::IAdvancedStreaming::Manager
+			::GetInstance().find(args[0].value_union.ui64);
+	if (!streaming) {
+		PRETTY_ERROR_RETURN(
+            ErrorCode::InvalidReference,"Simple streaming reference is not valid.");
+	}
+
+    streaming->outputHeight = args[1].value_union.ui32;
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
@@ -169,7 +355,7 @@ static inline obs_encoder_t* createAudioEncoder(uint32_t bitrate)
 static inline void setAudioEncoder(osn::Streaming* streaming)
 {
 	streaming->audioEncoder = createAudioEncoder(streaming->audioBitrate);
-	obs_encoder_set_audio(streaming->audioEncoder, obs_get_audio());
+    obs_encoder_set_audio(streaming->audioEncoder, obs_get_audio());
 	obs_output_set_audio_encoder(streaming->output, streaming->audioEncoder, 0);
 }
 
@@ -250,7 +436,7 @@ static inline void StopTwitchSoundtrackAudio(osn::Streaming* streaming)
 	obs_source_release(desktopSource2);
 }
 
-void osn::ISimpleStreaming::Start(
+void osn::IAdvancedStreaming::Start(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
@@ -300,16 +486,23 @@ void osn::ISimpleStreaming::Start(
             ErrorCode::InvalidReference, "Error while creating the audio encoder.");
 	}
 
+    // FIX ME
 	setAudioEncoder(streaming);
+
+    if (streaming->rescaling)
+        obs_encoder_set_scaled_size(
+            streaming->videoEncoder,
+            streaming->outputWidth,
+            streaming->outputHeight);
 	obs_encoder_set_video(streaming->videoEncoder, obs_get_video());
 	obs_output_set_video_encoder(streaming->output, streaming->videoEncoder);
 
-	if (streaming->enableTwitchVOD) {
-		streaming->twitchVODSupported =
-			streaming->isTwitchVODSupported();
-		if (streaming->twitchVODSupported)
-			SetupTwitchSoundtrackAudio(streaming);
-	}
+	// if (streaming->enableTwitchVOD) {
+	// 	streaming->twitchVODSupported =
+	// 		streaming->isTwitchVODSupported();
+	// 	if (streaming->twitchVODSupported)
+	// 		SetupTwitchSoundtrackAudio(streaming);
+	// }
 
 	obs_output_set_service(streaming->output, streaming->service);
 
@@ -355,7 +548,7 @@ void osn::ISimpleStreaming::Start(
 	AUTO_DEBUG;
 }
 
-void osn::ISimpleStreaming::Stop(
+void osn::IAdvancedStreaming::Stop(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,

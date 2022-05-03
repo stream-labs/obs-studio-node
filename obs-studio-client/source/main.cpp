@@ -43,9 +43,11 @@
 #include "encoder.hpp"
 #include "service.hpp"
 #include "simple-streaming.hpp"
+#include "advanced-streaming.hpp"
 #include "delay.hpp"
 #include "reconnect.hpp"
 #include "network.hpp"
+#include "audio-track.hpp"
 
 #if defined(_WIN32)
 // Checks ForceGPUAsRenderDevice setting
@@ -118,9 +120,11 @@ Napi::Object main_node(Napi::Env env, Napi::Object exports) {
 	osn::Encoder::Init(env, exports);
 	osn::Service::Init(env, exports);
 	osn::SimpleStreaming::Init(env, exports);
+	osn::AdvancedStreaming::Init(env, exports);
 	osn::Delay::Init(env, exports);
 	osn::Reconnect::Init(env, exports);
 	osn::Network::Init(env, exports);
+	osn::AudioTrack::Init(env, exports);
 	return exports;
 };
 

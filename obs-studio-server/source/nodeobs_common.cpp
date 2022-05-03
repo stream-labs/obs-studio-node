@@ -24,7 +24,7 @@
  * We should consider moving this to another module */
 #include <graphics/matrix4.h>
 
-#include "error.hpp"
+#include "osn-error.hpp"
 #include "shared.hpp"
 
 #include <thread>

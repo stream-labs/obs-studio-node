@@ -252,10 +252,12 @@ export declare const ModuleFactory: IModuleFactory;
 export declare const IPC: IIPC;
 export declare const EncoderFactory: IVideoEncoderFactory;
 export declare const ServiceFactory: IServiceFactory;
-export declare const StreamingFactory: IStreamingFactory;
+export declare const SimpleStreamingFactory: ISimpleStreamingFactory;
+export declare const AdvancedStreamingFactory: IAdvancedStreamingFactory;
 export declare const DelayFactory: IDelayFactory;
 export declare const ReconnectFactory: IReconnectFactory;
 export declare const NetworkFactory: INetworkFactory;
+export declare const AudioTrackFactory: IAudioTrackFactory;
 export interface ISettings {
     [key: string]: any;
 }
@@ -677,6 +679,7 @@ export interface IStreaming {
     enableTwitchVOD: boolean;
     delay: IDelay;
     reconnect: IReconnect;
+    network: INetwork;
     signalHandler: (signal: EOutputSignal) => void;
     start(): void;
     stop(force?: boolean): void;
@@ -690,15 +693,18 @@ export interface EOutputSignal {
 export interface ISimpleStreaming extends IStreaming {
     audioBitrate: number;
 }
-export interface IStreamingFactory {
-    create(): IStreaming;
+export interface ISimpleStreamingFactory {
+    create(): ISimpleStreaming;
 }
-export interface AdvancedStreaming extends IStreaming {
+export interface IAdvancedStreaming extends IStreaming {
     audioTrack: number;
     twitchTrack: number;
     rescaling: boolean;
     outputWidth?: number;
     outputHeight?: number;
+}
+export interface IAdvancedStreamingFactory {
+    create(): IAdvancedStreaming;
 }
 export interface Recording {
     path: string;
@@ -739,13 +745,24 @@ export interface IReconnectFactory {
 }
 export interface INetwork {
     bindIP: string;
-    readonly networkInterfaces: string[];
-    dynamicBitrate: boolean;
+    readonly networkInterfaces: ISettings;
+    enableDynamicBitrate: boolean;
     enableOptimizations: boolean;
     enableLowLatency: boolean;
 }
 export interface INetworkFactory {
     create(): INetwork;
+}
+export interface IAudioTrack {
+    bitrate: number;
+    name: string;
+}
+export interface IAudioTrackFactory {
+    create(bitrate: number, name: string): IAudioTrack;
+    readonly audioTracks: IAudioTrack[];
+    readonly audioBitrates: number[];
+    getAtIndex(index: number): IAudioTrack;
+    setAtIndex(audioTrack: IAudioTrack, index: number): void;
 }
 export declare const NodeObs: any;
 export {};

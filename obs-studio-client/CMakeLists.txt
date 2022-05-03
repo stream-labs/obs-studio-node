@@ -41,7 +41,7 @@ if (APPLE)
 endif ()
 
 SET(osn-client_SOURCES
-	"${CMAKE_SOURCE_DIR}/source/error.hpp"
+	"${CMAKE_SOURCE_DIR}/source/osn-error.hpp"
 	"${CMAKE_SOURCE_DIR}/source/obs-property.hpp"
 	"${CMAKE_SOURCE_DIR}/source/obs-property.cpp"
 
@@ -94,15 +94,21 @@ SET(osn-client_SOURCES
 	"source/encoder.cpp"
 	"source/service.hpp"
 	"source/service.cpp"
+	"source/streaming.hpp"
+	"source/streaming.cpp"
 	"source/simple-streaming.hpp"
 	"source/simple-streaming.cpp"
-	"source/worker.hpp"
+	"source/advanced-streaming.hpp"
+	"source/advanced-streaming.cpp"
+	"source/worker-signals.hpp"
 	"source/delay.hpp"
 	"source/delay.cpp"
 	"source/reconnect.hpp"
 	"source/reconnect.cpp"
 	"source/network.hpp"
 	"source/network.cpp"
+	"source/audio-track.hpp"
+	"source/audio-track.cpp"
 
 	###### callback-manager ######
 	"source/callback-manager.cpp"

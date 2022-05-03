@@ -18,22 +18,29 @@
 
 #pragma once
 #include <napi.h>
-#include "streaming.hpp"
 
 namespace osn
 {
-	class SimpleStreaming :
-		public Napi::ObjectWrap<osn::SimpleStreaming>,
-		public osn::Streaming
+	class AudioTrack :
+		public Napi::ObjectWrap<osn::AudioTrack>
 	{
 		public:
+		uint64_t uid;
+
 		static Napi::FunctionReference constructor;
 		static Napi::Object Init(Napi::Env env, Napi::Object exports);
-		SimpleStreaming(const Napi::CallbackInfo& info);
+		AudioTrack(const Napi::CallbackInfo& info);
 
 		static Napi::Value Create(const Napi::CallbackInfo& info);
 
-		Napi::Value GetAudioBitrate(const Napi::CallbackInfo& info);
-		void SetAudioBitrate(const Napi::CallbackInfo& info, const Napi::Value& value);
+        static Napi::Value GetAudioTracks(const Napi::CallbackInfo& info);
+        static Napi::Value GetAudioBitrates(const Napi::CallbackInfo& info);
+        static Napi::Value GetAtIndex(const Napi::CallbackInfo& info);
+        static void SetAtIndex(const Napi::CallbackInfo& info);
+
+        Napi::Value GetBitrate(const Napi::CallbackInfo& info);
+        void SetBitrate(const Napi::CallbackInfo& info, const Napi::Value& value);
+        Napi::Value GetName(const Napi::CallbackInfo& info);
+        void SetName(const Napi::CallbackInfo& info, const Napi::Value& value);
 	};
 }

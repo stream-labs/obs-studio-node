@@ -76,7 +76,7 @@
 #include <fcntl.h>
 #endif
 
-#include "error.hpp"
+#include "osn-error.hpp"
 #include "shared.hpp"
 
 #include <fstream>
