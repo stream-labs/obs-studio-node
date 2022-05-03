@@ -169,9 +169,10 @@ export declare const enum EColorFormat {
 export declare const enum EScaleType {
     Default = 0,
     Point = 1,
-    FastBilinear = 2,
+    Bicubic = 2,
     Bilinear = 3,
-    Bicubic = 4
+    Lanczos = 4,
+    Area = 5
 }
 export declare const enum ERangeType {
     Default = 0,
@@ -189,7 +190,13 @@ export declare const enum EVideoFormat {
     BGRA = 7,
     BGRX = 8,
     Y800 = 9,
-    I444 = 10
+    I444 = 10,
+    BGR3 = 11,
+    I422 = 12,
+    I40A = 13,
+    I42A = 14,
+    YUVA = 15,
+    AYUV = 16
 }
 export declare const enum EBoundsType {
     None = 0,
@@ -203,7 +210,8 @@ export declare const enum EBoundsType {
 export declare const enum EColorSpace {
     Default = 0,
     CS601 = 1,
-    CS709 = 2
+    CS709 = 2,
+    CSSRGB = 3
 }
 export declare const enum ESpeakerLayout {
     Unknown = 0,
@@ -578,9 +586,22 @@ export interface IDisplay {
     setResizeBoxOuterColor(r: number, g: number, b: number, a: number): void;
     setResizeBoxInnerColor(r: number, g: number, b: number, a: number): void;
 }
+export interface VideoContext {
+    fpsNum: number;
+    fpsDen: number;
+    baseWidth: number;
+    baseHeight: number;
+    outputWidth: number;
+    outputHeight: number;
+    outputFormat: EVideoFormat;
+    colorspace: EColorSpace;
+    range: ERangeType;
+    scaleType: EScaleType;
+}
 export interface IVideo {
     readonly skippedFrames: number;
     readonly encodedFrames: number;
+    videoContext: VideoContext;
 }
 export interface IModuleFactory extends IFactoryTypes {
     open(binPath: string, dataPath: string): IModule;
