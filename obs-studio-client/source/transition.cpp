@@ -47,6 +47,7 @@ Napi::Object osn::Transition::Init(Napi::Env env, Napi::Object exports) {
 			InstanceAccessor("configurable", &osn::Transition::CallIsConfigurable, nullptr),
 			InstanceAccessor("properties", &osn::Transition::CallGetProperties, nullptr),
 			InstanceAccessor("settings", &osn::Transition::CallGetSettings, nullptr),
+			InstanceAccessor("slowUncachedSettings", &osn::Transition::CallGetSlowUncachedSettings, nullptr),
 			InstanceAccessor("type", &osn::Transition::CallGetType, nullptr),
 			InstanceAccessor("name", &osn::Transition::CallGetName, &osn::Transition::CallSetName),
 			InstanceAccessor("outputFlags", &osn::Transition::CallGetOutputFlags, nullptr),
@@ -312,6 +313,11 @@ Napi::Value osn::Transition::CallGetProperties(const Napi::CallbackInfo& info)
 Napi::Value osn::Transition::CallGetSettings(const Napi::CallbackInfo& info)
 {
 	return osn::ISource::GetSettings(info, this->sourceId);
+}
+
+Napi::Value osn::Transition::CallGetSlowUncachedSettings(const Napi::CallbackInfo& info)
+{
+	return osn::ISource::GetSlowUncachedSettings(info, this->sourceId);
 }
 
 

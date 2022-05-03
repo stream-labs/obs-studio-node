@@ -48,6 +48,7 @@ namespace osn
 		static Napi::Value IsConfigurable(const Napi::CallbackInfo& info, uint64_t id);
 		static Napi::Value GetProperties(const Napi::CallbackInfo& info, uint64_t id);
 		static Napi::Value GetSettings(const Napi::CallbackInfo& info, uint64_t id);
+		static Napi::Value GetSlowUncachedSettings(const Napi::CallbackInfo& info, uint64_t id);
 
 		static Napi::Value GetType(const Napi::CallbackInfo& info, uint64_t id);
 		static Napi::Value GetName(const Napi::CallbackInfo& info, uint64_t id);

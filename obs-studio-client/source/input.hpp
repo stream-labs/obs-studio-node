@@ -67,6 +67,7 @@ namespace osn
 		Napi::Value CallIsConfigurable(const Napi::CallbackInfo& info);
 		Napi::Value CallGetProperties(const Napi::CallbackInfo& info);
 		Napi::Value CallGetSettings(const Napi::CallbackInfo& info);
+		Napi::Value CallGetSlowUncachedSettings(const Napi::CallbackInfo& info);
 
 		Napi::Value CallGetType(const Napi::CallbackInfo& info);
 		Napi::Value CallGetName(const Napi::CallbackInfo& info);

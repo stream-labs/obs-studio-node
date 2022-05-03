@@ -40,6 +40,7 @@ Napi::Object osn::Filter::Init(Napi::Env env, Napi::Object exports) {
 			InstanceAccessor("configurable", &osn::Filter::CallIsConfigurable, nullptr),
 			InstanceAccessor("properties", &osn::Filter::CallGetProperties, nullptr),
 			InstanceAccessor("settings", &osn::Filter::CallGetSettings, nullptr),
+			InstanceAccessor("slowUncachedSettings", &osn::Filter::CallGetSlowUncachedSettings, nullptr),
 			InstanceAccessor("type", &osn::Filter::CallGetType, nullptr),
 			InstanceAccessor("name", &osn::Filter::CallGetName, &osn::Filter::CallSetName),
 			InstanceAccessor("outputFlags", &osn::Filter::CallGetOutputFlags, nullptr),
@@ -163,6 +164,11 @@ Napi::Value osn::Filter::CallGetSettings(const Napi::CallbackInfo& info)
 		sdi->settingsChanged = true;
 	}
 	return ret;
+}
+
+Napi::Value osn::Filter::CallGetSlowUncachedSettings(const Napi::CallbackInfo& info)
+{
+	return osn::ISource::GetSlowUncachedSettings(info, this->sourceId);
 }
 
 
