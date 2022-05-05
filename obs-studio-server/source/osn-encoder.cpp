@@ -223,6 +223,7 @@ void osn::Encoder::Release(
 	}
 
 	obs_encoder_release(encoder);
+	encoder = nullptr;
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }

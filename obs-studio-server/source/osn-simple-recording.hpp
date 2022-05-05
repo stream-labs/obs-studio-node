@@ -20,19 +20,26 @@
 #include <ipc-server.hpp>
 #include <obs.h>
 #include "utility.hpp"
-#include "osn-delay.hpp"
-#include "osn-reconnect.hpp"
-#include "osn-network.hpp"
-#include "osn-streaming.hpp"
+#include "osn-recording.hpp"
 
 namespace osn
 {
-	class ISimpleStreaming: public IStreaming
+	class ISimpleRecording: public IRecording
 	{
 		public:
 		static void Register(ipc::server&);
 
 		static void Create(
+		    void*                          data,
+		    const int64_t                  id,
+		    const std::vector<ipc::value>& args,
+		    std::vector<ipc::value>&       rval);
+		static void GetQuality(
+		    void*                          data,
+		    const int64_t                  id,
+		    const std::vector<ipc::value>& args,
+		    std::vector<ipc::value>&       rval);
+		static void SetQuality(
 		    void*                          data,
 		    const int64_t                  id,
 		    const std::vector<ipc::value>& args,
@@ -53,6 +60,16 @@ namespace osn
 		    const std::vector<ipc::value>& args,
 		    std::vector<ipc::value>&       rval);
 		static void Stop(
+		    void*                          data,
+		    const int64_t                  id,
+		    const std::vector<ipc::value>& args,
+		    std::vector<ipc::value>&       rval);
+		static void GetLowCPU(
+		    void*                          data,
+		    const int64_t                  id,
+		    const std::vector<ipc::value>& args,
+		    std::vector<ipc::value>&       rval);
+		static void SetLowCPU(
 		    void*                          data,
 		    const int64_t                  id,
 		    const std::vector<ipc::value>& args,

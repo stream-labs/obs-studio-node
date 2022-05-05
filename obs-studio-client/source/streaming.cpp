@@ -31,7 +31,7 @@ Napi::Value osn::Streaming::GetService(const Napi::CallbackInfo& info) {
 
 	std::vector<ipc::value> response =
 		conn->call_synchronous_helper(
-			"SimpleStreaming",
+			className,
 			"GetService",
 			{ipc::value(this->uid)});
 
@@ -60,7 +60,7 @@ void osn::Streaming::SetService(const Napi::CallbackInfo& info, const Napi::Valu
 		return;
 
 	conn->call(
-		"SimpleStreaming",
+		className,
 		"SetService",
 		{ipc::value(this->uid), ipc::value(service->uid)});
 }
@@ -72,7 +72,7 @@ Napi::Value osn::Streaming::GetVideoEncoder(const Napi::CallbackInfo& info) {
 
 	std::vector<ipc::value> response =
 		conn->call_synchronous_helper(
-			"SimpleStreaming",
+			className,
 			"GetVideoEncoder",
 			{ipc::value(this->uid)});
 
@@ -101,7 +101,7 @@ void osn::Streaming::SetVideoEncoder(const Napi::CallbackInfo& info, const Napi:
 		return;
 
 	conn->call(
-		"SimpleStreaming",
+		className,
 		"SetVideoEncoder",
 		{ipc::value(this->uid), ipc::value(encoder->uid)});
 }
@@ -113,7 +113,7 @@ Napi::Value osn::Streaming::GetEnforceServiceBirate(const Napi::CallbackInfo& in
 
 	std::vector<ipc::value> response =
 		conn->call_synchronous_helper(
-			"SimpleStreaming",
+			className,
 			"GetEnforceServiceBirate",
 			{ipc::value(this->uid)});
 
@@ -130,7 +130,7 @@ void osn::Streaming::SetEnforceServiceBirate(
 		return;
 
 	conn->call_synchronous_helper(
-		"SimpleStreaming",
+		className,
 		"SetEnforceServiceBirate",
 		{ipc::value(this->uid), ipc::value(value.ToBoolean().Value())});
 }
@@ -142,7 +142,7 @@ Napi::Value osn::Streaming::GetEnableTwitchVOD(const Napi::CallbackInfo& info) {
 
 	std::vector<ipc::value> response =
 		conn->call_synchronous_helper(
-			"SimpleStreaming",
+			className,
 			"GetEnableTwitchVOD",
 			{ipc::value(this->uid)});
 
@@ -159,7 +159,7 @@ void osn::Streaming::SetEnableTwitchVOD(
 		return;
 
 	conn->call_synchronous_helper(
-		"SimpleStreaming",
+		className,
 		"SetEnableTwitchVOD",
 		{ipc::value(this->uid), ipc::value(value.ToBoolean().Value())});
 }
@@ -171,7 +171,7 @@ Napi::Value osn::Streaming::GetDelay(const Napi::CallbackInfo& info) {
 
 	std::vector<ipc::value> response =
 		conn->call_synchronous_helper(
-			"SimpleStreaming",
+			className,
 			"GetDelay",
 			{ipc::value(this->uid)});
 
@@ -201,7 +201,7 @@ void osn::Streaming::SetDelay(const Napi::CallbackInfo& info, const Napi::Value&
 		return;
 
 	conn->call(
-		"SimpleStreaming",
+		className,
 		"SetDelay",
 		{ipc::value(this->uid), ipc::value(delay->uid)});
 }
@@ -213,7 +213,7 @@ Napi::Value osn::Streaming::GetReconnect(const Napi::CallbackInfo& info) {
 
 	std::vector<ipc::value> response =
 		conn->call_synchronous_helper(
-			"SimpleStreaming",
+			className,
 			"GetReconnect",
 			{ipc::value(this->uid)});
 
@@ -244,7 +244,7 @@ void osn::Streaming::SetReconnect(const Napi::CallbackInfo& info, const Napi::Va
 		return;
 
 	conn->call(
-		"SimpleStreaming",
+		className,
 		"SetReconnect",
 		{ipc::value(this->uid), ipc::value(reconnect->uid)});
 }
@@ -256,7 +256,7 @@ Napi::Value osn::Streaming::GetNetwork(const Napi::CallbackInfo& info) {
 
 	std::vector<ipc::value> response =
 		conn->call_synchronous_helper(
-			"SimpleStreaming",
+			className,
 			"GetNetwork",
 			{ipc::value(this->uid)});
 
@@ -287,7 +287,7 @@ void osn::Streaming::SetNetwork(const Napi::CallbackInfo& info, const Napi::Valu
 		return;
 
 	conn->call(
-		"SimpleStreaming",
+		className,
 		"SetNetwork",
 		{ipc::value(this->uid), ipc::value(network->uid)});
 }
@@ -298,6 +298,7 @@ Napi::Value osn::Streaming::GetSignalHandler(const Napi::CallbackInfo& info) {
 
 	return this->cb.Value();
 }
+
 void osn::Streaming::SetSignalHandler(const Napi::CallbackInfo& info, const Napi::Value& value) {
 	Napi::Function cb = value.As<Napi::Function>();
 	if (cb.IsNull() || !cb.IsFunction())

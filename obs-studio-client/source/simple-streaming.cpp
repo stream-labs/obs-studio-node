@@ -19,6 +19,7 @@
 #include "simple-streaming.hpp"
 #include "utility.hpp"
 #include "encoder.hpp"
+#include "audio-encoder.hpp"
 #include "service.hpp"
 #include "delay.hpp"
 #include "reconnect.hpp"
@@ -39,6 +40,10 @@ Napi::Object osn::SimpleStreaming::Init(Napi::Env env, Napi::Object exports) {
                 &osn::SimpleStreaming::GetVideoEncoder,
                 &osn::SimpleStreaming::SetVideoEncoder),
             InstanceAccessor(
+                "audioEncoder",
+                &osn::SimpleStreaming::GetAudioEncoder,
+                &osn::SimpleStreaming::SetAudioEncoder),
+            InstanceAccessor(
                 "service",
                 &osn::SimpleStreaming::GetService,
                 &osn::SimpleStreaming::SetService),
@@ -51,9 +56,9 @@ Napi::Object osn::SimpleStreaming::Init(Napi::Env env, Napi::Object exports) {
                 &osn::SimpleStreaming::GetEnableTwitchVOD,
                 &osn::SimpleStreaming::SetEnableTwitchVOD),
             InstanceAccessor(
-                "audioBitrate",
-                &osn::SimpleStreaming::GetAudioBitrate,
-                &osn::SimpleStreaming::SetAudioBitrate),
+                "audioEncoder",
+                &osn::SimpleStreaming::GetAudioEncoder,
+                &osn::SimpleStreaming::SetAudioEncoder),
             InstanceAccessor(
                 "signalHandler",
                 &osn::SimpleStreaming::GetSignalHandler,
@@ -116,7 +121,7 @@ Napi::Value osn::SimpleStreaming::Create(const Napi::CallbackInfo& info) {
 	return instance;
 }
 
-Napi::Value osn::SimpleStreaming::GetAudioBitrate(const Napi::CallbackInfo& info) {
+Napi::Value osn::SimpleStreaming::GetAudioEncoder(const Napi::CallbackInfo& info) {
 	auto conn = GetConnection(info);
 	if (!conn)
 		return info.Env().Undefined();
@@ -124,22 +129,35 @@ Napi::Value osn::SimpleStreaming::GetAudioBitrate(const Napi::CallbackInfo& info
 	std::vector<ipc::value> response =
 		conn->call_synchronous_helper(
 			"SimpleStreaming",
-			"GetAudioBitrate",
+			"GetAudioEncoder",
 			{ipc::value(this->uid)});
 
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
 
-	return Napi::Boolean::New(info.Env(), response[1].value_union.ui32);
+	auto instance =
+		osn::AudioEncoder::constructor.New({
+			Napi::Number::New(info.Env(), response[1].value_union.ui64)
+		});
+	return instance;
 }
 
-void osn::SimpleStreaming::SetAudioBitrate(const Napi::CallbackInfo& info, const Napi::Value& value) {
+void osn::SimpleStreaming::SetAudioEncoder(const Napi::CallbackInfo& info, const Napi::Value& value) {
+	osn::AudioEncoder* encoder =
+		Napi::ObjectWrap<osn::AudioEncoder>::Unwrap(value.ToObject());
+
+	if (!encoder) {
+		Napi::TypeError::New(info.Env(),
+            "Invalid encoder argument").ThrowAsJavaScriptException();
+		return;
+	}
+
 	auto conn = GetConnection(info);
 	if (!conn)
 		return;
 
-	conn->call_synchronous_helper(
-		"SimpleStreaming",
-		"SetAudioBitrate",
-		{ipc::value(this->uid), ipc::value(value.ToNumber().Uint32Value())});
+	conn->call(
+		className,
+		"SetAudioEncoder",
+		{ipc::value(this->uid), ipc::value(encoder->uid)});
 }

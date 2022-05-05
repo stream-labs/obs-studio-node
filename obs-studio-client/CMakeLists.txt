@@ -109,6 +109,12 @@ SET(osn-client_SOURCES
 	"source/network.cpp"
 	"source/audio-track.hpp"
 	"source/audio-track.cpp"
+	"source/recording.hpp"
+	"source/recording.cpp"
+	"source/simple-recording.hpp"
+	"source/simple-recording.cpp"
+	"source/audio-encoder.hpp"
+	"source/audio-encoder.cpp"
 
 	###### callback-manager ######
 	"source/callback-manager.cpp"

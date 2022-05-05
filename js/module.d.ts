@@ -258,6 +258,8 @@ export declare const DelayFactory: IDelayFactory;
 export declare const ReconnectFactory: IReconnectFactory;
 export declare const NetworkFactory: INetworkFactory;
 export declare const AudioTrackFactory: IAudioTrackFactory;
+export declare const SimpleRecordingFactory: ISimpleRecordingFactory;
+export declare const AudioEncoderFactory: IAudioEncoderFactory;
 export interface ISettings {
     [key: string]: any;
 }
@@ -643,12 +645,12 @@ export interface IService {
     update(settings: ISettings): void;
 }
 declare const enum ERecordingFormat {
-    MP4 = 0,
-    FLV = 1,
-    MOV = 2,
-    MKV = 3,
-    TS = 4,
-    M3M8 = 5
+    MP4 = "mp4",
+    FLV = "flv",
+    MOV = "mov",
+    MKV = "mkv",
+    TS = "ts",
+    M3M8 = "m3m8"
 }
 declare const enum ERecordingQuality {
     Stream = 0,
@@ -666,6 +668,13 @@ export interface IVideoEncoder extends IConfigurable {
     readonly active: boolean;
     readonly id: string;
     readonly lastError: string;
+}
+export interface IAudioEncoder {
+    name: string;
+    bitrate: number;
+}
+export interface IAudioEncoderFactory {
+    create(): IAudioEncoder;
 }
 export interface IVideoEncoderFactory {
     types(): string[];
@@ -691,7 +700,7 @@ export interface EOutputSignal {
     error: string;
 }
 export interface ISimpleStreaming extends IStreaming {
-    audioBitrate: number;
+    audioEncoder: IAudioEncoder;
 }
 export interface ISimpleStreamingFactory {
     create(): ISimpleStreaming;
@@ -706,20 +715,31 @@ export interface IAdvancedStreaming extends IStreaming {
 export interface IAdvancedStreamingFactory {
     create(): IAdvancedStreaming;
 }
-export interface Recording {
+export interface IRecording {
     path: string;
     format: ERecordingFormat;
+    fileFormat: string;
+    overwrite: boolean;
+    noSpace: boolean;
     muxerSettings: string;
     videoEncoder: IVideoEncoder;
+    signalHandler: (signal: EOutputSignal) => void;
+    start(): void;
+    stop(force?: boolean): void;
 }
-export interface SimpleRecording extends Recording {
+export interface ISimpleRecording extends IRecording {
     quality: ERecordingQuality;
+    audioEncoder: IAudioEncoder;
+    lowCPU: boolean;
 }
-export interface AdvancedRecording extends Recording {
+export interface IAdvancedRecording extends IRecording {
     mixer: number;
     rescaling: boolean;
     outputWidth?: number;
     outputHeight?: number;
+}
+export interface ISimpleRecordingFactory {
+    create(): ISimpleRecording;
 }
 export interface ReplayBuffer {
     enabled: boolean;

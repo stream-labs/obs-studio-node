@@ -53,6 +53,8 @@
 #include "osn-reconnect.hpp"
 #include "osn-network.hpp"
 #include "osn-audio-track.hpp"
+#include "osn-simple-recording.hpp"
+#include "osn-audio-encoder.hpp"
 
 #include "util-crashmanager.h"
 #include "shared.hpp"
@@ -256,6 +258,8 @@ int main(int argc, char* argv[])
 	osn::IReconnect::Register(myServer);
 	osn::INetwork::Register(myServer);
 	osn::IAudioTrack::Register(myServer);
+	osn::ISimpleRecording::Register(myServer);
+	osn::AudioEncoder::Register(myServer);
 
 	OBS_API::CreateCrashHandlerExitPipe();
 

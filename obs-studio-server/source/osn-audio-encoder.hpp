@@ -20,16 +20,28 @@
 #include <ipc-server.hpp>
 #include <obs.h>
 #include "utility.hpp"
-#include "osn-delay.hpp"
-#include "osn-reconnect.hpp"
-#include "osn-network.hpp"
-#include "osn-streaming.hpp"
 
 namespace osn
 {
-	class ISimpleStreaming: public IStreaming
+	class AudioEncoder
 	{
 		public:
+		class Manager : public utility::unique_object_manager<obs_encoder_t>
+		{
+			friend class std::shared_ptr<Manager>;
+
+			protected:
+			Manager() {}
+			~Manager() {}
+
+			public:
+			Manager(Manager const&) = delete;
+			Manager operator=(Manager const&) = delete;
+
+			public:
+			static Manager& GetInstance();
+		};
+
 		static void Register(ipc::server&);
 
 		static void Create(
@@ -37,22 +49,22 @@ namespace osn
 		    const int64_t                  id,
 		    const std::vector<ipc::value>& args,
 		    std::vector<ipc::value>&       rval);
-		static void GetAudioEncoder(
+		static void GetName(
 		    void*                          data,
 		    const int64_t                  id,
 		    const std::vector<ipc::value>& args,
 		    std::vector<ipc::value>&       rval);
-		static void SetAudioEncoder(
+		static void SetName(
 		    void*                          data,
 		    const int64_t                  id,
 		    const std::vector<ipc::value>& args,
 		    std::vector<ipc::value>&       rval);
-		static void Start(
+		static void GetBitrate(
 		    void*                          data,
 		    const int64_t                  id,
 		    const std::vector<ipc::value>& args,
 		    std::vector<ipc::value>&       rval);
-		static void Stop(
+		static void SetBitrate(
 		    void*                          data,
 		    const int64_t                  id,
 		    const std::vector<ipc::value>& args,

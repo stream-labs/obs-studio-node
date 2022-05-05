@@ -22,30 +22,27 @@
 #include "osn-delay.hpp"
 #include "osn-reconnect.hpp"
 #include "osn-network.hpp"
+#include "osn-streaming.hpp"
 
 namespace osn
 {
-	struct signalInfo {
-		std::string signal;
-		int code;
-		std::string errorMessage;
+	enum RecQuality {
+		Stream = 0,
+		HighQuality = 1,
+		HigherQuality = 2,
+		Lossless = 3
 	};
 
-    class Streaming
+    class Recording
     {
         public:
-        Streaming() {
+        Recording() {
 			videoEncoder = nullptr;
 			audioEncoder = nullptr;
-			audioBitrate = 160;
-			streamArchive = nullptr;
-			service = nullptr;
 			output = nullptr;
-			enforceServiceBitrate = true;
-			enableTwitchVOD = false;
-			twitchVODSupported = false;
-			oldMixer_desktopSource1 = 0;
-			oldMixer_desktopSource2 = 0;
+            path = "";
+            format = "mp4";
+            muxerSettings = "";
 			signals = {
 				"start",
 				"stop",
@@ -54,37 +51,33 @@ namespace osn
 				"activate",
 				"deactivate",
 				"reconnect",
-				"reconnect_success"
+				"reconnect_success",
+                "wrote"
 			};
-			delay = new Delay();
-			reconnect = new Reconnect();
-			network = new Network();
-			audioTrack = 1;
-			twitchTrack = 2;
 			rescaling = false;
 			outputWidth = 1280;
 			outputHeight = 720;
+			quality = RecQuality::Stream;
+			fileFormat = "%CCYY-%MM-%DD %hh-%mm-%ss";
+			overwrite = false;
+			noSpace = false;
+			lowCPU = false;
 		}
-        ~Streaming() {}
+        ~Recording() {}
 
         public:
+        std::string path;
+        std::string format;
+        std::string muxerSettings;
 		obs_encoder_t* videoEncoder;
 		obs_encoder_t* audioEncoder;
-		uint32_t audioBitrate;
-		obs_encoder_t* streamArchive;
-		obs_service_t* service;
+		RecQuality quality;
 		obs_output_t* output;
-		bool enforceServiceBitrate;
-		bool enableTwitchVOD;
-		bool twitchVODSupported;
-		uint32_t oldMixer_desktopSource1;
-		uint32_t oldMixer_desktopSource2;
-		Delay* delay;
-		Reconnect* reconnect;
-		Network* network;
+		std::string fileFormat;
+		bool overwrite;
+		bool noSpace;
+		bool lowCPU;
 
-		uint32_t audioTrack;
-		uint32_t twitchTrack;
 		bool rescaling;
 		uint32_t outputWidth;
 		uint32_t outputHeight;
@@ -94,18 +87,17 @@ namespace osn
 		std::vector<std::string> signals;
 
 		void ConnectSignals();
-		bool isTwitchVODSupported();
     };
 
-	struct cbData {
+	struct cbDataRec {
 		std::string signal;
-		Streaming* stream;
+		Recording* recording;
 	};
 
-	class IStreaming
+	class IRecording
 	{
 		protected:
-		class Manager : public utility::unique_object_manager<Streaming>
+		class Manager : public utility::unique_object_manager<Recording>
 		{
 			friend class std::shared_ptr<Manager>;
 
@@ -122,12 +114,32 @@ namespace osn
 		};
 
 		public:
-		static void GetService(
+		static void GetPath(
 		    void*                          data,
 		    const int64_t                  id,
 		    const std::vector<ipc::value>& args,
 		    std::vector<ipc::value>&       rval);
-		static void SetService(
+		static void SetPath(
+		    void*                          data,
+		    const int64_t                  id,
+		    const std::vector<ipc::value>& args,
+		    std::vector<ipc::value>&       rval);
+		static void GetFormat(
+		    void*                          data,
+		    const int64_t                  id,
+		    const std::vector<ipc::value>& args,
+		    std::vector<ipc::value>&       rval);
+		static void SetFormat(
+		    void*                          data,
+		    const int64_t                  id,
+		    const std::vector<ipc::value>& args,
+		    std::vector<ipc::value>&       rval);
+		static void GetMuxerSettings(
+		    void*                          data,
+		    const int64_t                  id,
+		    const std::vector<ipc::value>& args,
+		    std::vector<ipc::value>&       rval);
+		static void SetMuxerSettings(
 		    void*                          data,
 		    const int64_t                  id,
 		    const std::vector<ipc::value>& args,
@@ -142,57 +154,37 @@ namespace osn
 		    const int64_t                  id,
 		    const std::vector<ipc::value>& args,
 		    std::vector<ipc::value>&       rval);
-		static void GetEnforceServiceBirate(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void SetEnforceServiceBirate(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void GetEnableTwitchVOD(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void SetEnableTwitchVOD(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void GetDelay(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void SetDelay(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void GetReconnect(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void SetReconnect(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void GetNetwork(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void SetNetwork(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
 		static void Query(
+		    void*                          data,
+		    const int64_t                  id,
+		    const std::vector<ipc::value>& args,
+		    std::vector<ipc::value>&       rval);
+		static void GetFileFormat(
+		    void*                          data,
+		    const int64_t                  id,
+		    const std::vector<ipc::value>& args,
+		    std::vector<ipc::value>&       rval);
+		static void SetFileFormat(
+		    void*                          data,
+		    const int64_t                  id,
+		    const std::vector<ipc::value>& args,
+		    std::vector<ipc::value>&       rval);
+		static void GetOverwrite(
+		    void*                          data,
+		    const int64_t                  id,
+		    const std::vector<ipc::value>& args,
+		    std::vector<ipc::value>&       rval);
+		static void SetOverwrite(
+		    void*                          data,
+		    const int64_t                  id,
+		    const std::vector<ipc::value>& args,
+		    std::vector<ipc::value>&       rval);
+		static void GetNoSpace(
+		    void*                          data,
+		    const int64_t                  id,
+		    const std::vector<ipc::value>& args,
+		    std::vector<ipc::value>&       rval);
+		static void SetNoSpace(
 		    void*                          data,
 		    const int64_t                  id,
 		    const std::vector<ipc::value>& args,

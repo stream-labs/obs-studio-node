@@ -18,6 +18,7 @@
 
 #include "osn-simple-streaming.hpp"
 #include "osn-encoder.hpp"
+#include "osn-audio-encoder.hpp"
 #include "osn-service.hpp"
 #include "osn-error.hpp"
 #include "shared.hpp"
@@ -45,6 +46,14 @@ void osn::ISimpleStreaming::Register(ipc::server& srv)
         std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64},
         SetVideoEncoder));
 	cls->register_function(std::make_shared<ipc::function>(
+	    "GetAudioEncoder",
+        std::vector<ipc::type>{ipc::type::UInt64},
+        GetAudioEncoder));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "SetAudioEncoder",
+        std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64},
+        SetAudioEncoder));
+	cls->register_function(std::make_shared<ipc::function>(
 	    "GetEnforceServiceBirate",
         std::vector<ipc::type>{ipc::type::UInt64},
         GetEnforceServiceBirate));
@@ -60,14 +69,6 @@ void osn::ISimpleStreaming::Register(ipc::server& srv)
 	    "SetEnableTwitchVOD",
         std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32},
         SetEnableTwitchVOD));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "GetAudioBitrate",
-        std::vector<ipc::type>{ipc::type::UInt64},
-        GetAudioBitrate));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "SetAudioBitrate",
-        std::vector<ipc::type>{ipc::type::UInt64,ipc::type::UInt32},
-        SetAudioBitrate));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "GetDelay",
         std::vector<ipc::type>{ipc::type::UInt64},
@@ -119,7 +120,7 @@ void osn::ISimpleStreaming::Create(
 	AUTO_DEBUG;
 }
 
-void osn::ISimpleStreaming::GetAudioBitrate(
+void osn::ISimpleStreaming::GetAudioEncoder(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
@@ -128,49 +129,39 @@ void osn::ISimpleStreaming::GetAudioBitrate(
 	Streaming* streaming =
 		osn::ISimpleStreaming::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!streaming) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Simple streaming reference is not valid.");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Streaming reference is not valid.");
 	}
 
-    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-    rval.push_back(ipc::value(streaming->audioBitrate));
+	uint64_t uid =
+        osn::AudioEncoder::Manager::GetInstance().find(streaming->audioEncoder);
+
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(uid));
 	AUTO_DEBUG;
 }
 
-void osn::ISimpleStreaming::SetAudioBitrate(
+void osn::ISimpleStreaming::SetAudioEncoder(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
 	Streaming* streaming =
-		osn::ISimpleStreaming::Manager
-			::GetInstance().find(args[0].value_union.ui64);
+		osn::ISimpleStreaming::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!streaming) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Simple streaming reference is not valid.");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Streaming reference is not valid.");
 	}
 
-    streaming->audioBitrate = args[1].value_union.ui32;
+    obs_encoder_t* encoder =
+        osn::AudioEncoder::Manager::GetInstance().find(args[1].value_union.ui64);
+	if (!encoder) {
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Encoder reference is not valid.");
+	}
+
+    streaming->audioEncoder = encoder;
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
-}
-
-static inline obs_encoder_t* createAudioEncoder(uint32_t bitrate)
-{
-	obs_encoder_t* audioEncoder = nullptr;
-
-	audioEncoder =
-		obs_audio_encoder_create(GetAACEncoderForBitrate(bitrate), "audio", nullptr, 0, nullptr);
-
-	return audioEncoder;
-}
-
-
-static inline void setAudioEncoder(osn::Streaming* streaming)
-{
-	streaming->audioEncoder = createAudioEncoder(streaming->audioBitrate);
-	obs_encoder_set_audio(streaming->audioEncoder, obs_get_audio());
-	obs_output_set_audio_encoder(streaming->output, streaming->audioEncoder, 0);
 }
 
 static constexpr int kSoundtrackArchiveEncoderIdx = 1;
@@ -297,10 +288,17 @@ void osn::ISimpleStreaming::Start(
 
 	if (!streaming->videoEncoder) {
 		PRETTY_ERROR_RETURN(
-            ErrorCode::InvalidReference, "Error while creating the audio encoder.");
+            ErrorCode::InvalidReference, "Invalid video encoder.");
 	}
 
-	setAudioEncoder(streaming);
+	if (!streaming->audioEncoder) {
+		PRETTY_ERROR_RETURN(
+            ErrorCode::InvalidReference, "Invalid audio encoder.");
+	}
+
+	obs_encoder_set_audio(streaming->audioEncoder, obs_get_audio());
+	obs_output_set_audio_encoder(streaming->output, streaming->audioEncoder, 0);
+
 	obs_encoder_set_video(streaming->videoEncoder, obs_get_video());
 	obs_output_set_video_encoder(streaming->output, streaming->videoEncoder);
 

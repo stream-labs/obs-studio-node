@@ -53,7 +53,7 @@ void osn::IStreaming::SetService(
 		osn::IStreaming::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!streaming) {
 		PRETTY_ERROR_RETURN(
-            ErrorCode::InvalidReference, "Simple streaming reference is not valid.");
+            ErrorCode::InvalidReference, "Streaming reference is not valid.");
 	}
 
     obs_service_t* service =
@@ -78,7 +78,7 @@ void osn::IStreaming::GetVideoEncoder(
 	Streaming* streaming =
 		osn::IStreaming::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!streaming) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Simple streaming reference is not valid.");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Streaming reference is not valid.");
 	}
 
 	uint64_t uid =
@@ -98,7 +98,7 @@ void osn::IStreaming::SetVideoEncoder(
 	Streaming* streaming =
 		osn::IStreaming::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!streaming) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Simple streaming reference is not valid.");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Streaming reference is not valid.");
 	}
 
     obs_encoder_t* encoder =
@@ -122,7 +122,7 @@ void osn::IStreaming::GetEnforceServiceBirate(
 	Streaming* streaming =
 		osn::IStreaming::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!streaming) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Simple streaming reference is not valid.");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Streaming reference is not valid.");
 	}
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -139,7 +139,7 @@ void osn::IStreaming::SetEnforceServiceBirate(
 	Streaming* streaming =
 		osn::IStreaming::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!streaming) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Simple streaming reference is not valid.");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Streaming reference is not valid.");
 	}
 
     streaming->enforceServiceBitrate = args[1].value_union.ui32;
@@ -157,7 +157,7 @@ void osn::IStreaming::GetEnableTwitchVOD(
 	Streaming* streaming =
 		osn::IStreaming::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!streaming) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Simple streaming reference is not valid.");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Streaming reference is not valid.");
 	}
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -174,7 +174,7 @@ void osn::IStreaming::SetEnableTwitchVOD(
 	Streaming* streaming =
 		osn::IStreaming::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!streaming) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Simple streaming reference is not valid.");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Streaming reference is not valid.");
 	}
 
     streaming->enableTwitchVOD = args[1].value_union.ui32;
@@ -212,7 +212,7 @@ void osn::IStreaming::SetDelay(
 	Streaming* streaming =
 		osn::IStreaming::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!streaming) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Simple streaming reference is not valid.");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Streaming reference is not valid.");
 	}
 
     Delay* delay =
@@ -256,7 +256,7 @@ void osn::IStreaming::SetReconnect(
 	Streaming* streaming =
 		osn::IStreaming::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!streaming) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Simple streaming reference is not valid.");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Streaming reference is not valid.");
 	}
 
     Reconnect* reconnect =
@@ -300,7 +300,7 @@ void osn::IStreaming::SetNetwork(
 	Streaming* streaming =
 		osn::IStreaming::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!streaming) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Simple streaming reference is not valid.");
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Streaming reference is not valid.");
 	}
 
     Network* network =
@@ -314,6 +314,7 @@ void osn::IStreaming::SetNetwork(
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }
+
 static inline void calbback(void* data, calldata_t* params)
 {
 	auto info =
@@ -395,7 +396,7 @@ void osn::IStreaming::Query(
 		osn::IStreaming::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!streaming) {
 		PRETTY_ERROR_RETURN(
-            ErrorCode::InvalidReference, "Simple streaming reference is not valid.");
+            ErrorCode::InvalidReference, "Streaming reference is not valid.");
 	}
 
 	std::unique_lock<std::mutex> ulock(streaming->signalsMtx);

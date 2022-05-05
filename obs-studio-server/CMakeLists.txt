@@ -266,6 +266,12 @@ SET(osn-server_SOURCES
 	"${PROJECT_SOURCE_DIR}/source/osn-network.hpp"
 	"${PROJECT_SOURCE_DIR}/source/osn-audio-track.cpp"
 	"${PROJECT_SOURCE_DIR}/source/osn-audio-track.hpp"
+	"${PROJECT_SOURCE_DIR}/source/osn-recording.cpp"
+	"${PROJECT_SOURCE_DIR}/source/osn-recording.hpp"
+	"${PROJECT_SOURCE_DIR}/source/osn-simple-recording.cpp"
+	"${PROJECT_SOURCE_DIR}/source/osn-simple-recording.hpp"
+	"${PROJECT_SOURCE_DIR}/source/osn-audio-encoder.cpp"
+	"${PROJECT_SOURCE_DIR}/source/osn-audio-encoder.hpp"
 
 	###### utlity graphics ######
 	"${PROJECT_SOURCE_DIR}/source/gs-limits.h"

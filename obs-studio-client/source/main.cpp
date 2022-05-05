@@ -48,6 +48,8 @@
 #include "reconnect.hpp"
 #include "network.hpp"
 #include "audio-track.hpp"
+#include "simple-recording.hpp"
+#include "audio-encoder.hpp"
 
 #if defined(_WIN32)
 // Checks ForceGPUAsRenderDevice setting
@@ -125,6 +127,8 @@ Napi::Object main_node(Napi::Env env, Napi::Object exports) {
 	osn::Reconnect::Init(env, exports);
 	osn::Network::Init(env, exports);
 	osn::AudioTrack::Init(env, exports);
+	osn::SimpleRecording::Init(env, exports);
+	osn::AudioEncoder::Init(env, exports);
 	return exports;
 };
 
