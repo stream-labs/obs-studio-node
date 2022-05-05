@@ -1,7 +1,7 @@
+@echo off
 rem ##################
 rem Script to check changes in dependencies
 rem It compares dependencies of a module after a build to saved list
-echo off
 
 rem ##################
 rem Prepare file names
