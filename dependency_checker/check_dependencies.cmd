@@ -18,6 +18,8 @@ IF "%BuildType%" == "Debug" (
   exit 0
 )
 
+powershell -command "Write-Host 'Check dependecy for %BinaryName%'"
+
 rem ##################
 rem Get dependencies from current binary
 dumpbin /DEPENDENTS %BinaryFilename% > %depsCurrent%_1.txt
