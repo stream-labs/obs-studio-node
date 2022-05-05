@@ -62,6 +62,14 @@ void osn::ISimpleRecording::Register(ipc::server& srv)
         std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64},
         SetVideoEncoder));
 	cls->register_function(std::make_shared<ipc::function>(
+	    "GetAudioEncoder",
+        std::vector<ipc::type>{ipc::type::UInt64},
+        GetAudioEncoder));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "SetAudioEncoder",
+        std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64},
+        SetAudioEncoder));
+	cls->register_function(std::make_shared<ipc::function>(
 	    "GetQuality",
         std::vector<ipc::type>{ipc::type::UInt64},
         GetQuality));
@@ -223,22 +231,22 @@ static inline void LoadLosslessPreset(osn::Recording* recording)
 static inline void calbback(void* data, calldata_t* params)
 {
 	auto info =
-		reinterpret_cast<osn::cbData*>(data);
+		reinterpret_cast<osn::cbDataRec*>(data);
 
 	if (!info)
 		return;
 
 	std::string signal = info->signal;
-	auto stream = info->stream;
+	auto recording = info->recording;
 
-	if (!stream->output)
+	if (!recording->output)
 		return;
 
 	const char* error =
-		obs_output_get_last_error(stream->output);
+		obs_output_get_last_error(recording->output);
 
-	std::unique_lock<std::mutex> ulock(stream->signalsMtx);
-	stream->signalsReceived.push({
+	std::unique_lock<std::mutex> ulock(recording->signalsMtx);
+	recording->signalsReceived.push({
 		signal,
 		(int)calldata_int(params, "code"),
 		error ? std::string(error) : ""
@@ -410,16 +418,16 @@ static inline void UpdateRecordingSettings_crf(
 		obs_encoder_get_id(recording->videoEncoder);
 
 	obs_data_t* settings = nullptr;
-	if (id.compare("obs_x264")) {
-		UpdateRecordingSettings_x264_crf(
+	if (id.compare("obs_x264") == 0) {
+		settings = UpdateRecordingSettings_x264_crf(
 			CalcCRF(crf, recording->lowCPU),
 			recording->lowCPU);
-	} else if (id.compare("jim_nvenc") || id.compare("ffmpeg_nvenc")) {
-		UpdateRecordingSettings_nvenc(CalcCRF(crf));
-	} else if (id.compare("obs_qsv11")) {
-		UpdateRecordingSettings_qsv11(CalcCRF(crf), recording->videoEncoder);
-	} else if (id.compare("amd_amf_h264")) {
-		UpdateRecordingSettings_amd_cqp(CalcCRF(crf));
+	} else if (id.compare("jim_nvenc") == 0 || id.compare("ffmpeg_nvenc") == 0) {
+		settings = UpdateRecordingSettings_nvenc(CalcCRF(crf));
+	} else if (id.compare("obs_qsv11") == 0) {
+		settings = UpdateRecordingSettings_qsv11(CalcCRF(crf), recording->videoEncoder);
+	} else if (id.compare("amd_amf_h264") == 0) {
+		settings = UpdateRecordingSettings_amd_cqp(CalcCRF(crf));
 	} else {
 		return;
 	}
@@ -443,7 +451,11 @@ void osn::ISimpleRecording::Start(
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Simple recording reference is not valid.");
 	}
 
-	if (!recording->output) {
+	const char* ffmpegMuxer = "ffmpeg_muxer";
+	if (!recording->output ||
+		strcmp(obs_output_get_id(recording->output), ffmpegMuxer) == 0) {
+		if (recording->output)
+			obs_output_release(recording->output);
 		recording->output =
 			obs_output_create("ffmpeg_muxer", "recording", nullptr, nullptr);
 		recording->ConnectSignals();
@@ -475,16 +487,20 @@ void osn::ISimpleRecording::Start(
             break;
         }
         case RecQuality::Lossless: {
-            LoadLosslessPreset(recording);
+			obs_output_release(recording->output);
+			recording->output =
+				obs_output_create("ffmpeg_output", "recording", nullptr, nullptr);
+			recording->ConnectSignals();
+			LoadLosslessPreset(recording);
 			format = "avi";
 			pathProperty = "url";
-            break;
-        }
-        default: {
-            PRETTY_ERROR_RETURN(ErrorCode::InvalidReference,
-                "Error while loading the recording pressets.");
-        }
-    }
+			break;
+		}
+		default: {
+			PRETTY_ERROR_RETURN(ErrorCode::InvalidReference,
+				"Error while loading the recording pressets.");
+		}
+	}
 
 	if (!recording->audioEncoder) {
 		PRETTY_ERROR_RETURN(
@@ -533,6 +549,17 @@ void osn::ISimpleRecording::Stop(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
+	Recording* recording =
+		osn::IRecording::Manager::GetInstance().find(args[0].value_union.ui64);
+	if (!recording) {
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Simple recording reference is not valid.");
+	}
+	if (!recording->output) {
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Invalid recording output.");
+	}
+
+	obs_output_stop(recording->output);
+
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }
