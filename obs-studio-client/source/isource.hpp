@@ -68,5 +68,7 @@ namespace osn
 		static void SendMouseWheel(const Napi::CallbackInfo& info, uint64_t id);
 		static void SendFocus(const Napi::CallbackInfo& info, uint64_t id);
 		static void SendKeyClick(const Napi::CallbackInfo& info, uint64_t id);
+
+		static Napi::Object CallHandler(const Napi::CallbackInfo& info, uint64_t id);
 	};
 }

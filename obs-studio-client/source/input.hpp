@@ -102,5 +102,7 @@ namespace osn
 		void Restart(const Napi::CallbackInfo& info);
 		void Stop(const Napi::CallbackInfo& info);
 		Napi::Value GetMediaState(const Napi::CallbackInfo& info);
+
+		Napi::Value CallCallHandler(const Napi::CallbackInfo& info);
 	};
 }

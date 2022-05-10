@@ -475,6 +475,33 @@ void osn::ISource::SetMuted(const Napi::CallbackInfo& info, const Napi::Value &v
 	if (sdi)
 		sdi->mutedChanged = true;
 }
+	
+Napi::Object osn::ISource::CallHandler(const Napi::CallbackInfo& info, uint64_t id)
+{
+	Napi::Object result = Napi::Object::New(info.Env());
+	Napi::String fuction_name = info[0].ToString();
+	Napi::String fuction_input = info[1].ToString();
+
+	auto conn = GetConnection(info);
+
+	if (!conn)
+	{
+		result.Set("error", Napi::Boolean::New(info.Env(), true));
+		return result;
+	}
+
+	std::vector<ipc::value> response =
+	    conn->call_synchronous_helper("Source", "CallHandler", { ipc::value(id), ipc::value(fuction_name), ipc::value(fuction_input) });
+
+	if (!ValidateResponse(info, response))
+	{
+		result.Set("error", Napi::Boolean::New(info.Env(), true));
+		return result;
+	}
+	
+	result.Set("output", Napi::String::New(info.Env(), response[1].value_str.c_str()));
+	return result;
+}
 
 Napi::Value osn::ISource::GetEnabled(const Napi::CallbackInfo& info, uint64_t id)
 {

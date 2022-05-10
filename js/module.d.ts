@@ -540,6 +540,7 @@ export interface ISource extends IConfigurable, IReleasable {
     muted: boolean;
     enabled: boolean;
     readonly slowUncachedSettings: ISettings;
+    call_handler(fuction_name: string, fuction_input: string): Object;
 }
 export interface IFaderFactory {
     create(type: EFaderType): IFader;
