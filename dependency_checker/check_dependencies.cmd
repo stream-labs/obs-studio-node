@@ -1,3 +1,4 @@
+@echo off
 rem ##################
 rem Script to check changes in dependencies
 rem It compares dependencies of a module after a build to saved list
@@ -7,15 +8,17 @@ rem Prepare file names
 Set BinaryFilename=%1
 For %%A in ("%BinaryFilename%") do (
   Set BinaryName=%%~nxA
-  Set depsFile=%3/dependencies/%%~nxA.txt
-  Set depsCurrent=%2/%%~nxA
-  Set BuildType=%4
 )
+Set depsCurrent=%2/%BinaryName%
+Set depsFile=%3/dependencies/%BinaryName%.txt
+Set BuildType=%4
 
 IF "%BuildType%" == "Debug" ( 
   powershell -command "Write-Host 'Skip dependecy check for Debug configuration'"
   exit 0
 )
+
+powershell -command "Write-Host 'Check dependecy for %BinaryName%'"
 
 rem ##################
 rem Get dependencies from current binary
@@ -54,5 +57,3 @@ IF EXIST %depsFile% (
       "Write-Output '' "
   powershell -command "Write-Error 'Alarm: Dependencies list was not created.'"
 )
-
-
