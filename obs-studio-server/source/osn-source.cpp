@@ -301,10 +301,10 @@ void osn::Source::GetProperties(
 }
 		
 void osn::Source::CallHandler(
-	void*							data,
-	const int64_t					id,
-	const std::vector<ipc::value>&	args,
-	std::vector<ipc::value>&		rval)
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
 {
 	// Attempt to find the source asked to load.
 	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
