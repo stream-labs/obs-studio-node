@@ -486,7 +486,7 @@ Napi::Object osn::ISource::CallHandler(const Napi::CallbackInfo& info, uint64_t 
 
 	if (!conn)
 	{
-		result.Set("error", Napi::Boolean::New(info.Env(), true));
+		Napi::TypeError::New(info.Env(), "IPC Connection Failed").ThrowAsJavaScriptException();
 		return result;
 	}
 
@@ -495,7 +495,7 @@ Napi::Object osn::ISource::CallHandler(const Napi::CallbackInfo& info, uint64_t 
 
 	if (!ValidateResponse(info, response))
 	{
-		result.Set("error", Napi::Boolean::New(info.Env(), true));
+		Napi::TypeError::New(info.Env(), "Invalid IPC Response").ThrowAsJavaScriptException();
 		return result;
 	}
 	
