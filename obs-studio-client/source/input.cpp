@@ -92,7 +92,7 @@ Napi::Object osn::Input::Init(Napi::Env env, Napi::Object exports) {
 			InstanceMethod("restart", &osn::Input::Restart),
 			InstanceMethod("stop", &osn::Input::Stop),
 			InstanceMethod("getMediaState", &osn::Input::GetMediaState),
-			InstanceMethod("call_handler", &osn::Input::CallCallHandler)
+			InstanceMethod("callHandler", &osn::Input::CallCallHandler)
 		});
 	exports.Set("Input", func);
 	osn::Input::constructor = Napi::Persistent(func);
