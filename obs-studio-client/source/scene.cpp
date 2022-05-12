@@ -74,7 +74,7 @@ Napi::Object osn::Scene::Init(Napi::Env env, Napi::Object exports) {
 			InstanceMethod("sendMouseWheel", &osn::Scene::CallSendMouseWheel),
 			InstanceMethod("sendFocus", &osn::Scene::CallSendFocus),
 			InstanceMethod("sendKeyClick", &osn::Scene::CallSendKeyClick),
-			InstanceMethod("call_handler", &osn::Scene::CallCallHandler),
+			InstanceMethod("callHandler", &osn::Scene::CallCallHandler),
 		});
 	exports.Set("Scene", func);
 	osn::Scene::constructor = Napi::Persistent(func);

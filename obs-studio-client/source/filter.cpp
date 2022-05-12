@@ -60,7 +60,7 @@ Napi::Object osn::Filter::Init(Napi::Env env, Napi::Object exports) {
 			InstanceMethod("sendMouseWheel", &osn::Filter::CallSendMouseWheel),
 			InstanceMethod("sendFocus", &osn::Filter::CallSendFocus),
 			InstanceMethod("sendKeyClick", &osn::Filter::CallSendKeyClick),
-			InstanceMethod("call_handler", &osn::Filter::CallCallHandler),
+			InstanceMethod("callHandler", &osn::Filter::CallCallHandler),
 		});
 	exports.Set("Filter", func);
 	osn::Filter::constructor = Napi::Persistent(func);
