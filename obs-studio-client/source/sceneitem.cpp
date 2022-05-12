@@ -63,6 +63,7 @@ Napi::Object osn::SceneItem::Init(Napi::Env env, Napi::Object exports) {
 			InstanceMethod("remove", &osn::SceneItem::Remove),
 			InstanceMethod("deferUpdateBegin", &osn::SceneItem::DeferUpdateBegin),
 			InstanceMethod("deferUpdateEnd", &osn::SceneItem::DeferUpdateEnd),
+			InstanceMethod("callHandler", &osn::SceneItem::CallCallHandler),
 		});
 	exports.Set("SceneItem", func);
 	osn::SceneItem::constructor = Napi::Persistent(func);

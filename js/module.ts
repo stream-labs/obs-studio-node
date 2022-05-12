@@ -1203,7 +1203,7 @@ export interface ISource extends IConfigurable, IReleasable {
     /** 
      * Executes a named function from obs internals
     */
-    call_handler(fuction_name: string, fuction_input: string): Object;
+     callHandler(fuction_name: string, fuction_input: string): Object;
 }
 
 export interface IFaderFactory {

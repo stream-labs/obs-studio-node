@@ -67,7 +67,7 @@ Napi::Object osn::Transition::Init(Napi::Env env, Napi::Object exports) {
 			InstanceMethod("sendMouseWheel", &osn::Transition::CallSendMouseWheel),
 			InstanceMethod("sendFocus", &osn::Transition::CallSendFocus),
 			InstanceMethod("sendKeyClick", &osn::Transition::CallSendKeyClick),
-			InstanceMethod("call_handler", &osn::Transition::CallCallHandler),
+			InstanceMethod("callHandler", &osn::Transition::CallCallHandler),
 		});
 	exports.Set("Transition", func);
 	osn::Transition::constructor = Napi::Persistent(func);
