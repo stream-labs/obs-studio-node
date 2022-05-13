@@ -1199,6 +1199,11 @@ export interface ISource extends IConfigurable, IReleasable {
 	 * Expensive, shouldn't be used unless sure
      */
     readonly slowUncachedSettings: ISettings;
+
+    /** 
+     * Executes a named function from obs internals
+    */
+     callHandler(fuction_name: string, fuction_input: string): Object;
 }
 
 export interface IFaderFactory {
