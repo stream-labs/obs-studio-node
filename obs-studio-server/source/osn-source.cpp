@@ -324,7 +324,11 @@ void osn::Source::CallHandler(
 	// Call function by name
 	if (proc_handler_call(procHandler, function_name.c_str(), &cd))
 	{
-		std::string result(calldata_string(&cd, "output"));
+		std::string result;
+
+		if (const char* str = calldata_string(&cd, "output"))
+			result = str;
+
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 		rval.push_back(ipc::value(result));
 	}
