@@ -330,6 +330,7 @@ export const ReconnectFactory: IReconnectFactory = obs.Reconnect;
 export const NetworkFactory: INetworkFactory = obs.Network;
 export const AudioTrackFactory: IAudioTrackFactory = obs.AudioTrack;
 export const SimpleRecordingFactory: ISimpleRecordingFactory = obs.SimpleRecording;
+export const AdvancedRecordingFactory: IAdvancedRecordingFactory = obs.AdvancedRecording;
 export const AudioEncoderFactory: IAudioEncoderFactory = obs.AudioEncoder;
 
 /**
@@ -1598,6 +1599,10 @@ export interface IAdvancedRecording extends IRecording {
 
 export interface ISimpleRecordingFactory {
     create(): ISimpleRecording;
+}
+
+export interface IAdvancedRecordingFactory {
+    create(): IAdvancedRecording;
 }
 
 export interface ReplayBuffer {

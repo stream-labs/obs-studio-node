@@ -62,6 +62,7 @@ namespace osn
 			overwrite = false;
 			noSpace = false;
 			lowCPU = false;
+			mixer = 1 << 0;
 		}
         ~Recording() {}
 
@@ -77,6 +78,7 @@ namespace osn
 		bool overwrite;
 		bool noSpace;
 		bool lowCPU;
+		uint32_t mixer;
 
 		bool rescaling;
 		uint32_t outputWidth;
@@ -189,5 +191,9 @@ namespace osn
 		    const int64_t                  id,
 		    const std::vector<ipc::value>& args,
 		    std::vector<ipc::value>&       rval);
+
+		static std::string GenerateSpecifiedFilename(
+			const std::string& extension, bool noSpace, const std::string& format);
+		static void FindBestFilename(std::string& strPath, bool noSpace);
 	};
 }

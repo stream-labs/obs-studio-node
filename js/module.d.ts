@@ -259,6 +259,7 @@ export declare const ReconnectFactory: IReconnectFactory;
 export declare const NetworkFactory: INetworkFactory;
 export declare const AudioTrackFactory: IAudioTrackFactory;
 export declare const SimpleRecordingFactory: ISimpleRecordingFactory;
+export declare const AdvancedRecordingFactory: IAdvancedRecordingFactory;
 export declare const AudioEncoderFactory: IAudioEncoderFactory;
 export interface ISettings {
     [key: string]: any;
@@ -740,6 +741,9 @@ export interface IAdvancedRecording extends IRecording {
 }
 export interface ISimpleRecordingFactory {
     create(): ISimpleRecording;
+}
+export interface IAdvancedRecordingFactory {
+    create(): IAdvancedRecording;
 }
 export interface ReplayBuffer {
     enabled: boolean;

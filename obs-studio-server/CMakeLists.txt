@@ -272,6 +272,8 @@ SET(osn-server_SOURCES
 	"${PROJECT_SOURCE_DIR}/source/osn-simple-recording.hpp"
 	"${PROJECT_SOURCE_DIR}/source/osn-audio-encoder.cpp"
 	"${PROJECT_SOURCE_DIR}/source/osn-audio-encoder.hpp"
+	"${PROJECT_SOURCE_DIR}/source/osn-advanced-recording.cpp"
+	"${PROJECT_SOURCE_DIR}/source/osn-advanced-recording.hpp"
 
 	###### utlity graphics ######
 	"${PROJECT_SOURCE_DIR}/source/gs-limits.h"

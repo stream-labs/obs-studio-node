@@ -271,52 +271,6 @@ void osn::Recording::ConnectSignals()
 	}
 }
 
-static inline std::string GenerateSpecifiedFilename(
-	const std::string& extension, bool noSpace, const std::string& format)
-{
-	char* filename =
-		os_generate_formatted_filename(extension.c_str(), !noSpace, format.c_str());
-	if (filename == nullptr) {
-		throw "Invalid filename";
-	}
-
-	std::string result(filename);
-
-	bfree(filename);
-
-	return result;
-}
-
-static inline void FindBestFilename(std::string& strPath, bool noSpace)
-{
-	int num = 2;
-
-	if (!os_file_exists(strPath.c_str()))
-		return;
-
-	const char* ext = strrchr(strPath.c_str(), '.');
-	if (!ext)
-		return;
-
-	int extStart = int(ext - strPath.c_str());
-	for (;;) {
-		std::string testPath = strPath;
-		std::string numStr;
-
-		numStr = noSpace ? "_" : " (";
-		numStr += std::to_string(num++);
-		if (!noSpace)
-			numStr += ")";
-
-		testPath.insert(extStart, numStr);
-
-		if (!os_file_exists(testPath.c_str())) {
-			strPath = testPath;
-			break;
-		}
-	}
-}
-
 static inline obs_data_t* UpdateRecordingSettings_x264_crf(int crf, bool lowCPU)
 {
 	obs_data_t* settings = obs_data_create();
@@ -552,11 +506,9 @@ void osn::ISimpleRecording::Start(
 
 	std::string path = recording->path;
 
-#ifdef WIN32
 	char lastChar = path.back();
 	if (lastChar != '/' && lastChar != '\\')
 		path += "/";
-#endif
 
 	path += GenerateSpecifiedFilename(
 		format, recording->noSpace, recording->fileFormat);
