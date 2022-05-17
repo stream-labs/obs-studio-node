@@ -63,6 +63,7 @@ namespace osn
 			noSpace = false;
 			lowCPU = false;
 			mixer = 1 << 0;
+			useStreamEncoders = true;
 		}
         ~Recording() {}
 
@@ -83,6 +84,7 @@ namespace osn
 		bool rescaling;
 		uint32_t outputWidth;
 		uint32_t outputHeight;
+		bool useStreamEncoders;
 
 		std::mutex signalsMtx;
 		std::queue<signalInfo> signalsReceived;
@@ -195,5 +197,7 @@ namespace osn
 		static std::string GenerateSpecifiedFilename(
 			const std::string& extension, bool noSpace, const std::string& format);
 		static void FindBestFilename(std::string& strPath, bool noSpace);
+
+		static obs_encoder_t* duplicate_encoder(obs_encoder_t* src, uint64_t trackIndex = 0);
 	};
 }

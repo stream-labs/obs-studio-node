@@ -78,6 +78,10 @@ Napi::Object osn::AdvancedRecording::Init(Napi::Env env, Napi::Object exports) {
                 "outputHeight",
                 &osn::AdvancedRecording::GetOutputHeight,
                 &osn::AdvancedRecording::SetOutputHeight),
+            InstanceAccessor(
+                "useStreamEncoders",
+                &osn::AdvancedRecording::GetUseStreamEncoders,
+                &osn::AdvancedRecording::SetUseStreamEncoders),
 
 			InstanceMethod("start", &osn::AdvancedRecording::Start),
 			InstanceMethod("stop", &osn::AdvancedRecording::Stop)
@@ -233,5 +237,33 @@ void osn::AdvancedRecording::SetOutputHeight(const Napi::CallbackInfo& info, con
 	conn->call_synchronous_helper(
 		"AdvancedRecording",
 		"SetOutputHeight",
+		{ipc::value(this->uid), ipc::value(value.ToNumber().Uint32Value())});
+}
+
+Napi::Value osn::AdvancedRecording::GetUseStreamEncoders(const Napi::CallbackInfo& info) {
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
+
+	std::vector<ipc::value> response =
+		conn->call_synchronous_helper(
+			"AdvancedRecording",
+			"GetUseStreamEncoders",
+			{ipc::value(this->uid)});
+
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
+
+	return Napi::Boolean::New(info.Env(), response[1].value_union.ui32);
+}
+
+void osn::AdvancedRecording::SetUseStreamEncoders(const Napi::CallbackInfo& info, const Napi::Value& value) {
+	auto conn = GetConnection(info);
+	if (!conn)
+		return;
+
+	conn->call_synchronous_helper(
+		"AdvancedRecording",
+		"SetUseStreamEncoders",
 		{ipc::value(this->uid), ipc::value(value.ToNumber().Uint32Value())});
 }

@@ -393,30 +393,6 @@ static inline void UpdateRecordingSettings_crf(
 	obs_data_release(settings);
 }
 
-static inline obs_encoder_t* duplicate_encoder(obs_encoder_t* src, uint64_t trackIndex = 0)
-{
-	if (!src)
-		return nullptr;
-
-	obs_encoder_t* dst = nullptr;
-	std::string name = obs_encoder_get_name(src);
-	name += "-duplicate";
-
-	if (obs_encoder_get_type(src) == OBS_ENCODER_AUDIO) {
-		dst = obs_audio_encoder_create(
-		    obs_encoder_get_id(src),
-			name.c_str(),
-			obs_encoder_get_settings(src), trackIndex, nullptr);
-	} else if (obs_encoder_get_type(src) == OBS_ENCODER_VIDEO) {
-		dst = obs_video_encoder_create(
-			obs_encoder_get_id(src),
-			name.c_str(),
-			obs_encoder_get_settings(src), nullptr);
-	}
-
-	return dst;
-}
-
 void osn::ISimpleRecording::Start(
     void*                          data,
     const int64_t                  id,
@@ -458,9 +434,6 @@ void osn::ISimpleRecording::Start(
 				obs_encoder_t* videoEncDup =
 					duplicate_encoder(recording->videoEncoder);
 				recording->videoEncoder = videoEncDup;
-				obs_encoder_t* audioEncDup =
-					duplicate_encoder(recording->audioEncoder);
-				recording->audioEncoder = audioEncDup;
 			}
             break;
         }

@@ -1594,7 +1594,8 @@ export interface IAdvancedRecording extends IRecording {
     mixer: number,
     rescaling: boolean,
     outputWidth?: number,
-    outputHeight?: number
+    outputHeight?: number,
+    useStreamEncoders: boolean
 }
 
 export interface ISimpleRecordingFactory {
@@ -1605,11 +1606,13 @@ export interface IAdvancedRecordingFactory {
     create(): IAdvancedRecording;
 }
 
-export interface ReplayBuffer {
-    enabled: boolean,
+export interface IReplayBuffer {
     duration: number,
     prefix: string,
-    suffix: string
+    suffix: string,
+    signalHandler: (signal: EOutputSignal) => void,
+    start(): void,
+    stop(force?: boolean): void,
 }
 
 export interface IDelay {

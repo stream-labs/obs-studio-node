@@ -115,6 +115,14 @@ void osn::IAdvancedRecording::Register(ipc::server& srv)
         std::vector<ipc::type>{ipc::type::UInt64,ipc::type::UInt32},
         SetOutputHeight));
 	cls->register_function(std::make_shared<ipc::function>(
+	    "GetUseStreamEncoders",
+        std::vector<ipc::type>{ipc::type::UInt64},
+        GetUseStreamEncoders));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "SetUseStreamEncoders",
+        std::vector<ipc::type>{ipc::type::UInt64,ipc::type::UInt32},
+        SetUseStreamEncoders));
+	cls->register_function(std::make_shared<ipc::function>(
 	    "Start", std::vector<ipc::type>{ipc::type::UInt64}, Start));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "Stop", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32}, Stop));
@@ -295,6 +303,12 @@ void osn::IAdvancedRecording::Start(
 		}
 	}
 
+	if (recording->useStreamEncoders && obs_get_multiple_rendering()) {
+		obs_encoder_t* videoEncDup =
+			duplicate_encoder(recording->videoEncoder);
+		recording->videoEncoder = videoEncDup;
+	}
+
 	obs_encoder_set_video(recording->videoEncoder, obs_get_video());
 	obs_output_set_video_encoder(recording->output, recording->videoEncoder);
 
@@ -373,6 +387,44 @@ void osn::IAdvancedRecording::SetMixer(
 	}
 
     recording->mixer = args[1].value_union.ui32;
+
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
+}
+
+void osn::IAdvancedRecording::GetUseStreamEncoders(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	Recording* recording =
+		osn::IAdvancedRecording::Manager::GetInstance().find(args[0].value_union.ui64);
+	if (!recording) {
+		PRETTY_ERROR_RETURN(
+            ErrorCode::InvalidReference, "Simple recording reference is not valid.");
+	}
+
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+    rval.push_back(ipc::value(recording->useStreamEncoders));
+	AUTO_DEBUG;
+}
+
+void osn::IAdvancedRecording::SetUseStreamEncoders(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	Recording* recording =
+		osn::IAdvancedRecording::Manager
+			::GetInstance().find(args[0].value_union.ui64);
+	if (!recording) {
+		PRETTY_ERROR_RETURN(
+            ErrorCode::InvalidReference, "Simple recording reference is not valid.");
+	}
+
+    recording->useStreamEncoders = args[1].value_union.ui32;
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;

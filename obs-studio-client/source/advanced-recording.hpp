@@ -41,5 +41,7 @@ namespace osn
 		void SetOutputWidth(const Napi::CallbackInfo& info, const Napi::Value& value);
 		Napi::Value GetOutputHeight(const Napi::CallbackInfo& info);
 		void SetOutputHeight(const Napi::CallbackInfo& info, const Napi::Value& value);
+		Napi::Value GetUseStreamEncoders(const Napi::CallbackInfo& info);
+		void SetUseStreamEncoders(const Napi::CallbackInfo& info, const Napi::Value& value);
 	};
 }
