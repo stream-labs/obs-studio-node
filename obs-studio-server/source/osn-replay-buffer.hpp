@@ -39,6 +39,7 @@ namespace osn
             duration = 20;
             prefix = "Replay";
             suffix = "";
+			usesStream = false;
 			videoEncoder = nullptr;
 			audioEncoder = nullptr;
 			output = nullptr;
@@ -66,6 +67,7 @@ namespace osn
         uint32_t duration;
         std::string prefix;
         std::string suffix;
+		bool usesStream;
  		obs_encoder_t* videoEncoder;
 		obs_encoder_t* audioEncoder;
 		obs_output_t* output;
@@ -190,6 +192,16 @@ namespace osn
 		    const std::vector<ipc::value>& args,
 		    std::vector<ipc::value>&       rval);
 		static void SetSuffix(
+		    void*                          data,
+		    const int64_t                  id,
+		    const std::vector<ipc::value>& args,
+		    std::vector<ipc::value>&       rval);
+		static void GetUsesStream(
+		    void*                          data,
+		    const int64_t                  id,
+		    const std::vector<ipc::value>& args,
+		    std::vector<ipc::value>&       rval);
+		static void SetUsesStream(
 		    void*                          data,
 		    const int64_t                  id,
 		    const std::vector<ipc::value>& args,

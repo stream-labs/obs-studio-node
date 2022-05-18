@@ -338,6 +338,41 @@ void osn::IReplayBuffer::SetSuffix(
 	AUTO_DEBUG;
 }
 
+void osn::IReplayBuffer::GetUsesStream(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	ReplayBuffer* replayBuffer =
+		osn::IReplayBuffer::Manager::GetInstance().find(args[0].value_union.ui64);
+	if (!replayBuffer) {
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "ReplayBuffer reference is not valid.");
+	}
+
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+    rval.push_back(ipc::value(replayBuffer->usesStream));
+	AUTO_DEBUG;
+}
+
+void osn::IReplayBuffer::SetUsesStream(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	ReplayBuffer* replayBuffer =
+		osn::IReplayBuffer::Manager::GetInstance().find(args[0].value_union.ui64);
+	if (!replayBuffer) {
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "ReplayBuffer reference is not valid.");
+	}
+
+    replayBuffer->usesStream = args[1].value_union.ui32;
+
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
+}
+
 void osn::IReplayBuffer::GetVideoEncoder(
     void*                          data,
     const int64_t                  id,

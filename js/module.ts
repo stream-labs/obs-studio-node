@@ -1619,6 +1619,7 @@ export interface IReplayBuffer {
     duration: number,
     prefix: string,
     suffix: string,
+    usesStream: boolean,
     videoEncoder: IVideoEncoder,
     signalHandler: (signal: EOutputSignal) => void,
     start(): void,

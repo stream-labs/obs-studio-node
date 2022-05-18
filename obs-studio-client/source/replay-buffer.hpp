@@ -52,6 +52,8 @@ namespace osn
 		void SetPrefix(const Napi::CallbackInfo& info, const Napi::Value& value);
 		Napi::Value GetSuffix(const Napi::CallbackInfo& info);
 		void SetSuffix(const Napi::CallbackInfo& info, const Napi::Value& value);
+		Napi::Value GetUsesStream(const Napi::CallbackInfo& info);
+		void SetUsesStream(const Napi::CallbackInfo& info, const Napi::Value& value);
 		Napi::Value GetVideoEncoder(const Napi::CallbackInfo& info);
 		void SetVideoEncoder(const Napi::CallbackInfo& info, const Napi::Value& value);
 		Napi::Value GetSignalHandler(const Napi::CallbackInfo& info);

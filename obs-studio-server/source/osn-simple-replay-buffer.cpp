@@ -103,6 +103,14 @@ void osn::ISimpleReplayBuffer::Register(ipc::server& srv)
         std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String},
         SetSuffix));
 	cls->register_function(std::make_shared<ipc::function>(
+	    "GetUsesStream",
+        std::vector<ipc::type>{ipc::type::UInt64},
+        GetUsesStream));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "SetUsesStream",
+        std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32},
+        SetUsesStream));
+	cls->register_function(std::make_shared<ipc::function>(
 	    "GetVideoEncoder",
         std::vector<ipc::type>{ipc::type::UInt64},
         GetVideoEncoder));
@@ -294,7 +302,7 @@ void osn::ISimpleReplayBuffer::Start(
 
 	const char* rbPrefix = replayBuffer->prefix.c_str();
 	const char* rbSuffix = replayBuffer->suffix.c_str();
-	int64_t rbSize = 512; // hardcoded value, FIXME
+	int64_t rbSize = replayBuffer->usesStream ? 0 : 512;
 
 	std::string f;
 	if (rbPrefix && *rbPrefix) {
