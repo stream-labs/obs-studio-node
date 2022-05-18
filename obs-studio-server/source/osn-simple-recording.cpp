@@ -31,30 +31,6 @@ void osn::ISimpleRecording::Register(ipc::server& srv)
 	cls->register_function(std::make_shared<ipc::function>(
 	    "Create", std::vector<ipc::type>{}, Create));
 	cls->register_function(std::make_shared<ipc::function>(
-	    "GetPath",
-        std::vector<ipc::type>{ipc::type::UInt64},
-        IFileOutput::GetPath));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "SetPath",
-        std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String},
-        IFileOutput::SetPath));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "GetFormat",
-        std::vector<ipc::type>{ipc::type::UInt64},
-        IFileOutput::GetFormat));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "SetFormat",
-        std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String},
-        IFileOutput::SetFormat));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "GetMuxerSettings",
-        std::vector<ipc::type>{ipc::type::UInt64},
-        IFileOutput::GetMuxerSettings));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "SetMuxerSettings",
-        std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String},
-        IFileOutput::SetMuxerSettings));
-	cls->register_function(std::make_shared<ipc::function>(
 	    "GetVideoEncoder",
         std::vector<ipc::type>{ipc::type::UInt64},
         GetVideoEncoder));
@@ -84,30 +60,6 @@ void osn::ISimpleRecording::Register(ipc::server& srv)
 	    "Stop", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32}, Stop));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "Query", std::vector<ipc::type>{ipc::type::UInt64}, Query));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "GetFileFormat",
-        std::vector<ipc::type>{ipc::type::UInt64},
-        IFileOutput::GetFileFormat));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "SetFileFormat",
-        std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32},
-        IFileOutput::SetFileFormat));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "GetOverwrite",
-        std::vector<ipc::type>{ipc::type::UInt64},
-        IFileOutput::GetFileFormat));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "SetOverwrite",
-        std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32},
-        IFileOutput::SetFileFormat));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "GetNoSpace",
-        std::vector<ipc::type>{ipc::type::UInt64},
-        IFileOutput::GetNoSpace));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "SetNoSpace",
-        std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32},
-        IFileOutput::SetNoSpace));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "GetLowCPU",
         std::vector<ipc::type>{ipc::type::UInt64},

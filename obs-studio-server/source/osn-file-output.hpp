@@ -63,6 +63,7 @@ namespace osn
 			static Manager& GetInstance();
 		};
 
+        static void Register(ipc::server&);
 		static void GetPath(
 		    void*                          data,
 		    const int64_t                  id,

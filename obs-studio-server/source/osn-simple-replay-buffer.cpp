@@ -31,54 +31,6 @@ void osn::ISimpleReplayBuffer::Register(ipc::server& srv)
 	cls->register_function(std::make_shared<ipc::function>(
 	    "Create", std::vector<ipc::type>{}, Create));
 	cls->register_function(std::make_shared<ipc::function>(
-	    "GetPath",
-        std::vector<ipc::type>{ipc::type::UInt64},
-        GetPath));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "SetPath",
-        std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String},
-        SetPath));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "GetFormat",
-        std::vector<ipc::type>{ipc::type::UInt64},
-        GetFormat));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "SetFormat",
-        std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String},
-        SetFormat));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "GetMuxerSettings",
-        std::vector<ipc::type>{ipc::type::UInt64},
-        GetMuxerSettings));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "SetMuxerSettings",
-        std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String},
-        SetMuxerSettings));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "GetFileFormat",
-        std::vector<ipc::type>{ipc::type::UInt64},
-        GetFileFormat));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "SetFileFormat",
-        std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32},
-        SetFileFormat));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "GetOverwrite",
-        std::vector<ipc::type>{ipc::type::UInt64},
-        GetFileFormat));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "SetOverwrite",
-        std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32},
-        SetFileFormat));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "GetNoSpace",
-        std::vector<ipc::type>{ipc::type::UInt64},
-        GetNoSpace));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "SetNoSpace",
-        std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32},
-        SetNoSpace));
-	cls->register_function(std::make_shared<ipc::function>(
 	    "GetDuration",
         std::vector<ipc::type>{ipc::type::UInt64},
         GetDuration));
@@ -168,7 +120,8 @@ void osn::ISimpleReplayBuffer::GetAudioEncoder(
     std::vector<ipc::value>&       rval)
 {
 	ReplayBuffer* replayBuffer =
-		osn::ISimpleReplayBuffer::Manager::GetInstance().find(args[0].value_union.ui64);
+		static_cast<ReplayBuffer*>(
+			osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64));
 	if (!replayBuffer) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Replay buffer reference is not valid.");
 	}
@@ -188,7 +141,8 @@ void osn::ISimpleReplayBuffer::SetAudioEncoder(
     std::vector<ipc::value>&       rval)
 {
 	ReplayBuffer* replayBuffer =
-		osn::ISimpleReplayBuffer::Manager::GetInstance().find(args[0].value_union.ui64);
+		static_cast<ReplayBuffer*>(
+			osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64));
 	if (!replayBuffer) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Replay buffer reference is not valid.");
 	}
@@ -268,7 +222,8 @@ void osn::ISimpleReplayBuffer::Start(
     std::vector<ipc::value>&       rval)
 {
 	ReplayBuffer* replayBuffer =
-		osn::ISimpleReplayBuffer::Manager::GetInstance().find(args[0].value_union.ui64);
+		static_cast<ReplayBuffer*>(
+			osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64));
 	if (!replayBuffer) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Simple replay buffer reference is not valid.");
 	}
@@ -341,7 +296,8 @@ void osn::ISimpleReplayBuffer::Stop(
     std::vector<ipc::value>&       rval)
 {
 	ReplayBuffer* replayBuffer =
-		osn::ISimpleReplayBuffer::Manager::GetInstance().find(args[0].value_union.ui64);
+		static_cast<ReplayBuffer*>(
+			osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64));
 	if (!replayBuffer) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Simple replay buffer reference is not valid.");
 	}

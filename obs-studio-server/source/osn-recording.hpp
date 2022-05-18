@@ -82,23 +82,6 @@ namespace osn
 
 	class IRecording: public IFileOutput
 	{
-		// public:
-		// class Manager : public utility::unique_object_manager<Recording>
-		// {
-		// 	friend class std::shared_ptr<Manager>;
-
-		// 	protected:
-		// 	Manager() {}
-		// 	~Manager() {}
-
-		// 	public:
-		// 	Manager(Manager const&) = delete;
-		// 	Manager operator=(Manager const&) = delete;
-
-		// 	public:
-		// 	static Manager& GetInstance();
-		// };
-
 		public:
 		static void GetVideoEncoder(
 		    void*                          data,

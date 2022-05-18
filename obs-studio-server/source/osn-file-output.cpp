@@ -20,6 +20,61 @@
 #include "osn-error.hpp"
 #include "shared.hpp"
 
+void osn::IFileOutput::Register(ipc::server& srv)
+{
+	std::shared_ptr<ipc::collection> cls =
+		std::make_shared<ipc::collection>("FileOutput");
+	cls->register_function(std::make_shared<ipc::function>(
+	    "GetPath",
+        std::vector<ipc::type>{ipc::type::UInt64},
+        GetPath));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "SetPath",
+        std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String},
+        SetPath));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "GetFormat",
+        std::vector<ipc::type>{ipc::type::UInt64},
+        GetFormat));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "SetFormat",
+        std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String},
+        SetFormat));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "GetMuxerSettings",
+        std::vector<ipc::type>{ipc::type::UInt64},
+        GetMuxerSettings));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "SetMuxerSettings",
+        std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String},
+        SetMuxerSettings));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "GetFileFormat",
+        std::vector<ipc::type>{ipc::type::UInt64},
+        GetFileFormat));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "SetFileFormat",
+        std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32},
+        SetFileFormat));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "GetOverwrite",
+        std::vector<ipc::type>{ipc::type::UInt64},
+        GetFileFormat));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "SetOverwrite",
+        std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32},
+        SetFileFormat));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "GetNoSpace",
+        std::vector<ipc::type>{ipc::type::UInt64},
+        GetNoSpace));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "SetNoSpace",
+        std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32},
+        SetNoSpace));
+	srv.register_collection(cls);
+}
+
 void osn::IFileOutput::GetPath(
     void*                          data,
     const int64_t                  id,

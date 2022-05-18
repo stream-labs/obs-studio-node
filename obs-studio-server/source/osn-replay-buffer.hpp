@@ -19,23 +19,15 @@
 #pragma once
 #include <obs.h>
 #include "utility.hpp"
-#include "osn-delay.hpp"
-#include "osn-reconnect.hpp"
-#include "osn-network.hpp"
 #include "osn-streaming.hpp"
+#include "osn-file-output.hpp"
 
 namespace osn
 {
-    class ReplayBuffer
+    class ReplayBuffer: public FileOutput
     {
         public:
         ReplayBuffer() {
-            path = "";
-            format = "mp4";
-            muxerSettings = "";
-			fileFormat = "%CCYY-%MM-%DD %hh-%mm-%ss";
-			overwrite = false;
-			noSpace = false;
             duration = 20;
             prefix = "Replay";
             suffix = "";
@@ -57,13 +49,6 @@ namespace osn
         ~ReplayBuffer() {}
 
         public:
-        std::string path;
-        std::string format;
-        std::string muxerSettings;
-		std::string fileFormat;
-		bool overwrite;
-		bool noSpace;
-
         uint32_t duration;
         std::string prefix;
         std::string suffix;
@@ -86,86 +71,9 @@ namespace osn
 		ReplayBuffer* replayBuffer;
 	};
 
-	class IReplayBuffer
+	class IReplayBuffer: public IFileOutput
 	{
-		protected:
-		class Manager : public utility::unique_object_manager<ReplayBuffer>
-		{
-			friend class std::shared_ptr<Manager>;
-
-			protected:
-			Manager() {}
-			~Manager() {}
-
-			public:
-			Manager(Manager const&) = delete;
-			Manager operator=(Manager const&) = delete;
-
-			public:
-			static Manager& GetInstance();
-		};
-
 		public:
-		static void GetPath(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void SetPath(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void GetFormat(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void SetFormat(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void GetMuxerSettings(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void SetMuxerSettings(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void GetFileFormat(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void SetFileFormat(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void GetOverwrite(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void SetOverwrite(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void GetNoSpace(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void SetNoSpace(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
 		static void GetDuration(
 		    void*                          data,
 		    const int64_t                  id,

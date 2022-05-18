@@ -19,32 +19,20 @@
 #pragma once
 #include <napi.h>
 #include "worker-signals.hpp"
+#include "file-output.hpp"
 
 namespace osn
 {
 	class ReplayBuffer :
-		public WorkerSignals
+		public WorkerSignals,
+		public FileOutput
 	{
 		public:
-		uint64_t uid;
-		ReplayBuffer(): WorkerSignals() {};
+		ReplayBuffer(): WorkerSignals(), FileOutput() {};
 
 		protected:
 		Napi::Function signalHandler;
 		std::string className;
-
-		Napi::Value GetPath(const Napi::CallbackInfo& info);
-		void SetPath(const Napi::CallbackInfo& info, const Napi::Value& value);
-		Napi::Value GetFormat(const Napi::CallbackInfo& info);
-		void SetFormat(const Napi::CallbackInfo& info, const Napi::Value& value);
-		Napi::Value GetMuxerSettings(const Napi::CallbackInfo& info);
-		void SetMuxerSettings(const Napi::CallbackInfo& info, const Napi::Value& value);
-		Napi::Value GetFileFormat(const Napi::CallbackInfo& info);
-		void SetFileFormat(const Napi::CallbackInfo& info, const Napi::Value& value);
-		Napi::Value GetOverwrite(const Napi::CallbackInfo& info);
-		void SetOverwrite(const Napi::CallbackInfo& info, const Napi::Value& value);
-		Napi::Value GetNoSpace(const Napi::CallbackInfo& info);
-		void SetNoSpace(const Napi::CallbackInfo& info, const Napi::Value& value);
 
 		Napi::Value GetDuration(const Napi::CallbackInfo& info);
 		void SetDuration(const Napi::CallbackInfo& info, const Napi::Value& value);

@@ -750,13 +750,7 @@ export interface ISimpleRecordingFactory {
 export interface IAdvancedRecordingFactory {
     create(): IAdvancedRecording;
 }
-export interface IReplayBuffer {
-    path: string;
-    format: ERecordingFormat;
-    fileFormat: string;
-    overwrite: boolean;
-    noSpace: boolean;
-    muxerSettings: string;
+export interface IReplayBuffer extends IFileOutput {
     duration: number;
     prefix: string;
     suffix: string;
