@@ -52,6 +52,7 @@
 #include "audio-encoder.hpp"
 #include "advanced-recording.hpp"
 #include "simple-replay-buffer.hpp"
+#include "advanced-replay-buffer.hpp"
 
 #if defined(_WIN32)
 // Checks ForceGPUAsRenderDevice setting
@@ -133,6 +134,7 @@ Napi::Object main_node(Napi::Env env, Napi::Object exports) {
 	osn::AudioEncoder::Init(env, exports);
 	osn::AdvancedRecording::Init(env, exports);
 	osn::SimpleReplayBuffer::Init(env, exports);
+	osn::AdvancedReplayBuffer::Init(env, exports);
 	return exports;
 };
 
