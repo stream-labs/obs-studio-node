@@ -117,6 +117,10 @@ SET(osn-client_SOURCES
 	"source/audio-encoder.cpp"
 	"source/advanced-recording.hpp"
 	"source/advanced-recording.cpp"
+	"source/replay-buffer.hpp"
+	"source/replay-buffer.cpp"
+	"source/simple-replay-buffer.hpp"
+	"source/simple-replay-buffer.cpp"
 
 	###### callback-manager ######
 	"source/callback-manager.cpp"

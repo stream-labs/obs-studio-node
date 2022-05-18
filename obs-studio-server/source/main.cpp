@@ -56,6 +56,7 @@
 #include "osn-simple-recording.hpp"
 #include "osn-audio-encoder.hpp"
 #include "osn-advanced-recording.hpp"
+#include "osn-simple-replay-buffer.hpp"
 
 #include "util-crashmanager.h"
 #include "shared.hpp"
@@ -262,6 +263,7 @@ int main(int argc, char* argv[])
 	osn::ISimpleRecording::Register(myServer);
 	osn::AudioEncoder::Register(myServer);
 	osn::IAdvancedRecording::Register(myServer);
+	osn::ISimpleReplayBuffer::Register(myServer);
 
 	OBS_API::CreateCrashHandlerExitPipe();
 

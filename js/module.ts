@@ -332,6 +332,8 @@ export const AudioTrackFactory: IAudioTrackFactory = obs.AudioTrack;
 export const SimpleRecordingFactory: ISimpleRecordingFactory = obs.SimpleRecording;
 export const AdvancedRecordingFactory: IAdvancedRecordingFactory = obs.AdvancedRecording;
 export const AudioEncoderFactory: IAudioEncoderFactory = obs.AudioEncoder;
+export const SimpleReplayBufferFactory: ISimpleReplayBufferFactory = obs.SimpleReplayBuffer;
+export const AdvancedReplayBufferFactory: IAdvancedReplayBufferFactory = obs.AdvancedReplayBuffer;
 
 /**
  * Meta object in order to better describe settings
@@ -1607,12 +1609,38 @@ export interface IAdvancedRecordingFactory {
 }
 
 export interface IReplayBuffer {
+    path: string,
+    format: ERecordingFormat,
+    fileFormat: string,
+    overwrite: boolean,
+    noSpace: boolean,
+    muxerSettings: string,
+
     duration: number,
     prefix: string,
     suffix: string,
+    videoEncoder: IVideoEncoder,
     signalHandler: (signal: EOutputSignal) => void,
     start(): void,
     stop(force?: boolean): void,
+    save(): void,
+    lastReplay(): string
+}
+
+export interface ISimpleReplayBuffer extends IReplayBuffer {
+    audioEncoder: IAudioEncoder
+}
+
+export interface IAdvancedReplayBuffer extends IReplayBuffer {
+    mixer: number,
+}
+
+export interface ISimpleReplayBufferFactory {
+    create(): ISimpleReplayBuffer;
+}
+
+export interface IAdvancedReplayBufferFactory {
+    create(): IAdvancedReplayBuffer;
 }
 
 export interface IDelay {

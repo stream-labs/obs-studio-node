@@ -261,6 +261,8 @@ export declare const AudioTrackFactory: IAudioTrackFactory;
 export declare const SimpleRecordingFactory: ISimpleRecordingFactory;
 export declare const AdvancedRecordingFactory: IAdvancedRecordingFactory;
 export declare const AudioEncoderFactory: IAudioEncoderFactory;
+export declare const SimpleReplayBufferFactory: ISimpleReplayBufferFactory;
+export declare const AdvancedReplayBufferFactory: IAdvancedReplayBufferFactory;
 export interface ISettings {
     [key: string]: any;
 }
@@ -738,6 +740,7 @@ export interface IAdvancedRecording extends IRecording {
     rescaling: boolean;
     outputWidth?: number;
     outputHeight?: number;
+    useStreamEncoders: boolean;
 }
 export interface ISimpleRecordingFactory {
     create(): ISimpleRecording;
@@ -745,11 +748,34 @@ export interface ISimpleRecordingFactory {
 export interface IAdvancedRecordingFactory {
     create(): IAdvancedRecording;
 }
-export interface ReplayBuffer {
-    enabled: boolean;
+export interface IReplayBuffer {
+    path: string;
+    format: ERecordingFormat;
+    fileFormat: string;
+    overwrite: boolean;
+    noSpace: boolean;
+    muxerSettings: string;
     duration: number;
     prefix: string;
     suffix: string;
+    videoEncoder: IVideoEncoder;
+    signalHandler: (signal: EOutputSignal) => void;
+    start(): void;
+    stop(force?: boolean): void;
+    save(): void;
+    lastReplay(): string;
+}
+export interface ISimpleReplayBuffer extends IReplayBuffer {
+    audioEncoder: IAudioEncoder;
+}
+export interface IAdvancedReplayBuffer extends IReplayBuffer {
+    mixer: number;
+}
+export interface ISimpleReplayBufferFactory {
+    create(): ISimpleReplayBuffer;
+}
+export interface IAdvancedReplayBufferFactory {
+    create(): IAdvancedReplayBuffer;
 }
 export interface IDelay {
     enabled: boolean;

@@ -26,61 +26,51 @@
 
 namespace osn
 {
-	enum RecQuality {
-		Stream = 0,
-		HighQuality = 1,
-		HigherQuality = 2,
-		Lossless = 3
-	};
-
-    class Recording
+    class ReplayBuffer
     {
         public:
-        Recording() {
-			videoEncoder = nullptr;
-			audioEncoder = nullptr;
-			output = nullptr;
+        ReplayBuffer() {
             path = "";
             format = "mp4";
             muxerSettings = "";
+			fileFormat = "%CCYY-%MM-%DD %hh-%mm-%ss";
+			overwrite = false;
+			noSpace = false;
+            duration = 20;
+            prefix = "Replay";
+            suffix = "";
+			videoEncoder = nullptr;
+			audioEncoder = nullptr;
+			output = nullptr;
 			signals = {
 				"start",
 				"stop",
 				"starting",
 				"stopping",
-                "wrote"
+                "writing",
+                "wrote",
+                "writing_error"
 			};
-			rescaling = false;
-			outputWidth = 1280;
-			outputHeight = 720;
-			quality = RecQuality::Stream;
-			fileFormat = "%CCYY-%MM-%DD %hh-%mm-%ss";
-			overwrite = false;
-			noSpace = false;
-			lowCPU = false;
 			mixer = 1 << 0;
-			useStreamEncoders = true;
 		}
-        ~Recording() {}
+        ~ReplayBuffer() {}
 
         public:
         std::string path;
         std::string format;
         std::string muxerSettings;
-		obs_encoder_t* videoEncoder;
-		obs_encoder_t* audioEncoder;
-		RecQuality quality;
-		obs_output_t* output;
 		std::string fileFormat;
 		bool overwrite;
 		bool noSpace;
-		bool lowCPU;
+
+        uint32_t duration;
+        std::string prefix;
+        std::string suffix;
+ 		obs_encoder_t* videoEncoder;
+		obs_encoder_t* audioEncoder;
+		obs_output_t* output;
 		uint32_t mixer;
 
-		bool rescaling;
-		uint32_t outputWidth;
-		uint32_t outputHeight;
-		bool useStreamEncoders;
 
 		std::mutex signalsMtx;
 		std::queue<signalInfo> signalsReceived;
@@ -89,15 +79,15 @@ namespace osn
 		void ConnectSignals();
     };
 
-	struct cbDataRec {
+	struct cbDataRb {
 		std::string signal;
-		Recording* recording;
+		ReplayBuffer* replayBuffer;
 	};
 
-	class IRecording
+	class IReplayBuffer
 	{
 		protected:
-		class Manager : public utility::unique_object_manager<Recording>
+		class Manager : public utility::unique_object_manager<ReplayBuffer>
 		{
 			friend class std::shared_ptr<Manager>;
 
@@ -144,21 +134,6 @@ namespace osn
 		    const int64_t                  id,
 		    const std::vector<ipc::value>& args,
 		    std::vector<ipc::value>&       rval);
-		static void GetVideoEncoder(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void SetVideoEncoder(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void Query(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
 		static void GetFileFormat(
 		    void*                          data,
 		    const int64_t                  id,
@@ -189,11 +164,60 @@ namespace osn
 		    const int64_t                  id,
 		    const std::vector<ipc::value>& args,
 		    std::vector<ipc::value>&       rval);
-
-		static std::string GenerateSpecifiedFilename(
-			const std::string& extension, bool noSpace, const std::string& format);
-		static void FindBestFilename(std::string& strPath, bool noSpace);
-
-		static obs_encoder_t* duplicate_encoder(obs_encoder_t* src, uint64_t trackIndex = 0);
+		static void GetDuration(
+		    void*                          data,
+		    const int64_t                  id,
+		    const std::vector<ipc::value>& args,
+		    std::vector<ipc::value>&       rval);
+		static void SetDuration(
+		    void*                          data,
+		    const int64_t                  id,
+		    const std::vector<ipc::value>& args,
+		    std::vector<ipc::value>&       rval);
+		static void GetPrefix(
+		    void*                          data,
+		    const int64_t                  id,
+		    const std::vector<ipc::value>& args,
+		    std::vector<ipc::value>&       rval);
+		static void SetPrefix(
+		    void*                          data,
+		    const int64_t                  id,
+		    const std::vector<ipc::value>& args,
+		    std::vector<ipc::value>&       rval);
+		static void GetSuffix(
+		    void*                          data,
+		    const int64_t                  id,
+		    const std::vector<ipc::value>& args,
+		    std::vector<ipc::value>&       rval);
+		static void SetSuffix(
+		    void*                          data,
+		    const int64_t                  id,
+		    const std::vector<ipc::value>& args,
+		    std::vector<ipc::value>&       rval);
+		static void GetVideoEncoder(
+		    void*                          data,
+		    const int64_t                  id,
+		    const std::vector<ipc::value>& args,
+		    std::vector<ipc::value>&       rval);
+		static void SetVideoEncoder(
+		    void*                          data,
+		    const int64_t                  id,
+		    const std::vector<ipc::value>& args,
+		    std::vector<ipc::value>&       rval);
+		static void Query(
+		    void*                          data,
+		    const int64_t                  id,
+		    const std::vector<ipc::value>& args,
+		    std::vector<ipc::value>&       rval);
+		static void Save(
+		    void*                          data,
+		    const int64_t                  id,
+		    const std::vector<ipc::value>& args,
+		    std::vector<ipc::value>&       rval);
+		static void GetLastReplay(
+		    void*                          data,
+		    const int64_t                  id,
+		    const std::vector<ipc::value>& args,
+		    std::vector<ipc::value>&       rval);
 	};
 }

@@ -274,6 +274,10 @@ SET(osn-server_SOURCES
 	"${PROJECT_SOURCE_DIR}/source/osn-audio-encoder.hpp"
 	"${PROJECT_SOURCE_DIR}/source/osn-advanced-recording.cpp"
 	"${PROJECT_SOURCE_DIR}/source/osn-advanced-recording.hpp"
+	"${PROJECT_SOURCE_DIR}/source/osn-replay-buffer.cpp"
+	"${PROJECT_SOURCE_DIR}/source/osn-replay-buffer.hpp"
+	"${PROJECT_SOURCE_DIR}/source/osn-simple-replay-buffer.cpp"
+	"${PROJECT_SOURCE_DIR}/source/osn-simple-replay-buffer.hpp"
 
 	###### utlity graphics ######
 	"${PROJECT_SOURCE_DIR}/source/gs-limits.h"
