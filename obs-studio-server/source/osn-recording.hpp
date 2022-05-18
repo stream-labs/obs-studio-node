@@ -19,10 +19,8 @@
 #pragma once
 #include <obs.h>
 #include "utility.hpp"
-#include "osn-delay.hpp"
-#include "osn-reconnect.hpp"
-#include "osn-network.hpp"
 #include "osn-streaming.hpp"
+#include "osn-file-output.hpp"
 
 namespace osn
 {
@@ -33,16 +31,13 @@ namespace osn
 		Lossless = 3
 	};
 
-    class Recording
+    class Recording: public FileOutput
     {
         public:
         Recording() {
 			videoEncoder = nullptr;
 			audioEncoder = nullptr;
 			output = nullptr;
-            path = "";
-            format = "mp4";
-            muxerSettings = "";
 			signals = {
 				"start",
 				"stop",
@@ -54,9 +49,6 @@ namespace osn
 			outputWidth = 1280;
 			outputHeight = 720;
 			quality = RecQuality::Stream;
-			fileFormat = "%CCYY-%MM-%DD %hh-%mm-%ss";
-			overwrite = false;
-			noSpace = false;
 			lowCPU = false;
 			mixer = 1 << 0;
 			useStreamEncoders = true;
@@ -64,16 +56,10 @@ namespace osn
         ~Recording() {}
 
         public:
-        std::string path;
-        std::string format;
-        std::string muxerSettings;
 		obs_encoder_t* videoEncoder;
 		obs_encoder_t* audioEncoder;
 		RecQuality quality;
 		obs_output_t* output;
-		std::string fileFormat;
-		bool overwrite;
-		bool noSpace;
 		bool lowCPU;
 		uint32_t mixer;
 
@@ -94,56 +80,26 @@ namespace osn
 		Recording* recording;
 	};
 
-	class IRecording
+	class IRecording: public IFileOutput
 	{
-		protected:
-		class Manager : public utility::unique_object_manager<Recording>
-		{
-			friend class std::shared_ptr<Manager>;
+		// public:
+		// class Manager : public utility::unique_object_manager<Recording>
+		// {
+		// 	friend class std::shared_ptr<Manager>;
 
-			protected:
-			Manager() {}
-			~Manager() {}
+		// 	protected:
+		// 	Manager() {}
+		// 	~Manager() {}
 
-			public:
-			Manager(Manager const&) = delete;
-			Manager operator=(Manager const&) = delete;
+		// 	public:
+		// 	Manager(Manager const&) = delete;
+		// 	Manager operator=(Manager const&) = delete;
 
-			public:
-			static Manager& GetInstance();
-		};
+		// 	public:
+		// 	static Manager& GetInstance();
+		// };
 
 		public:
-		static void GetPath(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void SetPath(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void GetFormat(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void SetFormat(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void GetMuxerSettings(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void SetMuxerSettings(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
 		static void GetVideoEncoder(
 		    void*                          data,
 		    const int64_t                  id,
@@ -155,36 +111,6 @@ namespace osn
 		    const std::vector<ipc::value>& args,
 		    std::vector<ipc::value>&       rval);
 		static void Query(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void GetFileFormat(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void SetFileFormat(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void GetOverwrite(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void SetOverwrite(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void GetNoSpace(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void SetNoSpace(
 		    void*                          data,
 		    const int64_t                  id,
 		    const std::vector<ipc::value>& args,

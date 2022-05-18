@@ -718,13 +718,15 @@ export interface IAdvancedStreaming extends IStreaming {
 export interface IAdvancedStreamingFactory {
     create(): IAdvancedStreaming;
 }
-export interface IRecording {
+export interface IFileOutput {
     path: string;
     format: ERecordingFormat;
     fileFormat: string;
     overwrite: boolean;
     noSpace: boolean;
     muxerSettings: string;
+}
+export interface IRecording extends IFileOutput {
     videoEncoder: IVideoEncoder;
     signalHandler: (signal: EOutputSignal) => void;
     start(): void;

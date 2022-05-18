@@ -22,112 +22,6 @@
 #include "shared.hpp"
 #include "util/platform.h"
 
-void osn::IRecording::GetPath(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-	Recording* recording =
-		osn::IRecording::Manager::GetInstance().find(args[0].value_union.ui64);
-	if (!recording) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Recording reference is not valid.");
-	}
-
-    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-    rval.push_back(ipc::value(recording->path));
-	AUTO_DEBUG;
-}
-
-void osn::IRecording::SetPath(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-	Recording* recording =
-		osn::IRecording::Manager::GetInstance().find(args[0].value_union.ui64);
-	if (!recording) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Recording reference is not valid.");
-	}
-
-    recording->path = args[1].value_str;
-
-    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	AUTO_DEBUG;
-}
-
-
-void osn::IRecording::GetFormat(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-	Recording* recording =
-		osn::IRecording::Manager::GetInstance().find(args[0].value_union.ui64);
-	if (!recording) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Recording reference is not valid.");
-	}
-
-    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-    rval.push_back(ipc::value(recording->format));
-	AUTO_DEBUG;
-}
-
-void osn::IRecording::SetFormat(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-	Recording* recording =
-		osn::IRecording::Manager::GetInstance().find(args[0].value_union.ui64);
-	if (!recording) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Recording reference is not valid.");
-	}
-
-    recording->format = args[1].value_str;
-
-    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	AUTO_DEBUG;
-}
-
-void osn::IRecording::GetMuxerSettings(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-	Recording* recording =
-		osn::IRecording::Manager::GetInstance().find(args[0].value_union.ui64);
-	if (!recording) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Recording reference is not valid.");
-	}
-
-    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-    rval.push_back(ipc::value(recording->muxerSettings));
-	AUTO_DEBUG;
-}
-
-void osn::IRecording::SetMuxerSettings(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-	Recording* recording =
-		osn::IRecording::Manager::GetInstance().find(args[0].value_union.ui64);
-	if (!recording) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Recording reference is not valid.");
-	}
-
-    recording->muxerSettings = args[1].value_str;
-
-    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	AUTO_DEBUG;
-}
-
 void osn::IRecording::GetVideoEncoder(
     void*                          data,
     const int64_t                  id,
@@ -135,7 +29,8 @@ void osn::IRecording::GetVideoEncoder(
     std::vector<ipc::value>&       rval)
 {
 	Recording* recording =
-		osn::IRecording::Manager::GetInstance().find(args[0].value_union.ui64);
+		static_cast<Recording*>(
+			osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64));
 	if (!recording) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Simple recording reference is not valid.");
 	}
@@ -155,7 +50,8 @@ void osn::IRecording::SetVideoEncoder(
     std::vector<ipc::value>&       rval)
 {
 	Recording* recording =
-		osn::IRecording::Manager::GetInstance().find(args[0].value_union.ui64);
+		static_cast<Recording*>(
+			osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64));
 	if (!recording) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Simple recording reference is not valid.");
 	}
@@ -179,7 +75,8 @@ void osn::IRecording::Query(
     std::vector<ipc::value>&       rval)
 {
 	Recording* recording =
-		osn::IRecording::Manager::GetInstance().find(args[0].value_union.ui64);
+		static_cast<Recording*>(
+			osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64));
 	if (!recording) {
 		PRETTY_ERROR_RETURN(
             ErrorCode::InvalidReference, "Recording reference is not valid.");
@@ -203,117 +100,6 @@ void osn::IRecording::Query(
 	recording->signalsReceived.pop();
 
 	AUTO_DEBUG;
-}
-
-void osn::IRecording::GetFileFormat(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-	Recording* recording =
-		osn::IRecording::Manager::GetInstance().find(args[0].value_union.ui64);
-	if (!recording) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Recording reference is not valid.");
-	}
-
-    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-    rval.push_back(ipc::value(recording->fileFormat));
-	AUTO_DEBUG;
-}
-
-void osn::IRecording::SetFileFormat(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-	Recording* recording =
-		osn::IRecording::Manager::GetInstance().find(args[0].value_union.ui64);
-	if (!recording) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Recording reference is not valid.");
-	}
-
-    recording->fileFormat = args[1].value_str;
-
-    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	AUTO_DEBUG;
-}
-
-void osn::IRecording::GetOverwrite(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-	Recording* recording =
-		osn::IRecording::Manager::GetInstance().find(args[0].value_union.ui64);
-	if (!recording) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Recording reference is not valid.");
-	}
-
-    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-    rval.push_back(ipc::value(recording->overwrite));
-	AUTO_DEBUG;
-}
-
-void osn::IRecording::SetOverwrite(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-	Recording* recording =
-		osn::IRecording::Manager::GetInstance().find(args[0].value_union.ui64);
-	if (!recording) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Recording reference is not valid.");
-	}
-
-    recording->overwrite = args[1].value_union.ui32;
-
-    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	AUTO_DEBUG;
-}
-
-void osn::IRecording::GetNoSpace(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-	Recording* recording =
-		osn::IRecording::Manager::GetInstance().find(args[0].value_union.ui64);
-	if (!recording) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Recording reference is not valid.");
-	}
-
-    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-    rval.push_back(ipc::value(recording->noSpace));
-	AUTO_DEBUG;
-}
-
-void osn::IRecording::SetNoSpace(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-	Recording* recording =
-		osn::IRecording::Manager::GetInstance().find(args[0].value_union.ui64);
-	if (!recording) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Recording reference is not valid.");
-	}
-
-    recording->noSpace = args[1].value_union.ui32;
-
-    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	AUTO_DEBUG;
-}
-
-osn::IRecording::Manager& osn::IRecording::Manager::GetInstance()
-{
-	static osn::IRecording::Manager _inst;
-	return _inst;
 }
 
 std::string osn::IRecording::GenerateSpecifiedFilename(

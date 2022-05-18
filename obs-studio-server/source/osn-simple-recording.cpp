@@ -23,6 +23,7 @@
 #include "osn-error.hpp"
 #include "shared.hpp"
 #include "nodeobs_audio_encoders.h"
+#include "osn-file-output.hpp"
 
 void osn::ISimpleRecording::Register(ipc::server& srv)
 {
@@ -32,27 +33,27 @@ void osn::ISimpleRecording::Register(ipc::server& srv)
 	cls->register_function(std::make_shared<ipc::function>(
 	    "GetPath",
         std::vector<ipc::type>{ipc::type::UInt64},
-        GetPath));
+        IFileOutput::GetPath));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "SetPath",
         std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String},
-        SetPath));
+        IFileOutput::SetPath));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "GetFormat",
         std::vector<ipc::type>{ipc::type::UInt64},
-        GetFormat));
+        IFileOutput::GetFormat));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "SetFormat",
         std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String},
-        SetFormat));
+        IFileOutput::SetFormat));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "GetMuxerSettings",
         std::vector<ipc::type>{ipc::type::UInt64},
-        GetMuxerSettings));
+        IFileOutput::GetMuxerSettings));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "SetMuxerSettings",
         std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String},
-        SetMuxerSettings));
+        IFileOutput::SetMuxerSettings));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "GetVideoEncoder",
         std::vector<ipc::type>{ipc::type::UInt64},
@@ -86,27 +87,27 @@ void osn::ISimpleRecording::Register(ipc::server& srv)
 	cls->register_function(std::make_shared<ipc::function>(
 	    "GetFileFormat",
         std::vector<ipc::type>{ipc::type::UInt64},
-        GetFileFormat));
+        IFileOutput::GetFileFormat));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "SetFileFormat",
         std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32},
-        SetFileFormat));
+        IFileOutput::SetFileFormat));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "GetOverwrite",
         std::vector<ipc::type>{ipc::type::UInt64},
-        GetFileFormat));
+        IFileOutput::GetFileFormat));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "SetOverwrite",
         std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32},
-        SetFileFormat));
+        IFileOutput::SetFileFormat));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "GetNoSpace",
         std::vector<ipc::type>{ipc::type::UInt64},
-        GetNoSpace));
+        IFileOutput::GetNoSpace));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "SetNoSpace",
         std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32},
-        SetNoSpace));
+        IFileOutput::SetNoSpace));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "GetLowCPU",
         std::vector<ipc::type>{ipc::type::UInt64},
@@ -143,7 +144,8 @@ void osn::ISimpleRecording::GetQuality(
     std::vector<ipc::value>&       rval)
 {
 	Recording* recording =
-		osn::ISimpleRecording::Manager::GetInstance().find(args[0].value_union.ui64);
+		static_cast<Recording*>(
+			osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64));
 	if (!recording) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Simple recording reference is not valid.");
 	}
@@ -160,8 +162,8 @@ void osn::ISimpleRecording::SetQuality(
     std::vector<ipc::value>&       rval)
 {
 	Recording* recording =
-		osn::ISimpleRecording::Manager
-			::GetInstance().find(args[0].value_union.ui64);
+		static_cast<Recording*>(
+			osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64));
 	if (!recording) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Simple recording reference is not valid.");
 	}
@@ -179,7 +181,8 @@ void osn::ISimpleRecording::GetAudioEncoder(
     std::vector<ipc::value>&       rval)
 {
 	Recording* recording =
-		osn::ISimpleRecording::Manager::GetInstance().find(args[0].value_union.ui64);
+		static_cast<Recording*>(
+			osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64));
 	if (!recording) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Recording reference is not valid.");
 	}
@@ -199,7 +202,8 @@ void osn::ISimpleRecording::SetAudioEncoder(
     std::vector<ipc::value>&       rval)
 {
 	Recording* recording =
-		osn::ISimpleRecording::Manager::GetInstance().find(args[0].value_union.ui64);
+		static_cast<Recording*>(
+			osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64));
 	if (!recording) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Recording reference is not valid.");
 	}
@@ -400,7 +404,8 @@ void osn::ISimpleRecording::Start(
     std::vector<ipc::value>&       rval)
 {
 	Recording* recording =
-		osn::IRecording::Manager::GetInstance().find(args[0].value_union.ui64);
+		static_cast<Recording*>(
+			osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64));
 	if (!recording) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Simple recording reference is not valid.");
 	}
@@ -507,7 +512,8 @@ void osn::ISimpleRecording::Stop(
     std::vector<ipc::value>&       rval)
 {
 	Recording* recording =
-		osn::IRecording::Manager::GetInstance().find(args[0].value_union.ui64);
+		static_cast<Recording*>(
+			osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64));
 	if (!recording) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Simple recording reference is not valid.");
 	}
@@ -528,7 +534,8 @@ void osn::ISimpleRecording::GetLowCPU(
     std::vector<ipc::value>&       rval)
 {
 	Recording* recording =
-		osn::ISimpleRecording::Manager::GetInstance().find(args[0].value_union.ui64);
+		static_cast<Recording*>(
+			osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64));
 	if (!recording) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Simple recording reference is not valid.");
 	}
@@ -545,8 +552,8 @@ void osn::ISimpleRecording::SetLowCPU(
     std::vector<ipc::value>&       rval)
 {
 	Recording* recording =
-		osn::ISimpleRecording::Manager
-			::GetInstance().find(args[0].value_union.ui64);
+		static_cast<Recording*>(
+			osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64));
 	if (!recording) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Simple recording reference is not valid.");
 	}

@@ -19,39 +19,28 @@
 #pragma once
 #include <napi.h>
 #include "worker-signals.hpp"
-#include "file-output.hpp"
 
 namespace osn
 {
-	class Recording :
-		public WorkerSignals,
-		public FileOutput
+	class FileOutput
 	{
 		public:
-		Recording(): WorkerSignals() {};
+		FileOutput() {};
 
-		protected:
-		Napi::Function signalHandler;
-		std::string className;
+        protected:
+		uint64_t uid;
 
 		Napi::Value GetPath(const Napi::CallbackInfo& info);
 		void SetPath(const Napi::CallbackInfo& info, const Napi::Value& value);
 		Napi::Value GetFormat(const Napi::CallbackInfo& info);
 		void SetFormat(const Napi::CallbackInfo& info, const Napi::Value& value);
-		Napi::Value GetMuxerSettings(const Napi::CallbackInfo& info);
-		void SetMuxerSettings(const Napi::CallbackInfo& info, const Napi::Value& value);
-		Napi::Value GetVideoEncoder(const Napi::CallbackInfo& info);
-		void SetVideoEncoder(const Napi::CallbackInfo& info, const Napi::Value& value);
-		Napi::Value GetSignalHandler(const Napi::CallbackInfo& info);
-		void SetSignalHandler(const Napi::CallbackInfo& info, const Napi::Value& value);
 		Napi::Value GetFileFormat(const Napi::CallbackInfo& info);
 		void SetFileFormat(const Napi::CallbackInfo& info, const Napi::Value& value);
 		Napi::Value GetOverwrite(const Napi::CallbackInfo& info);
 		void SetOverwrite(const Napi::CallbackInfo& info, const Napi::Value& value);
 		Napi::Value GetNoSpace(const Napi::CallbackInfo& info);
 		void SetNoSpace(const Napi::CallbackInfo& info, const Napi::Value& value);
-		
-		void Start(const Napi::CallbackInfo& info);
-		void Stop(const Napi::CallbackInfo& info);
+		Napi::Value GetMuxerSettings(const Napi::CallbackInfo& info);
+		void SetMuxerSettings(const Napi::CallbackInfo& info, const Napi::Value& value);
 	};
 }

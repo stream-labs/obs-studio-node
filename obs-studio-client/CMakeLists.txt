@@ -121,6 +121,8 @@ SET(osn-client_SOURCES
 	"source/replay-buffer.cpp"
 	"source/simple-replay-buffer.hpp"
 	"source/simple-replay-buffer.cpp"
+	"source/file-output.hpp"
+	"source/file-output.cpp"
 
 	###### callback-manager ######
 	"source/callback-manager.cpp"
