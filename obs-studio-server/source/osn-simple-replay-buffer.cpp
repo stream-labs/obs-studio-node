@@ -185,11 +185,8 @@ void osn::ISimpleReplayBuffer::Start(
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Simple replay buffer reference is not valid.");
 	}
 
-	if (!replayBuffer->output) {
-		replayBuffer->output =
-			obs_output_create("replay_buffer", "replay-buffer", nullptr, nullptr);
-		replayBuffer->ConnectSignals();
-	}
+	if (!replayBuffer->output)
+		replayBuffer->createOutput("replay_buffer", "replay-buffer");
 
 	if (!replayBuffer->audioEncoder) {
 		PRETTY_ERROR_RETURN(

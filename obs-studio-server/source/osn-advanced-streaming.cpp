@@ -475,20 +475,9 @@ void osn::IAdvancedStreaming::Start(
 	if (!type)
 		type = "rtmp_output";
 
-	if (!streaming->output) {
-		streaming->output =
-			obs_output_create(type, "stream", nullptr, nullptr);
-		streaming->ConnectSignals();
-	} else if (strcmp(obs_output_get_id(streaming->output), type) != 0) {
-		if (obs_output_active(streaming->output)) {
-			PRETTY_ERROR_RETURN(
-                ErrorCode::InvalidReference, "Current streaming output is active.");
-		}
-		obs_output_release(streaming->output);
-		streaming->output =
-			obs_output_create(type, "stream", nullptr, nullptr);
-		streaming->ConnectSignals();
-	}
+	if (!streaming->output ||
+		strcmp(obs_output_get_id(streaming->output), type) != 0)
+		streaming->createOutput(type, "stream");
 
 	if (!streaming->output) {
 		PRETTY_ERROR_RETURN(

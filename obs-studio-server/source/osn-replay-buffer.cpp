@@ -22,6 +22,11 @@
 #include "shared.hpp"
 #include "util/platform.h"
 
+osn::ReplayBuffer::~ReplayBuffer()
+{
+	deleteOutput();
+}
+
 void osn::IReplayBuffer::GetDuration(
     void*                          data,
     const int64_t                  id,

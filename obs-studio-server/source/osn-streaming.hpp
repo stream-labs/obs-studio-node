@@ -59,7 +59,7 @@ namespace osn
 			outputWidth = 1280;
 			outputHeight = 720;
 		}
-        ~Streaming() {}
+        virtual ~Streaming();
 
         public:
 		obs_encoder_t* videoEncoder;
@@ -87,7 +87,7 @@ namespace osn
 
 	class IStreaming
 	{
-		protected:
+		public:
 		class Manager : public utility::unique_object_manager<Streaming>
 		{
 			friend class std::shared_ptr<Manager>;

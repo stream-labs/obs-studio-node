@@ -40,7 +40,6 @@ namespace osn
         Recording() : FileOutput(), OutputSignals() {
 			videoEncoder = nullptr;
 			audioEncoder = nullptr;
-			output = nullptr;
 			signals = {
 				"start",
 				"stop",
@@ -56,7 +55,7 @@ namespace osn
 			mixer = 1 << 0;
 			useStreamEncoders = true;
 		}
-        ~Recording() {}
+        virtual ~Recording();
 
         public:
 		obs_encoder_t* videoEncoder;

@@ -232,11 +232,8 @@ void osn::IAdvancedRecording::Start(
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Simple recording reference is not valid.");
 	}
 
-	if (!recording->output) {
-		recording->output =
-			obs_output_create("ffmpeg_muxer", "recording", nullptr, nullptr);
-		recording->ConnectSignals();
-	}
+	if (!recording->output)
+		recording->createOutput("ffmpeg_muxer", "recording");
 
 	if (!recording->output) {
 		PRETTY_ERROR_RETURN(

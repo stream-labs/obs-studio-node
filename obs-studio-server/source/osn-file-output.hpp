@@ -33,7 +33,7 @@ namespace osn
 			noSpace = false;
             muxerSettings = "";
 		}
-        ~FileOutput() {}
+        virtual ~FileOutput() {}
 
         public:
         std::string path;

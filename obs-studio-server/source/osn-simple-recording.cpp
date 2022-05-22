@@ -321,13 +321,8 @@ void osn::ISimpleRecording::Start(
 
 	const char* ffmpegMuxer = "ffmpeg_muxer";
 	if (!recording->output ||
-		strcmp(obs_output_get_id(recording->output), ffmpegMuxer) == 0) {
-		if (recording->output)
-			obs_output_release(recording->output);
-		recording->output =
-			obs_output_create("ffmpeg_muxer", "recording", nullptr, nullptr);
-		recording->ConnectSignals();
-	}
+		strcmp(obs_output_get_id(recording->output), ffmpegMuxer) == 0)
+		recording->createOutput("ffmpeg_muxer", "recording");
 
 	if (!recording->output) {
 		PRETTY_ERROR_RETURN(
@@ -360,10 +355,7 @@ void osn::ISimpleRecording::Start(
             break;
         }
         case RecQuality::Lossless: {
-			obs_output_release(recording->output);
-			recording->output =
-				obs_output_create("ffmpeg_output", "recording", nullptr, nullptr);
-			recording->ConnectSignals();
+			recording->createOutput("ffmpeg_output", "recording");
 			LoadLosslessPreset(recording);
 			format = "avi";
 			pathProperty = "url";

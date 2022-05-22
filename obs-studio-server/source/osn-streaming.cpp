@@ -23,6 +23,15 @@
 #include "shared.hpp"
 #include "nodeobs_audio_encoders.h"
 
+osn::Streaming::~Streaming()
+{
+	deleteOutput();
+	if (streamArchive && !obs_encoder_active(streamArchive)) {
+		obs_encoder_release(streamArchive);
+		streamArchive = nullptr;
+	}
+}
+
 void osn::IStreaming::GetService(
     void*                          data,
     const int64_t                  id,

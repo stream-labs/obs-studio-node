@@ -46,7 +46,7 @@ namespace osn
                 "writing_error"
 			};
 		}
-        ~ReplayBuffer() {}
+        virtual ~ReplayBuffer();
 
         public:
         uint32_t duration;

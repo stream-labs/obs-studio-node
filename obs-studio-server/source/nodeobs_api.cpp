@@ -30,6 +30,16 @@
 #include "util-crashmanager.h"
 #include "util-metricsprovider.h"
 
+#include "osn-streaming.hpp"
+#include "osn-recording.hpp"
+#include "osn-encoder.hpp"
+#include "osn-audio-encoder.hpp"
+#include "osn-service.hpp"
+#include "osn-delay.hpp"
+#include "osn-reconnect.hpp"
+#include "osn-network.hpp"
+#include "osn-audio-track.hpp"
+
 #include <sys/types.h>
 
 #ifdef __APPLE
@@ -1503,6 +1513,84 @@ void OBS_API::destroyOBS_API(void)
     osn::Fader::ClearFaders();
 
 	obs_wait_for_destroy_queue();
+
+	// Release all streaming ouputs
+	std::vector<osn::Streaming*> streamingOutputs;
+	osn::IStreaming::Manager::GetInstance().
+		for_each([&streamingOutputs](osn::Streaming* streamingOutput)
+	{
+		delete streamingOutput;
+	});
+
+	// Release all recording ouputs
+	std::vector<osn::FileOutput*> fileOutputs;
+	osn::IFileOutput::Manager::GetInstance().
+		for_each([&fileOutputs](osn::FileOutput* fileOutput)
+	{
+		delete fileOutput;
+	});
+
+	// Release all video encoders
+	std::vector<obs_encoder_t*> videoEncoders;
+	osn::Encoder::Manager::GetInstance().
+		for_each([&videoEncoders](obs_encoder_t* videoEncoder)
+	{
+		obs_encoder_release(videoEncoder);
+		videoEncoder = nullptr;
+	});
+
+	// Release all audio encoders
+	std::vector<obs_encoder_t*> audioEncoders;
+	osn::AudioEncoder::Manager::GetInstance().
+		for_each([&audioEncoders](obs_encoder_t* audioEncoder)
+	{
+		obs_encoder_release(audioEncoder);
+		audioEncoder = nullptr;
+	});
+
+	// Release all audio track encoders
+	std::vector<osn::AudioTrack*> audioTrackEncoders;
+	// osn::IAudioTrack::Manager::GetInstance().
+	// 	for_each([&audioTrackEncoders](osn::AudioTrack* audioTrackEncoder)
+	for (auto const& audioTrack: osn::IAudioTrack::audioTracks)	{
+		if(audioTrack && audioTrack->audioEnc) {
+			obs_encoder_release(audioTrack->audioEnc);
+			audioTrack->audioEnc = nullptr;
+		}
+	};
+
+	// Release all services
+	std::vector<obs_encoder_t*> services;
+	osn::Service::Manager::GetInstance().
+		for_each([&services](obs_service_t* service)
+	{
+		obs_service_release(service);
+		service = nullptr;
+	});
+
+	// Release all delays
+	std::vector<osn::Delay*> delays;
+	osn::IDelay::Manager::GetInstance().
+		for_each([&delays](osn::Delay* delay)
+	{
+		delete delay;
+	});
+
+	// Release all reconnects
+	std::vector<osn::Reconnect*> reconnects;
+	osn::IReconnect::Manager::GetInstance().
+		for_each([&reconnects](osn::Reconnect* reconnect)
+	{
+		delete reconnect;
+	});
+
+	// Release all networks
+	std::vector<osn::Network*> networks;
+	osn::INetwork::Manager::GetInstance().
+		for_each([&networks](osn::Network* network)
+	{
+		delete network;
+	});
 
 	// Check if the frontend was able to shutdown correctly:
 	// If there are some sources here it's because it ended unexpectedly, this represents a 

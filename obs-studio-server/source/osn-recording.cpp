@@ -22,6 +22,11 @@
 #include "shared.hpp"
 #include "util/platform.h"
 
+osn::Recording::~Recording()
+{
+	deleteOutput();
+}
+
 void osn::IRecording::GetVideoEncoder(
     void*                          data,
     const int64_t                  id,
