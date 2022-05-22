@@ -103,7 +103,7 @@ void osn::ISimpleReplayBuffer::Create(
     std::vector<ipc::value>&       rval)
 {
 	uint64_t uid =
-        osn::ISimpleReplayBuffer::Manager::GetInstance().allocate(new ReplayBuffer());
+        osn::ISimpleReplayBuffer::Manager::GetInstance().allocate(new SimpleReplayBuffer());
 	if (uid == UINT64_MAX) {
 		PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Index list is full.");
 	}
@@ -119,8 +119,8 @@ void osn::ISimpleReplayBuffer::GetAudioEncoder(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	ReplayBuffer* replayBuffer =
-		static_cast<ReplayBuffer*>(
+	SimpleReplayBuffer* replayBuffer =
+		static_cast<SimpleReplayBuffer*>(
 			osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64));
 	if (!replayBuffer) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Replay buffer reference is not valid.");
@@ -140,8 +140,8 @@ void osn::ISimpleReplayBuffer::SetAudioEncoder(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	ReplayBuffer* replayBuffer =
-		static_cast<ReplayBuffer*>(
+	SimpleReplayBuffer* replayBuffer =
+		static_cast<SimpleReplayBuffer*>(
 			osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64));
 	if (!replayBuffer) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Replay buffer reference is not valid.");
@@ -157,49 +157,6 @@ void osn::ISimpleReplayBuffer::SetAudioEncoder(
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
-}
-
-static inline void calbback(void* data, calldata_t* params)
-{
-	auto info =
-		reinterpret_cast<osn::cbDataRb*>(data);
-
-	if (!info)
-		return;
-
-	std::string signal = info->signal;
-	auto replayBuffer = info->replayBuffer;
-
-	if (!replayBuffer->output)
-		return;
-
-	const char* error =
-		obs_output_get_last_error(replayBuffer->output);
-
-	std::unique_lock<std::mutex> ulock(replayBuffer->signalsMtx);
-	replayBuffer->signalsReceived.push({
-		signal,
-		(int)calldata_int(params, "code"),
-		error ? std::string(error) : ""
-	});
-}
-
-void osn::ReplayBuffer::ConnectSignals()
-{
-	if(!this->output)
-		return;
-
-	signal_handler* handler = obs_output_get_signal_handler(this->output);
-	for (const auto &signal: this->signals) {
-		osn::cbDataRb* cd = new cbDataRb();
-		cd->signal = signal;
-		cd->replayBuffer = this;
-		signal_handler_connect(
-			handler,
-			signal.c_str(),
-			calbback,
-			cd);
-	}
 }
 
 static void remove_reserved_file_characters(std::string& s)
@@ -221,8 +178,8 @@ void osn::ISimpleReplayBuffer::Start(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	ReplayBuffer* replayBuffer =
-		static_cast<ReplayBuffer*>(
+	SimpleReplayBuffer* replayBuffer =
+		static_cast<SimpleReplayBuffer*>(
 			osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64));
 	if (!replayBuffer) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Simple replay buffer reference is not valid.");
@@ -295,8 +252,8 @@ void osn::ISimpleReplayBuffer::Stop(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	ReplayBuffer* replayBuffer =
-		static_cast<ReplayBuffer*>(
+	SimpleReplayBuffer* replayBuffer =
+		static_cast<SimpleReplayBuffer*>(
 			osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64));
 	if (!replayBuffer) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Simple replay buffer reference is not valid.");

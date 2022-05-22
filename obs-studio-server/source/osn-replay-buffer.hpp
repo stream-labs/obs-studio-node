@@ -21,10 +21,13 @@
 #include "utility.hpp"
 #include "osn-streaming.hpp"
 #include "osn-file-output.hpp"
+#include "osn-output-signals.hpp"
 
 namespace osn
 {
-    class ReplayBuffer: public FileOutput
+    class ReplayBuffer:
+		public FileOutput,
+		public OutputSignals
     {
         public:
         ReplayBuffer() {
@@ -33,8 +36,6 @@ namespace osn
             suffix = "";
 			usesStream = false;
 			videoEncoder = nullptr;
-			audioEncoder = nullptr;
-			output = nullptr;
 			signals = {
 				"start",
 				"stop",
@@ -44,7 +45,6 @@ namespace osn
                 "wrote",
                 "writing_error"
 			};
-			mixer = 1 << 0;
 		}
         ~ReplayBuffer() {}
 
@@ -54,22 +54,7 @@ namespace osn
         std::string suffix;
 		bool usesStream;
  		obs_encoder_t* videoEncoder;
-		obs_encoder_t* audioEncoder;
-		obs_output_t* output;
-		uint32_t mixer;
-
-
-		std::mutex signalsMtx;
-		std::queue<signalInfo> signalsReceived;
-		std::vector<std::string> signals;
-
-		void ConnectSignals();
     };
-
-	struct cbDataRb {
-		std::string signal;
-		ReplayBuffer* replayBuffer;
-	};
 
 	class IReplayBuffer: public IFileOutput
 	{

@@ -315,49 +315,6 @@ void osn::IStreaming::SetNetwork(
 	AUTO_DEBUG;
 }
 
-static inline void calbback(void* data, calldata_t* params)
-{
-	auto info =
-		reinterpret_cast<osn::cbData*>(data);
-
-	if (!info)
-		return;
-
-	std::string signal = info->signal;
-	auto stream = info->stream;
-
-	if (!stream->output)
-		return;
-
-	const char* error =
-		obs_output_get_last_error(stream->output);
-
-	std::unique_lock<std::mutex> ulock(stream->signalsMtx);
-	stream->signalsReceived.push({
-		signal,
-		(int)calldata_int(params, "code"),
-		error ? std::string(error) : ""
-	});
-}
-
-void osn::Streaming::ConnectSignals()
-{
-	if(!this->output)
-		return;
-
-	signal_handler* handler = obs_output_get_signal_handler(this->output);
-	for (const auto &signal: this->signals) {
-		osn::cbData* cd = new cbData();
-		cd->signal = signal;
-		cd->stream = this;
-		signal_handler_connect(
-			handler,
-			signal.c_str(),
-			calbback,
-			cd);
-	}
-}
-
 bool osn::Streaming::isTwitchVODSupported()
 {
 	if (!service)

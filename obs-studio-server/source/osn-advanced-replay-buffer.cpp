@@ -101,7 +101,7 @@ void osn::IAdvancedReplayBuffer::Create(
     std::vector<ipc::value>&       rval)
 {
 	uint64_t uid =
-        osn::IAdvancedReplayBuffer::Manager::GetInstance().allocate(new ReplayBuffer());
+        osn::IAdvancedReplayBuffer::Manager::GetInstance().allocate(new AdvancedReplayBuffer());
 	if (uid == UINT64_MAX) {
 		PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Index list is full.");
 	}
@@ -117,8 +117,8 @@ void osn::IAdvancedReplayBuffer::GetMixer(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	ReplayBuffer* replayBuffer =
-		static_cast<ReplayBuffer*>(
+	AdvancedReplayBuffer* replayBuffer =
+		static_cast<AdvancedReplayBuffer*>(
 			osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64));
 	if (!replayBuffer) {
 		PRETTY_ERROR_RETURN(
@@ -136,8 +136,8 @@ void osn::IAdvancedReplayBuffer::SetMixer(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	ReplayBuffer* replayBuffer =
-		static_cast<ReplayBuffer*>(
+	AdvancedReplayBuffer* replayBuffer =
+		static_cast<AdvancedReplayBuffer*>(
 			osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64));
 	if (!replayBuffer) {
 		PRETTY_ERROR_RETURN(
@@ -148,31 +148,6 @@ void osn::IAdvancedReplayBuffer::SetMixer(
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
-}
-
-static inline void calbback(void* data, calldata_t* params)
-{
-	auto info =
-		reinterpret_cast<osn::cbDataRb*>(data);
-
-	if (!info)
-		return;
-
-	std::string signal = info->signal;
-	auto replayBuffer = info->replayBuffer;
-
-	if (!replayBuffer->output)
-		return;
-
-	const char* error =
-		obs_output_get_last_error(replayBuffer->output);
-
-	std::unique_lock<std::mutex> ulock(replayBuffer->signalsMtx);
-	replayBuffer->signalsReceived.push({
-		signal,
-		(int)calldata_int(params, "code"),
-		error ? std::string(error) : ""
-	});
 }
 
 static void remove_reserved_file_characters(std::string& s)
@@ -194,8 +169,8 @@ void osn::IAdvancedReplayBuffer::Start(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	ReplayBuffer* replayBuffer =
-		static_cast<ReplayBuffer*>(
+	AdvancedReplayBuffer* replayBuffer =
+		static_cast<AdvancedReplayBuffer*>(
 			osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64));
 	if (!replayBuffer) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Simple replay buffer reference is not valid.");
@@ -272,8 +247,8 @@ void osn::IAdvancedReplayBuffer::Stop(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	ReplayBuffer* replayBuffer =
-		static_cast<ReplayBuffer*>(
+	AdvancedReplayBuffer* replayBuffer =
+		static_cast<AdvancedReplayBuffer*>(
 			osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64));
 	if (!replayBuffer) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Simple replay buffer reference is not valid.");

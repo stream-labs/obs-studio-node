@@ -22,16 +22,11 @@
 #include "osn-delay.hpp"
 #include "osn-reconnect.hpp"
 #include "osn-network.hpp"
+#include "osn-output-signals.hpp"
 
 namespace osn
 {
-	struct signalInfo {
-		std::string signal;
-		int code;
-		std::string errorMessage;
-	};
-
-    class Streaming
+    class Streaming : public OutputSignals
     {
         public:
         Streaming() {
@@ -40,7 +35,6 @@ namespace osn
 			audioBitrate = 160;
 			streamArchive = nullptr;
 			service = nullptr;
-			output = nullptr;
 			enforceServiceBitrate = true;
 			enableTwitchVOD = false;
 			twitchVODSupported = false;
@@ -73,7 +67,6 @@ namespace osn
 		uint32_t audioBitrate;
 		obs_encoder_t* streamArchive;
 		obs_service_t* service;
-		obs_output_t* output;
 		bool enforceServiceBitrate;
 		bool enableTwitchVOD;
 		bool twitchVODSupported;
@@ -89,18 +82,8 @@ namespace osn
 		uint32_t outputWidth;
 		uint32_t outputHeight;
 
-		std::mutex signalsMtx;
-		std::queue<signalInfo> signalsReceived;
-		std::vector<std::string> signals;
-
-		void ConnectSignals();
 		bool isTwitchVODSupported();
     };
-
-	struct cbData {
-		std::string signal;
-		Streaming* stream;
-	};
 
 	class IStreaming
 	{

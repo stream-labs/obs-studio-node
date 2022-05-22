@@ -184,49 +184,6 @@ static inline void LoadLosslessPreset(osn::Recording* recording)
 	obs_data_release(settings);
 }
 
-static inline void calbback(void* data, calldata_t* params)
-{
-	auto info =
-		reinterpret_cast<osn::cbDataRec*>(data);
-
-	if (!info)
-		return;
-
-	std::string signal = info->signal;
-	auto recording = info->recording;
-
-	if (!recording->output)
-		return;
-
-	const char* error =
-		obs_output_get_last_error(recording->output);
-
-	std::unique_lock<std::mutex> ulock(recording->signalsMtx);
-	recording->signalsReceived.push({
-		signal,
-		(int)calldata_int(params, "code"),
-		error ? std::string(error) : ""
-	});
-}
-
-void osn::Recording::ConnectSignals()
-{
-	if(!this->output)
-		return;
-
-	signal_handler* handler = obs_output_get_signal_handler(this->output);
-	for (const auto &signal: this->signals) {
-		osn::cbDataRec* cd = new cbDataRec();
-		cd->signal = signal;
-		cd->recording = this;
-		signal_handler_connect(
-			handler,
-			signal.c_str(),
-			calbback,
-			cd);
-	}
-}
-
 static inline obs_data_t* UpdateRecordingSettings_x264_crf(int crf, bool lowCPU)
 {
 	obs_data_t* settings = obs_data_create();

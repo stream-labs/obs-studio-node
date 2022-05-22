@@ -24,6 +24,18 @@
 
 namespace osn
 {
+    class SimpleReplayBuffer: public ReplayBuffer
+    {
+        public:
+        SimpleReplayBuffer() {
+			audioEncoder = nullptr;
+		}
+        ~SimpleReplayBuffer() {}
+
+        public:
+		obs_encoder_t* audioEncoder;
+    };
+
 	class ISimpleReplayBuffer: public IReplayBuffer
 	{
 		public:

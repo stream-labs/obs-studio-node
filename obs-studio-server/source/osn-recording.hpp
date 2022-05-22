@@ -21,6 +21,7 @@
 #include "utility.hpp"
 #include "osn-streaming.hpp"
 #include "osn-file-output.hpp"
+#include "osn-output-signals.hpp"
 
 namespace osn
 {
@@ -31,10 +32,12 @@ namespace osn
 		Lossless = 3
 	};
 
-    class Recording: public FileOutput
+    class Recording:
+		public FileOutput,
+		public OutputSignals
     {
         public:
-        Recording() {
+        Recording() : FileOutput(), OutputSignals() {
 			videoEncoder = nullptr;
 			audioEncoder = nullptr;
 			output = nullptr;
@@ -59,7 +62,6 @@ namespace osn
 		obs_encoder_t* videoEncoder;
 		obs_encoder_t* audioEncoder;
 		RecQuality quality;
-		obs_output_t* output;
 		bool lowCPU;
 		uint32_t mixer;
 
@@ -67,18 +69,7 @@ namespace osn
 		uint32_t outputWidth;
 		uint32_t outputHeight;
 		bool useStreamEncoders;
-
-		std::mutex signalsMtx;
-		std::queue<signalInfo> signalsReceived;
-		std::vector<std::string> signals;
-
-		void ConnectSignals();
     };
-
-	struct cbDataRec {
-		std::string signal;
-		Recording* recording;
-	};
 
 	class IRecording: public IFileOutput
 	{

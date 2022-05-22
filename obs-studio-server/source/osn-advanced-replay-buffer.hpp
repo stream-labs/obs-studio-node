@@ -24,6 +24,18 @@
 
 namespace osn
 {
+    class AdvancedReplayBuffer: public ReplayBuffer
+    {
+        public:
+        AdvancedReplayBuffer() {
+			mixer = 1 << 0;
+		}
+        ~AdvancedReplayBuffer() {}
+
+        public:
+		uint32_t mixer;
+    };
+
 	class IAdvancedReplayBuffer: public IReplayBuffer
 	{
 		public:
