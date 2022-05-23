@@ -315,6 +315,29 @@ Napi::Value api::RequestPermissions(const Napi::CallbackInfo& info)
 	return info.Env().Undefined();
 }
 
+void api::SetBrowserAcceleration(const Napi::CallbackInfo& info)
+{
+	bool browserAceel = info[0].ToBoolean().Value();
+
+	auto conn = GetConnection(info);
+	if (!conn)
+		return;
+
+	conn->call(
+		"API", "SetBrowserAcceleration", {ipc::value(browserAceel)});
+}
+
+void api::SetMediaFileCaching(const Napi::CallbackInfo& info)
+{
+	bool mediaFileCaching = info[0].ToBoolean().Value();
+
+	auto conn = GetConnection(info);
+	if (!conn)
+		return;
+
+	conn->call("API", "SetMediaFileCaching", {ipc::value(mediaFileCaching)});
+}
+
 void api::Init(Napi::Env env, Napi::Object exports)
 {
 	exports.Set(Napi::String::New(env, "OBS_API_initAPI"), Napi::Function::New(env, api::OBS_API_initAPI));
@@ -327,4 +350,6 @@ void api::Init(Napi::Env env, Napi::Object exports)
 	exports.Set(Napi::String::New(env, "SetUsername"), Napi::Function::New(env, api::SetUsername));
 	exports.Set(Napi::String::New(env, "GetPermissionsStatus"), Napi::Function::New(env, api::GetPermissionsStatus));
 	exports.Set(Napi::String::New(env, "RequestPermissions"), Napi::Function::New(env, api::RequestPermissions));
+	exports.Set(Napi::String::New(env, "SetBrowserAcceleration"), Napi::Function::New(env, api::SetBrowserAcceleration));
+	exports.Set(Napi::String::New(env, "SetMediaFileCaching"), Napi::Function::New(env, api::SetMediaFileCaching));
 }
