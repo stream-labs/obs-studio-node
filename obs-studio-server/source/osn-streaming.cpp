@@ -21,7 +21,6 @@
 #include "osn-service.hpp"
 #include "osn-error.hpp"
 #include "shared.hpp"
-#include "nodeobs_audio_encoders.h"
 
 osn::Streaming::~Streaming()
 {

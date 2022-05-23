@@ -110,7 +110,7 @@ void osn::ISimpleStreaming::Create(
     std::vector<ipc::value>&       rval)
 {
 	uint64_t uid =
-        osn::ISimpleStreaming::Manager::GetInstance().allocate(new Streaming());
+        osn::ISimpleStreaming::Manager::GetInstance().allocate(new SimpleStreaming());
 	if (uid == UINT64_MAX) {
 		PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Index list is full.");
 	}
@@ -126,8 +126,10 @@ void osn::ISimpleStreaming::GetAudioEncoder(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	Streaming* streaming =
-		osn::ISimpleStreaming::Manager::GetInstance().find(args[0].value_union.ui64);
+	SimpleStreaming* streaming =
+		static_cast<SimpleStreaming*>(
+			osn::ISimpleStreaming::Manager::GetInstance().
+			find(args[0].value_union.ui64));
 	if (!streaming) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Streaming reference is not valid.");
 	}
@@ -146,8 +148,10 @@ void osn::ISimpleStreaming::SetAudioEncoder(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	Streaming* streaming =
-		osn::ISimpleStreaming::Manager::GetInstance().find(args[0].value_union.ui64);
+	SimpleStreaming* streaming =
+		static_cast<SimpleStreaming*>(
+			osn::ISimpleStreaming::Manager::GetInstance().
+			find(args[0].value_union.ui64));
 	if (!streaming) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Streaming reference is not valid.");
 	}
@@ -180,7 +184,7 @@ static inline uint32_t setMixer(obs_source_t *source, const int mixerIdx, const 
 	return mixers;
 }
 
-static inline void SetupTwitchSoundtrackAudio(osn::Streaming* streaming)
+static inline void SetupTwitchSoundtrackAudio(osn::SimpleStreaming* streaming)
 {
 	// These are magic ints provided by OBS for default sources:
 	// 0 is the main scene/transition which you'd see on the main preview,
@@ -217,7 +221,13 @@ static inline void SetupTwitchSoundtrackAudio(osn::Streaming* streaming)
 		streaming->streamArchive, kSoundtrackArchiveEncoderIdx);
 
 	obs_data_t *settings = obs_data_create();
-	obs_data_set_int(settings, "bitrate", streaming->audioBitrate);
+
+    obs_data_t* settingsEnc =
+		obs_encoder_get_settings(streaming->audioEncoder);
+    uint32_t bitrate = obs_data_get_int(settingsEnc, "bitrate");
+    obs_data_release(settingsEnc);
+
+	obs_data_set_int(settings, "bitrate", bitrate);
 	obs_encoder_update(streaming->streamArchive, settings);
 	obs_data_release(settings);
 }
@@ -247,8 +257,10 @@ void osn::ISimpleStreaming::Start(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	Streaming* streaming =
-		osn::IStreaming::Manager::GetInstance().find(args[0].value_union.ui64);
+	SimpleStreaming* streaming =
+		static_cast<SimpleStreaming*>(
+			osn::ISimpleStreaming::Manager::GetInstance().
+			find(args[0].value_union.ui64));
 	if (!streaming) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Simple streaming reference is not valid.");
 	}

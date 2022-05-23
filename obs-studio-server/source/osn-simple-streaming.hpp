@@ -27,6 +27,18 @@
 
 namespace osn
 {
+	class SimpleStreaming: public Streaming
+	{
+		public:
+		SimpleStreaming(): Streaming() {
+			audioEncoder = nullptr;
+		}
+		~SimpleStreaming() {}
+
+		public:
+		obs_encoder_t* audioEncoder;
+	};
+
 	class ISimpleStreaming: public IStreaming
 	{
 		public:

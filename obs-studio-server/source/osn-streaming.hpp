@@ -31,8 +31,6 @@ namespace osn
         public:
         Streaming() {
 			videoEncoder = nullptr;
-			audioEncoder = nullptr;
-			audioBitrate = 160;
 			streamArchive = nullptr;
 			service = nullptr;
 			enforceServiceBitrate = true;
@@ -53,18 +51,11 @@ namespace osn
 			delay = new Delay();
 			reconnect = new Reconnect();
 			network = new Network();
-			audioTrack = 1;
-			twitchTrack = 2;
-			rescaling = false;
-			outputWidth = 1280;
-			outputHeight = 720;
 		}
         virtual ~Streaming();
 
         public:
 		obs_encoder_t* videoEncoder;
-		obs_encoder_t* audioEncoder;
-		uint32_t audioBitrate;
 		obs_encoder_t* streamArchive;
 		obs_service_t* service;
 		bool enforceServiceBitrate;
@@ -75,12 +66,6 @@ namespace osn
 		Delay* delay;
 		Reconnect* reconnect;
 		Network* network;
-
-		uint32_t audioTrack;
-		uint32_t twitchTrack;
-		bool rescaling;
-		uint32_t outputWidth;
-		uint32_t outputHeight;
 
 		bool isTwitchVODSupported();
     };

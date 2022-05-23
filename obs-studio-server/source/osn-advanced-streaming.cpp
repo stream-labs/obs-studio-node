@@ -142,7 +142,7 @@ void osn::IAdvancedStreaming::Create(
     std::vector<ipc::value>&       rval)
 {
 	uint64_t uid =
-        osn::IAdvancedStreaming::Manager::GetInstance().allocate(new Streaming());
+        osn::IAdvancedStreaming::Manager::GetInstance().allocate(new AdvancedStreaming());
 	if (uid == UINT64_MAX) {
 		PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Index list is full.");
 	}
@@ -158,8 +158,10 @@ void osn::IAdvancedStreaming::GetAudioTrack(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	Streaming* streaming =
-		osn::IAdvancedStreaming::Manager::GetInstance().find(args[0].value_union.ui64);
+	AdvancedStreaming* streaming =
+		static_cast<AdvancedStreaming*>(
+			osn::IAdvancedStreaming::Manager::GetInstance().
+			find(args[0].value_union.ui64));
 	if (!streaming) {
 		PRETTY_ERROR_RETURN(
             ErrorCode::InvalidReference, "Simple streaming reference is not valid.");
@@ -176,9 +178,10 @@ void osn::IAdvancedStreaming::SetAudioTrack(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	Streaming* streaming =
-		osn::IAdvancedStreaming::Manager
-			::GetInstance().find(args[0].value_union.ui64);
+	AdvancedStreaming* streaming =
+		static_cast<AdvancedStreaming*>(
+			osn::IAdvancedStreaming::Manager::GetInstance().
+			find(args[0].value_union.ui64));
 	if (!streaming) {
 		PRETTY_ERROR_RETURN(
             ErrorCode::InvalidReference, "Simple streaming reference is not valid.");
@@ -196,8 +199,10 @@ void osn::IAdvancedStreaming::GetTwitchTrack(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	Streaming* streaming =
-		osn::IAdvancedStreaming::Manager::GetInstance().find(args[0].value_union.ui64);
+	AdvancedStreaming* streaming =
+		static_cast<AdvancedStreaming*>(
+			osn::IAdvancedStreaming::Manager::GetInstance().
+			find(args[0].value_union.ui64));
 	if (!streaming) {
 		PRETTY_ERROR_RETURN(
             ErrorCode::InvalidReference, "Simple streaming reference is not valid.");
@@ -214,9 +219,10 @@ void osn::IAdvancedStreaming::SetTwitchTrack(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	Streaming* streaming =
-		osn::IAdvancedStreaming::Manager
-			::GetInstance().find(args[0].value_union.ui64);
+	AdvancedStreaming* streaming =
+		static_cast<AdvancedStreaming*>(
+			osn::IAdvancedStreaming::Manager::GetInstance().
+			find(args[0].value_union.ui64));
 	if (!streaming) {
 		PRETTY_ERROR_RETURN(
             ErrorCode::InvalidReference, "Simple streaming reference is not valid.");
@@ -234,8 +240,10 @@ void osn::IAdvancedStreaming::GetRescaling(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	Streaming* streaming =
-		osn::IAdvancedStreaming::Manager::GetInstance().find(args[0].value_union.ui64);
+	AdvancedStreaming* streaming =
+		static_cast<AdvancedStreaming*>(
+			osn::IAdvancedStreaming::Manager::GetInstance().
+			find(args[0].value_union.ui64));
 	if (!streaming) {
 		PRETTY_ERROR_RETURN(
             ErrorCode::InvalidReference, "Simple streaming reference is not valid.");
@@ -252,9 +260,10 @@ void osn::IAdvancedStreaming::SetRescaling(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	Streaming* streaming =
-		osn::IAdvancedStreaming::Manager
-			::GetInstance().find(args[0].value_union.ui64);
+	AdvancedStreaming* streaming =
+		static_cast<AdvancedStreaming*>(
+			osn::IAdvancedStreaming::Manager::GetInstance().
+			find(args[0].value_union.ui64));
 	if (!streaming) {
 		PRETTY_ERROR_RETURN(
             ErrorCode::InvalidReference, "Simple streaming reference is not valid.");
@@ -272,8 +281,10 @@ void osn::IAdvancedStreaming::GetOutputWidth(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	Streaming* streaming =
-		osn::IAdvancedStreaming::Manager::GetInstance().find(args[0].value_union.ui64);
+	AdvancedStreaming* streaming =
+		static_cast<AdvancedStreaming*>(
+			osn::IAdvancedStreaming::Manager::GetInstance().
+			find(args[0].value_union.ui64));
 	if (!streaming) {
 		PRETTY_ERROR_RETURN(
             ErrorCode::InvalidReference, "Simple streaming reference is not valid.");
@@ -290,9 +301,10 @@ void osn::IAdvancedStreaming::SetOutputWidth(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	Streaming* streaming =
-		osn::IAdvancedStreaming::Manager
-			::GetInstance().find(args[0].value_union.ui64);
+	AdvancedStreaming* streaming =
+		static_cast<AdvancedStreaming*>(
+			osn::IAdvancedStreaming::Manager::GetInstance().
+			find(args[0].value_union.ui64));
 	if (!streaming) {
 		PRETTY_ERROR_RETURN(
             ErrorCode::InvalidReference, "Simple streaming reference is not valid.");
@@ -310,8 +322,10 @@ void osn::IAdvancedStreaming::GetOutputHeight(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	Streaming* streaming =
-		osn::IAdvancedStreaming::Manager::GetInstance().find(args[0].value_union.ui64);
+	AdvancedStreaming* streaming =
+		static_cast<AdvancedStreaming*>(
+			osn::IAdvancedStreaming::Manager::GetInstance().
+			find(args[0].value_union.ui64));
 	if (!streaming) {
 		PRETTY_ERROR_RETURN(
             ErrorCode::InvalidReference, "Simple streaming reference is not valid.");
@@ -328,9 +342,10 @@ void osn::IAdvancedStreaming::SetOutputHeight(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	Streaming* streaming =
-		osn::IAdvancedStreaming::Manager
-			::GetInstance().find(args[0].value_union.ui64);
+	AdvancedStreaming* streaming =
+		static_cast<AdvancedStreaming*>(
+			osn::IAdvancedStreaming::Manager::GetInstance().
+			find(args[0].value_union.ui64));
 	if (!streaming) {
 		PRETTY_ERROR_RETURN(
             ErrorCode::InvalidReference,"Simple streaming reference is not valid.");
@@ -353,7 +368,7 @@ static inline obs_encoder_t* createAudioEncoder(uint32_t bitrate)
 }
 
 
-static inline bool setAudioEncoder(osn::Streaming* streaming)
+static inline bool setAudioEncoder(osn::AdvancedStreaming* streaming)
 {
 	osn::AudioTrack* audioTrack =
 		osn::IAudioTrack::audioTracks[streaming->audioTrack];
@@ -384,7 +399,7 @@ static inline uint32_t setMixer(obs_source_t *source, const int mixerIdx, const 
 	return mixers;
 }
 
-static inline void SetupTwitchSoundtrackAudio(osn::Streaming* streaming)
+static inline void SetupTwitchSoundtrackAudio(osn::AdvancedStreaming* streaming)
 {
 	// These are magic ints provided by OBS for default sources:
 	// 0 is the main scene/transition which you'd see on the main preview,
@@ -456,8 +471,10 @@ void osn::IAdvancedStreaming::Start(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	Streaming* streaming =
-		osn::IStreaming::Manager::GetInstance().find(args[0].value_union.ui64);
+	AdvancedStreaming* streaming =
+		static_cast<AdvancedStreaming*>(
+			osn::IAdvancedStreaming::Manager::GetInstance().
+			find(args[0].value_union.ui64));
 	if (!streaming) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Simple streaming reference is not valid.");
 	}

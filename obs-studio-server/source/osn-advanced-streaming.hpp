@@ -27,6 +27,26 @@
 
 namespace osn
 {
+	class AdvancedStreaming: public Streaming
+	{
+		public:
+		AdvancedStreaming(): Streaming() {
+			audioTrack = 1;
+			twitchTrack = 2;
+			rescaling = false;
+			outputWidth = 1280;
+			outputHeight = 720;
+		}
+		~AdvancedStreaming() {}
+
+		public:
+		uint32_t audioTrack;
+		uint32_t twitchTrack;
+		bool rescaling;
+		uint32_t outputWidth;
+		uint32_t outputHeight;
+	};
+
 	class IAdvancedStreaming: public IStreaming
 	{
 		public:
