@@ -32,7 +32,7 @@
 
 #include "osn-streaming.hpp"
 #include "osn-recording.hpp"
-#include "osn-encoder.hpp"
+#include "osn-video-encoder.hpp"
 #include "osn-audio-encoder.hpp"
 #include "osn-service.hpp"
 #include "osn-delay.hpp"
@@ -1532,7 +1532,7 @@ void OBS_API::destroyOBS_API(void)
 
 	// Release all video encoders
 	std::vector<obs_encoder_t*> videoEncoders;
-	osn::Encoder::Manager::GetInstance().
+	osn::VideoEncoder::Manager::GetInstance().
 		for_each([&videoEncoders](obs_encoder_t* videoEncoder)
 	{
 		obs_encoder_release(videoEncoder);

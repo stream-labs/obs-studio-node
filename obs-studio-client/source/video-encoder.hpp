@@ -22,7 +22,7 @@
 
 namespace osn
 {
-    class Encoder : public Napi::ObjectWrap<osn::Encoder>
+    class VideoEncoder : public Napi::ObjectWrap<osn::VideoEncoder>
     {
         public:
         uint64_t uid;
@@ -30,7 +30,7 @@ namespace osn
         public:
         static Napi::FunctionReference constructor;
         static Napi::Object Init(Napi::Env env, Napi::Object exports);
-        Encoder(const Napi::CallbackInfo& info);
+        VideoEncoder(const Napi::CallbackInfo& info);
 
         static Napi::Value Create(const Napi::CallbackInfo& info);
         static Napi::Value GetTypes(const Napi::CallbackInfo& info);

@@ -17,7 +17,7 @@
 ******************************************************************************/
 
 #include "osn-replay-buffer.hpp"
-#include "osn-encoder.hpp"
+#include "osn-video-encoder.hpp"
 #include "osn-error.hpp"
 #include "shared.hpp"
 #include "util/platform.h"
@@ -189,7 +189,7 @@ void osn::IReplayBuffer::GetVideoEncoder(
     }
 
     uint64_t uid =
-        osn::Encoder::Manager::GetInstance().find(replayBuffer->videoEncoder);
+        osn::VideoEncoder::Manager::GetInstance().find(replayBuffer->videoEncoder);
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
     rval.push_back(ipc::value(uid));
@@ -210,7 +210,7 @@ void osn::IReplayBuffer::SetVideoEncoder(
     }
 
     obs_encoder_t* encoder =
-        osn::Encoder::Manager::GetInstance().find(args[1].value_union.ui64);
+        osn::VideoEncoder::Manager::GetInstance().find(args[1].value_union.ui64);
     if (!encoder) {
         PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Encoder reference is not valid.");
     }

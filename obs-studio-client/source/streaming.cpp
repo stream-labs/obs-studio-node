@@ -18,7 +18,7 @@
 
 #include "streaming.hpp"
 #include "utility.hpp"
-#include "encoder.hpp"
+#include "video-encoder.hpp"
 #include "service.hpp"
 #include "delay.hpp"
 #include "reconnect.hpp"
@@ -80,7 +80,7 @@ Napi::Value osn::Streaming::GetVideoEncoder(const Napi::CallbackInfo& info) {
         return info.Env().Undefined();
 
     auto instance =
-        osn::Encoder::constructor.New({
+        osn::VideoEncoder::constructor.New({
             Napi::Number::New(info.Env(), response[1].value_union.ui64)
         });
 
@@ -88,7 +88,7 @@ Napi::Value osn::Streaming::GetVideoEncoder(const Napi::CallbackInfo& info) {
 }
 
 void osn::Streaming::SetVideoEncoder(const Napi::CallbackInfo& info, const Napi::Value& value) {
-    osn::Encoder* encoder = Napi::ObjectWrap<osn::Encoder>::Unwrap(value.ToObject());
+    osn::VideoEncoder* encoder = Napi::ObjectWrap<osn::VideoEncoder>::Unwrap(value.ToObject());
 
     if (!encoder) {
         Napi::TypeError::New(info.Env(),

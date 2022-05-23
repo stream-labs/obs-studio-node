@@ -17,7 +17,7 @@
 ******************************************************************************/
 
 #include "osn-advanced-replay-buffer.hpp"
-#include "osn-encoder.hpp"
+#include "osn-video-encoder.hpp"
 #include "osn-error.hpp"
 #include "shared.hpp"
 #include "osn-audio-track.hpp"

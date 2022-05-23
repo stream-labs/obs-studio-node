@@ -45,7 +45,7 @@
 #include "osn-video.hpp"
 #include "osn-volmeter.hpp"
 #include "callback-manager.h"
-#include "osn-encoder.hpp"
+#include "osn-video-encoder.hpp"
 #include "osn-service.hpp"
 #include "osn-simple-streaming.hpp"
 #include "osn-advanced-streaming.hpp"
@@ -254,7 +254,7 @@ int main(int argc, char* argv[])
     OBS_settings::Register(myServer);
     OBS_settings::Register(myServer);
     autoConfig::Register(myServer);
-    osn::Encoder::Register(myServer);
+    osn::VideoEncoder::Register(myServer);
     osn::Service::Register(myServer);
     osn::ISimpleStreaming::Register(myServer);
     osn::IAdvancedStreaming::Register(myServer);

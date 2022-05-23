@@ -250,7 +250,7 @@ export declare const VolmeterFactory: IVolmeterFactory;
 export declare const FaderFactory: IFaderFactory;
 export declare const ModuleFactory: IModuleFactory;
 export declare const IPC: IIPC;
-export declare const EncoderFactory: IVideoEncoderFactory;
+export declare const VideoEncoderFactory: IVideoEncoderFactory;
 export declare const ServiceFactory: IServiceFactory;
 export declare const SimpleStreamingFactory: ISimpleStreamingFactory;
 export declare const AdvancedStreamingFactory: IAdvancedStreamingFactory;

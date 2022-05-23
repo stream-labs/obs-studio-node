@@ -23,7 +23,7 @@
 
 namespace osn
 {
-    class Encoder
+    class VideoEncoder
     {
         public:
         class Manager : public utility::unique_object_manager<obs_encoder_t>

@@ -18,7 +18,7 @@
 
 #include "replay-buffer.hpp"
 #include "utility.hpp"
-#include "encoder.hpp"
+#include "video-encoder.hpp"
 
 Napi::Value osn::ReplayBuffer::GetDuration(const Napi::CallbackInfo& info) {
     auto conn = GetConnection(info);
@@ -151,7 +151,7 @@ Napi::Value osn::ReplayBuffer::GetVideoEncoder(const Napi::CallbackInfo& info) {
         return info.Env().Undefined();
 
     auto instance =
-        osn::Encoder::constructor.New({
+        osn::VideoEncoder::constructor.New({
             Napi::Number::New(info.Env(), response[1].value_union.ui64)
         });
 
@@ -159,7 +159,7 @@ Napi::Value osn::ReplayBuffer::GetVideoEncoder(const Napi::CallbackInfo& info) {
 }
 
 void osn::ReplayBuffer::SetVideoEncoder(const Napi::CallbackInfo& info, const Napi::Value& value) {
-    osn::Encoder* encoder = Napi::ObjectWrap<osn::Encoder>::Unwrap(value.ToObject());
+    osn::VideoEncoder* encoder = Napi::ObjectWrap<osn::VideoEncoder>::Unwrap(value.ToObject());
 
     if (!encoder) {
         Napi::TypeError::New(info.Env(),
