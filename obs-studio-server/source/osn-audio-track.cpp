@@ -23,46 +23,46 @@ std::array<osn::AudioTrack*, NUM_AUDIO_TRACKS> osn::IAudioTrack::audioTracks = {
 
 void osn::IAudioTrack::Register(ipc::server& srv)
 {
-	std::shared_ptr<ipc::collection> cls =
+    std::shared_ptr<ipc::collection> cls =
         std::make_shared<ipc::collection>("AudioTrack");
 
-	cls->register_function(std::make_shared<ipc::function>(
-	    "Create", std::vector<ipc::type>{}, Create));
+    cls->register_function(std::make_shared<ipc::function>(
+        "Create", std::vector<ipc::type>{}, Create));
 
-	cls->register_function(std::make_shared<ipc::function>(
-	    "GetAudioTracks",
+    cls->register_function(std::make_shared<ipc::function>(
+        "GetAudioTracks",
         std::vector<ipc::type>{},
         GetAudioTracks));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "GetAudioBitrates",
+    cls->register_function(std::make_shared<ipc::function>(
+        "GetAudioBitrates",
         std::vector<ipc::type>{},
         GetAudioBitrates));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "GetAtIndex",
+    cls->register_function(std::make_shared<ipc::function>(
+        "GetAtIndex",
         std::vector<ipc::type>{ipc::type::UInt32},
         GetAtIndex));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "SetAtIndex",
+    cls->register_function(std::make_shared<ipc::function>(
+        "SetAtIndex",
         std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32},
         SetAtIndex));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "GetBitrate",
+    cls->register_function(std::make_shared<ipc::function>(
+        "GetBitrate",
         std::vector<ipc::type>{ipc::type::UInt64},
         GetBitrate));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "SetBitrate",
+    cls->register_function(std::make_shared<ipc::function>(
+        "SetBitrate",
         std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32},
         SetBitrate));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "GetName",
+    cls->register_function(std::make_shared<ipc::function>(
+        "GetName",
         std::vector<ipc::type>{ipc::type::UInt64},
         GetName));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "SetName",
+    cls->register_function(std::make_shared<ipc::function>(
+        "SetName",
         std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String},
         SetName));
 
-	srv.register_collection(cls);
+    srv.register_collection(cls);
 }
 
 void osn::IAudioTrack::Create(
@@ -71,15 +71,15 @@ void osn::IAudioTrack::Create(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	uint64_t uid =
+    uint64_t uid =
         osn::IAudioTrack::Manager::GetInstance().allocate(new AudioTrack());
-	if (uid == UINT64_MAX) {
-		PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Index list is full.");
-	}
+    if (uid == UINT64_MAX) {
+        PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Index list is full.");
+    }
 
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	rval.push_back(ipc::value(uid));
-	AUTO_DEBUG;
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+    rval.push_back(ipc::value(uid));
+    AUTO_DEBUG;
 }
 
 void osn::IAudioTrack::GetAudioTracks(
@@ -119,17 +119,17 @@ void osn::IAudioTrack::GetAtIndex(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	AudioTrack* audioTrack = audioTracks[args[0].value_union.ui32];
-	if (!audioTrack) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "AudioTrack reference is not valid.");
-	}
+    AudioTrack* audioTrack = audioTracks[args[0].value_union.ui32];
+    if (!audioTrack) {
+        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "AudioTrack reference is not valid.");
+    }
 
-	uint64_t uid =
+    uint64_t uid =
         osn::IAudioTrack::Manager::GetInstance().find(audioTrack);
 
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	rval.push_back(ipc::value(uid));
-	AUTO_DEBUG;
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+    rval.push_back(ipc::value(uid));
+    AUTO_DEBUG;
 }
 
 void osn::IAudioTrack::SetAtIndex(
@@ -138,11 +138,11 @@ void osn::IAudioTrack::SetAtIndex(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	AudioTrack* audioTrack =
-		osn::IAudioTrack::Manager::GetInstance().find(args[0].value_union.ui64);
-	if (!audioTrack) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "AudioTrack reference is not valid.");
-	}
+    AudioTrack* audioTrack =
+        osn::IAudioTrack::Manager::GetInstance().find(args[0].value_union.ui64);
+    if (!audioTrack) {
+        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "AudioTrack reference is not valid.");
+    }
     uint32_t index = args[1].value_union.ui32;
 
     AudioTrack* oldTrack = audioTracks[index];
@@ -156,7 +156,7 @@ void osn::IAudioTrack::SetAtIndex(
     audioTracks[index] = audioTrack;
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	AUTO_DEBUG;
+    AUTO_DEBUG;
 }
 
 void osn::IAudioTrack::GetBitrate(
@@ -165,15 +165,15 @@ void osn::IAudioTrack::GetBitrate(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	AudioTrack* audioTrack =
-		osn::IAudioTrack::Manager::GetInstance().find(args[0].value_union.ui64);
-	if (!audioTrack) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "AudioTrack reference is not valid.");
-	}
+    AudioTrack* audioTrack =
+        osn::IAudioTrack::Manager::GetInstance().find(args[0].value_union.ui64);
+    if (!audioTrack) {
+        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "AudioTrack reference is not valid.");
+    }
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
     rval.push_back(ipc::value(audioTrack->bitrate));
-	AUTO_DEBUG;
+    AUTO_DEBUG;
 }
 
 void osn::IAudioTrack::SetBitrate(
@@ -182,11 +182,11 @@ void osn::IAudioTrack::SetBitrate(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	AudioTrack* audioTrack =
-		osn::IAudioTrack::Manager::GetInstance().find(args[0].value_union.ui64);
-	if (!audioTrack) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "AudioTrack reference is not valid.");
-	}
+    AudioTrack* audioTrack =
+        osn::IAudioTrack::Manager::GetInstance().find(args[0].value_union.ui64);
+    if (!audioTrack) {
+        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "AudioTrack reference is not valid.");
+    }
 
     audioTrack->bitrate = args[1].value_union.ui32;
 
@@ -198,7 +198,7 @@ void osn::IAudioTrack::SetBitrate(
     }
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	AUTO_DEBUG;
+    AUTO_DEBUG;
 }
 
 void osn::IAudioTrack::GetName(
@@ -207,15 +207,15 @@ void osn::IAudioTrack::GetName(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	AudioTrack* audioTrack =
-		osn::IAudioTrack::Manager::GetInstance().find(args[0].value_union.ui64);
-	if (!audioTrack) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "AudioTrack reference is not valid.");
-	}
+    AudioTrack* audioTrack =
+        osn::IAudioTrack::Manager::GetInstance().find(args[0].value_union.ui64);
+    if (!audioTrack) {
+        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "AudioTrack reference is not valid.");
+    }
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
     rval.push_back(ipc::value(audioTrack->name));
-	AUTO_DEBUG;
+    AUTO_DEBUG;
 }
 
 void osn::IAudioTrack::SetName(
@@ -224,23 +224,23 @@ void osn::IAudioTrack::SetName(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	AudioTrack* audioTrack =
-		osn::IAudioTrack::Manager::GetInstance().find(args[0].value_union.ui64);
-	if (!audioTrack) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "AudioTrack reference is not valid.");
-	}
+    AudioTrack* audioTrack =
+        osn::IAudioTrack::Manager::GetInstance().find(args[0].value_union.ui64);
+    if (!audioTrack) {
+        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "AudioTrack reference is not valid.");
+    }
 
     audioTrack->name = args[1].value_str;
     if (audioTrack->audioEnc)
         obs_encoder_set_name(audioTrack->audioEnc, audioTrack->name.c_str());
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	AUTO_DEBUG;
+    AUTO_DEBUG;
 }
 
 
 osn::IAudioTrack::Manager& osn::IAudioTrack::Manager::GetInstance()
 {
-	static osn::IAudioTrack::Manager _inst;
-	return _inst;
+    static osn::IAudioTrack::Manager _inst;
+    return _inst;
 }

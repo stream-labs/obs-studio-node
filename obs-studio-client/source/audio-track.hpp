@@ -21,17 +21,17 @@
 
 namespace osn
 {
-	class AudioTrack :
-		public Napi::ObjectWrap<osn::AudioTrack>
-	{
-		public:
-		uint64_t uid;
+    class AudioTrack :
+        public Napi::ObjectWrap<osn::AudioTrack>
+    {
+        public:
+        uint64_t uid;
 
-		static Napi::FunctionReference constructor;
-		static Napi::Object Init(Napi::Env env, Napi::Object exports);
-		AudioTrack(const Napi::CallbackInfo& info);
+        static Napi::FunctionReference constructor;
+        static Napi::Object Init(Napi::Env env, Napi::Object exports);
+        AudioTrack(const Napi::CallbackInfo& info);
 
-		static Napi::Value Create(const Napi::CallbackInfo& info);
+        static Napi::Value Create(const Napi::CallbackInfo& info);
 
         static Napi::Value GetAudioTracks(const Napi::CallbackInfo& info);
         static Napi::Value GetAudioBitrates(const Napi::CallbackInfo& info);
@@ -42,5 +42,5 @@ namespace osn
         void SetBitrate(const Napi::CallbackInfo& info, const Napi::Value& value);
         Napi::Value GetName(const Napi::CallbackInfo& info);
         void SetName(const Napi::CallbackInfo& info, const Napi::Value& value);
-	};
+    };
 }

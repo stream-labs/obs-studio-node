@@ -22,18 +22,18 @@
 
 namespace osn
 {
-	class SimpleStreaming :
-		public Napi::ObjectWrap<osn::SimpleStreaming>,
-		public osn::Streaming
-	{
-		public:
-		static Napi::FunctionReference constructor;
-		static Napi::Object Init(Napi::Env env, Napi::Object exports);
-		SimpleStreaming(const Napi::CallbackInfo& info);
+    class SimpleStreaming :
+        public Napi::ObjectWrap<osn::SimpleStreaming>,
+        public osn::Streaming
+    {
+        public:
+        static Napi::FunctionReference constructor;
+        static Napi::Object Init(Napi::Env env, Napi::Object exports);
+        SimpleStreaming(const Napi::CallbackInfo& info);
 
-		static Napi::Value Create(const Napi::CallbackInfo& info);
+        static Napi::Value Create(const Napi::CallbackInfo& info);
 
-		Napi::Value GetAudioEncoder(const Napi::CallbackInfo& info);
-		void SetAudioEncoder(const Napi::CallbackInfo& info, const Napi::Value& value);
-	};
+        Napi::Value GetAudioEncoder(const Napi::CallbackInfo& info);
+        void SetAudioEncoder(const Napi::CallbackInfo& info, const Napi::Value& value);
+    };
 }

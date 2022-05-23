@@ -22,18 +22,18 @@
 
 namespace osn
 {
-	class SimpleReplayBuffer :
-		public Napi::ObjectWrap<osn::SimpleReplayBuffer>,
-		public osn::ReplayBuffer
-	{
-		public:
-		static Napi::FunctionReference constructor;
-		static Napi::Object Init(Napi::Env env, Napi::Object exports);
-		SimpleReplayBuffer(const Napi::CallbackInfo& info);
+    class SimpleReplayBuffer :
+        public Napi::ObjectWrap<osn::SimpleReplayBuffer>,
+        public osn::ReplayBuffer
+    {
+        public:
+        static Napi::FunctionReference constructor;
+        static Napi::Object Init(Napi::Env env, Napi::Object exports);
+        SimpleReplayBuffer(const Napi::CallbackInfo& info);
 
-		static Napi::Value Create(const Napi::CallbackInfo& info);
+        static Napi::Value Create(const Napi::CallbackInfo& info);
 
-		Napi::Value GetAudioEncoder(const Napi::CallbackInfo& info);
-		void SetAudioEncoder(const Napi::CallbackInfo& info, const Napi::Value& value);
-	};
+        Napi::Value GetAudioEncoder(const Napi::CallbackInfo& info);
+        void SetAudioEncoder(const Napi::CallbackInfo& info, const Napi::Value& value);
+    };
 }

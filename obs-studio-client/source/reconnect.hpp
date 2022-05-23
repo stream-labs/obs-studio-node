@@ -21,24 +21,24 @@
 
 namespace osn
 {
-	class Reconnect:
-		public Napi::ObjectWrap<osn::Reconnect>
-	{
-		public:
-		uint64_t uid;		
+    class Reconnect:
+        public Napi::ObjectWrap<osn::Reconnect>
+    {
+        public:
+        uint64_t uid;        
 
-		public:
-		static Napi::FunctionReference constructor;
-		static Napi::Object Init(Napi::Env env, Napi::Object exports);
-		Reconnect(const Napi::CallbackInfo& info);
+        public:
+        static Napi::FunctionReference constructor;
+        static Napi::Object Init(Napi::Env env, Napi::Object exports);
+        Reconnect(const Napi::CallbackInfo& info);
 
-		static Napi::Value Create(const Napi::CallbackInfo& info);
+        static Napi::Value Create(const Napi::CallbackInfo& info);
 
-		Napi::Value GetEnabled(const Napi::CallbackInfo& info);
-		void SetEnabled(const Napi::CallbackInfo& info, const Napi::Value& value);
-		Napi::Value GetRetryDelay(const Napi::CallbackInfo& info);
-		void SetRetryDelay(const Napi::CallbackInfo& info, const Napi::Value& value);
-		Napi::Value GetMaxRetries(const Napi::CallbackInfo& info);
-		void SetMaxRetries(const Napi::CallbackInfo& info, const Napi::Value& value);
-	};
+        Napi::Value GetEnabled(const Napi::CallbackInfo& info);
+        void SetEnabled(const Napi::CallbackInfo& info, const Napi::Value& value);
+        Napi::Value GetRetryDelay(const Napi::CallbackInfo& info);
+        void SetRetryDelay(const Napi::CallbackInfo& info, const Napi::Value& value);
+        Napi::Value GetMaxRetries(const Napi::CallbackInfo& info);
+        void SetMaxRetries(const Napi::CallbackInfo& info, const Napi::Value& value);
+    };
 }

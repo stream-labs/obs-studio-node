@@ -28,11 +28,11 @@
 Napi::FunctionReference osn::SimpleRecording::constructor;
 
 Napi::Object osn::SimpleRecording::Init(Napi::Env env, Napi::Object exports) {
-	Napi::HandleScope scope(env);
-	Napi::Function func =
-		DefineClass(env,
-		"SimpleRecording",
-		{
+    Napi::HandleScope scope(env);
+    Napi::Function func =
+        DefineClass(env,
+        "SimpleRecording",
+        {
             StaticMethod("create", &osn::SimpleRecording::Create),
 
             InstanceAccessor(
@@ -80,144 +80,144 @@ Napi::Object osn::SimpleRecording::Init(Napi::Env env, Napi::Object exports) {
                 &osn::SimpleRecording::GetLowCPU,
                 &osn::SimpleRecording::SetLowCPU),
 
-			InstanceMethod("start", &osn::SimpleRecording::Start),
-			InstanceMethod("stop", &osn::SimpleRecording::Stop)
-		});
+            InstanceMethod("start", &osn::SimpleRecording::Start),
+            InstanceMethod("stop", &osn::SimpleRecording::Stop)
+        });
 
-	exports.Set("SimpleRecording", func);
-	osn::SimpleRecording::constructor = Napi::Persistent(func);
-	osn::SimpleRecording::constructor.SuppressDestruct();
+    exports.Set("SimpleRecording", func);
+    osn::SimpleRecording::constructor = Napi::Persistent(func);
+    osn::SimpleRecording::constructor.SuppressDestruct();
 
-	return exports;
+    return exports;
 }
 
 osn::SimpleRecording::SimpleRecording(const Napi::CallbackInfo& info)
-	: Napi::ObjectWrap<osn::SimpleRecording>(info) {
-	Napi::Env env = info.Env();
-	Napi::HandleScope scope(env);
-	int length = info.Length();
+    : Napi::ObjectWrap<osn::SimpleRecording>(info) {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    int length = info.Length();
 
-	if (length <= 0 || !info[0].IsNumber()) {
-		Napi::TypeError::New(env, "Number expected").ThrowAsJavaScriptException();
-		return;
-	}
+    if (length <= 0 || !info[0].IsNumber()) {
+        Napi::TypeError::New(env, "Number expected").ThrowAsJavaScriptException();
+        return;
+    }
 
-	this->uid = (uint64_t)info[0].ToNumber().Int64Value();
+    this->uid = (uint64_t)info[0].ToNumber().Int64Value();
     this->className = std::string("SimpleRecording");
 }
 
 Napi::Value osn::SimpleRecording::Create(const Napi::CallbackInfo& info) {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
+    auto conn = GetConnection(info);
+    if (!conn)
+        return info.Env().Undefined();
 
-	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("SimpleRecording", "Create", {});
+    std::vector<ipc::value> response =
+        conn->call_synchronous_helper("SimpleRecording", "Create", {});
 
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
+    if (!ValidateResponse(info, response))
+        return info.Env().Undefined();
 
-	auto instance =
-		osn::SimpleRecording::constructor.New({
-			Napi::Number::New(info.Env(), response[1].value_union.ui64)
-		});
+    auto instance =
+        osn::SimpleRecording::constructor.New({
+            Napi::Number::New(info.Env(), response[1].value_union.ui64)
+        });
 
-	return instance;
+    return instance;
 }
 
 Napi::Value osn::SimpleRecording::GetQuality(const Napi::CallbackInfo& info) {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
+    auto conn = GetConnection(info);
+    if (!conn)
+        return info.Env().Undefined();
 
-	std::vector<ipc::value> response =
-		conn->call_synchronous_helper(
-			"SimpleRecording",
-			"GetQuality",
-			{ipc::value(this->uid)});
+    std::vector<ipc::value> response =
+        conn->call_synchronous_helper(
+            "SimpleRecording",
+            "GetQuality",
+            {ipc::value(this->uid)});
 
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
+    if (!ValidateResponse(info, response))
+        return info.Env().Undefined();
 
-	return Napi::Number::New(info.Env(), response[1].value_union.ui32);
+    return Napi::Number::New(info.Env(), response[1].value_union.ui32);
 }
 
 void osn::SimpleRecording::SetQuality(const Napi::CallbackInfo& info, const Napi::Value& value) {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return;
+    auto conn = GetConnection(info);
+    if (!conn)
+        return;
 
-	conn->call_synchronous_helper(
-		"SimpleRecording",
-		"SetQuality",
-		{ipc::value(this->uid), ipc::value(value.ToNumber().Uint32Value())});
+    conn->call_synchronous_helper(
+        "SimpleRecording",
+        "SetQuality",
+        {ipc::value(this->uid), ipc::value(value.ToNumber().Uint32Value())});
 }
 
 Napi::Value osn::SimpleRecording::GetAudioEncoder(const Napi::CallbackInfo& info) {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
+    auto conn = GetConnection(info);
+    if (!conn)
+        return info.Env().Undefined();
 
-	std::vector<ipc::value> response =
-		conn->call_synchronous_helper(
-			"SimpleRecording",
-			"GetAudioEncoder",
-			{ipc::value(this->uid)});
+    std::vector<ipc::value> response =
+        conn->call_synchronous_helper(
+            "SimpleRecording",
+            "GetAudioEncoder",
+            {ipc::value(this->uid)});
 
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
+    if (!ValidateResponse(info, response))
+        return info.Env().Undefined();
 
-	auto instance =
-		osn::AudioEncoder::constructor.New({
-			Napi::Number::New(info.Env(), response[1].value_union.ui64)
-		});
-	return instance;
+    auto instance =
+        osn::AudioEncoder::constructor.New({
+            Napi::Number::New(info.Env(), response[1].value_union.ui64)
+        });
+    return instance;
 }
 
 void osn::SimpleRecording::SetAudioEncoder(const Napi::CallbackInfo& info, const Napi::Value& value) {
-	osn::AudioEncoder* encoder =
-		Napi::ObjectWrap<osn::AudioEncoder>::Unwrap(value.ToObject());
+    osn::AudioEncoder* encoder =
+        Napi::ObjectWrap<osn::AudioEncoder>::Unwrap(value.ToObject());
 
-	if (!encoder) {
-		Napi::TypeError::New(info.Env(),
+    if (!encoder) {
+        Napi::TypeError::New(info.Env(),
             "Invalid encoder argument").ThrowAsJavaScriptException();
-		return;
-	}
+        return;
+    }
 
-	auto conn = GetConnection(info);
-	if (!conn)
-		return;
+    auto conn = GetConnection(info);
+    if (!conn)
+        return;
 
-	conn->call(
-		className,
-		"SetAudioEncoder",
-		{ipc::value(this->uid), ipc::value(encoder->uid)});
+    conn->call(
+        className,
+        "SetAudioEncoder",
+        {ipc::value(this->uid), ipc::value(encoder->uid)});
 }
 
 Napi::Value osn::SimpleRecording::GetLowCPU(const Napi::CallbackInfo& info) {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
+    auto conn = GetConnection(info);
+    if (!conn)
+        return info.Env().Undefined();
 
-	std::vector<ipc::value> response =
-		conn->call_synchronous_helper(
-			"SimpleRecording",
-			"GetLowCPU",
-			{ipc::value(this->uid)});
+    std::vector<ipc::value> response =
+        conn->call_synchronous_helper(
+            "SimpleRecording",
+            "GetLowCPU",
+            {ipc::value(this->uid)});
 
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
+    if (!ValidateResponse(info, response))
+        return info.Env().Undefined();
 
-	return Napi::Boolean::New(info.Env(), response[1].value_union.ui32);
+    return Napi::Boolean::New(info.Env(), response[1].value_union.ui32);
 }
 
 void osn::SimpleRecording::SetLowCPU(const Napi::CallbackInfo& info, const Napi::Value& value) {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return;
+    auto conn = GetConnection(info);
+    if (!conn)
+        return;
 
-	conn->call_synchronous_helper(
-		"SimpleRecording",
-		"SetLowCPU",
-		{ipc::value(this->uid), ipc::value(value.ToBoolean().Value())});
+    conn->call_synchronous_helper(
+        "SimpleRecording",
+        "SetLowCPU",
+        {ipc::value(this->uid), ipc::value(value.ToBoolean().Value())});
 }

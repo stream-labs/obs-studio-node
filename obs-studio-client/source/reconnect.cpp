@@ -22,11 +22,11 @@
 Napi::FunctionReference osn::Reconnect::constructor;
 
 Napi::Object osn::Reconnect::Init(Napi::Env env, Napi::Object exports) {
-	Napi::HandleScope scope(env);
-	Napi::Function func =
-		DefineClass(env,
-		"Reconnect",
-		{
+    Napi::HandleScope scope(env);
+    Napi::Function func =
+        DefineClass(env,
+        "Reconnect",
+        {
             StaticMethod("create", &osn::Reconnect::Create),
 
             InstanceAccessor(
@@ -41,129 +41,129 @@ Napi::Object osn::Reconnect::Init(Napi::Env env, Napi::Object exports) {
                 "maxRetries",
                 &osn::Reconnect::GetMaxRetries,
                 &osn::Reconnect::SetMaxRetries),
-		});
+        });
 
-	exports.Set("Reconnect", func);
-	osn::Reconnect::constructor = Napi::Persistent(func);
-	osn::Reconnect::constructor.SuppressDestruct();
+    exports.Set("Reconnect", func);
+    osn::Reconnect::constructor = Napi::Persistent(func);
+    osn::Reconnect::constructor.SuppressDestruct();
 
-	return exports;
+    return exports;
 }
 
 osn::Reconnect::Reconnect(const Napi::CallbackInfo& info)
-	: Napi::ObjectWrap<osn::Reconnect>(info) {
-	Napi::Env env = info.Env();
-	Napi::HandleScope scope(env);
-	int length = info.Length();
+    : Napi::ObjectWrap<osn::Reconnect>(info) {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    int length = info.Length();
 
-	if (length <= 0 || !info[0].IsNumber()) {
-		Napi::TypeError::New(env, "Number expected").ThrowAsJavaScriptException();
-		return;
-	}
+    if (length <= 0 || !info[0].IsNumber()) {
+        Napi::TypeError::New(env, "Number expected").ThrowAsJavaScriptException();
+        return;
+    }
 
-	this->uid = (uint64_t)info[0].ToNumber().Int64Value();
+    this->uid = (uint64_t)info[0].ToNumber().Int64Value();
 }
 
 Napi::Value osn::Reconnect::Create(const Napi::CallbackInfo& info) {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
+    auto conn = GetConnection(info);
+    if (!conn)
+        return info.Env().Undefined();
 
-	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("Reconnect", "Create", {});
+    std::vector<ipc::value> response =
+        conn->call_synchronous_helper("Reconnect", "Create", {});
 
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
+    if (!ValidateResponse(info, response))
+        return info.Env().Undefined();
 
-	auto instance =
-		osn::Reconnect::constructor.New({
-			Napi::Number::New(info.Env(), response[1].value_union.ui64)
-		});
+    auto instance =
+        osn::Reconnect::constructor.New({
+            Napi::Number::New(info.Env(), response[1].value_union.ui64)
+        });
 
-	return instance;
+    return instance;
 }
 
 Napi::Value osn::Reconnect::GetEnabled(const Napi::CallbackInfo& info) {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
+    auto conn = GetConnection(info);
+    if (!conn)
+        return info.Env().Undefined();
 
-	std::vector<ipc::value> response =
-		conn->call_synchronous_helper(
-			"Reconnect",
-			"GetEnabled",
-			{ipc::value(this->uid)});
+    std::vector<ipc::value> response =
+        conn->call_synchronous_helper(
+            "Reconnect",
+            "GetEnabled",
+            {ipc::value(this->uid)});
 
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
+    if (!ValidateResponse(info, response))
+        return info.Env().Undefined();
 
-	return Napi::Boolean::New(info.Env(), response[1].value_union.ui32);
+    return Napi::Boolean::New(info.Env(), response[1].value_union.ui32);
 }
 
 void osn::Reconnect::SetEnabled(const Napi::CallbackInfo& info, const Napi::Value& value) {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return;
+    auto conn = GetConnection(info);
+    if (!conn)
+        return;
 
-	conn->call_synchronous_helper(
-		"Reconnect",
-		"SetEnabled",
-		{ipc::value(this->uid), ipc::value(value.ToBoolean().Value())});
+    conn->call_synchronous_helper(
+        "Reconnect",
+        "SetEnabled",
+        {ipc::value(this->uid), ipc::value(value.ToBoolean().Value())});
 }
 
 Napi::Value osn::Reconnect::GetRetryDelay(const Napi::CallbackInfo& info) {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
+    auto conn = GetConnection(info);
+    if (!conn)
+        return info.Env().Undefined();
 
-	std::vector<ipc::value> response =
-		conn->call_synchronous_helper(
-			"Reconnect",
-			"GetRetryDelay",
-			{ipc::value(this->uid)});
+    std::vector<ipc::value> response =
+        conn->call_synchronous_helper(
+            "Reconnect",
+            "GetRetryDelay",
+            {ipc::value(this->uid)});
 
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
+    if (!ValidateResponse(info, response))
+        return info.Env().Undefined();
 
-	return Napi::Number::New(info.Env(), response[1].value_union.ui32);
+    return Napi::Number::New(info.Env(), response[1].value_union.ui32);
 }
 
 void osn::Reconnect::SetRetryDelay(const Napi::CallbackInfo& info, const Napi::Value& value) {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return;
+    auto conn = GetConnection(info);
+    if (!conn)
+        return;
 
-	conn->call_synchronous_helper(
-		"Reconnect",
-		"SetRetryDelay",
-		{ipc::value(this->uid), ipc::value(value.ToNumber().Uint32Value())});
+    conn->call_synchronous_helper(
+        "Reconnect",
+        "SetRetryDelay",
+        {ipc::value(this->uid), ipc::value(value.ToNumber().Uint32Value())});
 }
 
 Napi::Value osn::Reconnect::GetMaxRetries(const Napi::CallbackInfo& info) {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
+    auto conn = GetConnection(info);
+    if (!conn)
+        return info.Env().Undefined();
 
-	std::vector<ipc::value> response =
-		conn->call_synchronous_helper(
-			"Reconnect",
-			"GetMaxRetries",
-			{ipc::value(this->uid)});
+    std::vector<ipc::value> response =
+        conn->call_synchronous_helper(
+            "Reconnect",
+            "GetMaxRetries",
+            {ipc::value(this->uid)});
 
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
+    if (!ValidateResponse(info, response))
+        return info.Env().Undefined();
 
-	return Napi::Number::New(info.Env(), response[1].value_union.ui32);
+    return Napi::Number::New(info.Env(), response[1].value_union.ui32);
 }
 
 void osn::Reconnect::SetMaxRetries(const Napi::CallbackInfo& info, const Napi::Value& value) {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return;
+    auto conn = GetConnection(info);
+    if (!conn)
+        return;
 
-	conn->call_synchronous_helper(
-		"Reconnect",
-		"SetMaxRetries",
-		{ipc::value(this->uid), ipc::value(value.ToNumber().Uint32Value())});
+    conn->call_synchronous_helper(
+        "Reconnect",
+        "SetMaxRetries",
+        {ipc::value(this->uid), ipc::value(value.ToNumber().Uint32Value())});
 }
 

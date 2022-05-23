@@ -24,11 +24,11 @@
 Napi::FunctionReference osn::AudioEncoder::constructor;
 
 Napi::Object osn::AudioEncoder::Init(Napi::Env env, Napi::Object exports) {
-	Napi::HandleScope scope(env);
-	Napi::Function func =
-		DefineClass(env,
-		"AudioEncoder",
-		{
+    Napi::HandleScope scope(env);
+    Napi::Function func =
+        DefineClass(env,
+        "AudioEncoder",
+        {
             StaticMethod("create", &osn::AudioEncoder::Create),
 
             InstanceAccessor("name",
@@ -37,11 +37,11 @@ Napi::Object osn::AudioEncoder::Init(Napi::Env env, Napi::Object exports) {
             InstanceAccessor("bitrate",
                 &osn::AudioEncoder::GetBitrate,
                 &osn::AudioEncoder::SetBitrate),
-		});
-	exports.Set("AudioEncoder", func);
-	osn::AudioEncoder::constructor = Napi::Persistent(func);
-	osn::AudioEncoder::constructor.SuppressDestruct();
-	return exports;
+        });
+    exports.Set("AudioEncoder", func);
+    osn::AudioEncoder::constructor = Napi::Persistent(func);
+    osn::AudioEncoder::constructor.SuppressDestruct();
+    return exports;
 }
 
 osn::AudioEncoder::AudioEncoder(const Napi::CallbackInfo& info)
@@ -55,19 +55,19 @@ osn::AudioEncoder::AudioEncoder(const Napi::CallbackInfo& info)
         return;
     }
 
-	this->uid = (uint64_t)info[0].ToNumber().Int64Value();
+    this->uid = (uint64_t)info[0].ToNumber().Int64Value();
 }
 
 Napi::Value osn::AudioEncoder::Create(const Napi::CallbackInfo& info) {
     auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
+    if (!conn)
+        return info.Env().Undefined();
 
     std::vector<ipc::value> response =
         conn->call_synchronous_helper("AudioEncoder", "Create", {});
 
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
+    if (!ValidateResponse(info, response))
+        return info.Env().Undefined();
 
     auto instance =
         osn::AudioEncoder::constructor.New({
@@ -78,15 +78,15 @@ Napi::Value osn::AudioEncoder::Create(const Napi::CallbackInfo& info) {
 }
 
 Napi::Value osn::AudioEncoder::GetName(const Napi::CallbackInfo& info) {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
+    auto conn = GetConnection(info);
+    if (!conn)
+        return info.Env().Undefined();
 
-	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("AudioEncoder", "GetName", {ipc::value(this->uid)});
+    std::vector<ipc::value> response =
+        conn->call_synchronous_helper("AudioEncoder", "GetName", {ipc::value(this->uid)});
 
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
+    if (!ValidateResponse(info, response))
+        return info.Env().Undefined();
     
     return Napi::String::New(info.Env(), response[1].value_str);
 }
@@ -95,30 +95,30 @@ void osn::AudioEncoder::SetName(const Napi::CallbackInfo& info, const Napi::Valu
     std::string name = value.ToString().Utf8Value();
 
     auto conn = GetConnection(info);
-	if (!conn)
-		return;
+    if (!conn)
+        return;
 
     conn->call("AudioEncoder", "SetName", {ipc::value(this->uid), ipc::value(name)});
 }
 
 Napi::Value osn::AudioEncoder::GetBitrate(const Napi::CallbackInfo& info) {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
+    auto conn = GetConnection(info);
+    if (!conn)
+        return info.Env().Undefined();
 
-	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("AudioEncoder", "GetBitrate", {ipc::value(this->uid)});
+    std::vector<ipc::value> response =
+        conn->call_synchronous_helper("AudioEncoder", "GetBitrate", {ipc::value(this->uid)});
 
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
+    if (!ValidateResponse(info, response))
+        return info.Env().Undefined();
     
     return Napi::Number::New(info.Env(), response[1].value_union.ui32);
 }
 
 void osn::AudioEncoder::SetBitrate(const Napi::CallbackInfo& info, const Napi::Value &value) {
     auto conn = GetConnection(info);
-	if (!conn)
-		return;
+    if (!conn)
+        return;
 
     conn->call("AudioEncoder", "SetBitrate",
         {ipc::value(this->uid), ipc::value(value.ToNumber().Uint32Value())});

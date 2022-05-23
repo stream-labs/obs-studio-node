@@ -49,74 +49,74 @@ namespace osn
         obs_encoder_t* audioEnc;
     };
 
-	class IAudioTrack
-	{
-		public:
-		class Manager : public utility::unique_object_manager<AudioTrack>
-		{
-			friend class std::shared_ptr<Manager>;
+    class IAudioTrack
+    {
+        public:
+        class Manager : public utility::unique_object_manager<AudioTrack>
+        {
+            friend class std::shared_ptr<Manager>;
 
-			protected:
-			Manager() {}
-			~Manager() {}
+            protected:
+            Manager() {}
+            ~Manager() {}
 
-			public:
-			Manager(Manager const&) = delete;
-			Manager operator=(Manager const&) = delete;
+            public:
+            Manager(Manager const&) = delete;
+            Manager operator=(Manager const&) = delete;
 
-			public:
-			static Manager& GetInstance();
-		};
+            public:
+            static Manager& GetInstance();
+        };
 
-		static void Register(ipc::server&);
+        static void Register(ipc::server&);
 
-		static void Create(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
+        static void Create(
+            void*                          data,
+            const int64_t                  id,
+            const std::vector<ipc::value>& args,
+            std::vector<ipc::value>&       rval);
 
-		static void GetAudioTracks(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void GetAudioBitrates(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void GetAtIndex(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void SetAtIndex(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void GetBitrate(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void SetBitrate(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void GetName(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void SetName(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
+        static void GetAudioTracks(
+            void*                          data,
+            const int64_t                  id,
+            const std::vector<ipc::value>& args,
+            std::vector<ipc::value>&       rval);
+        static void GetAudioBitrates(
+            void*                          data,
+            const int64_t                  id,
+            const std::vector<ipc::value>& args,
+            std::vector<ipc::value>&       rval);
+        static void GetAtIndex(
+            void*                          data,
+            const int64_t                  id,
+            const std::vector<ipc::value>& args,
+            std::vector<ipc::value>&       rval);
+        static void SetAtIndex(
+            void*                          data,
+            const int64_t                  id,
+            const std::vector<ipc::value>& args,
+            std::vector<ipc::value>&       rval);
+        static void GetBitrate(
+            void*                          data,
+            const int64_t                  id,
+            const std::vector<ipc::value>& args,
+            std::vector<ipc::value>&       rval);
+        static void SetBitrate(
+            void*                          data,
+            const int64_t                  id,
+            const std::vector<ipc::value>& args,
+            std::vector<ipc::value>&       rval);
+        static void GetName(
+            void*                          data,
+            const int64_t                  id,
+            const std::vector<ipc::value>& args,
+            std::vector<ipc::value>&       rval);
+        static void SetName(
+            void*                          data,
+            const int64_t                  id,
+            const std::vector<ipc::value>& args,
+            std::vector<ipc::value>&       rval);
 
         static std::array<AudioTrack*, NUM_AUDIO_TRACKS> audioTracks;
-	};
+    };
 }

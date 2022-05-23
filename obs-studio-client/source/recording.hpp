@@ -23,23 +23,23 @@
 
 namespace osn
 {
-	class Recording :
-		public WorkerSignals,
-		public FileOutput
-	{
-		public:
-		Recording(): WorkerSignals(), FileOutput() {};
+    class Recording :
+        public WorkerSignals,
+        public FileOutput
+    {
+        public:
+        Recording(): WorkerSignals(), FileOutput() {};
 
-		protected:
-		Napi::Function signalHandler;
-		std::string className;
+        protected:
+        Napi::Function signalHandler;
+        std::string className;
 
-		Napi::Value GetVideoEncoder(const Napi::CallbackInfo& info);
-		void SetVideoEncoder(const Napi::CallbackInfo& info, const Napi::Value& value);
-		Napi::Value GetSignalHandler(const Napi::CallbackInfo& info);
-		void SetSignalHandler(const Napi::CallbackInfo& info, const Napi::Value& value);
-		
-		void Start(const Napi::CallbackInfo& info);
-		void Stop(const Napi::CallbackInfo& info);
-	};
+        Napi::Value GetVideoEncoder(const Napi::CallbackInfo& info);
+        void SetVideoEncoder(const Napi::CallbackInfo& info, const Napi::Value& value);
+        Napi::Value GetSignalHandler(const Napi::CallbackInfo& info);
+        void SetSignalHandler(const Napi::CallbackInfo& info, const Napi::Value& value);
+        
+        void Start(const Napi::CallbackInfo& info);
+        void Stop(const Napi::CallbackInfo& info);
+    };
 }

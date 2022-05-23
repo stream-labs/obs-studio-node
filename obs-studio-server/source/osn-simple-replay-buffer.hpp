@@ -28,43 +28,43 @@ namespace osn
     {
         public:
         SimpleReplayBuffer() {
-			audioEncoder = nullptr;
-		}
+            audioEncoder = nullptr;
+        }
         ~SimpleReplayBuffer() {}
 
         public:
-		obs_encoder_t* audioEncoder;
+        obs_encoder_t* audioEncoder;
     };
 
-	class ISimpleReplayBuffer: public IReplayBuffer
-	{
-		public:
-		static void Register(ipc::server&);
+    class ISimpleReplayBuffer: public IReplayBuffer
+    {
+        public:
+        static void Register(ipc::server&);
 
-		static void Create(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void GetAudioEncoder(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void SetAudioEncoder(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void Start(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void Stop(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-	};
+        static void Create(
+            void*                          data,
+            const int64_t                  id,
+            const std::vector<ipc::value>& args,
+            std::vector<ipc::value>&       rval);
+        static void GetAudioEncoder(
+            void*                          data,
+            const int64_t                  id,
+            const std::vector<ipc::value>& args,
+            std::vector<ipc::value>&       rval);
+        static void SetAudioEncoder(
+            void*                          data,
+            const int64_t                  id,
+            const std::vector<ipc::value>& args,
+            std::vector<ipc::value>&       rval);
+        static void Start(
+            void*                          data,
+            const int64_t                  id,
+            const std::vector<ipc::value>& args,
+            std::vector<ipc::value>&       rval);
+        static void Stop(
+            void*                          data,
+            const int64_t                  id,
+            const std::vector<ipc::value>& args,
+            std::vector<ipc::value>&       rval);
+    };
 }

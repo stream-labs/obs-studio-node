@@ -22,18 +22,18 @@
 
 namespace osn
 {
-	class Encoder : public Napi::ObjectWrap<osn::Encoder>
-	{
-		public:
-		uint64_t uid;
+    class Encoder : public Napi::ObjectWrap<osn::Encoder>
+    {
+        public:
+        uint64_t uid;
 
-		public:
-		static Napi::FunctionReference constructor;
-		static Napi::Object Init(Napi::Env env, Napi::Object exports);
-		Encoder(const Napi::CallbackInfo& info);
+        public:
+        static Napi::FunctionReference constructor;
+        static Napi::Object Init(Napi::Env env, Napi::Object exports);
+        Encoder(const Napi::CallbackInfo& info);
 
-		static Napi::Value Create(const Napi::CallbackInfo& info);
-		static Napi::Value GetTypes(const Napi::CallbackInfo& info);
+        static Napi::Value Create(const Napi::CallbackInfo& info);
+        static Napi::Value GetTypes(const Napi::CallbackInfo& info);
 
         Napi::Value GetName(const Napi::CallbackInfo& info);
         void SetName(const Napi::CallbackInfo& info, const Napi::Value &value);
@@ -42,9 +42,9 @@ namespace osn
         Napi::Value GetId(const Napi::CallbackInfo& info);
         Napi::Value GetLastError(const Napi::CallbackInfo& info);
 
-		void Release(const Napi::CallbackInfo& info);
-		void Update(const Napi::CallbackInfo& info);
-		Napi::Value GetProperties(const Napi::CallbackInfo& info);
-		Napi::Value GetSettings(const Napi::CallbackInfo& info);
-	};
+        void Release(const Napi::CallbackInfo& info);
+        void Update(const Napi::CallbackInfo& info);
+        Napi::Value GetProperties(const Napi::CallbackInfo& info);
+        Napi::Value GetSettings(const Napi::CallbackInfo& info);
+    };
 }

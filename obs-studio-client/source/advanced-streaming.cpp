@@ -27,11 +27,11 @@
 Napi::FunctionReference osn::AdvancedStreaming::constructor;
 
 Napi::Object osn::AdvancedStreaming::Init(Napi::Env env, Napi::Object exports) {
-	Napi::HandleScope scope(env);
-	Napi::Function func =
-		DefineClass(env,
-		"AdvancedStreaming",
-		{
+    Napi::HandleScope scope(env);
+    Napi::Function func =
+        DefineClass(env,
+        "AdvancedStreaming",
+        {
             StaticMethod("create", &osn::AdvancedStreaming::Create),
 
             InstanceAccessor(
@@ -88,187 +88,187 @@ Napi::Object osn::AdvancedStreaming::Init(Napi::Env env, Napi::Object exports) {
                 &osn::AdvancedStreaming::GetOutputHeight,
                 &osn::AdvancedStreaming::SetOutputHeight),
 
-			InstanceMethod("start", &osn::AdvancedStreaming::Start),
-			InstanceMethod("stop", &osn::AdvancedStreaming::Stop)
-		});
+            InstanceMethod("start", &osn::AdvancedStreaming::Start),
+            InstanceMethod("stop", &osn::AdvancedStreaming::Stop)
+        });
 
-	exports.Set("AdvancedStreaming", func);
-	osn::AdvancedStreaming::constructor = Napi::Persistent(func);
-	osn::AdvancedStreaming::constructor.SuppressDestruct();
+    exports.Set("AdvancedStreaming", func);
+    osn::AdvancedStreaming::constructor = Napi::Persistent(func);
+    osn::AdvancedStreaming::constructor.SuppressDestruct();
 
-	return exports;
+    return exports;
 }
 
 osn::AdvancedStreaming::AdvancedStreaming(const Napi::CallbackInfo& info)
-	: Napi::ObjectWrap<osn::AdvancedStreaming>(info) {
-	Napi::Env env = info.Env();
-	Napi::HandleScope scope(env);
-	int length = info.Length();
+    : Napi::ObjectWrap<osn::AdvancedStreaming>(info) {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    int length = info.Length();
 
-	if (length <= 0 || !info[0].IsNumber()) {
-		Napi::TypeError::New(env, "Number expected").ThrowAsJavaScriptException();
-		return;
-	}
+    if (length <= 0 || !info[0].IsNumber()) {
+        Napi::TypeError::New(env, "Number expected").ThrowAsJavaScriptException();
+        return;
+    }
 
-	this->uid = (uint64_t)info[0].ToNumber().Int64Value();
+    this->uid = (uint64_t)info[0].ToNumber().Int64Value();
     this->className = std::string("AdvancedStreaming");
 }
 
 Napi::Value osn::AdvancedStreaming::Create(const Napi::CallbackInfo& info) {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
+    auto conn = GetConnection(info);
+    if (!conn)
+        return info.Env().Undefined();
 
-	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("AdvancedStreaming", "Create", {});
+    std::vector<ipc::value> response =
+        conn->call_synchronous_helper("AdvancedStreaming", "Create", {});
 
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
+    if (!ValidateResponse(info, response))
+        return info.Env().Undefined();
 
-	auto instance =
-		osn::AdvancedStreaming::constructor.New({
-			Napi::Number::New(info.Env(), response[1].value_union.ui64)
-		});
+    auto instance =
+        osn::AdvancedStreaming::constructor.New({
+            Napi::Number::New(info.Env(), response[1].value_union.ui64)
+        });
 
-	return instance;
+    return instance;
 }
 
 Napi::Value osn::AdvancedStreaming::GetAudioTrack(const Napi::CallbackInfo& info) {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
+    auto conn = GetConnection(info);
+    if (!conn)
+        return info.Env().Undefined();
 
-	std::vector<ipc::value> response =
-		conn->call_synchronous_helper(
-			"AdvancedStreaming",
-			"GetAudioTrack",
-			{ipc::value(this->uid)});
+    std::vector<ipc::value> response =
+        conn->call_synchronous_helper(
+            "AdvancedStreaming",
+            "GetAudioTrack",
+            {ipc::value(this->uid)});
 
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
+    if (!ValidateResponse(info, response))
+        return info.Env().Undefined();
 
-	return Napi::Number::New(info.Env(), response[1].value_union.ui32);
+    return Napi::Number::New(info.Env(), response[1].value_union.ui32);
 }
 
 void osn::AdvancedStreaming::SetAudioTrack(const Napi::CallbackInfo& info, const Napi::Value& value) {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return;
+    auto conn = GetConnection(info);
+    if (!conn)
+        return;
 
-	conn->call_synchronous_helper(
-		"AdvancedStreaming",
-		"SetAudioTrack",
-		{ipc::value(this->uid), ipc::value(value.ToNumber().Uint32Value())});
+    conn->call_synchronous_helper(
+        "AdvancedStreaming",
+        "SetAudioTrack",
+        {ipc::value(this->uid), ipc::value(value.ToNumber().Uint32Value())});
 }
 
 Napi::Value osn::AdvancedStreaming::GetTwitchTrack(const Napi::CallbackInfo& info) {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
+    auto conn = GetConnection(info);
+    if (!conn)
+        return info.Env().Undefined();
 
-	std::vector<ipc::value> response =
-		conn->call_synchronous_helper(
-			"AdvancedStreaming",
-			"GetTwitchTrack",
-			{ipc::value(this->uid)});
+    std::vector<ipc::value> response =
+        conn->call_synchronous_helper(
+            "AdvancedStreaming",
+            "GetTwitchTrack",
+            {ipc::value(this->uid)});
 
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
+    if (!ValidateResponse(info, response))
+        return info.Env().Undefined();
 
-	return Napi::Number::New(info.Env(), response[1].value_union.ui32);
+    return Napi::Number::New(info.Env(), response[1].value_union.ui32);
 }
 
 void osn::AdvancedStreaming::SetTwitchTrack(const Napi::CallbackInfo& info, const Napi::Value& value) {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return;
+    auto conn = GetConnection(info);
+    if (!conn)
+        return;
 
-	conn->call_synchronous_helper(
-		"AdvancedStreaming",
-		"SetTwitchTrack",
-		{ipc::value(this->uid), ipc::value(value.ToNumber().Uint32Value())});
+    conn->call_synchronous_helper(
+        "AdvancedStreaming",
+        "SetTwitchTrack",
+        {ipc::value(this->uid), ipc::value(value.ToNumber().Uint32Value())});
 }
 
 Napi::Value osn::AdvancedStreaming::GetRescaling(const Napi::CallbackInfo& info) {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
+    auto conn = GetConnection(info);
+    if (!conn)
+        return info.Env().Undefined();
 
-	std::vector<ipc::value> response =
-		conn->call_synchronous_helper(
-			"AdvancedStreaming",
-			"GetRescaling",
-			{ipc::value(this->uid)});
+    std::vector<ipc::value> response =
+        conn->call_synchronous_helper(
+            "AdvancedStreaming",
+            "GetRescaling",
+            {ipc::value(this->uid)});
 
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
+    if (!ValidateResponse(info, response))
+        return info.Env().Undefined();
 
-	return Napi::Boolean::New(info.Env(), response[1].value_union.ui32);
+    return Napi::Boolean::New(info.Env(), response[1].value_union.ui32);
 }
 
 void osn::AdvancedStreaming::SetRescaling(const Napi::CallbackInfo& info, const Napi::Value& value) {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return;
+    auto conn = GetConnection(info);
+    if (!conn)
+        return;
 
-	conn->call_synchronous_helper(
-		"AdvancedStreaming",
-		"SetRescaling",
-		{ipc::value(this->uid), ipc::value(value.ToNumber().Uint32Value())});
+    conn->call_synchronous_helper(
+        "AdvancedStreaming",
+        "SetRescaling",
+        {ipc::value(this->uid), ipc::value(value.ToNumber().Uint32Value())});
 }
 
 Napi::Value osn::AdvancedStreaming::GetOutputWidth(const Napi::CallbackInfo& info) {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
+    auto conn = GetConnection(info);
+    if (!conn)
+        return info.Env().Undefined();
 
-	std::vector<ipc::value> response =
-		conn->call_synchronous_helper(
-			"AdvancedStreaming",
-			"GetOutputWidth",
-			{ipc::value(this->uid)});
+    std::vector<ipc::value> response =
+        conn->call_synchronous_helper(
+            "AdvancedStreaming",
+            "GetOutputWidth",
+            {ipc::value(this->uid)});
 
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
+    if (!ValidateResponse(info, response))
+        return info.Env().Undefined();
 
-	return Napi::Number::New(info.Env(), response[1].value_union.ui32);
+    return Napi::Number::New(info.Env(), response[1].value_union.ui32);
 }
 
 void osn::AdvancedStreaming::SetOutputWidth(const Napi::CallbackInfo& info, const Napi::Value& value) {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return;
+    auto conn = GetConnection(info);
+    if (!conn)
+        return;
 
-	conn->call_synchronous_helper(
-		"AdvancedStreaming",
-		"SetOutputWidth",
-		{ipc::value(this->uid), ipc::value(value.ToNumber().Uint32Value())});
+    conn->call_synchronous_helper(
+        "AdvancedStreaming",
+        "SetOutputWidth",
+        {ipc::value(this->uid), ipc::value(value.ToNumber().Uint32Value())});
 }
 
 Napi::Value osn::AdvancedStreaming::GetOutputHeight(const Napi::CallbackInfo& info) {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
+    auto conn = GetConnection(info);
+    if (!conn)
+        return info.Env().Undefined();
 
-	std::vector<ipc::value> response =
-		conn->call_synchronous_helper(
-			"AdvancedStreaming",
-			"GetOutputHeight",
-			{ipc::value(this->uid)});
+    std::vector<ipc::value> response =
+        conn->call_synchronous_helper(
+            "AdvancedStreaming",
+            "GetOutputHeight",
+            {ipc::value(this->uid)});
 
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
+    if (!ValidateResponse(info, response))
+        return info.Env().Undefined();
 
-	return Napi::Number::New(info.Env(), response[1].value_union.ui32);
+    return Napi::Number::New(info.Env(), response[1].value_union.ui32);
 }
 
 void osn::AdvancedStreaming::SetOutputHeight(const Napi::CallbackInfo& info, const Napi::Value& value) {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return;
+    auto conn = GetConnection(info);
+    if (!conn)
+        return;
 
-	conn->call_synchronous_helper(
-		"AdvancedStreaming",
-		"SetOutputHeight",
-		{ipc::value(this->uid), ipc::value(value.ToNumber().Uint32Value())});
+    conn->call_synchronous_helper(
+        "AdvancedStreaming",
+        "SetOutputHeight",
+        {ipc::value(this->uid), ipc::value(value.ToNumber().Uint32Value())});
 }

@@ -21,49 +21,49 @@
 
 void osn::INetwork::Register(ipc::server& srv)
 {
-	std::shared_ptr<ipc::collection> cls =
+    std::shared_ptr<ipc::collection> cls =
         std::make_shared<ipc::collection>("Network");
 
-	cls->register_function(std::make_shared<ipc::function>(
-	    "Create", std::vector<ipc::type>{}, Create));
+    cls->register_function(std::make_shared<ipc::function>(
+        "Create", std::vector<ipc::type>{}, Create));
 
-	cls->register_function(std::make_shared<ipc::function>(
-	    "GetBindIP",
+    cls->register_function(std::make_shared<ipc::function>(
+        "GetBindIP",
         std::vector<ipc::type>{ipc::type::UInt64},
         GetBindIP));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "SetBindIP",
+    cls->register_function(std::make_shared<ipc::function>(
+        "SetBindIP",
         std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32},
         SetBindIP));
     cls->register_function(std::make_shared<ipc::function>(
-	    "GetNetworkInterfaces",
+        "GetNetworkInterfaces",
         std::vector<ipc::type>{}, GetNetworkInterfaces));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "GetEnableDynamicBitrate",
+    cls->register_function(std::make_shared<ipc::function>(
+        "GetEnableDynamicBitrate",
         std::vector<ipc::type>{ipc::type::UInt64},
         GetEnableDynamicBitrate));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "SetEnableDynamicBitrate",
+    cls->register_function(std::make_shared<ipc::function>(
+        "SetEnableDynamicBitrate",
         std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32},
         SetEnableDynamicBitrate));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "GetEnableOptimizations",
+    cls->register_function(std::make_shared<ipc::function>(
+        "GetEnableOptimizations",
         std::vector<ipc::type>{ipc::type::UInt64},
         GetEnableOptimizations));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "SetEnableOptimizations",
+    cls->register_function(std::make_shared<ipc::function>(
+        "SetEnableOptimizations",
         std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32},
         SetEnableOptimizations));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "GetEnableLowLatency",
+    cls->register_function(std::make_shared<ipc::function>(
+        "GetEnableLowLatency",
         std::vector<ipc::type>{ipc::type::UInt64},
         GetEnableLowLatency));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "SetEnableLowLatency",
+    cls->register_function(std::make_shared<ipc::function>(
+        "SetEnableLowLatency",
         std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32},
         SetEnableLowLatency));
 
-	srv.register_collection(cls);
+    srv.register_collection(cls);
 }
 
 void osn::INetwork::Create(
@@ -72,15 +72,15 @@ void osn::INetwork::Create(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	uint64_t uid =
+    uint64_t uid =
         osn::INetwork::Manager::GetInstance().allocate(new Network());
-	if (uid == UINT64_MAX) {
-		PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Index list is full.");
-	}
+    if (uid == UINT64_MAX) {
+        PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Index list is full.");
+    }
 
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	rval.push_back(ipc::value(uid));
-	AUTO_DEBUG;
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+    rval.push_back(ipc::value(uid));
+    AUTO_DEBUG;
 }
 
 void osn::INetwork::GetBindIP(
@@ -89,15 +89,15 @@ void osn::INetwork::GetBindIP(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	Network* network =
-		osn::INetwork::Manager::GetInstance().find(args[0].value_union.ui64);
-	if (!network) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Network reference is not valid.");
-	}
+    Network* network =
+        osn::INetwork::Manager::GetInstance().find(args[0].value_union.ui64);
+    if (!network) {
+        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Network reference is not valid.");
+    }
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
     rval.push_back(ipc::value(network->bindIP));
-	AUTO_DEBUG;
+    AUTO_DEBUG;
 }
 
 void osn::INetwork::SetBindIP(
@@ -106,16 +106,16 @@ void osn::INetwork::SetBindIP(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	Network* network =
-		osn::INetwork::Manager::GetInstance().find(args[0].value_union.ui64);
-	if (!network) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Network reference is not valid.");
-	}
+    Network* network =
+        osn::INetwork::Manager::GetInstance().find(args[0].value_union.ui64);
+    if (!network) {
+        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Network reference is not valid.");
+    }
 
     network->bindIP = args[1].value_str;
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	AUTO_DEBUG;
+    AUTO_DEBUG;
 }
 
 void osn::INetwork::GetNetworkInterfaces(
@@ -124,18 +124,18 @@ void osn::INetwork::GetNetworkInterfaces(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_properties_t* ppts = obs_get_output_properties("rtmp_output");
-	obs_property_t*   p    = obs_properties_get(ppts, "bind_ip");
+    obs_properties_t* ppts = obs_get_output_properties("rtmp_output");
+    obs_property_t*   p    = obs_properties_get(ppts, "bind_ip");
 
-	size_t count = obs_property_list_item_count(p);
+    size_t count = obs_property_list_item_count(p);
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
     rval.push_back(ipc::value((uint32_t)count));
 
-	for (size_t i = 0; i < count; i++) {
+    for (size_t i = 0; i < count; i++) {
         rval.push_back(ipc::value(obs_property_list_item_name(p, i)));
         rval.push_back(ipc::value(obs_property_list_item_string(p, i)));
-	}
+    }
 }
 
 void osn::INetwork::GetEnableDynamicBitrate(
@@ -144,15 +144,15 @@ void osn::INetwork::GetEnableDynamicBitrate(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	Network* network =
-		osn::INetwork::Manager::GetInstance().find(args[0].value_union.ui64);
-	if (!network) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Network reference is not valid.");
-	}
+    Network* network =
+        osn::INetwork::Manager::GetInstance().find(args[0].value_union.ui64);
+    if (!network) {
+        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Network reference is not valid.");
+    }
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
     rval.push_back(ipc::value(network->enableDynamicBitrate));
-	AUTO_DEBUG;
+    AUTO_DEBUG;
 }
 
 void osn::INetwork::SetEnableDynamicBitrate(
@@ -161,16 +161,16 @@ void osn::INetwork::SetEnableDynamicBitrate(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	Network* network =
-		osn::INetwork::Manager::GetInstance().find(args[0].value_union.ui64);
-	if (!network) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Network reference is not valid.");
-	}
+    Network* network =
+        osn::INetwork::Manager::GetInstance().find(args[0].value_union.ui64);
+    if (!network) {
+        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Network reference is not valid.");
+    }
 
     network->enableDynamicBitrate = args[1].value_union.ui32;
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	AUTO_DEBUG;
+    AUTO_DEBUG;
 }
 
 void osn::INetwork::GetEnableOptimizations(
@@ -179,15 +179,15 @@ void osn::INetwork::GetEnableOptimizations(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	Network* network =
-		osn::INetwork::Manager::GetInstance().find(args[0].value_union.ui64);
-	if (!network) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Network reference is not valid.");
-	}
+    Network* network =
+        osn::INetwork::Manager::GetInstance().find(args[0].value_union.ui64);
+    if (!network) {
+        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Network reference is not valid.");
+    }
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
     rval.push_back(ipc::value(network->enableOptimizations));
-	AUTO_DEBUG;
+    AUTO_DEBUG;
 }
 
 void osn::INetwork::SetEnableOptimizations(
@@ -196,16 +196,16 @@ void osn::INetwork::SetEnableOptimizations(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	Network* network =
-		osn::INetwork::Manager::GetInstance().find(args[0].value_union.ui64);
-	if (!network) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Network reference is not valid.");
-	}
+    Network* network =
+        osn::INetwork::Manager::GetInstance().find(args[0].value_union.ui64);
+    if (!network) {
+        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Network reference is not valid.");
+    }
 
     network->enableOptimizations = args[1].value_union.ui32;
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	AUTO_DEBUG;
+    AUTO_DEBUG;
 }
 
 void osn::INetwork::GetEnableLowLatency(
@@ -214,15 +214,15 @@ void osn::INetwork::GetEnableLowLatency(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	Network* network =
-		osn::INetwork::Manager::GetInstance().find(args[0].value_union.ui64);
-	if (!network) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Network reference is not valid.");
-	}
+    Network* network =
+        osn::INetwork::Manager::GetInstance().find(args[0].value_union.ui64);
+    if (!network) {
+        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Network reference is not valid.");
+    }
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
     rval.push_back(ipc::value(network->enableLowLatency));
-	AUTO_DEBUG;
+    AUTO_DEBUG;
 }
 
 void osn::INetwork::SetEnableLowLatency(
@@ -231,20 +231,20 @@ void osn::INetwork::SetEnableLowLatency(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	Network* network =
-		osn::INetwork::Manager::GetInstance().find(args[0].value_union.ui64);
-	if (!network) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Network reference is not valid.");
-	}
+    Network* network =
+        osn::INetwork::Manager::GetInstance().find(args[0].value_union.ui64);
+    if (!network) {
+        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Network reference is not valid.");
+    }
 
     network->enableLowLatency = args[1].value_union.ui32;
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	AUTO_DEBUG;
+    AUTO_DEBUG;
 }
 
 osn::INetwork::Manager& osn::INetwork::Manager::GetInstance()
 {
-	static osn::INetwork::Manager _inst;
-	return _inst;
+    static osn::INetwork::Manager _inst;
+    return _inst;
 }

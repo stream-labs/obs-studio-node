@@ -21,27 +21,27 @@
 
 namespace osn
 {
-	class Network:
-		public Napi::ObjectWrap<osn::Network>
-	{
-		public:
-		uint64_t uid;		
+    class Network:
+        public Napi::ObjectWrap<osn::Network>
+    {
+        public:
+        uint64_t uid;
 
-		public:
-		static Napi::FunctionReference constructor;
-		static Napi::Object Init(Napi::Env env, Napi::Object exports);
-		Network(const Napi::CallbackInfo& info);
+        public:
+        static Napi::FunctionReference constructor;
+        static Napi::Object Init(Napi::Env env, Napi::Object exports);
+        Network(const Napi::CallbackInfo& info);
 
-		static Napi::Value Create(const Napi::CallbackInfo& info);
+        static Napi::Value Create(const Napi::CallbackInfo& info);
 
-		Napi::Value GetBindIP(const Napi::CallbackInfo& info);
-		void SetBindIP(const Napi::CallbackInfo& info, const Napi::Value& value);
+        Napi::Value GetBindIP(const Napi::CallbackInfo& info);
+        void SetBindIP(const Napi::CallbackInfo& info, const Napi::Value& value);
         Napi::Value GetNetworkInterfaces(const Napi::CallbackInfo& info);
         Napi::Value GetEnableDynamicBitrate(const Napi::CallbackInfo& info);
-		void SetEnableDynamicBitrate(const Napi::CallbackInfo& info, const Napi::Value& value);
+        void SetEnableDynamicBitrate(const Napi::CallbackInfo& info, const Napi::Value& value);
         Napi::Value GetEnableOptimizations(const Napi::CallbackInfo& info);
-		void SetEnableOptimizations(const Napi::CallbackInfo& info, const Napi::Value& value);
+        void SetEnableOptimizations(const Napi::CallbackInfo& info, const Napi::Value& value);
         Napi::Value GetEnableLowLatency(const Napi::CallbackInfo& info);
-		void SetEnableLowLatency(const Napi::CallbackInfo& info, const Napi::Value& value);
-	};
+        void SetEnableLowLatency(const Napi::CallbackInfo& info, const Napi::Value& value);
+    };
 }

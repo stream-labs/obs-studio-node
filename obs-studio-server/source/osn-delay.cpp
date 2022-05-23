@@ -22,38 +22,38 @@
 
 void osn::IDelay::Register(ipc::server& srv)
 {
-	std::shared_ptr<ipc::collection> cls =
+    std::shared_ptr<ipc::collection> cls =
         std::make_shared<ipc::collection>("Delay");
 
-	cls->register_function(std::make_shared<ipc::function>(
-	    "Create", std::vector<ipc::type>{}, Create));
+    cls->register_function(std::make_shared<ipc::function>(
+        "Create", std::vector<ipc::type>{}, Create));
 
-	cls->register_function(std::make_shared<ipc::function>(
-	    "GetEnabled",
+    cls->register_function(std::make_shared<ipc::function>(
+        "GetEnabled",
         std::vector<ipc::type>{ipc::type::UInt64},
         GetEnabled));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "SetEnabled",
+    cls->register_function(std::make_shared<ipc::function>(
+        "SetEnabled",
         std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32},
         SetEnabled));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "GetDelaySec",
+    cls->register_function(std::make_shared<ipc::function>(
+        "GetDelaySec",
         std::vector<ipc::type>{ipc::type::UInt64},
         GetDelaySec));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "SetDelaySec",
+    cls->register_function(std::make_shared<ipc::function>(
+        "SetDelaySec",
         std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32},
         SetDelaySec));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "GetPreserveDelay",
+    cls->register_function(std::make_shared<ipc::function>(
+        "GetPreserveDelay",
         std::vector<ipc::type>{ipc::type::UInt64},
         GetPreserveDelay));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "SetPreserveDelay",
+    cls->register_function(std::make_shared<ipc::function>(
+        "SetPreserveDelay",
         std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32},
         SetPreserveDelay));
 
-	srv.register_collection(cls);
+    srv.register_collection(cls);
 }
 
 void osn::IDelay::Create(
@@ -62,15 +62,15 @@ void osn::IDelay::Create(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	uint64_t uid =
+    uint64_t uid =
         osn::IDelay::Manager::GetInstance().allocate(new Delay());
-	if (uid == UINT64_MAX) {
-		PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Index list is full.");
-	}
+    if (uid == UINT64_MAX) {
+        PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Index list is full.");
+    }
 
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	rval.push_back(ipc::value(uid));
-	AUTO_DEBUG;
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+    rval.push_back(ipc::value(uid));
+    AUTO_DEBUG;
 }
 
 void osn::IDelay::GetEnabled(
@@ -79,15 +79,15 @@ void osn::IDelay::GetEnabled(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	Delay* delay =
-		osn::IDelay::Manager::GetInstance().find(args[0].value_union.ui64);
-	if (!delay) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Delay reference is not valid.");
-	}
+    Delay* delay =
+        osn::IDelay::Manager::GetInstance().find(args[0].value_union.ui64);
+    if (!delay) {
+        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Delay reference is not valid.");
+    }
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
     rval.push_back(ipc::value(delay->enabled));
-	AUTO_DEBUG;
+    AUTO_DEBUG;
 }
 
 void osn::IDelay::SetEnabled(
@@ -96,16 +96,16 @@ void osn::IDelay::SetEnabled(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	Delay* delay =
-		osn::IDelay::Manager::GetInstance().find(args[0].value_union.ui64);
-	if (!delay) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Delay reference is not valid.");
-	}
+    Delay* delay =
+        osn::IDelay::Manager::GetInstance().find(args[0].value_union.ui64);
+    if (!delay) {
+        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Delay reference is not valid.");
+    }
 
     delay->enabled = args[1].value_union.ui32;
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	AUTO_DEBUG;
+    AUTO_DEBUG;
 }
 
 void osn::IDelay::GetDelaySec(
@@ -114,15 +114,15 @@ void osn::IDelay::GetDelaySec(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	Delay* delay =
-		osn::IDelay::Manager::GetInstance().find(args[0].value_union.ui64);
-	if (!delay) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Delay reference is not valid.");
-	}
+    Delay* delay =
+        osn::IDelay::Manager::GetInstance().find(args[0].value_union.ui64);
+    if (!delay) {
+        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Delay reference is not valid.");
+    }
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
     rval.push_back(ipc::value(delay->delaySec));
-	AUTO_DEBUG;
+    AUTO_DEBUG;
 }
 
 void osn::IDelay::SetDelaySec(
@@ -131,16 +131,16 @@ void osn::IDelay::SetDelaySec(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	Delay* delay =
-		osn::IDelay::Manager::GetInstance().find(args[0].value_union.ui64);
-	if (!delay) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Delay reference is not valid.");
-	}
+    Delay* delay =
+        osn::IDelay::Manager::GetInstance().find(args[0].value_union.ui64);
+    if (!delay) {
+        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Delay reference is not valid.");
+    }
 
     delay->delaySec = args[1].value_union.ui32;
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	AUTO_DEBUG;
+    AUTO_DEBUG;
 }
 
 void osn::IDelay::GetPreserveDelay(
@@ -149,15 +149,15 @@ void osn::IDelay::GetPreserveDelay(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	Delay* delay =
-		osn::IDelay::Manager::GetInstance().find(args[0].value_union.ui64);
-	if (!delay) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Delay reference is not valid.");
-	}
+    Delay* delay =
+        osn::IDelay::Manager::GetInstance().find(args[0].value_union.ui64);
+    if (!delay) {
+        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Delay reference is not valid.");
+    }
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
     rval.push_back(ipc::value(delay->preserveDelay));
-	AUTO_DEBUG; 
+    AUTO_DEBUG; 
 }
 
 void osn::IDelay::SetPreserveDelay(
@@ -166,20 +166,20 @@ void osn::IDelay::SetPreserveDelay(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	Delay* delay =
-		osn::IDelay::Manager::GetInstance().find(args[0].value_union.ui64);
-	if (!delay) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Delay reference is not valid.");
-	}
+    Delay* delay =
+        osn::IDelay::Manager::GetInstance().find(args[0].value_union.ui64);
+    if (!delay) {
+        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Delay reference is not valid.");
+    }
 
     delay->preserveDelay = args[1].value_union.ui32;
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	AUTO_DEBUG;
+    AUTO_DEBUG;
 }
 
 osn::IDelay::Manager& osn::IDelay::Manager::GetInstance()
 {
-	static osn::IDelay::Manager _inst;
-	return _inst;
+    static osn::IDelay::Manager _inst;
+    return _inst;
 }

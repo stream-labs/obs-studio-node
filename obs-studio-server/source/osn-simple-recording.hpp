@@ -24,78 +24,78 @@
 
 namespace osn
 {
-	enum RecQuality {
-		Stream = 0,
-		HighQuality = 1,
-		HigherQuality = 2,
-		Lossless = 3
-	};
+    enum RecQuality {
+        Stream = 0,
+        HighQuality = 1,
+        HigherQuality = 2,
+        Lossless = 3
+    };
 
-	class SimpleRecording: public Recording
-	{
-		public:
-		SimpleRecording(): Recording() {
-			audioEncoder = nullptr;
-			quality = RecQuality::Stream;
-			lowCPU = false;
-		}
-		~SimpleRecording() {}
+    class SimpleRecording: public Recording
+    {
+        public:
+        SimpleRecording(): Recording() {
+            audioEncoder = nullptr;
+            quality = RecQuality::Stream;
+            lowCPU = false;
+        }
+        ~SimpleRecording() {}
 
-		public:
-		obs_encoder_t* audioEncoder;
-		RecQuality quality;
-		bool lowCPU;
-	};
+        public:
+        obs_encoder_t* audioEncoder;
+        RecQuality quality;
+        bool lowCPU;
+    };
 
-	class ISimpleRecording: public IRecording
-	{
-		public:
-		static void Register(ipc::server&);
+    class ISimpleRecording: public IRecording
+    {
+        public:
+        static void Register(ipc::server&);
 
-		static void Create(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void GetQuality(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void SetQuality(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void GetAudioEncoder(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void SetAudioEncoder(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void Start(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void Stop(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void GetLowCPU(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void SetLowCPU(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-	};
+        static void Create(
+            void*                          data,
+            const int64_t                  id,
+            const std::vector<ipc::value>& args,
+            std::vector<ipc::value>&       rval);
+        static void GetQuality(
+            void*                          data,
+            const int64_t                  id,
+            const std::vector<ipc::value>& args,
+            std::vector<ipc::value>&       rval);
+        static void SetQuality(
+            void*                          data,
+            const int64_t                  id,
+            const std::vector<ipc::value>& args,
+            std::vector<ipc::value>&       rval);
+        static void GetAudioEncoder(
+            void*                          data,
+            const int64_t                  id,
+            const std::vector<ipc::value>& args,
+            std::vector<ipc::value>&       rval);
+        static void SetAudioEncoder(
+            void*                          data,
+            const int64_t                  id,
+            const std::vector<ipc::value>& args,
+            std::vector<ipc::value>&       rval);
+        static void Start(
+            void*                          data,
+            const int64_t                  id,
+            const std::vector<ipc::value>& args,
+            std::vector<ipc::value>&       rval);
+        static void Stop(
+            void*                          data,
+            const int64_t                  id,
+            const std::vector<ipc::value>& args,
+            std::vector<ipc::value>&       rval);
+        static void GetLowCPU(
+            void*                          data,
+            const int64_t                  id,
+            const std::vector<ipc::value>& args,
+            std::vector<ipc::value>&       rval);
+        static void SetLowCPU(
+            void*                          data,
+            const int64_t                  id,
+            const std::vector<ipc::value>& args,
+            std::vector<ipc::value>&       rval);
+    };
 }

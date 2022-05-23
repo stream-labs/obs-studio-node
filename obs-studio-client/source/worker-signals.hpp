@@ -23,17 +23,17 @@
 
 struct SignalOutput
 {
-	std::string outputType;
-	std::string signal;
-	int         code;
-	std::string errorMessage;
-	bool        sent;
-	bool        tosend;
+    std::string outputType;
+    std::string signal;
+    int         code;
+    std::string errorMessage;
+    bool        sent;
+    bool        tosend;
 };
 
 class WorkerSignals
 {
-	public:
+    public:
     WorkerSignals() {
         isWorkerRunning = false;
         workerStop = true;
@@ -44,16 +44,16 @@ class WorkerSignals
     
     protected:
     bool isWorkerRunning;
-	bool workerStop;
-	uint32_t sleepIntervalMS;
-	std::thread* workerThread;
-	Napi::ThreadSafeFunction jsThread;
-	Napi::FunctionReference cb;
+    bool workerStop;
+    uint32_t sleepIntervalMS;
+    std::thread* workerThread;
+    Napi::ThreadSafeFunction jsThread;
+    Napi::FunctionReference cb;
 
-	void startWorker(napi_env env, Napi::Function asyncCallback,
+    void startWorker(napi_env env, Napi::Function asyncCallback,
         const std::string& name, const uint64_t& refID) {
         if (!workerStop)
-		    return;
+            return;
 
         workerStop = false;
         jsThread = Napi::ThreadSafeFunction::New(
@@ -147,7 +147,7 @@ class WorkerSignals
         return;
     }
 
-	void stopWorker(void) {
+    void stopWorker(void) {
         if (workerStop != false)
             return;
 

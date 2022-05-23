@@ -27,47 +27,47 @@
 
 namespace osn
 {
-	class SimpleStreaming: public Streaming
-	{
-		public:
-		SimpleStreaming(): Streaming() {
-			audioEncoder = nullptr;
-		}
-		~SimpleStreaming() {}
+    class SimpleStreaming: public Streaming
+    {
+        public:
+        SimpleStreaming(): Streaming() {
+            audioEncoder = nullptr;
+        }
+        ~SimpleStreaming() {}
 
-		public:
-		obs_encoder_t* audioEncoder;
-	};
+        public:
+        obs_encoder_t* audioEncoder;
+    };
 
-	class ISimpleStreaming: public IStreaming
-	{
-		public:
-		static void Register(ipc::server&);
+    class ISimpleStreaming: public IStreaming
+    {
+        public:
+        static void Register(ipc::server&);
 
-		static void Create(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void GetAudioEncoder(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void SetAudioEncoder(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void Start(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void Stop(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-	};
+        static void Create(
+            void*                          data,
+            const int64_t                  id,
+            const std::vector<ipc::value>& args,
+            std::vector<ipc::value>&       rval);
+        static void GetAudioEncoder(
+            void*                          data,
+            const int64_t                  id,
+            const std::vector<ipc::value>& args,
+            std::vector<ipc::value>&       rval);
+        static void SetAudioEncoder(
+            void*                          data,
+            const int64_t                  id,
+            const std::vector<ipc::value>& args,
+            std::vector<ipc::value>&       rval);
+        static void Start(
+            void*                          data,
+            const int64_t                  id,
+            const std::vector<ipc::value>& args,
+            std::vector<ipc::value>&       rval);
+        static void Stop(
+            void*                          data,
+            const int64_t                  id,
+            const std::vector<ipc::value>& args,
+            std::vector<ipc::value>&       rval);
+    };
 }

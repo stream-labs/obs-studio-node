@@ -24,11 +24,11 @@
 Napi::FunctionReference osn::AdvancedReplayBuffer::constructor;
 
 Napi::Object osn::AdvancedReplayBuffer::Init(Napi::Env env, Napi::Object exports) {
-	Napi::HandleScope scope(env);
-	Napi::Function func =
-		DefineClass(env,
-		"AdvancedReplayBuffer",
-		{
+    Napi::HandleScope scope(env);
+    Napi::Function func =
+        DefineClass(env,
+        "AdvancedReplayBuffer",
+        {
             StaticMethod("create", &osn::AdvancedReplayBuffer::Create),
 
             InstanceAccessor(
@@ -80,79 +80,79 @@ Napi::Object osn::AdvancedReplayBuffer::Init(Napi::Env env, Napi::Object exports
                 &osn::AdvancedReplayBuffer::GetMixer,
                 &osn::AdvancedReplayBuffer::SetMixer),
 
-			InstanceMethod("start", &osn::AdvancedReplayBuffer::Start),
-			InstanceMethod("stop", &osn::AdvancedReplayBuffer::Stop),
+            InstanceMethod("start", &osn::AdvancedReplayBuffer::Start),
+            InstanceMethod("stop", &osn::AdvancedReplayBuffer::Stop),
 
             InstanceMethod("save", &osn::AdvancedReplayBuffer::Save),
             InstanceMethod("lastReplay", &osn::AdvancedReplayBuffer::GetLastReplay)
-		});
+        });
 
-	exports.Set("AdvancedReplayBuffer", func);
-	osn::AdvancedReplayBuffer::constructor = Napi::Persistent(func);
-	osn::AdvancedReplayBuffer::constructor.SuppressDestruct();
+    exports.Set("AdvancedReplayBuffer", func);
+    osn::AdvancedReplayBuffer::constructor = Napi::Persistent(func);
+    osn::AdvancedReplayBuffer::constructor.SuppressDestruct();
 
-	return exports;
+    return exports;
 }
 
 osn::AdvancedReplayBuffer::AdvancedReplayBuffer(const Napi::CallbackInfo& info)
-	: Napi::ObjectWrap<osn::AdvancedReplayBuffer>(info) {
-	Napi::Env env = info.Env();
-	Napi::HandleScope scope(env);
-	int length = info.Length();
+    : Napi::ObjectWrap<osn::AdvancedReplayBuffer>(info) {
+    Napi::Env env = info.Env();
+    Napi::HandleScope scope(env);
+    int length = info.Length();
 
-	if (length <= 0 || !info[0].IsNumber()) {
-		Napi::TypeError::New(env, "Number expected").ThrowAsJavaScriptException();
-		return;
-	}
+    if (length <= 0 || !info[0].IsNumber()) {
+        Napi::TypeError::New(env, "Number expected").ThrowAsJavaScriptException();
+        return;
+    }
 
-	this->uid = (uint64_t)info[0].ToNumber().Int64Value();
+    this->uid = (uint64_t)info[0].ToNumber().Int64Value();
     this->className = std::string("AdvancedReplayBuffer");
 }
 
 Napi::Value osn::AdvancedReplayBuffer::Create(const Napi::CallbackInfo& info) {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
+    auto conn = GetConnection(info);
+    if (!conn)
+        return info.Env().Undefined();
 
-	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("AdvancedReplayBuffer", "Create", {});
+    std::vector<ipc::value> response =
+        conn->call_synchronous_helper("AdvancedReplayBuffer", "Create", {});
 
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
+    if (!ValidateResponse(info, response))
+        return info.Env().Undefined();
 
-	auto instance =
-		osn::AdvancedReplayBuffer::constructor.New({
-			Napi::Number::New(info.Env(), response[1].value_union.ui64)
-		});
+    auto instance =
+        osn::AdvancedReplayBuffer::constructor.New({
+            Napi::Number::New(info.Env(), response[1].value_union.ui64)
+        });
 
-	return instance;
+    return instance;
 }
 
 Napi::Value osn::AdvancedReplayBuffer::GetMixer(const Napi::CallbackInfo& info) {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
+    auto conn = GetConnection(info);
+    if (!conn)
+        return info.Env().Undefined();
 
-	std::vector<ipc::value> response =
-		conn->call_synchronous_helper(
-			className,
-			"GetMixer",
-			{ipc::value(this->uid)});
+    std::vector<ipc::value> response =
+        conn->call_synchronous_helper(
+            className,
+            "GetMixer",
+            {ipc::value(this->uid)});
 
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
+    if (!ValidateResponse(info, response))
+        return info.Env().Undefined();
 
-	return Napi::Number::New(info.Env(), response[1].value_union.ui32);
+    return Napi::Number::New(info.Env(), response[1].value_union.ui32);
 }
 
 void osn::AdvancedReplayBuffer::SetMixer(
     const Napi::CallbackInfo& info, const Napi::Value& value) {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return;
+    auto conn = GetConnection(info);
+    if (!conn)
+        return;
 
-	conn->call_synchronous_helper(
-		className,
-		"SetMixer",
-		{ipc::value(this->uid), ipc::value(value.ToNumber().Uint32Value())});
+    conn->call_synchronous_helper(
+        className,
+        "SetMixer",
+        {ipc::value(this->uid), ipc::value(value.ToNumber().Uint32Value())});
 }

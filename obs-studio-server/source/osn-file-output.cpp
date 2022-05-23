@@ -22,57 +22,57 @@
 
 void osn::IFileOutput::Register(ipc::server& srv)
 {
-	std::shared_ptr<ipc::collection> cls =
-		std::make_shared<ipc::collection>("FileOutput");
-	cls->register_function(std::make_shared<ipc::function>(
-	    "GetPath",
+    std::shared_ptr<ipc::collection> cls =
+        std::make_shared<ipc::collection>("FileOutput");
+    cls->register_function(std::make_shared<ipc::function>(
+        "GetPath",
         std::vector<ipc::type>{ipc::type::UInt64},
         GetPath));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "SetPath",
+    cls->register_function(std::make_shared<ipc::function>(
+        "SetPath",
         std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String},
         SetPath));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "GetFormat",
+    cls->register_function(std::make_shared<ipc::function>(
+        "GetFormat",
         std::vector<ipc::type>{ipc::type::UInt64},
         GetFormat));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "SetFormat",
+    cls->register_function(std::make_shared<ipc::function>(
+        "SetFormat",
         std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String},
         SetFormat));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "GetMuxerSettings",
+    cls->register_function(std::make_shared<ipc::function>(
+        "GetMuxerSettings",
         std::vector<ipc::type>{ipc::type::UInt64},
         GetMuxerSettings));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "SetMuxerSettings",
+    cls->register_function(std::make_shared<ipc::function>(
+        "SetMuxerSettings",
         std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String},
         SetMuxerSettings));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "GetFileFormat",
+    cls->register_function(std::make_shared<ipc::function>(
+        "GetFileFormat",
         std::vector<ipc::type>{ipc::type::UInt64},
         GetFileFormat));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "SetFileFormat",
+    cls->register_function(std::make_shared<ipc::function>(
+        "SetFileFormat",
         std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32},
         SetFileFormat));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "GetOverwrite",
+    cls->register_function(std::make_shared<ipc::function>(
+        "GetOverwrite",
         std::vector<ipc::type>{ipc::type::UInt64},
         GetFileFormat));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "SetOverwrite",
+    cls->register_function(std::make_shared<ipc::function>(
+        "SetOverwrite",
         std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32},
         SetFileFormat));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "GetNoSpace",
+    cls->register_function(std::make_shared<ipc::function>(
+        "GetNoSpace",
         std::vector<ipc::type>{ipc::type::UInt64},
         GetNoSpace));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "SetNoSpace",
+    cls->register_function(std::make_shared<ipc::function>(
+        "SetNoSpace",
         std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32},
         SetNoSpace));
-	srv.register_collection(cls);
+    srv.register_collection(cls);
 }
 
 void osn::IFileOutput::GetPath(
@@ -81,15 +81,15 @@ void osn::IFileOutput::GetPath(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	FileOutput* fileOutput =
-		osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64);
-	if (!fileOutput) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "File output reference is not valid.");
-	}
+    FileOutput* fileOutput =
+        osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64);
+    if (!fileOutput) {
+        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "File output reference is not valid.");
+    }
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
     rval.push_back(ipc::value(fileOutput->path));
-	AUTO_DEBUG;
+    AUTO_DEBUG;
 }
 
 void osn::IFileOutput::SetPath(
@@ -98,16 +98,16 @@ void osn::IFileOutput::SetPath(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	FileOutput* fileOutput =
-		osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64);
-	if (!fileOutput) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "File output reference is not valid.");
-	}
+    FileOutput* fileOutput =
+        osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64);
+    if (!fileOutput) {
+        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "File output reference is not valid.");
+    }
 
     fileOutput->path = args[1].value_str;
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	AUTO_DEBUG;
+    AUTO_DEBUG;
 }
 
 
@@ -117,15 +117,15 @@ void osn::IFileOutput::GetFormat(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	FileOutput* fileOutput =
-		osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64);
-	if (!fileOutput) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "File output reference is not valid.");
-	}
+    FileOutput* fileOutput =
+        osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64);
+    if (!fileOutput) {
+        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "File output reference is not valid.");
+    }
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
     rval.push_back(ipc::value(fileOutput->format));
-	AUTO_DEBUG;
+    AUTO_DEBUG;
 }
 
 void osn::IFileOutput::SetFormat(
@@ -134,16 +134,16 @@ void osn::IFileOutput::SetFormat(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	FileOutput* fileOutput =
-		osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64);
-	if (!fileOutput) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "File output reference is not valid.");
-	}
+    FileOutput* fileOutput =
+        osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64);
+    if (!fileOutput) {
+        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "File output reference is not valid.");
+    }
 
     fileOutput->format = args[1].value_str;
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	AUTO_DEBUG;
+    AUTO_DEBUG;
 }
 
 void osn::IFileOutput::GetMuxerSettings(
@@ -152,15 +152,15 @@ void osn::IFileOutput::GetMuxerSettings(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	FileOutput* fileOutput =
-		osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64);
-	if (!fileOutput) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "File output reference is not valid.");
-	}
+    FileOutput* fileOutput =
+        osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64);
+    if (!fileOutput) {
+        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "File output reference is not valid.");
+    }
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
     rval.push_back(ipc::value(fileOutput->muxerSettings));
-	AUTO_DEBUG;
+    AUTO_DEBUG;
 }
 
 void osn::IFileOutput::SetMuxerSettings(
@@ -169,16 +169,16 @@ void osn::IFileOutput::SetMuxerSettings(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	FileOutput* fileOutput =
-		osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64);
-	if (!fileOutput) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "File output reference is not valid.");
-	}
+    FileOutput* fileOutput =
+        osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64);
+    if (!fileOutput) {
+        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "File output reference is not valid.");
+    }
 
     fileOutput->muxerSettings = args[1].value_str;
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	AUTO_DEBUG;
+    AUTO_DEBUG;
 }
 
 void osn::IFileOutput::GetFileFormat(
@@ -187,15 +187,15 @@ void osn::IFileOutput::GetFileFormat(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	FileOutput* fileOutput =
-		osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64);
-	if (!fileOutput) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "ReplayBuffer reference is not valid.");
-	}
+    FileOutput* fileOutput =
+        osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64);
+    if (!fileOutput) {
+        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "ReplayBuffer reference is not valid.");
+    }
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
     rval.push_back(ipc::value(fileOutput->fileFormat));
-	AUTO_DEBUG;
+    AUTO_DEBUG;
 }
 
 void osn::IFileOutput::SetFileFormat(
@@ -204,16 +204,16 @@ void osn::IFileOutput::SetFileFormat(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	FileOutput* fileOutput =
-		osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64);
-	if (!fileOutput) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "ReplayBuffer reference is not valid.");
-	}
+    FileOutput* fileOutput =
+        osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64);
+    if (!fileOutput) {
+        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "ReplayBuffer reference is not valid.");
+    }
 
     fileOutput->fileFormat = args[1].value_str;
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	AUTO_DEBUG;
+    AUTO_DEBUG;
 }
 
 void osn::IFileOutput::GetOverwrite(
@@ -222,15 +222,15 @@ void osn::IFileOutput::GetOverwrite(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	FileOutput* fileOutput =
-		osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64);
-	if (!fileOutput) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "ReplayBuffer reference is not valid.");
-	}
+    FileOutput* fileOutput =
+        osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64);
+    if (!fileOutput) {
+        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "ReplayBuffer reference is not valid.");
+    }
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
     rval.push_back(ipc::value(fileOutput->overwrite));
-	AUTO_DEBUG;
+    AUTO_DEBUG;
 }
 
 void osn::IFileOutput::SetOverwrite(
@@ -239,16 +239,16 @@ void osn::IFileOutput::SetOverwrite(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	FileOutput* fileOutput =
-		osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64);
-	if (!fileOutput) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "ReplayBuffer reference is not valid.");
-	}
+    FileOutput* fileOutput =
+        osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64);
+    if (!fileOutput) {
+        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "ReplayBuffer reference is not valid.");
+    }
 
     fileOutput->overwrite = args[1].value_union.ui32;
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	AUTO_DEBUG;
+    AUTO_DEBUG;
 }
 
 void osn::IFileOutput::GetNoSpace(
@@ -257,15 +257,15 @@ void osn::IFileOutput::GetNoSpace(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	FileOutput* fileOutput =
-		osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64);
-	if (!fileOutput) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "ReplayBuffer reference is not valid.");
-	}
+    FileOutput* fileOutput =
+        osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64);
+    if (!fileOutput) {
+        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "ReplayBuffer reference is not valid.");
+    }
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
     rval.push_back(ipc::value(fileOutput->noSpace));
-	AUTO_DEBUG;
+    AUTO_DEBUG;
 }
 
 void osn::IFileOutput::SetNoSpace(
@@ -274,20 +274,20 @@ void osn::IFileOutput::SetNoSpace(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	FileOutput* fileOutput =
-		osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64);
-	if (!fileOutput) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "ReplayBuffer reference is not valid.");
-	}
+    FileOutput* fileOutput =
+        osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64);
+    if (!fileOutput) {
+        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "ReplayBuffer reference is not valid.");
+    }
 
     fileOutput->noSpace = args[1].value_union.ui32;
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	AUTO_DEBUG;
+    AUTO_DEBUG;
 }
 
 osn::IFileOutput::Manager& osn::IFileOutput::Manager::GetInstance()
 {
-	static osn::IFileOutput::Manager _inst;
-	return _inst;
+    static osn::IFileOutput::Manager _inst;
+    return _inst;
 }
