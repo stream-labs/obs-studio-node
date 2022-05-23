@@ -25,12 +25,6 @@
 
 namespace osn
 {
-	enum RecQuality {
-		Stream = 0,
-		HighQuality = 1,
-		HigherQuality = 2,
-		Lossless = 3
-	};
 
     class Recording:
 		public FileOutput,
@@ -39,7 +33,6 @@ namespace osn
         public:
         Recording() : FileOutput(), OutputSignals() {
 			videoEncoder = nullptr;
-			audioEncoder = nullptr;
 			signals = {
 				"start",
 				"stop",
@@ -47,27 +40,11 @@ namespace osn
 				"stopping",
                 "wrote"
 			};
-			rescaling = false;
-			outputWidth = 1280;
-			outputHeight = 720;
-			quality = RecQuality::Stream;
-			lowCPU = false;
-			mixer = 1 << 0;
-			useStreamEncoders = true;
 		}
         virtual ~Recording();
 
         public:
 		obs_encoder_t* videoEncoder;
-		obs_encoder_t* audioEncoder;
-		RecQuality quality;
-		bool lowCPU;
-		uint32_t mixer;
-
-		bool rescaling;
-		uint32_t outputWidth;
-		uint32_t outputHeight;
-		bool useStreamEncoders;
     };
 
 	class IRecording: public IFileOutput

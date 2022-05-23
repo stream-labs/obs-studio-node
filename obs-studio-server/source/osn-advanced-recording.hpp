@@ -24,6 +24,26 @@
 
 namespace osn
 {
+	class AdvancedRecording: public Recording
+	{
+		public:
+		AdvancedRecording(): Recording() {
+			mixer = 1 << 0;
+			rescaling = false;
+			outputWidth = 1280;
+			outputHeight = 720;
+			useStreamEncoders = true;
+		}
+		~AdvancedRecording() {}
+
+		public:
+		uint32_t mixer;
+		bool rescaling;
+		uint32_t outputWidth;
+		uint32_t outputHeight;
+		bool useStreamEncoders;
+	};
+
 	class IAdvancedRecording: public IRecording
 	{
 		public:

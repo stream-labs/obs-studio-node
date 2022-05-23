@@ -79,7 +79,8 @@ void osn::ISimpleRecording::Create(
     std::vector<ipc::value>&       rval)
 {
 	uint64_t uid =
-        osn::ISimpleRecording::Manager::GetInstance().allocate(new Recording());
+        osn::ISimpleRecording::Manager::GetInstance().
+		allocate(new SimpleRecording());
 	if (uid == UINT64_MAX) {
 		PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Index list is full.");
 	}
@@ -95,9 +96,10 @@ void osn::ISimpleRecording::GetQuality(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	Recording* recording =
-		static_cast<Recording*>(
-			osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64));
+	SimpleRecording* recording =
+		static_cast<SimpleRecording*>(
+			osn::IFileOutput::Manager::GetInstance().
+			find(args[0].value_union.ui64));
 	if (!recording) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Simple recording reference is not valid.");
 	}
@@ -113,9 +115,10 @@ void osn::ISimpleRecording::SetQuality(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	Recording* recording =
-		static_cast<Recording*>(
-			osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64));
+	SimpleRecording* recording =
+		static_cast<SimpleRecording*>(
+			osn::IFileOutput::Manager::GetInstance().
+			find(args[0].value_union.ui64));
 	if (!recording) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Simple recording reference is not valid.");
 	}
@@ -132,9 +135,10 @@ void osn::ISimpleRecording::GetAudioEncoder(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	Recording* recording =
-		static_cast<Recording*>(
-			osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64));
+	SimpleRecording* recording =
+		static_cast<SimpleRecording*>(
+			osn::IFileOutput::Manager::GetInstance().
+			find(args[0].value_union.ui64));
 	if (!recording) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Recording reference is not valid.");
 	}
@@ -153,9 +157,10 @@ void osn::ISimpleRecording::SetAudioEncoder(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	Recording* recording =
-		static_cast<Recording*>(
-			osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64));
+	SimpleRecording* recording =
+		static_cast<SimpleRecording*>(
+			osn::IFileOutput::Manager::GetInstance().
+			find(args[0].value_union.ui64));
 	if (!recording) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Recording reference is not valid.");
 	}
@@ -279,7 +284,7 @@ static inline int CalcCRF(int crf, bool lowCPU = false)
 }
 
 static inline void UpdateRecordingSettings_crf(
-	const int& crf, osn::Recording* recording)
+	const int& crf, osn::SimpleRecording* recording)
 {
 	std::string id =
 		obs_encoder_get_id(recording->videoEncoder);
@@ -312,9 +317,10 @@ void osn::ISimpleRecording::Start(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	Recording* recording =
-		static_cast<Recording*>(
-			osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64));
+	SimpleRecording* recording =
+		static_cast<SimpleRecording*>(
+			osn::IFileOutput::Manager::GetInstance().
+			find(args[0].value_union.ui64));
 	if (!recording) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Simple recording reference is not valid.");
 	}
@@ -434,9 +440,10 @@ void osn::ISimpleRecording::GetLowCPU(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	Recording* recording =
-		static_cast<Recording*>(
-			osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64));
+	SimpleRecording* recording =
+		static_cast<SimpleRecording*>(
+			osn::IFileOutput::Manager::GetInstance().
+			find(args[0].value_union.ui64));
 	if (!recording) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Simple recording reference is not valid.");
 	}
@@ -452,9 +459,10 @@ void osn::ISimpleRecording::SetLowCPU(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	Recording* recording =
-		static_cast<Recording*>(
-			osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64));
+	SimpleRecording* recording =
+		static_cast<SimpleRecording*>(
+			osn::IFileOutput::Manager::GetInstance().
+			find(args[0].value_union.ui64));
 	if (!recording) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Simple recording reference is not valid.");
 	}

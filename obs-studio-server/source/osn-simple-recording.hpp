@@ -24,6 +24,29 @@
 
 namespace osn
 {
+	enum RecQuality {
+		Stream = 0,
+		HighQuality = 1,
+		HigherQuality = 2,
+		Lossless = 3
+	};
+
+	class SimpleRecording: public Recording
+	{
+		public:
+		SimpleRecording(): Recording() {
+			audioEncoder = nullptr;
+			quality = RecQuality::Stream;
+			lowCPU = false;
+		}
+		~SimpleRecording() {}
+
+		public:
+		obs_encoder_t* audioEncoder;
+		RecQuality quality;
+		bool lowCPU;
+	};
+
 	class ISimpleRecording: public IRecording
 	{
 		public:
