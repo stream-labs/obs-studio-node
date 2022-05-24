@@ -783,6 +783,7 @@ export interface ISimpleRecordingFactory {
 }
 export interface IAdvancedRecordingFactory {
     create(): IAdvancedRecording;
+    readonly legacySettings: IAdvancedRecording;
 }
 export interface IReplayBuffer extends IFileOutput {
     duration: number;

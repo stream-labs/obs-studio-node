@@ -84,7 +84,11 @@ Napi::Object osn::AdvancedRecording::Init(Napi::Env env, Napi::Object exports) {
                 &osn::AdvancedRecording::SetUseStreamEncoders),
 
             InstanceMethod("start", &osn::AdvancedRecording::Start),
-            InstanceMethod("stop", &osn::AdvancedRecording::Stop)
+            InstanceMethod("stop", &osn::AdvancedRecording::Stop),
+
+            StaticAccessor(
+                "legacySettings",
+                &osn::AdvancedRecording::GetLegacySettings, nullptr)
         });
 
     exports.Set("AdvancedRecording", func);
@@ -266,4 +270,25 @@ void osn::AdvancedRecording::SetUseStreamEncoders(const Napi::CallbackInfo& info
         "AdvancedRecording",
         "SetUseStreamEncoders",
         {ipc::value(this->uid), ipc::value(value.ToNumber().Uint32Value())});
+}
+
+Napi::Value osn::AdvancedRecording::GetLegacySettings(
+    const Napi::CallbackInfo& info) {
+    auto conn = GetConnection(info);
+    if (!conn)
+        return info.Env().Undefined();
+
+    std::vector<ipc::value> response =
+		conn->call_synchronous_helper(
+            "AdvancedRecording", "GetLegacySettings", {});
+
+    if (!ValidateResponse(info, response))
+        return info.Env().Undefined();
+
+    auto instance =
+        osn::AdvancedRecording::constructor.New({
+            Napi::Number::New(info.Env(), response[1].value_union.ui64)
+            });
+
+    return instance;
 }

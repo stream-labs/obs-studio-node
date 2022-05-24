@@ -81,6 +81,8 @@ void osn::IAdvancedRecording::Register(ipc::server& srv)
         "Stop", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32}, Stop));
     cls->register_function(std::make_shared<ipc::function>(
         "Query", std::vector<ipc::type>{ipc::type::UInt64}, Query));
+    cls->register_function(std::make_shared<ipc::function>(
+        "GetLegacySettings", std::vector<ipc::type>{}, GetLegacySettings));
 
     srv.register_collection(cls);
 }
@@ -397,5 +399,93 @@ void osn::IAdvancedRecording::SetUseStreamEncoders(
     recording->useStreamEncoders = args[1].value_union.ui32;
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+    AUTO_DEBUG;
+}
+
+void osn::IAdvancedRecording::GetLegacySettings(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+    osn::AdvancedRecording* recording =
+        new osn::AdvancedRecording();
+
+    recording->path =
+        config_get_string(
+            ConfigManager::getInstance().getBasic(),
+            "AdvOut", "RecFilePath");
+    recording->format =
+        config_get_string(
+            ConfigManager::getInstance().getBasic(),
+            "AdvOut", "RecFormat");
+    recording->muxerSettings =
+        config_get_string(
+            ConfigManager::getInstance().getBasic(),
+            "AdvOut", "RecMuxerCustom");
+    recording->noSpace =
+        config_get_bool(
+            ConfigManager::getInstance().getBasic(),
+            "AdvOut", "RecFileNameWithoutSpace");
+    recording->fileFormat =
+        config_get_string(
+            ConfigManager::getInstance().getBasic(),
+            "Output", "FilenameFormatting");
+    recording->overwrite =
+        config_get_bool(
+            ConfigManager::getInstance().getBasic(),
+            "Output", "OverwriteIfExists");
+
+    recording->rescaling =
+        config_get_bool(
+            ConfigManager::getInstance().getBasic(),
+            "AdvOut", "RecRescale");
+    const char* rescaleRes =
+        config_get_string(
+            ConfigManager::getInstance().getBasic(),
+            "AdvOut", "RecRescaleRes");
+    unsigned int cx = 0;
+    unsigned int cy = 0;
+    if (recording->rescaling && rescaleRes) {
+        if (sscanf(rescaleRes, "%ux%u", &cx, &cy) != 2) {
+            cx = 0;
+            cy = 0;
+        }
+        recording->outputWidth = cx;
+        recording->outputHeight = cy;
+    }
+
+    recording->mixer =
+        config_get_int(
+            ConfigManager::getInstance().getBasic(),
+            "AdvOut", "RecTracks");
+
+    std::string encId =
+        config_get_string(
+            ConfigManager::getInstance().getBasic(),
+            "AdvOut", "RecEncoder");
+    recording->useStreamEncoders =
+        encId.compare("") == 0 ||
+        encId.compare("none") == 0;
+
+    if (!recording->useStreamEncoders) {
+        obs_data_t* videoEncSettings =
+            obs_data_create_from_json_file_safe(
+                ConfigManager::getInstance().getRecord().c_str(), "bak");
+        recording->videoEncoder =
+            obs_video_encoder_create(
+                encId.c_str(), "video-encoder", videoEncSettings, nullptr);
+        osn::VideoEncoder::Manager::GetInstance().
+            allocate(recording->videoEncoder);
+    }
+
+    uint64_t uid =
+        osn::IAdvancedRecording::Manager::GetInstance().allocate(recording);
+    if (uid == UINT64_MAX) {
+        PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Index list is full.");
+    }
+
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+    rval.push_back(ipc::value(uid));
     AUTO_DEBUG;
 }
