@@ -131,6 +131,8 @@ void osn::IAdvancedStreaming::Register(ipc::server& srv)
         "Stop", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32}, Stop));
     cls->register_function(std::make_shared<ipc::function>(
         "Query", std::vector<ipc::type>{ipc::type::UInt64}, Query));
+    cls->register_function(std::make_shared<ipc::function>(
+        "GetLegacySettings", std::vector<ipc::type>{}, GetLegacySettings));
 
     srv.register_collection(cls);
 }
@@ -594,5 +596,76 @@ void osn::IAdvancedStreaming::Stop(
         obs_output_stop(streaming->output);
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+    AUTO_DEBUG;
+}
+
+void osn::IAdvancedStreaming::GetLegacySettings(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+    osn::AdvancedStreaming* streaming =
+        new osn::AdvancedStreaming();
+    const char* encId =
+        config_get_string(
+            ConfigManager::getInstance().getBasic(),
+            "AdvOut", "Encoder");
+    obs_data_t* videoEncSettings =
+        obs_data_create_from_json_file_safe(
+            ConfigManager::getInstance().getStream().c_str(), "bak");
+    streaming->videoEncoder =
+        obs_video_encoder_create(
+            encId, "video-encoder", videoEncSettings, nullptr);
+    osn::VideoEncoder::Manager::GetInstance().
+        allocate(streaming->videoEncoder);
+
+    streaming->audioTrack =
+        config_get_int(
+            ConfigManager::getInstance().getBasic(),
+            "AdvOut", "TrackIndex") - 1;
+    streaming->enableTwitchVOD =
+        config_get_bool(
+            ConfigManager::getInstance().getBasic(),
+            "AdvOut", "VodTrackEnabled");
+    streaming->twitchTrack =
+        config_get_int(
+            ConfigManager::getInstance().getBasic(),
+            "AdvOut", "VodTrackIndex") - 1;
+
+    streaming->rescaling =
+        config_get_bool(
+            ConfigManager::getInstance().getBasic(),
+            "AdvOut", "Rescale");
+    const char* rescaleRes =
+        config_get_string(
+            ConfigManager::getInstance().getBasic(),
+            "AdvOut", "RescaleRes");
+    unsigned int cx = 0;
+    unsigned int cy = 0;
+    if (streaming->rescaling && rescaleRes) {
+        if (sscanf(rescaleRes, "%ux%u", &cx, &cy) != 2) {
+            cx = 0;
+            cy = 0;
+        }
+        streaming->outputWidth = cx;
+        streaming->outputHeight = cy;
+    }
+
+    streaming->getDelayLegacySettings();
+    streaming->getReconnectLegacySettings();
+    streaming->getNetworkLegacySettings();
+
+    streaming->service = osn::Service::GetLegacyServiceSettings();
+    osn::Service::Manager::GetInstance().allocate(streaming->service);
+
+    uint64_t uid =
+        osn::IAdvancedStreaming::Manager::GetInstance().allocate(streaming);
+    if (uid == UINT64_MAX) {
+        PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Index list is full.");
+    }
+
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+    rval.push_back(ipc::value(uid));
     AUTO_DEBUG;
 }

@@ -88,7 +88,11 @@ Napi::Object osn::AdvancedStreaming::Init(Napi::Env env, Napi::Object exports) {
                 &osn::AdvancedStreaming::SetOutputHeight),
 
             InstanceMethod("start", &osn::AdvancedStreaming::Start),
-            InstanceMethod("stop", &osn::AdvancedStreaming::Stop)
+            InstanceMethod("stop", &osn::AdvancedStreaming::Stop),
+
+            StaticAccessor(
+                "legacySettings",
+                &osn::AdvancedStreaming::GetLegacySettings, nullptr)
         });
 
     exports.Set("AdvancedStreaming", func);
@@ -149,7 +153,8 @@ Napi::Value osn::AdvancedStreaming::GetAudioTrack(const Napi::CallbackInfo& info
     return Napi::Number::New(info.Env(), response[1].value_union.ui32);
 }
 
-void osn::AdvancedStreaming::SetAudioTrack(const Napi::CallbackInfo& info, const Napi::Value& value) {
+void osn::AdvancedStreaming::SetAudioTrack(
+    const Napi::CallbackInfo& info, const Napi::Value& value) {
     auto conn = GetConnection(info);
     if (!conn)
         return;
@@ -177,7 +182,8 @@ Napi::Value osn::AdvancedStreaming::GetTwitchTrack(const Napi::CallbackInfo& inf
     return Napi::Number::New(info.Env(), response[1].value_union.ui32);
 }
 
-void osn::AdvancedStreaming::SetTwitchTrack(const Napi::CallbackInfo& info, const Napi::Value& value) {
+void osn::AdvancedStreaming::SetTwitchTrack(
+    const Napi::CallbackInfo& info, const Napi::Value& value) {
     auto conn = GetConnection(info);
     if (!conn)
         return;
@@ -205,7 +211,8 @@ Napi::Value osn::AdvancedStreaming::GetRescaling(const Napi::CallbackInfo& info)
     return Napi::Boolean::New(info.Env(), response[1].value_union.ui32);
 }
 
-void osn::AdvancedStreaming::SetRescaling(const Napi::CallbackInfo& info, const Napi::Value& value) {
+void osn::AdvancedStreaming::SetRescaling(
+    const Napi::CallbackInfo& info, const Napi::Value& value) {
     auto conn = GetConnection(info);
     if (!conn)
         return;
@@ -233,7 +240,8 @@ Napi::Value osn::AdvancedStreaming::GetOutputWidth(const Napi::CallbackInfo& inf
     return Napi::Number::New(info.Env(), response[1].value_union.ui32);
 }
 
-void osn::AdvancedStreaming::SetOutputWidth(const Napi::CallbackInfo& info, const Napi::Value& value) {
+void osn::AdvancedStreaming::SetOutputWidth(
+    const Napi::CallbackInfo& info, const Napi::Value& value) {
     auto conn = GetConnection(info);
     if (!conn)
         return;
@@ -261,7 +269,8 @@ Napi::Value osn::AdvancedStreaming::GetOutputHeight(const Napi::CallbackInfo& in
     return Napi::Number::New(info.Env(), response[1].value_union.ui32);
 }
 
-void osn::AdvancedStreaming::SetOutputHeight(const Napi::CallbackInfo& info, const Napi::Value& value) {
+void osn::AdvancedStreaming::SetOutputHeight(
+    const Napi::CallbackInfo& info, const Napi::Value& value) {
     auto conn = GetConnection(info);
     if (!conn)
         return;
@@ -270,4 +279,24 @@ void osn::AdvancedStreaming::SetOutputHeight(const Napi::CallbackInfo& info, con
         "AdvancedStreaming",
         "SetOutputHeight",
         {ipc::value(this->uid), ipc::value(value.ToNumber().Uint32Value())});
+}
+
+Napi::Value osn::AdvancedStreaming::GetLegacySettings(
+    const Napi::CallbackInfo& info) {
+    auto conn = GetConnection(info);
+    if (!conn)
+        return info.Env().Undefined();
+
+    std::vector<ipc::value> response =
+		conn->call_synchronous_helper("AdvancedStreaming", "GetLegacySettings", {});
+
+    if (!ValidateResponse(info, response))
+        return info.Env().Undefined();
+
+    auto instance =
+        osn::AdvancedStreaming::constructor.New({
+            Napi::Number::New(info.Env(), response[1].value_union.ui64)
+            });
+
+    return instance;
 }

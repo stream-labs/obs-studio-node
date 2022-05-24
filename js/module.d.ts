@@ -749,6 +749,7 @@ export interface IAdvancedStreaming extends IStreaming {
 }
 export interface IAdvancedStreamingFactory {
     create(): IAdvancedStreaming;
+    readonly legacySettings: IAdvancedStreaming;
 }
 export interface IFileOutput {
     path: string;

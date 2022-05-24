@@ -388,3 +388,63 @@ osn::IStreaming::Manager& osn::IStreaming::Manager::GetInstance()
     static osn::IStreaming::Manager _inst;
     return _inst;
 }
+
+void osn::Streaming::getDelayLegacySettings()
+{
+    delay = new Delay();
+    delay->enabled =
+        config_get_bool(
+            ConfigManager::getInstance().getBasic(),
+            "Output", "DelayEnable");
+    delay->delaySec =
+        config_get_int(
+            ConfigManager::getInstance().getBasic(),
+            "Output", "DelaySec");
+    delay->preserveDelay =
+        config_get_bool(
+            ConfigManager::getInstance().getBasic(),
+            "Output", "DelayPreserve");
+    osn::IDelay::Manager::GetInstance().allocate(delay);
+}
+
+void osn::Streaming::getReconnectLegacySettings()
+{
+    reconnect = new Reconnect();
+    reconnect->enabled =
+        config_get_bool(
+            ConfigManager::getInstance().getBasic(),
+            "Output", "Reconnect");
+    reconnect->retryDelay =
+        config_get_uint(
+            ConfigManager::getInstance().getBasic(),
+            "Output", "RetryDelay");
+    reconnect->maxRetries =
+        config_get_uint(
+            ConfigManager::getInstance().getBasic(),
+            "Output", "MaxRetries");
+    osn::IReconnect::Manager::GetInstance().
+        allocate(reconnect);
+}
+
+void osn::Streaming::getNetworkLegacySettings()
+{
+    network = new Network();
+    network->bindIP =
+        config_get_string(
+            ConfigManager::getInstance().getBasic(),
+            "Output", "BindIP");
+    network->enableDynamicBitrate =
+        config_get_bool(
+            ConfigManager::getInstance().getBasic(),
+            "Output", "DynamicBitrate");
+    network->enableOptimizations =
+        config_get_bool(
+            ConfigManager::getInstance().getBasic(),
+            "Output", "NewSocketLoopEnable");
+    network->enableLowLatency =
+        config_get_bool(
+            ConfigManager::getInstance().getBasic(),
+            "Output", "LowLatencyEnable");
+    osn::INetwork::Manager::GetInstance().
+        allocate(network);
+}

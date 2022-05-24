@@ -25,6 +25,8 @@
 #include "osn-output-signals.hpp"
 #include "osn-video-encoder.hpp"
 
+#include "nodeobs_configManager.hpp"
+
 namespace osn
 {
     class Streaming : public OutputSignals
@@ -69,6 +71,9 @@ namespace osn
         Network* network;
 
         bool isTwitchVODSupported();
+        void getDelayLegacySettings();
+        void getReconnectLegacySettings();
+        void getNetworkLegacySettings();
     };
 
     class IStreaming

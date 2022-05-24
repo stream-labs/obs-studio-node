@@ -23,8 +23,6 @@
 #include "shared.hpp"
 #include "nodeobs_audio_encoders.h"
 
-#include "nodeobs_configManager.hpp"
-
 
 void osn::ISimpleStreaming::Register(ipc::server& srv)
 {
@@ -495,54 +493,9 @@ void osn::ISimpleStreaming::GetLegacySettings(
             ConfigManager::getInstance().getBasic(),
             "SimpleOutput", "VodTrackEnabled");
 
-    streaming->delay = new Delay();
-    streaming->delay->enabled =
-        config_get_bool(
-            ConfigManager::getInstance().getBasic(),
-            "Output", "DelayEnable");
-    streaming->delay->delaySec =
-        config_get_int(
-            ConfigManager::getInstance().getBasic(),
-            "Output", "DelaySec");
-    streaming->delay->preserveDelay =
-        config_get_bool(
-            ConfigManager::getInstance().getBasic(),
-            "Output", "DelayPreserve");
-    osn::IDelay::Manager::GetInstance().allocate(streaming->delay);
-
-    streaming->reconnect = new Reconnect();
-    streaming->reconnect->enabled =
-        config_get_bool(
-            ConfigManager::getInstance().getBasic(),
-            "Output", "Reconnect");
-    streaming->reconnect->retryDelay =
-        config_get_uint(
-            ConfigManager::getInstance().getBasic(),
-            "Output", "RetryDelay");
-    streaming->reconnect->maxRetries = 
-        config_get_uint(
-            ConfigManager::getInstance().getBasic(),
-            "Output", "MaxRetries");
-    osn::IReconnect::Manager::GetInstance().allocate(streaming->reconnect);
-
-    streaming->network = new Network();
-    streaming->network->bindIP =
-        config_get_string(
-            ConfigManager::getInstance().getBasic(),
-            "Output", "BindIP");
-    streaming->network->enableDynamicBitrate =
-        config_get_bool(
-            ConfigManager::getInstance().getBasic(),
-            "Output", "DynamicBitrate");
-    streaming->network->enableOptimizations =
-        config_get_bool(
-            ConfigManager::getInstance().getBasic(),
-            "Output", "NewSocketLoopEnable");
-    streaming->network->enableLowLatency =
-        config_get_bool(
-            ConfigManager::getInstance().getBasic(),
-            "Output", "LowLatencyEnable");
-    osn::INetwork::Manager::GetInstance().allocate(streaming->network);
+    streaming->getDelayLegacySettings();
+    streaming->getReconnectLegacySettings();
+    streaming->getNetworkLegacySettings();
 
     streaming->service = osn::Service::GetLegacyServiceSettings();
     osn::Service::Manager::GetInstance().allocate(streaming->service);
