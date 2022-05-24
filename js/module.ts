@@ -1604,6 +1604,7 @@ export interface ISimpleStreaming extends IStreaming {
 
 export interface ISimpleStreamingFactory {
     create(): ISimpleStreaming;
+    readonly legacySettings: ISimpleStreaming;
 }
 
 export interface IAdvancedStreaming extends IStreaming {

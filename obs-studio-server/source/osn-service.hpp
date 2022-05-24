@@ -115,5 +115,6 @@ namespace osn
                 const int64_t id,
                 const std::vector<ipc::value>& args,
                 std::vector<ipc::value>& rval);
+        static obs_service_t* GetLegacyServiceSettings();
     };
 }

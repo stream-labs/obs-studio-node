@@ -76,7 +76,11 @@ Napi::Object osn::SimpleStreaming::Init(Napi::Env env, Napi::Object exports) {
                 &osn::SimpleStreaming::SetNetwork),
 
             InstanceMethod("start", &osn::SimpleStreaming::Start),
-            InstanceMethod("stop", &osn::SimpleStreaming::Stop)
+            InstanceMethod("stop", &osn::SimpleStreaming::Stop),
+
+            StaticAccessor(
+                "legacySettings",
+                &osn::SimpleStreaming::GetLegacySettings, nullptr)
         });
 
     exports.Set("SimpleStreaming", func);
@@ -159,4 +163,23 @@ void osn::SimpleStreaming::SetAudioEncoder(const Napi::CallbackInfo& info, const
         className,
         "SetAudioEncoder",
         {ipc::value(this->uid), ipc::value(encoder->uid)});
+}
+
+Napi::Value osn::SimpleStreaming::GetLegacySettings(const Napi::CallbackInfo& info) {
+    auto conn = GetConnection(info);
+    if (!conn)
+        return info.Env().Undefined();
+
+    std::vector<ipc::value> response =
+		conn->call_synchronous_helper("SimpleStreaming", "GetLegacySettings", {});
+
+    if (!ValidateResponse(info, response))
+        return info.Env().Undefined();
+
+    auto instance =
+        osn::SimpleStreaming::constructor.New({
+            Napi::Number::New(info.Env(), response[1].value_union.ui64)
+            });
+
+    return instance;
 }

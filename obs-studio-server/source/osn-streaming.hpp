@@ -23,6 +23,7 @@
 #include "osn-reconnect.hpp"
 #include "osn-network.hpp"
 #include "osn-output-signals.hpp"
+#include "osn-video-encoder.hpp"
 
 namespace osn
 {

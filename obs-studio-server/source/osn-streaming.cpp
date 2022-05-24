@@ -17,7 +17,6 @@
 ******************************************************************************/
 
 #include "osn-streaming.hpp"
-#include "osn-video-encoder.hpp"
 #include "osn-service.hpp"
 #include "osn-error.hpp"
 #include "shared.hpp"

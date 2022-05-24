@@ -23,6 +23,9 @@
 #include "shared.hpp"
 #include "nodeobs_audio_encoders.h"
 
+#include "nodeobs_configManager.hpp"
+
+
 void osn::ISimpleStreaming::Register(ipc::server& srv)
 {
     std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("SimpleStreaming");
@@ -98,6 +101,8 @@ void osn::ISimpleStreaming::Register(ipc::server& srv)
         "Stop", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32}, Stop));
     cls->register_function(std::make_shared<ipc::function>(
         "Query", std::vector<ipc::type>{ipc::type::UInt64}, Query));
+    cls->register_function(std::make_shared<ipc::function>(
+        "GetLegacySettings", std::vector<ipc::type>{}, GetLegacySettings));
 
     srv.register_collection(cls);
 }
@@ -377,5 +382,178 @@ void osn::ISimpleStreaming::Stop(
         obs_output_stop(streaming->output);
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+    AUTO_DEBUG;
+}
+
+void osn::ISimpleStreaming::GetLegacySettings(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+    osn::SimpleStreaming* streaming =
+        new osn::SimpleStreaming();
+    const char* encId =
+        config_get_string(
+            ConfigManager::getInstance().getBasic(),
+            "SimpleOutput",
+            "StreamEncoder");
+    const char* encIdOBS = nullptr;
+
+    obs_data_t* videoEncData = obs_data_create();
+    obs_data_t* audioEncData = obs_data_create();
+
+    obs_data_set_string(videoEncData, "rate_control", "CBR");
+    obs_data_set_int(videoEncData, "bitrate",
+        config_get_uint(
+            ConfigManager::getInstance().getBasic(),
+            "SimpleOutput", "VBitrate"));
+    bool advanced = 
+        config_get_bool(
+            ConfigManager::getInstance().getBasic(),
+            "SimpleOutput", "UseAdvanced");
+    const char* custom =
+        config_get_string(
+            ConfigManager::getInstance().getBasic(),
+            "SimpleOutput", "x264Settings");
+
+    const char* preset = nullptr;
+    const char* presetType = nullptr;
+    if (strcmp(encId, SIMPLE_ENCODER_QSV) == 0 ||
+        strcmp(encId, ADVANCED_ENCODER_QSV) == 0) {
+        presetType = "QSVPreset";
+        encIdOBS = "obs_qsv11";
+    } else if (strcmp(encId, SIMPLE_ENCODER_AMD) == 0 ||
+        strcmp(encId, ADVANCED_ENCODER_AMD) == 0) {
+        presetType = "AMDPreset";
+        encIdOBS = "amd_amf_h264";
+    } else if (strcmp(encId, SIMPLE_ENCODER_NVENC) == 0 ||
+        strcmp(encId, ADVANCED_ENCODER_NVENC) == 0) {
+        presetType = "NVENCPreset";
+        encIdOBS = "ffmpeg_nvenc";
+    } else if (strcmp(encId, ENCODER_NEW_NVENC) == 0) {
+        presetType = "NVENCPreset";
+        encIdOBS  = "jim_nvenc";
+    } else {
+        presetType = "Preset";
+        encIdOBS  = "obs_x264";
+    }
+    if (presetType)
+        preset = config_get_string(
+            ConfigManager::getInstance().getBasic(),
+            "SimpleOutput", presetType);
+
+    if (advanced) {
+        obs_data_set_string(videoEncData, "preset", preset);
+        obs_data_set_string(videoEncData, "x264opts", custom);
+    }
+
+    streaming->enforceServiceBitrate =
+        config_get_bool(ConfigManager::getInstance().getBasic(), "SimpleOutput", "EnforceBitrate");
+
+    obs_data_set_string(audioEncData, "rate_control", "CBR");
+    obs_data_set_int(audioEncData, "bitrate",
+        FindClosestAvailableAACBitrate(
+            config_get_uint(ConfigManager::getInstance().getBasic(),
+            "SimpleOutput", "ABitrate")));
+
+    if (advanced && !streaming->enforceServiceBitrate) {
+        obs_data_set_int(videoEncData, "bitrate",
+            config_get_uint(
+            ConfigManager::getInstance().getBasic(),
+            "SimpleOutput", "VBitrate"));
+        obs_data_set_int(audioEncData, "bitrate",
+            config_get_uint(ConfigManager::getInstance().getBasic(),
+            "SimpleOutput", "ABitrate"));
+    }
+
+    if (strcmp(encId, APPLE_SOFTWARE_VIDEO_ENCODER) == 0 ||
+            strcmp(encId, APPLE_HARDWARE_VIDEO_ENCODER) == 0) {
+        const char* profile =
+            config_get_string(
+                ConfigManager::getInstance().getBasic(),
+                "SimpleOutput", "Profile");
+        if (profile)
+            obs_data_set_string(videoEncData, "profile", profile);
+    }
+
+    obs_encoder_t* videoEncoder =
+        obs_video_encoder_create(encIdOBS, "video-encoder", videoEncData, nullptr);
+    obs_encoder_t* audioEncoder = 
+        obs_audio_encoder_create("ffmpeg_aac", "audio", audioEncData, 0, nullptr);
+
+    obs_data_release(videoEncData);
+    obs_data_release(audioEncData);
+
+    osn::VideoEncoder::Manager::GetInstance().allocate(videoEncoder);
+    osn::AudioEncoder::Manager::GetInstance().allocate(audioEncoder);
+
+    streaming->videoEncoder = videoEncoder;
+    streaming->audioEncoder = audioEncoder;
+    streaming->enableTwitchVOD =
+        config_get_bool(
+            ConfigManager::getInstance().getBasic(),
+            "SimpleOutput", "VodTrackEnabled");
+
+    streaming->delay = new Delay();
+    streaming->delay->enabled =
+        config_get_bool(
+            ConfigManager::getInstance().getBasic(),
+            "Output", "DelayEnable");
+    streaming->delay->delaySec =
+        config_get_int(
+            ConfigManager::getInstance().getBasic(),
+            "Output", "DelaySec");
+    streaming->delay->preserveDelay =
+        config_get_bool(
+            ConfigManager::getInstance().getBasic(),
+            "Output", "DelayPreserve");
+    osn::IDelay::Manager::GetInstance().allocate(streaming->delay);
+
+    streaming->reconnect = new Reconnect();
+    streaming->reconnect->enabled =
+        config_get_bool(
+            ConfigManager::getInstance().getBasic(),
+            "Output", "Reconnect");
+    streaming->reconnect->retryDelay =
+        config_get_uint(
+            ConfigManager::getInstance().getBasic(),
+            "Output", "RetryDelay");
+    streaming->reconnect->maxRetries = 
+        config_get_uint(
+            ConfigManager::getInstance().getBasic(),
+            "Output", "MaxRetries");
+    osn::IReconnect::Manager::GetInstance().allocate(streaming->reconnect);
+
+    streaming->network = new Network();
+    streaming->network->bindIP =
+        config_get_string(
+            ConfigManager::getInstance().getBasic(),
+            "Output", "BindIP");
+    streaming->network->enableDynamicBitrate =
+        config_get_bool(
+            ConfigManager::getInstance().getBasic(),
+            "Output", "DynamicBitrate");
+    streaming->network->enableOptimizations =
+        config_get_bool(
+            ConfigManager::getInstance().getBasic(),
+            "Output", "NewSocketLoopEnable");
+    streaming->network->enableLowLatency =
+        config_get_bool(
+            ConfigManager::getInstance().getBasic(),
+            "Output", "LowLatencyEnable");
+    osn::INetwork::Manager::GetInstance().allocate(streaming->network);
+
+    streaming->service = osn::Service::GetLegacyServiceSettings();
+    osn::Service::Manager::GetInstance().allocate(streaming->service);
+
+    uint64_t uid =
+        osn::ISimpleStreaming::Manager::GetInstance().allocate(streaming);
+    if (uid == UINT64_MAX) {
+        PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Index list is full.");
+    }
+
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+    rval.push_back(ipc::value(uid));
     AUTO_DEBUG;
 }

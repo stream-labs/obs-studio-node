@@ -415,11 +415,7 @@ void osn::Service::GetPassword(
     AUTO_DEBUG;
 }
 
-void osn::Service::GetLegacySettings(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+obs_service_t* osn::Service::GetLegacyServiceSettings()
 {
     obs_data_t* serviceData =
         obs_data_create_from_json_file_safe(
@@ -433,9 +429,17 @@ void osn::Service::GetLegacySettings(
     obs_data_release(settings);
     obs_data_release(serviceData);
 
+    return service;
+}
+
+void osn::Service::GetLegacySettings(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+    obs_service_t* service = GetLegacyServiceSettings();
     if (!service) {
-        if (settings)
-            obs_data_release(settings);
         PRETTY_ERROR_RETURN(ErrorCode::Error, "Failed to create service.");
     }
 
