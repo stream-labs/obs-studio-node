@@ -17,7 +17,6 @@
 ******************************************************************************/
 
 #include "osn-simple-replay-buffer.hpp"
-#include "osn-encoder.hpp"
 #include "osn-audio-encoder.hpp"
 #include "osn-error.hpp"
 #include "shared.hpp"

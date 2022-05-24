@@ -102,6 +102,8 @@ void OBS_service::Register(ipc::server& srv)
 	    "OBS_service_processReplayBufferHotkey", std::vector<ipc::type>{}, OBS_service_processReplayBufferHotkey));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "OBS_service_getLastReplay", std::vector<ipc::type>{}, OBS_service_getLastReplay));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "OBS_service_getLastRecording", std::vector<ipc::type>{}, OBS_service_getLastRecording));
 
 	cls->register_function(std::make_shared<ipc::function>(
 	    "OBS_service_createVirtualWebcam", std::vector<ipc::type>{ipc::type::String}, OBS_service_createVirtualWebcam));
@@ -2188,6 +2190,7 @@ void OBS_service::OBS_service_connectOutputSignals(
 	recordingSignals.push_back(SignalInfo("recording", "start"));
 	recordingSignals.push_back(SignalInfo("recording", "stop"));
 	recordingSignals.push_back(SignalInfo("recording", "stopping"));
+	recordingSignals.push_back(SignalInfo("recording", "wrote"));
 
 	replayBufferSignals.push_back(SignalInfo("replay-buffer", "start"));
 	replayBufferSignals.push_back(SignalInfo("replay-buffer", "stop"));
@@ -2340,11 +2343,39 @@ void OBS_service::OBS_service_getLastReplay(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
+	if (!replayBufferOutput) {
+		PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Invalid replay-buffer ouput.");
+	}
+
 	calldata_t cd = {0};
 
 	proc_handler_t* ph = obs_output_get_proc_handler(replayBufferOutput);
 
-	proc_handler_call(ph, "get_last_replay", &cd);
+	proc_handler_call(ph, "get_last_file", &cd);
+	const char* path = calldata_string(&cd, "path");
+
+	if (path == NULL)
+		path = "";
+
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(path));
+}
+
+void OBS_service::OBS_service_getLastRecording(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	if (!recordingOutput) {
+		PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Invalid recording ouput.");
+	}
+
+	calldata_t cd = {0};
+
+	proc_handler_t* ph = obs_output_get_proc_handler(recordingOutput);
+
+	proc_handler_call(ph, "get_last_file", &cd);
 	const char* path = calldata_string(&cd, "path");
 
 	if (path == NULL)

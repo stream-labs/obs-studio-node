@@ -47,6 +47,7 @@ Napi::Object osn::Transition::Init(Napi::Env env, Napi::Object exports) {
 			InstanceAccessor("configurable", &osn::Transition::CallIsConfigurable, nullptr),
 			InstanceAccessor("properties", &osn::Transition::CallGetProperties, nullptr),
 			InstanceAccessor("settings", &osn::Transition::CallGetSettings, nullptr),
+			InstanceAccessor("slowUncachedSettings", &osn::Transition::CallGetSlowUncachedSettings, nullptr),
 			InstanceAccessor("type", &osn::Transition::CallGetType, nullptr),
 			InstanceAccessor("name", &osn::Transition::CallGetName, &osn::Transition::CallSetName),
 			InstanceAccessor("outputFlags", &osn::Transition::CallGetOutputFlags, nullptr),
@@ -66,6 +67,7 @@ Napi::Object osn::Transition::Init(Napi::Env env, Napi::Object exports) {
 			InstanceMethod("sendMouseWheel", &osn::Transition::CallSendMouseWheel),
 			InstanceMethod("sendFocus", &osn::Transition::CallSendFocus),
 			InstanceMethod("sendKeyClick", &osn::Transition::CallSendKeyClick),
+			InstanceMethod("callHandler", &osn::Transition::CallCallHandler),
 		});
 	exports.Set("Transition", func);
 	osn::Transition::constructor = Napi::Persistent(func);
@@ -314,6 +316,11 @@ Napi::Value osn::Transition::CallGetSettings(const Napi::CallbackInfo& info)
 	return osn::ISource::GetSettings(info, this->sourceId);
 }
 
+Napi::Value osn::Transition::CallGetSlowUncachedSettings(const Napi::CallbackInfo& info)
+{
+	return osn::ISource::GetSlowUncachedSettings(info, this->sourceId);
+}
+
 
 Napi::Value osn::Transition::CallGetType(const Napi::CallbackInfo& info)
 {
@@ -381,6 +388,11 @@ Napi::Value osn::Transition::CallRelease(const Napi::CallbackInfo& info)
 	osn::ISource::Release(info, this->sourceId);
 
 	return info.Env().Undefined();
+}
+
+Napi::Value osn::Transition::CallCallHandler(const Napi::CallbackInfo& info)
+{
+	return osn::ISource::CallHandler(info, this->sourceId);
 }
 
 Napi::Value osn::Transition::CallRemove(const Napi::CallbackInfo& info)

@@ -18,7 +18,6 @@
 
 #include "advanced-streaming.hpp"
 #include "utility.hpp"
-#include "encoder.hpp"
 #include "service.hpp"
 #include "delay.hpp"
 #include "reconnect.hpp"

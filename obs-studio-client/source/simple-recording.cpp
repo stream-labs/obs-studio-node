@@ -18,7 +18,6 @@
 
 #include "simple-recording.hpp"
 #include "utility.hpp"
-#include "encoder.hpp"
 #include "audio-encoder.hpp"
 #include "service.hpp"
 #include "delay.hpp"

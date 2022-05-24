@@ -111,7 +111,9 @@ void osn::Source::Register(ipc::server& srv)
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Source");
 	cls->register_function(
 	    std::make_shared<ipc::function>("GetDefaults", std::vector<ipc::type>{ipc::type::String}, GetTypeDefaults));
-
+	
+	cls->register_function(
+	    std::make_shared<ipc::function>("CallHandler", std::vector<ipc::type>{ipc::type::String}, CallHandler));
 	cls->register_function(
 	    std::make_shared<ipc::function>("Remove", std::vector<ipc::type>{ipc::type::UInt64}, Remove));
 	cls->register_function(
@@ -295,6 +297,47 @@ void osn::Source::GetProperties(
 		MemoryManager::GetInstance().updateSourceCache(src);
 	}
 	obs_data_release(settings);
+	AUTO_DEBUG;
+}
+		
+void osn::Source::CallHandler(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	// Attempt to find the source asked to load.
+	obs_source_t* src = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	if (src == nullptr) {
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
+	}
+	
+	std::string function_name = args[1].value_str.c_str();
+	std::string function_input = args[2].value_str.c_str();
+	
+	calldata_t cd;
+	calldata_init(&cd);
+	calldata_set_string(&cd, "input", function_input.c_str());
+
+	auto procHandler = obs_source_get_proc_handler(src);
+
+	// Call function by name
+	if (proc_handler_call(procHandler, function_name.c_str(), &cd))
+	{
+		std::string result;
+
+		if (const char* str = calldata_string(&cd, "output"))
+			result = str;
+
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+		rval.push_back(ipc::value(result));
+	}
+	else
+	{
+		rval.push_back(ipc::value((uint64_t)ErrorCode::NotFound));
+	}
+
+	calldata_free(&cd);
 	AUTO_DEBUG;
 }
 

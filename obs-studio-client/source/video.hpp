@@ -31,5 +31,8 @@ namespace osn
 
         static Napi::Value skippedFrames(const Napi::CallbackInfo& info);
         static Napi::Value encodedFrames(const Napi::CallbackInfo& info);
+
+        static Napi::Value get(const Napi::CallbackInfo& info);
+        static void set(const Napi::CallbackInfo& info, const Napi::Value &value);
     };
 }

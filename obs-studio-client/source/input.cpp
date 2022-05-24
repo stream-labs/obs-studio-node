@@ -66,6 +66,7 @@ Napi::Object osn::Input::Init(Napi::Env env, Napi::Object exports) {
 			InstanceAccessor("configurable", &osn::Input::CallIsConfigurable, nullptr),
 			InstanceAccessor("properties", &osn::Input::CallGetProperties, nullptr),
 			InstanceAccessor("settings", &osn::Input::CallGetSettings, nullptr),
+			InstanceAccessor("slowUncachedSettings", &osn::Input::CallGetSlowUncachedSettings, nullptr),
 			InstanceAccessor("type", &osn::Input::CallGetType, nullptr),
 			InstanceAccessor("name", &osn::Input::CallGetName, &osn::Input::CallSetName),
 			InstanceAccessor("outputFlags", &osn::Input::CallGetOutputFlags, nullptr),
@@ -90,7 +91,8 @@ Napi::Object osn::Input::Init(Napi::Env env, Napi::Object exports) {
 			InstanceMethod("pause", &osn::Input::Pause),
 			InstanceMethod("restart", &osn::Input::Restart),
 			InstanceMethod("stop", &osn::Input::Stop),
-			InstanceMethod("getMediaState", &osn::Input::GetMediaState)
+			InstanceMethod("getMediaState", &osn::Input::GetMediaState),
+			InstanceMethod("callHandler", &osn::Input::CallCallHandler)
 		});
 	exports.Set("Input", func);
 	osn::Input::constructor = Napi::Persistent(func);
@@ -729,6 +731,11 @@ Napi::Value osn::Input::CallGetSettings(const Napi::CallbackInfo& info)
 	return ret;
 }
 
+Napi::Value osn::Input::CallGetSlowUncachedSettings(const Napi::CallbackInfo& info)
+{
+	return osn::ISource::GetSlowUncachedSettings(info, this->sourceId);
+}
+
 
 Napi::Value osn::Input::CallGetType(const Napi::CallbackInfo& info)
 {
@@ -795,6 +802,11 @@ Napi::Value osn::Input::CallRelease(const Napi::CallbackInfo& info)
 	osn::ISource::Release(info, this->sourceId);
 
 	return info.Env().Undefined();
+}
+
+Napi::Value osn::Input::CallCallHandler(const Napi::CallbackInfo& info)
+{
+	return osn::ISource::CallHandler(info, this->sourceId);
 }
 
 Napi::Value osn::Input::CallRemove(const Napi::CallbackInfo& info)

@@ -17,7 +17,6 @@
 ******************************************************************************/
 
 #include "osn-simple-streaming.hpp"
-#include "osn-encoder.hpp"
 #include "osn-audio-encoder.hpp"
 #include "osn-service.hpp"
 #include "osn-error.hpp"

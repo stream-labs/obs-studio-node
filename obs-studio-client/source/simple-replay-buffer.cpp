@@ -18,7 +18,6 @@
 
 #include "simple-replay-buffer.hpp"
 #include "utility.hpp"
-#include "encoder.hpp"
 #include "audio-encoder.hpp"
 
 Napi::FunctionReference osn::SimpleReplayBuffer::constructor;

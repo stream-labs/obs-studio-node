@@ -169,9 +169,10 @@ export declare const enum EColorFormat {
 export declare const enum EScaleType {
     Default = 0,
     Point = 1,
-    FastBilinear = 2,
+    Bicubic = 2,
     Bilinear = 3,
-    Bicubic = 4
+    Lanczos = 4,
+    Area = 5
 }
 export declare const enum ERangeType {
     Default = 0,
@@ -189,7 +190,13 @@ export declare const enum EVideoFormat {
     BGRA = 7,
     BGRX = 8,
     Y800 = 9,
-    I444 = 10
+    I444 = 10,
+    BGR3 = 11,
+    I422 = 12,
+    I40A = 13,
+    I42A = 14,
+    YUVA = 15,
+    AYUV = 16
 }
 export declare const enum EBoundsType {
     None = 0,
@@ -203,7 +210,8 @@ export declare const enum EBoundsType {
 export declare const enum EColorSpace {
     Default = 0,
     CS601 = 1,
-    CS709 = 2
+    CS709 = 2,
+    CSSRGB = 3
 }
 export declare const enum ESpeakerLayout {
     Unknown = 0,
@@ -238,6 +246,13 @@ export declare const enum ERenderingMode {
     OBS_MAIN_RENDERING = 0,
     OBS_STREAMING_RENDERING = 1,
     OBS_RECORDING_RENDERING = 2
+}
+export declare const enum EIPCError {
+    STILL_RUNNING = 259,
+    VERSION_MISMATCH = 252,
+    OTHER_ERROR = 253,
+    MISSING_DEPENDENCY = 254,
+    NORMAL_EXIT = 0
 }
 export declare const Global: IGlobal;
 export declare const Video: IVideo;
@@ -292,7 +307,7 @@ export interface ICropInfo {
 export interface IIPC {
     setServerPath(binaryPath: string, workingDirectoryPath?: string): void;
     connect(uri: string): void;
-    host(uri: string): void;
+    host(uri: string): EIPCError;
     disconnect(): void;
 }
 export interface IGlobal {
@@ -536,6 +551,8 @@ export interface ISource extends IConfigurable, IReleasable {
     flags: ESourceFlags;
     muted: boolean;
     enabled: boolean;
+    readonly slowUncachedSettings: ISettings;
+    callHandler(fuction_name: string, fuction_input: string): Object;
 }
 export interface IFaderFactory {
     create(type: EFaderType): IFader;
@@ -583,9 +600,22 @@ export interface IDisplay {
     setResizeBoxOuterColor(r: number, g: number, b: number, a: number): void;
     setResizeBoxInnerColor(r: number, g: number, b: number, a: number): void;
 }
+export interface VideoContext {
+    fpsNum: number;
+    fpsDen: number;
+    baseWidth: number;
+    baseHeight: number;
+    outputWidth: number;
+    outputHeight: number;
+    outputFormat: EVideoFormat;
+    colorspace: EColorSpace;
+    range: ERangeType;
+    scaleType: EScaleType;
+}
 export interface IVideo {
     readonly skippedFrames: number;
     readonly encodedFrames: number;
+    videoContext: VideoContext;
 }
 export interface IModuleFactory extends IFactoryTypes {
     open(binPath: string, dataPath: string): IModule;

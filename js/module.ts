@@ -231,9 +231,10 @@ export const enum EColorFormat {
 export const enum EScaleType {
     Default,
     Point,
-    FastBilinear,
+    Bicubic,
     Bilinear,
-    Bicubic
+    Lanczos,
+    Area
 }
 
 export const enum ERangeType {
@@ -253,7 +254,13 @@ export const enum EVideoFormat {
     BGRA,
     BGRX,
     Y800,
-    I444
+    I444,
+    BGR3,
+    I422,
+    I40A,
+    I42A,
+    YUVA,
+    AYUV
 }
 
 export const enum EBoundsType {
@@ -269,7 +276,8 @@ export const enum EBoundsType {
 export const enum EColorSpace {
     Default,
     CS601,
-    CS709
+    CS709,
+    CSSRGB
 }
 
 export const enum ESpeakerLayout {
@@ -308,6 +316,14 @@ export const enum ERenderingMode {
     OBS_MAIN_RENDERING = 0,
 	OBS_STREAMING_RENDERING = 1,
 	OBS_RECORDING_RENDERING = 2
+}
+
+export const enum EIPCError {
+    STILL_RUNNING = 259,
+    VERSION_MISMATCH = 252,
+    OTHER_ERROR = 253,
+    MISSING_DEPENDENCY = 254,
+    NORMAL_EXIT = 0,
 }
 
 export const Global: IGlobal = obs.Global;
@@ -413,7 +429,7 @@ export interface IIPC {
 	 * @throws TypeError if a parameter is of invalid type.
 	 * @throws Error if it failed to host and connect.
      */
-	host(uri: string): void;
+	host(uri: string): EIPCError;
 	
     /**
      * Disconnect from a server.
@@ -1189,6 +1205,17 @@ export interface ISource extends IConfigurable, IReleasable {
      * Easy way to disable a filter.
      */
     enabled: boolean;
+	
+    /**
+     * Function to get latest version of settings
+	 * Expensive, shouldn't be used unless sure
+     */
+    readonly slowUncachedSettings: ISettings;
+
+    /** 
+     * Executes a named function from obs internals
+    */
+     callHandler(fuction_name: string, fuction_input: string): Object;
 }
 
 export interface IFaderFactory {
@@ -1334,9 +1361,21 @@ export interface IDisplay {
     setResizeBoxInnerColor(r: number, g: number, b: number, a: number): void;
 }
 
+export interface VideoContext {
+    fpsNum: number;
+    fpsDen: number;
+    baseWidth: number;
+    baseHeight: number;
+    outputWidth: number;
+    outputHeight: number;
+    outputFormat: EVideoFormat;
+    colorspace: EColorSpace;
+    range: ERangeType;
+    scaleType: EScaleType;
+}
+
 /**
  * This represents a video_t structure from within libobs
- * For now, only the global context functions are implemented
  */
 export interface IVideo {
 	
@@ -1349,6 +1388,11 @@ export interface IVideo {
      * Number of total encoded frames
      */
     readonly encodedFrames: number;
+
+    /**
+     * Current video context
+     */
+    videoContext: VideoContext;
 }
 
 export interface IModuleFactory extends IFactoryTypes {
