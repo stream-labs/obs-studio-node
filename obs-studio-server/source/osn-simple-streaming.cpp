@@ -447,7 +447,9 @@ void osn::ISimpleStreaming::GetLegacySettings(
     }
 
     streaming->enforceServiceBitrate =
-        config_get_bool(ConfigManager::getInstance().getBasic(), "SimpleOutput", "EnforceBitrate");
+        config_get_bool(
+            ConfigManager::getInstance().getBasic(),
+            "SimpleOutput", "EnforceBitrate");
 
     obs_data_set_string(audioEncData, "rate_control", "CBR");
     obs_data_set_int(audioEncData, "bitrate",

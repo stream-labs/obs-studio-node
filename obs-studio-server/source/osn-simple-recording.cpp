@@ -67,6 +67,8 @@ void osn::ISimpleRecording::Register(ipc::server& srv)
         "SetLowCPU",
         std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32},
         SetLowCPU));
+    cls->register_function(std::make_shared<ipc::function>(
+        "GetLegacySettings", std::vector<ipc::type>{}, GetLegacySettings));
 
     srv.register_collection(cls);
 }
@@ -469,5 +471,106 @@ void osn::ISimpleRecording::SetLowCPU(
     recording->lowCPU = args[1].value_union.ui32;
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+    AUTO_DEBUG;
+}
+
+void osn::ISimpleRecording::GetLegacySettings(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+    osn::SimpleRecording* recording =
+        new osn::SimpleRecording();
+
+	std::string simpleQuality =
+	    config_get_string(
+            ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecQuality");
+    if (simpleQuality.compare("Stream") == 0) {
+        recording->quality = RecQuality::Stream;
+    } else if (simpleQuality.compare("Small") == 0) {
+        recording->quality = RecQuality::HighQuality;
+    } else if (simpleQuality.compare("HQ") == 0) {
+        recording->quality = RecQuality::HigherQuality;
+    } else if (simpleQuality.compare("Lossless") == 0) {
+        recording->quality = RecQuality::Lossless;
+    } else {
+        recording->quality = RecQuality::Stream;
+    }
+
+    recording->path =
+        config_get_string(
+            ConfigManager::getInstance().getBasic(),
+            "SimpleOutput", "FilePath");
+    recording->format =
+        config_get_string(
+            ConfigManager::getInstance().getBasic(),
+            "SimpleOutput", "RecFormat");
+    recording->muxerSettings =
+        config_get_string(
+            ConfigManager::getInstance().getBasic(),
+            "SimpleOutput", "MuxerCustom");
+    recording->noSpace =
+        config_get_bool(
+            ConfigManager::getInstance().getBasic(),
+            "SimpleOutput", "FileNameWithoutSpace");
+    recording->fileFormat =
+        config_get_string(
+            ConfigManager::getInstance().getBasic(),
+            "Output", "FilenameFormatting");
+    recording->overwrite =
+        config_get_bool(
+            ConfigManager::getInstance().getBasic(),
+            "Output", "OverwriteIfExists");
+
+    const char* encId =
+        config_get_string(
+            ConfigManager::getInstance().getBasic(),
+            "SimpleOutput", "RecEncoder");
+    const char* encIdOBS = nullptr;
+    recording->lowCPU = false;
+
+    if (strcmp(encId, SIMPLE_ENCODER_X264) == 0 ||
+        strcmp(encId, ADVANCED_ENCODER_X264) == 0) {
+        encIdOBS = "obs_x264";
+    } else if (strcmp(encId, SIMPLE_ENCODER_X264_LOWCPU) == 0) {
+        encIdOBS = "obs_x264";
+        recording->lowCPU = true;
+    } else if (strcmp(encId, SIMPLE_ENCODER_QSV) == 0 ||
+        strcmp(encId, ADVANCED_ENCODER_QSV) == 0) {
+        encIdOBS = "obs_qsv11";
+    } else if (strcmp(encId, SIMPLE_ENCODER_AMD) == 0 ||
+        strcmp(encId, ADVANCED_ENCODER_AMD) == 0) {
+        encIdOBS = "amd_amf_h264";
+    } else if (strcmp(encId, SIMPLE_ENCODER_NVENC) == 0 ||
+        strcmp(encId, ADVANCED_ENCODER_NVENC) == 0) {
+        encIdOBS = "ffmpeg_nvenc";
+    } else if (strcmp(encId, ENCODER_NEW_NVENC) == 0) {
+        encIdOBS = "jim_nvenc";
+    }
+
+    if (recording->quality != RecQuality::Stream) {
+        recording->videoEncoder =
+            obs_video_encoder_create(
+                encIdOBS, "video-encoder", nullptr, nullptr);
+        osn::VideoEncoder::Manager::GetInstance().allocate(recording->videoEncoder);
+    }
+
+    obs_data_t* audioEncSettings = obs_data_create();
+    obs_data_set_int(audioEncSettings, "bitrate", 192); // Hardcoded default value
+    recording->audioEncoder =
+        obs_audio_encoder_create(
+            "ffmpeg_aac", "audio-encoder", audioEncSettings, 0, nullptr);
+    obs_data_release(audioEncSettings);
+    osn::AudioEncoder::Manager::GetInstance().allocate(recording->audioEncoder);
+
+    uint64_t uid =
+        osn::ISimpleRecording::Manager::GetInstance().allocate(recording);
+    if (uid == UINT64_MAX) {
+        PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Index list is full.");
+    }
+
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+    rval.push_back(ipc::value(uid));
     AUTO_DEBUG;
 }

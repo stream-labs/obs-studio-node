@@ -80,7 +80,11 @@ Napi::Object osn::SimpleRecording::Init(Napi::Env env, Napi::Object exports) {
                 &osn::SimpleRecording::SetLowCPU),
 
             InstanceMethod("start", &osn::SimpleRecording::Start),
-            InstanceMethod("stop", &osn::SimpleRecording::Stop)
+            InstanceMethod("stop", &osn::SimpleRecording::Stop),
+
+            StaticAccessor(
+                "legacySettings",
+                &osn::SimpleRecording::GetLegacySettings, nullptr)
         });
 
     exports.Set("SimpleRecording", func);
@@ -219,4 +223,25 @@ void osn::SimpleRecording::SetLowCPU(const Napi::CallbackInfo& info, const Napi:
         "SimpleRecording",
         "SetLowCPU",
         {ipc::value(this->uid), ipc::value(value.ToBoolean().Value())});
+}
+
+Napi::Value osn::SimpleRecording::GetLegacySettings(
+    const Napi::CallbackInfo& info) {
+    auto conn = GetConnection(info);
+    if (!conn)
+        return info.Env().Undefined();
+
+    std::vector<ipc::value> response =
+		conn->call_synchronous_helper(
+            "SimpleRecording", "GetLegacySettings", {});
+
+    if (!ValidateResponse(info, response))
+        return info.Env().Undefined();
+
+    auto instance =
+        osn::SimpleRecording::constructor.New({
+            Napi::Number::New(info.Env(), response[1].value_union.ui64)
+            });
+
+    return instance;
 }

@@ -39,5 +39,7 @@ namespace osn
         void SetAudioEncoder(const Napi::CallbackInfo& info, const Napi::Value& value);
         Napi::Value GetLowCPU(const Napi::CallbackInfo& info);
         void SetLowCPU(const Napi::CallbackInfo& info, const Napi::Value& value);
+
+        static Napi::Value GetLegacySettings(const Napi::CallbackInfo& info);
     };
 }

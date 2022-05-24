@@ -1652,6 +1652,7 @@ export interface IAdvancedRecording extends IRecording {
 
 export interface ISimpleRecordingFactory {
     create(): ISimpleRecording;
+    readonly legacySettings: ISimpleRecording;
 }
 
 export interface IAdvancedRecordingFactory {
