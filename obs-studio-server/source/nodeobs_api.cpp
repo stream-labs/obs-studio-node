@@ -39,6 +39,7 @@
 #include "osn-reconnect.hpp"
 #include "osn-network.hpp"
 #include "osn-audio-track.hpp"
+#include "memory-manager.h"
 
 #include <sys/types.h>
 
@@ -123,6 +124,9 @@ std::chrono::high_resolution_clock::time_point         start_wait_acknowledge;
 
 ipc::server* g_server = nullptr;
 
+bool browserAccel = true;
+bool mediaFileCaching = true;
+
 void OBS_API::Register(ipc::server& srv)
 {
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("API");
@@ -146,6 +150,14 @@ void OBS_API::Register(ipc::server& srv)
 	    ProcessHotkeyStatus));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "SetUsername", std::vector<ipc::type>{ipc::type::String}, SetUsername));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "SetBrowserAcceleration",
+		std::vector<ipc::type>{ipc::type::UInt32},
+		SetBrowserAcceleration));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "SetMediaFileCaching",
+		std::vector<ipc::type>{ipc::type::UInt32},
+		SetMediaFileCaching));
 
 	srv.register_collection(cls);
 	g_server = &srv;
@@ -853,9 +865,8 @@ void OBS_API::OBS_API_initAPI(
 	ConfigManager::getInstance().setAppdataPath(appdata);
 
 	/* Set global private settings for whomever it concerns */
-	bool        browserHWAccel   = config_get_bool(ConfigManager::getInstance().getGlobal(), "General", "BrowserHWAccel");
 	obs_data_t* private_settings = obs_data_create();
-	obs_data_set_bool(private_settings, "BrowserHWAccel", browserHWAccel);
+	obs_data_set_bool(private_settings, "BrowserHWAccel", browserAccel);
 	obs_apply_private_data(private_settings);
 	obs_data_release(private_settings);
 
@@ -2029,4 +2040,37 @@ std::vector<std::pair<uint32_t, uint32_t>> OBS_API::availableResolutions(void)
 	resolutions = g_util_osx->getAvailableScreenResolutions();
 #endif
 	return resolutions;
+}
+
+void OBS_API::SetBrowserAcceleration(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	browserAccel = args[0].value_union.ui32;
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
+}
+
+void OBS_API::SetMediaFileCaching(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	mediaFileCaching = args[0].value_union.ui32;
+	MemoryManager::GetInstance().updateSourcesCache();
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
+}
+
+bool OBS_API::getBrowserAcceleration()
+{
+	return browserAccel;
+}
+
+bool OBS_API::getMediaFileCaching()
+{
+	return mediaFileCaching;
 }
