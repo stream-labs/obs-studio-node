@@ -111,6 +111,10 @@ void osn::Service::Register(ipc::server& srv)
         std::make_shared<ipc::function>(
             "GetLegacySettings",
             std::vector<ipc::type>{}, GetLegacySettings));
+    cls->register_function(
+        std::make_shared<ipc::function>(
+            "SetLegacySettings",
+            std::vector<ipc::type>{}, SetLegacySettings));
 
     srv.register_collection(cls);
 }
@@ -450,6 +454,36 @@ void osn::Service::GetLegacySettings(
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
     rval.push_back(ipc::value(uid));
+    AUTO_DEBUG;
+}
+
+void osn::Service::SetLegacySettings(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+    obs_service_t* service =
+        osn::Service::Manager::GetInstance().find(args[0].value_union.ui64);
+    if (!service) {
+        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Service reference is not valid.");
+    }
+
+    obs_data_t* settings = obs_service_get_settings(service);
+	obs_data_t* serviceData = obs_data_create();
+	obs_data_set_string(serviceData, "type", obs_service_get_type(service));
+	obs_data_set_obj(serviceData, "settings", settings);
+
+	if (!obs_data_save_json_safe(
+        serviceData,
+        ConfigManager::getInstance().getService().c_str(), "tmp", "bak")) {
+		blog(LOG_WARNING, "Failed to save service");
+	}
+
+    obs_data_release(settings);
+    obs_data_release(serviceData);
+
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
     AUTO_DEBUG;
 }
 

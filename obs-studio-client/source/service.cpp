@@ -46,7 +46,8 @@ Napi::Object osn::Service::Init(Napi::Env env, Napi::Object exports) {
             InstanceAccessor("username", &osn::Service::GetUsername, nullptr),
             InstanceAccessor("password", &osn::Service::GetPassword, nullptr),
 
-            StaticAccessor("legacySettings", &osn::Service::GetLegacySettings, nullptr)
+            StaticAccessor("legacySettings",
+                &osn::Service::GetLegacySettings, &osn::Service::SetLegacySettings)
         });
     exports.Set("Service", func);
     osn::Service::constructor = Napi::Persistent(func);
@@ -329,4 +330,25 @@ Napi::Value osn::Service::GetLegacySettings(const Napi::CallbackInfo& info) {
             });
 
     return instance;
+}
+
+void osn::Service::SetLegacySettings(const Napi::CallbackInfo& info, const Napi::Value &value) {
+    osn::Service* service =
+        Napi::ObjectWrap<osn::Service>::Unwrap(value.ToObject());
+
+    if (!service) {
+        Napi::TypeError::New(info.Env(),
+            "Invalid service argument").ThrowAsJavaScriptException();
+        return;
+    }
+
+    auto conn = GetConnection(info);
+    if (!conn)
+        return;
+
+    std::vector<ipc::value> response =
+		conn->call_synchronous_helper("Service", "SetLegacySettings", {service->uid});
+
+    if (!ValidateResponse(info, response))
+        return;
 }

@@ -666,7 +666,7 @@ export interface IServiceFactory {
     types(): string[];
     create(id: string, name: string, settings?: ISettings): IService;
     serviceContext: IService;
-    readonly legacySettings: IService;
+    legacySettings: IService;
 }
 export interface IService {
     readonly name: string;
