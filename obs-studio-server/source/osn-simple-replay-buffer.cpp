@@ -309,7 +309,7 @@ void osn::ISimpleReplayBuffer::GetLegacySettings(
         config_get_string(
             ConfigManager::getInstance().getBasic(),
             "SimpleOutput", "RecRBSuffix");
-    replayBuffer->duration = 
+    replayBuffer->duration =
         config_get_int(
             ConfigManager::getInstance().getBasic(),
             "SimpleOutput", "RecRBTime");

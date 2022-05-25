@@ -87,7 +87,12 @@ Napi::Object osn::AdvancedReplayBuffer::Init(Napi::Env env, Napi::Object exports
             InstanceMethod("stop", &osn::AdvancedReplayBuffer::Stop),
 
             InstanceMethod("save", &osn::AdvancedReplayBuffer::Save),
-            InstanceMethod("lastReplay", &osn::AdvancedReplayBuffer::GetLastReplay)
+            InstanceMethod("lastReplay",
+                &osn::AdvancedReplayBuffer::GetLastReplay),
+
+            StaticAccessor(
+                "legacySettings",
+                &osn::AdvancedReplayBuffer::GetLegacySettings, nullptr)
         });
 
     exports.Set("AdvancedReplayBuffer", func);
@@ -158,4 +163,25 @@ void osn::AdvancedReplayBuffer::SetMixer(
         className,
         "SetMixer",
         {ipc::value(this->uid), ipc::value(value.ToNumber().Uint32Value())});
+}
+
+Napi::Value osn::AdvancedReplayBuffer::GetLegacySettings(
+    const Napi::CallbackInfo& info) {
+    auto conn = GetConnection(info);
+    if (!conn)
+        return info.Env().Undefined();
+
+    std::vector<ipc::value> response =
+		conn->call_synchronous_helper(
+            "AdvancedReplayBuffer", "GetLegacySettings", {});
+
+    if (!ValidateResponse(info, response))
+        return info.Env().Undefined();
+
+    auto instance =
+        osn::AdvancedReplayBuffer::constructor.New({
+            Napi::Number::New(info.Env(), response[1].value_union.ui64)
+            });
+
+    return instance;
 }

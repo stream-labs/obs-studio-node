@@ -1688,6 +1688,7 @@ export interface ISimpleReplayBufferFactory {
 
 export interface IAdvancedReplayBufferFactory {
     create(): IAdvancedReplayBuffer;
+    readonly legacySettings: IAdvancedReplayBufferFactory;
 }
 
 export interface IDelay {

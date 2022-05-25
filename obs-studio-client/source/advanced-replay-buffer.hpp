@@ -35,5 +35,7 @@ namespace osn
 
         Napi::Value GetMixer(const Napi::CallbackInfo& info);
         void SetMixer(const Napi::CallbackInfo& info, const Napi::Value& value);
+
+        static Napi::Value GetLegacySettings(const Napi::CallbackInfo& info);
     };
 }

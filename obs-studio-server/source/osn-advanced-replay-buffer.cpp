@@ -90,6 +90,8 @@ void osn::IAdvancedReplayBuffer::Register(ipc::server& srv)
         "Stop", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32}, Stop));
     cls->register_function(std::make_shared<ipc::function>(
         "Query", std::vector<ipc::type>{ipc::type::UInt64}, Query));
+    cls->register_function(std::make_shared<ipc::function>(
+        "GetLegacySettings", std::vector<ipc::type>{}, GetLegacySettings));
 
     srv.register_collection(cls);
 }
@@ -257,5 +259,74 @@ void osn::IAdvancedReplayBuffer::Stop(
     obs_output_stop(replayBuffer->output);
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+    AUTO_DEBUG;
+}
+
+void osn::IAdvancedReplayBuffer::GetLegacySettings(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+    osn::AdvancedReplayBuffer* replayBuffer =
+        new osn::AdvancedReplayBuffer();
+
+    replayBuffer->path =
+        config_get_string(
+            ConfigManager::getInstance().getBasic(),
+            "AdvOut", "RecFilePath");
+    replayBuffer->format =
+        config_get_string(
+            ConfigManager::getInstance().getBasic(),
+            "AdvOut", "RecFormat");
+    replayBuffer->muxerSettings =
+        config_get_string(
+            ConfigManager::getInstance().getBasic(),
+            "AdvOut", "RecMuxerCustom");
+    replayBuffer->noSpace =
+        config_get_bool(
+            ConfigManager::getInstance().getBasic(),
+            "AdvOut", "FileNameWithoutSpace");
+    replayBuffer->fileFormat =
+        config_get_string(
+            ConfigManager::getInstance().getBasic(),
+            "Output", "FilenameFormatting");
+    replayBuffer->overwrite =
+        config_get_bool(
+            ConfigManager::getInstance().getBasic(),
+            "Output", "OverwriteIfExists");
+
+    replayBuffer->prefix =
+        config_get_string(
+            ConfigManager::getInstance().getBasic(),
+            "SimpleOutput", "RecRBPrefix");
+    replayBuffer->suffix =
+        config_get_string(
+            ConfigManager::getInstance().getBasic(),
+            "SimpleOutput", "RecRBSuffix");
+    replayBuffer->duration =
+        config_get_int(
+            ConfigManager::getInstance().getBasic(),
+            "AdvOut", "RecRBTime");
+
+    replayBuffer->mixer =
+        config_get_int(
+            ConfigManager::getInstance().getBasic(),
+            "AdvOut", "RecTracks");
+
+    replayBuffer->usesStream =
+        config_get_bool(
+            ConfigManager::getInstance().getBasic(),
+            "AdvOut", "replayBufferUseStreamOutput");
+
+    uint64_t uid =
+        osn::IAdvancedReplayBuffer::Manager::GetInstance().
+            allocate(replayBuffer);
+    if (uid == UINT64_MAX) {
+        PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Index list is full.");
+    }
+
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+    rval.push_back(ipc::value(uid));
     AUTO_DEBUG;
 }
