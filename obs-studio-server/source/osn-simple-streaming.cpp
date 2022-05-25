@@ -383,14 +383,8 @@ void osn::ISimpleStreaming::Stop(
     AUTO_DEBUG;
 }
 
-void osn::ISimpleStreaming::GetLegacySettings(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+obs_encoder_t* osn::ISimpleStreaming::GetLegacyVideoEncoderSettings()
 {
-    osn::SimpleStreaming* streaming =
-        new osn::SimpleStreaming();
     const char* encId =
         config_get_string(
             ConfigManager::getInstance().getBasic(),
@@ -399,13 +393,12 @@ void osn::ISimpleStreaming::GetLegacySettings(
     const char* encIdOBS = nullptr;
 
     obs_data_t* videoEncData = obs_data_create();
-    obs_data_t* audioEncData = obs_data_create();
-
     obs_data_set_string(videoEncData, "rate_control", "CBR");
     obs_data_set_int(videoEncData, "bitrate",
         config_get_uint(
             ConfigManager::getInstance().getBasic(),
             "SimpleOutput", "VBitrate"));
+
     bool advanced = 
         config_get_bool(
             ConfigManager::getInstance().getBasic(),
@@ -446,25 +439,16 @@ void osn::ISimpleStreaming::GetLegacySettings(
         obs_data_set_string(videoEncData, "x264opts", custom);
     }
 
-    streaming->enforceServiceBitrate =
-        config_get_bool(
-            ConfigManager::getInstance().getBasic(),
-            "SimpleOutput", "EnforceBitrate");
+    bool enforceServiceBitrate =
+            config_get_bool(
+                ConfigManager::getInstance().getBasic(),
+                "SimpleOutput", "EnforceBitrate");
 
-    obs_data_set_string(audioEncData, "rate_control", "CBR");
-    obs_data_set_int(audioEncData, "bitrate",
-        FindClosestAvailableAACBitrate(
-            config_get_uint(ConfigManager::getInstance().getBasic(),
-            "SimpleOutput", "ABitrate")));
-
-    if (advanced && !streaming->enforceServiceBitrate) {
+    if (advanced && !enforceServiceBitrate) {
         obs_data_set_int(videoEncData, "bitrate",
             config_get_uint(
             ConfigManager::getInstance().getBasic(),
             "SimpleOutput", "VBitrate"));
-        obs_data_set_int(audioEncData, "bitrate",
-            config_get_uint(ConfigManager::getInstance().getBasic(),
-            "SimpleOutput", "ABitrate"));
     }
 
     if (strcmp(encId, APPLE_SOFTWARE_VIDEO_ENCODER) == 0 ||
@@ -477,19 +461,67 @@ void osn::ISimpleStreaming::GetLegacySettings(
             obs_data_set_string(videoEncData, "profile", profile);
     }
 
-    obs_encoder_t* videoEncoder =
-        obs_video_encoder_create(encIdOBS, "video-encoder", videoEncData, nullptr);
-    obs_encoder_t* audioEncoder = 
-        obs_audio_encoder_create("ffmpeg_aac", "audio", audioEncData, 0, nullptr);
 
+    obs_encoder_t* videoEncoder =
+        obs_video_encoder_create(
+            encIdOBS, "video-encoder", videoEncData, nullptr);
     obs_data_release(videoEncData);
+
+    return videoEncoder;
+}
+
+obs_encoder_t* osn::ISimpleStreaming::GetLegacyAudioEncoderSettings()
+{
+    obs_data_t* audioEncData = obs_data_create();
+    obs_data_set_string(audioEncData, "rate_control", "CBR");
+    obs_data_set_int(audioEncData, "bitrate",
+        FindClosestAvailableAACBitrate(
+            config_get_uint(ConfigManager::getInstance().getBasic(),
+            "SimpleOutput", "ABitrate")));
+
+    bool advanced = 
+        config_get_bool(
+            ConfigManager::getInstance().getBasic(),
+            "SimpleOutput", "UseAdvanced");
+
+
+    bool enforceServiceBitrate =
+        config_get_bool(
+            ConfigManager::getInstance().getBasic(),
+            "SimpleOutput", "EnforceBitrate");
+
+
+    if (advanced && !enforceServiceBitrate) {
+        obs_data_set_int(audioEncData, "bitrate",
+            config_get_uint(ConfigManager::getInstance().getBasic(),
+            "SimpleOutput", "ABitrate"));
+    }
+
+    obs_encoder_t* audioEncoder = 
+        obs_audio_encoder_create(
+            "ffmpeg_aac", "audio", audioEncData, 0, nullptr);
     obs_data_release(audioEncData);
 
-    osn::VideoEncoder::Manager::GetInstance().allocate(videoEncoder);
-    osn::AudioEncoder::Manager::GetInstance().allocate(audioEncoder);
+    return audioEncoder;
+}
 
-    streaming->videoEncoder = videoEncoder;
-    streaming->audioEncoder = audioEncoder;
+void osn::ISimpleStreaming::GetLegacySettings(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+    osn::SimpleStreaming* streaming =
+        new osn::SimpleStreaming();
+
+    streaming->videoEncoder = GetLegacyVideoEncoderSettings();;
+    osn::VideoEncoder::Manager::GetInstance().
+        allocate(streaming->videoEncoder);
+
+    streaming->audioEncoder = GetLegacyAudioEncoderSettings();
+    osn::AudioEncoder::Manager::GetInstance().
+        allocate(streaming->audioEncoder);
+
     streaming->enableTwitchVOD =
         config_get_bool(
             ConfigManager::getInstance().getBasic(),

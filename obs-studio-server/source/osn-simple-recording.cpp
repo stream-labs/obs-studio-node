@@ -474,6 +474,59 @@ void osn::ISimpleRecording::SetLowCPU(
     AUTO_DEBUG;
 }
 
+obs_encoder_t* osn::ISimpleRecording::GetLegacyVideoEncoderSettings()
+{
+    obs_encoder_t* videoEncoder = nullptr;
+
+	std::string simpleQuality =
+	    config_get_string(
+            ConfigManager::getInstance().getBasic(),
+            "SimpleOutput", "RecQuality");
+
+    const char* encId =
+        config_get_string(
+            ConfigManager::getInstance().getBasic(),
+            "SimpleOutput", "RecEncoder");
+    const char* encIdOBS = nullptr;
+    if (strcmp(encId, SIMPLE_ENCODER_X264) == 0 ||
+        strcmp(encId, ADVANCED_ENCODER_X264) == 0) {
+        encIdOBS = "obs_x264";
+    } else if (strcmp(encId, SIMPLE_ENCODER_X264_LOWCPU) == 0) {
+        encIdOBS = "obs_x264";
+    } else if (strcmp(encId, SIMPLE_ENCODER_QSV) == 0 ||
+        strcmp(encId, ADVANCED_ENCODER_QSV) == 0) {
+        encIdOBS = "obs_qsv11";
+    } else if (strcmp(encId, SIMPLE_ENCODER_AMD) == 0 ||
+        strcmp(encId, ADVANCED_ENCODER_AMD) == 0) {
+        encIdOBS = "amd_amf_h264";
+    } else if (strcmp(encId, SIMPLE_ENCODER_NVENC) == 0 ||
+        strcmp(encId, ADVANCED_ENCODER_NVENC) == 0) {
+        encIdOBS = "ffmpeg_nvenc";
+    } else if (strcmp(encId, ENCODER_NEW_NVENC) == 0) {
+        encIdOBS = "jim_nvenc";
+    }
+
+    if (simpleQuality.compare("Stream") != 0) {
+        videoEncoder =
+            obs_video_encoder_create(
+                encIdOBS, "video-encoder", nullptr, nullptr);
+    }
+
+    return videoEncoder;
+}
+
+obs_encoder_t* osn::ISimpleRecording::GetLegacyAudioEncoderSettings()
+{
+    obs_data_t* audioEncSettings = obs_data_create();
+    obs_data_set_int(audioEncSettings, "bitrate", 192); // Hardcoded default value
+    obs_encoder_t* audioEncoder =
+        obs_audio_encoder_create(
+            "ffmpeg_aac", "audio-encoder", audioEncSettings, 0, nullptr);
+    obs_data_release(audioEncSettings);
+
+    return audioEncoder;
+}
+
 void osn::ISimpleRecording::GetLegacySettings(
     void*                          data,
     const int64_t                  id,
@@ -527,41 +580,18 @@ void osn::ISimpleRecording::GetLegacySettings(
         config_get_string(
             ConfigManager::getInstance().getBasic(),
             "SimpleOutput", "RecEncoder");
-    const char* encIdOBS = nullptr;
     recording->lowCPU = false;
-
-    if (strcmp(encId, SIMPLE_ENCODER_X264) == 0 ||
-        strcmp(encId, ADVANCED_ENCODER_X264) == 0) {
-        encIdOBS = "obs_x264";
-    } else if (strcmp(encId, SIMPLE_ENCODER_X264_LOWCPU) == 0) {
-        encIdOBS = "obs_x264";
+    if (strcmp(encId, SIMPLE_ENCODER_X264_LOWCPU) == 0)
         recording->lowCPU = true;
-    } else if (strcmp(encId, SIMPLE_ENCODER_QSV) == 0 ||
-        strcmp(encId, ADVANCED_ENCODER_QSV) == 0) {
-        encIdOBS = "obs_qsv11";
-    } else if (strcmp(encId, SIMPLE_ENCODER_AMD) == 0 ||
-        strcmp(encId, ADVANCED_ENCODER_AMD) == 0) {
-        encIdOBS = "amd_amf_h264";
-    } else if (strcmp(encId, SIMPLE_ENCODER_NVENC) == 0 ||
-        strcmp(encId, ADVANCED_ENCODER_NVENC) == 0) {
-        encIdOBS = "ffmpeg_nvenc";
-    } else if (strcmp(encId, ENCODER_NEW_NVENC) == 0) {
-        encIdOBS = "jim_nvenc";
-    }
 
     if (recording->quality != RecQuality::Stream) {
-        recording->videoEncoder =
-            obs_video_encoder_create(
-                encIdOBS, "video-encoder", nullptr, nullptr);
-        osn::VideoEncoder::Manager::GetInstance().allocate(recording->videoEncoder);
+        recording->videoEncoder = GetLegacyVideoEncoderSettings();
+        osn::VideoEncoder::Manager::GetInstance().
+            allocate(recording->videoEncoder);
     }
 
-    obs_data_t* audioEncSettings = obs_data_create();
-    obs_data_set_int(audioEncSettings, "bitrate", 192); // Hardcoded default value
     recording->audioEncoder =
-        obs_audio_encoder_create(
-            "ffmpeg_aac", "audio-encoder", audioEncSettings, 0, nullptr);
-    obs_data_release(audioEncSettings);
+        GetLegacyAudioEncoderSettings();
     osn::AudioEncoder::Manager::GetInstance().allocate(recording->audioEncoder);
 
     uint64_t uid =

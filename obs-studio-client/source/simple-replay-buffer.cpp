@@ -83,7 +83,12 @@ Napi::Object osn::SimpleReplayBuffer::Init(Napi::Env env, Napi::Object exports) 
             InstanceMethod("stop", &osn::SimpleReplayBuffer::Stop),
 
             InstanceMethod("save", &osn::SimpleReplayBuffer::Save),
-            InstanceMethod("lastReplay", &osn::SimpleReplayBuffer::GetLastReplay)
+            InstanceMethod("lastReplay",
+                &osn::SimpleReplayBuffer::GetLastReplay),
+
+            StaticAccessor(
+                "legacySettings",
+                &osn::SimpleReplayBuffer::GetLegacySettings, nullptr)
         });
 
     exports.Set("SimpleReplayBuffer", func);
@@ -166,4 +171,25 @@ void osn::SimpleReplayBuffer::SetAudioEncoder(const Napi::CallbackInfo& info, co
         className,
         "SetAudioEncoder",
         {ipc::value(this->uid), ipc::value(encoder->uid)});
+}
+
+Napi::Value osn::SimpleReplayBuffer::GetLegacySettings(
+    const Napi::CallbackInfo& info) {
+    auto conn = GetConnection(info);
+    if (!conn)
+        return info.Env().Undefined();
+
+    std::vector<ipc::value> response =
+		conn->call_synchronous_helper(
+            "SimpleReplayBuffer", "GetLegacySettings", {});
+
+    if (!ValidateResponse(info, response))
+        return info.Env().Undefined();
+
+    auto instance =
+        osn::SimpleReplayBuffer::constructor.New({
+            Napi::Number::New(info.Env(), response[1].value_union.ui64)
+            });
+
+    return instance;
 }

@@ -53,7 +53,7 @@ namespace osn
         std::string prefix;
         std::string suffix;
         bool usesStream;
-         obs_encoder_t* videoEncoder;
+        obs_encoder_t* videoEncoder;
     };
 
     class IReplayBuffer: public IFileOutput

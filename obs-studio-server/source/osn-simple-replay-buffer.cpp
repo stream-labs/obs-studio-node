@@ -22,6 +22,7 @@
 #include "shared.hpp"
 #include "nodeobs_audio_encoders.h"
 #include "osn-simple-recording.hpp"
+#include "osn-simple-streaming.hpp"
 
 void osn::ISimpleReplayBuffer::Register(ipc::server& srv)
 {
@@ -91,6 +92,8 @@ void osn::ISimpleReplayBuffer::Register(ipc::server& srv)
         "Stop", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32}, Stop));
     cls->register_function(std::make_shared<ipc::function>(
         "Query", std::vector<ipc::type>{ipc::type::UInt64}, Query));
+    cls->register_function(std::make_shared<ipc::function>(
+        "GetLegacySettings", std::vector<ipc::type>{}, GetLegacySettings));
 
     srv.register_collection(cls);
 }
@@ -261,5 +264,87 @@ void osn::ISimpleReplayBuffer::Stop(
     obs_output_stop(replayBuffer->output);
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+    AUTO_DEBUG;
+}
+
+void osn::ISimpleReplayBuffer::GetLegacySettings(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+    osn::SimpleReplayBuffer* replayBuffer =
+        new osn::SimpleReplayBuffer();
+
+    replayBuffer->path =
+        config_get_string(
+            ConfigManager::getInstance().getBasic(),
+            "SimpleOutput", "FilePath");
+    replayBuffer->format =
+        config_get_string(
+            ConfigManager::getInstance().getBasic(),
+            "SimpleOutput", "RecFormat");
+    replayBuffer->muxerSettings =
+        config_get_string(
+            ConfigManager::getInstance().getBasic(),
+            "SimpleOutput", "MuxerCustom");
+    replayBuffer->noSpace =
+        config_get_bool(
+            ConfigManager::getInstance().getBasic(),
+            "SimpleOutput", "FileNameWithoutSpace");
+    replayBuffer->fileFormat =
+        config_get_string(
+            ConfigManager::getInstance().getBasic(),
+            "Output", "FilenameFormatting");
+    replayBuffer->overwrite =
+        config_get_bool(
+            ConfigManager::getInstance().getBasic(),
+            "Output", "OverwriteIfExists");
+
+    replayBuffer->prefix =
+        config_get_string(
+            ConfigManager::getInstance().getBasic(),
+            "SimpleOutput", "RecRBPrefix");
+    replayBuffer->suffix =
+        config_get_string(
+            ConfigManager::getInstance().getBasic(),
+            "SimpleOutput", "RecRBSuffix");
+    replayBuffer->duration = 
+        config_get_int(
+            ConfigManager::getInstance().getBasic(),
+            "SimpleOutput", "RecRBTime");
+
+    replayBuffer->usesStream =
+        config_get_bool(
+            ConfigManager::getInstance().getBasic(),
+            "SimpleOutput", "replayBufferUseStreamOutput");
+
+    obs_encoder_t* videoEncoder = nullptr;
+    if (obs_get_multiple_rendering() &&
+        replayBuffer->usesStream) {
+        replayBuffer->videoEncoder =
+            osn::ISimpleStreaming::GetLegacyVideoEncoderSettings();
+        replayBuffer->audioEncoder =
+            osn::ISimpleStreaming::GetLegacyAudioEncoderSettings();
+    } else {
+        replayBuffer->videoEncoder =
+            osn::ISimpleRecording::GetLegacyVideoEncoderSettings();
+        replayBuffer->audioEncoder =
+            osn::ISimpleRecording::GetLegacyAudioEncoderSettings();
+    }
+    osn::VideoEncoder::Manager::GetInstance().
+        allocate(replayBuffer->videoEncoder);
+    osn::AudioEncoder::Manager::GetInstance().
+        allocate(replayBuffer->audioEncoder);
+
+    uint64_t uid =
+        osn::ISimpleReplayBuffer::Manager::GetInstance().
+            allocate(replayBuffer);
+    if (uid == UINT64_MAX) {
+        PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Index list is full.");
+    }
+
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+    rval.push_back(ipc::value(uid));
     AUTO_DEBUG;
 }
