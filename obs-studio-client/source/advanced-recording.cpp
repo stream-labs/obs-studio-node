@@ -88,7 +88,9 @@ Napi::Object osn::AdvancedRecording::Init(Napi::Env env, Napi::Object exports) {
 
             StaticAccessor(
                 "legacySettings",
-                &osn::AdvancedRecording::GetLegacySettings, nullptr)
+                &osn::AdvancedRecording::GetLegacySettings, nullptr),
+            InstanceMethod("lastFile",
+                &osn::AdvancedRecording::GetLastFile),
         });
 
     exports.Set("AdvancedRecording", func);

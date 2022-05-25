@@ -1627,6 +1627,7 @@ export interface IFileOutput {
     overwrite: boolean,
     noSpace: boolean,
     muxerSettings: string,
+    lastFile(): string
 }
 
 export interface IRecording extends IFileOutput {
@@ -1669,8 +1670,7 @@ export interface IReplayBuffer extends IFileOutput {
     signalHandler: (signal: EOutputSignal) => void,
     start(): void,
     stop(force?: boolean): void,
-    save(): void,
-    lastReplay(): string
+    save(): void
 }
 
 export interface ISimpleReplayBuffer extends IReplayBuffer {

@@ -51,6 +51,7 @@ namespace osn
         std::mutex mtxOutputStop;
         void createOutput(std::string type, std::string name);
         void deleteOutput();
+        void startOutput();
     };
 
     struct cbData {

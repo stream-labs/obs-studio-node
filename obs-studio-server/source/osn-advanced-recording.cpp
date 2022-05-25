@@ -293,7 +293,7 @@ void osn::IAdvancedRecording::Start(
     obs_output_update(recording->output, settings);
     obs_data_release(settings);
 
-    obs_output_start(recording->output);
+    recording->startOutput();
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
     AUTO_DEBUG;

@@ -42,5 +42,7 @@ namespace osn
         void SetNoSpace(const Napi::CallbackInfo& info, const Napi::Value& value);
         Napi::Value GetMuxerSettings(const Napi::CallbackInfo& info);
         void SetMuxerSettings(const Napi::CallbackInfo& info, const Napi::Value& value);
+
+        Napi::Value GetLastFile(const Napi::CallbackInfo& info);
     };
 }

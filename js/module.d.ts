@@ -758,6 +758,7 @@ export interface IFileOutput {
     overwrite: boolean;
     noSpace: boolean;
     muxerSettings: string;
+    lastFile(): string;
 }
 export interface IRecording extends IFileOutput {
     videoEncoder: IVideoEncoder;
@@ -795,7 +796,6 @@ export interface IReplayBuffer extends IFileOutput {
     start(): void;
     stop(force?: boolean): void;
     save(): void;
-    lastReplay(): string;
 }
 export interface ISimpleReplayBuffer extends IReplayBuffer {
     audioEncoder: IAudioEncoder;

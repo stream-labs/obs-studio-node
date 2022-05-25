@@ -84,7 +84,9 @@ Napi::Object osn::SimpleRecording::Init(Napi::Env env, Napi::Object exports) {
 
             StaticAccessor(
                 "legacySettings",
-                &osn::SimpleRecording::GetLegacySettings, nullptr)
+                &osn::SimpleRecording::GetLegacySettings, nullptr),
+            InstanceMethod("lastFile",
+                &osn::SimpleRecording::GetLastFile),
         });
 
     exports.Set("SimpleRecording", func);

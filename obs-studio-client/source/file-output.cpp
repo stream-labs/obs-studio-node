@@ -192,3 +192,20 @@ void osn::FileOutput::SetMuxerSettings(
         "SetMuxerSettings",
         {ipc::value(this->uid), ipc::value(value.ToString().Utf8Value())});
 }
+
+Napi::Value osn::FileOutput::GetLastFile(const Napi::CallbackInfo& info) {
+    auto conn = GetConnection(info);
+    if (!conn)
+        return info.Env().Undefined();
+
+    std::vector<ipc::value> response =
+        conn->call_synchronous_helper(
+            "FileOutput",
+            "GetLastFile",
+            {ipc::value(this->uid)});
+
+    if (!ValidateResponse(info, response))
+        return info.Env().Undefined();
+
+    return Napi::String::New(info.Env(), response[1].value_str);
+}

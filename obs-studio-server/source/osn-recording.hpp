@@ -21,17 +21,14 @@
 #include "utility.hpp"
 #include "osn-streaming.hpp"
 #include "osn-file-output.hpp"
-#include "osn-output-signals.hpp"
 
 namespace osn
 {
 
-    class Recording:
-        public FileOutput,
-        public OutputSignals
+    class Recording: public FileOutput
     {
         public:
-        Recording() : FileOutput(), OutputSignals() {
+        Recording() : FileOutput() {
             videoEncoder = nullptr;
             signals = {
                 "start",

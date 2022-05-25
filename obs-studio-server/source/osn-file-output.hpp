@@ -19,13 +19,14 @@
 #pragma once
 #include <obs.h>
 #include "utility.hpp"
+#include "osn-output-signals.hpp"
 
 namespace osn
 {
-    class FileOutput
+    class FileOutput: public OutputSignals
     {
         public:
-        FileOutput() {
+        FileOutput() : OutputSignals() {
             path = "";
             format = "mp4";
             fileFormat = "%CCYY-%MM-%DD %hh-%mm-%ss";
@@ -135,6 +136,11 @@ namespace osn
             const std::vector<ipc::value>& args,
             std::vector<ipc::value>&       rval);
         static void SetNoSpace(
+            void*                          data,
+            const int64_t                  id,
+            const std::vector<ipc::value>& args,
+            std::vector<ipc::value>&       rval);
+        static void GetLastFile(
             void*                          data,
             const int64_t                  id,
             const std::vector<ipc::value>& args,

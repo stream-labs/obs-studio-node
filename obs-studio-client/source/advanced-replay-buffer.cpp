@@ -87,8 +87,8 @@ Napi::Object osn::AdvancedReplayBuffer::Init(Napi::Env env, Napi::Object exports
             InstanceMethod("stop", &osn::AdvancedReplayBuffer::Stop),
 
             InstanceMethod("save", &osn::AdvancedReplayBuffer::Save),
-            InstanceMethod("lastReplay",
-                &osn::AdvancedReplayBuffer::GetLastReplay),
+            InstanceMethod("lastFile",
+                &osn::AdvancedReplayBuffer::GetLastFile),
 
             StaticAccessor(
                 "legacySettings",

@@ -229,20 +229,3 @@ void osn::ReplayBuffer::Save(const Napi::CallbackInfo& info) {
 
     conn->call(className, "Save", {ipc::value(this->uid)});
 }
-
-Napi::Value osn::ReplayBuffer::GetLastReplay(const Napi::CallbackInfo& info) {
-    auto conn = GetConnection(info);
-    if (!conn)
-        return info.Env().Undefined();
-
-    std::vector<ipc::value> response =
-        conn->call_synchronous_helper(
-            className,
-            "GetLastReplay",
-            {ipc::value(this->uid)});
-
-    if (!ValidateResponse(info, response))
-        return info.Env().Undefined();
-
-    return Napi::String::New(info.Env(), response[1].value_str);
-}

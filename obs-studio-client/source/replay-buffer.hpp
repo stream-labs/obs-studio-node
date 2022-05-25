@@ -51,6 +51,5 @@ namespace osn
         void Stop(const Napi::CallbackInfo& info);
 
         void Save(const Napi::CallbackInfo& info);
-        Napi::Value GetLastReplay(const Napi::CallbackInfo& info);
     };
 }

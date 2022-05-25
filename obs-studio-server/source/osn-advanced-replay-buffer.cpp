@@ -81,10 +81,6 @@ void osn::IAdvancedReplayBuffer::Register(ipc::server& srv)
         std::vector<ipc::type>{ipc::type::UInt64},
         Save));
     cls->register_function(std::make_shared<ipc::function>(
-        "GetLastReplay",
-        std::vector<ipc::type>{ipc::type::UInt64},
-        GetLastReplay));
-    cls->register_function(std::make_shared<ipc::function>(
         "Start", std::vector<ipc::type>{ipc::type::UInt64}, Start));
     cls->register_function(std::make_shared<ipc::function>(
         "Stop", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32}, Stop));
@@ -234,7 +230,7 @@ void osn::IAdvancedReplayBuffer::Start(
     obs_output_update(replayBuffer->output, settings);
     obs_data_release(settings);
 
-    obs_output_start(replayBuffer->output);
+    replayBuffer->startOutput();
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
     AUTO_DEBUG;

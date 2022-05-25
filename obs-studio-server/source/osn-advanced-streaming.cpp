@@ -566,7 +566,7 @@ void osn::IAdvancedStreaming::Start(
     obs_output_update(streaming->output, settings);
     obs_data_release(settings);
 
-    obs_output_start(streaming->output);
+    streaming->startOutput();
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
     AUTO_DEBUG;

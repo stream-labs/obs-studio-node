@@ -21,13 +21,10 @@
 #include "utility.hpp"
 #include "osn-streaming.hpp"
 #include "osn-file-output.hpp"
-#include "osn-output-signals.hpp"
 
 namespace osn
 {
-    class ReplayBuffer:
-        public FileOutput,
-        public OutputSignals
+    class ReplayBuffer: public FileOutput
     {
         public:
         ReplayBuffer() {
@@ -115,11 +112,6 @@ namespace osn
             const std::vector<ipc::value>& args,
             std::vector<ipc::value>&       rval);
         static void Save(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-        static void GetLastReplay(
             void*                          data,
             const int64_t                  id,
             const std::vector<ipc::value>& args,

@@ -72,6 +72,10 @@ void osn::IFileOutput::Register(ipc::server& srv)
         "SetNoSpace",
         std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32},
         SetNoSpace));
+    cls->register_function(std::make_shared<ipc::function>(
+        "GetLastFile",
+        std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32},
+        GetLastFile));
     srv.register_collection(cls);
 }
 
@@ -284,6 +288,30 @@ void osn::IFileOutput::SetNoSpace(
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
     AUTO_DEBUG;
+}
+
+void osn::IFileOutput::GetLastFile(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+    FileOutput* fileOutput =
+        osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64);
+    if (!fileOutput) {
+        PRETTY_ERROR_RETURN(
+            ErrorCode::InvalidReference, "File output reference is not valid.");
+    }
+
+    calldata_t cd = {0};
+    proc_handler_t* ph =
+        obs_output_get_proc_handler(fileOutput->output);
+    proc_handler_call(ph, "get_last_file", &cd);
+    const char* path = calldata_string(&cd, "path");
+    path = path ? path : "";
+
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+    rval.push_back(ipc::value(path));
 }
 
 osn::IFileOutput::Manager& osn::IFileOutput::Manager::GetInstance()

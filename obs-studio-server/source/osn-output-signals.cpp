@@ -17,6 +17,7 @@
 ******************************************************************************/
 
 #include "osn-output-signals.hpp"
+#include "nodeobs_api.h"
 
 void osn::OutputSignals::createOutput(std::string type, std::string name)
 {
@@ -90,4 +91,41 @@ void osn::OutputSignals::ConnectSignals()
             calbback,
             cd);
     }
+}
+
+void osn::OutputSignals::startOutput()
+{
+    if (!output)
+        return;
+
+    outdated_driver_error::instance()->set_active(true);
+    bool result = obs_output_start(output);
+    outdated_driver_error::instance()->set_active(false);
+
+    if (result)
+        return;
+
+    int code = 0;
+    std::string errorMessage = "";
+    std::string outdated_driver_error = outdated_driver_error::instance()->get_error();
+
+    if (outdated_driver_error.size() != 0) {
+        errorMessage = outdated_driver_error;
+        code = OBS_OUTPUT_OUTDATED_DRIVER;
+    } else {
+        const char* error =
+            obs_output_get_last_error(output);
+        if (error) {
+            errorMessage = error;
+            blog(LOG_INFO, "Last streaming error: %s", error);
+        }
+        code = OBS_OUTPUT_ERROR;
+    }
+
+    std::unique_lock<std::mutex> ulock(signalsMtx);
+    signalsReceived.push({
+        "stop",
+        code,
+        errorMessage
+    });
 }

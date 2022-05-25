@@ -276,28 +276,3 @@ void osn::IReplayBuffer::Save(
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 }
-
-void osn::IReplayBuffer::GetLastReplay(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-    ReplayBuffer* replayBuffer =
-        static_cast<ReplayBuffer*>(
-            osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64));
-    if (!replayBuffer) {
-        PRETTY_ERROR_RETURN(
-            ErrorCode::InvalidReference, "ReplayBuffer reference is not valid.");
-    }
-
-    calldata_t cd = {0};
-    proc_handler_t* ph =
-        obs_output_get_proc_handler(replayBuffer->output);
-    proc_handler_call(ph, "get_last_replay", &cd);
-    const char* path = calldata_string(&cd, "path");
-    path = path ? path : "";
-
-    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-    rval.push_back(ipc::value(path));
-}
