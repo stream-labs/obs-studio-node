@@ -78,6 +78,10 @@ Napi::Object osn::AdvancedReplayBuffer::Init(Napi::Env env, Napi::Object exports
                 "mixer",
                 &osn::AdvancedReplayBuffer::GetMixer,
                 &osn::AdvancedReplayBuffer::SetMixer),
+            InstanceAccessor(
+                "usesStream",
+                &osn::AdvancedReplayBuffer::GetUsesStream,
+                &osn::AdvancedReplayBuffer::SetUsesStream),
 
             InstanceMethod("start", &osn::AdvancedReplayBuffer::Start),
             InstanceMethod("stop", &osn::AdvancedReplayBuffer::Stop),

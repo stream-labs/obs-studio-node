@@ -78,6 +78,10 @@ Napi::Object osn::SimpleReplayBuffer::Init(Napi::Env env, Napi::Object exports) 
                 "audioEncoder",
                 &osn::SimpleReplayBuffer::GetAudioEncoder,
                 &osn::SimpleReplayBuffer::SetAudioEncoder),
+            InstanceAccessor(
+                "usesStream",
+                &osn::SimpleReplayBuffer::GetUsesStream,
+                &osn::SimpleReplayBuffer::SetUsesStream),
 
             InstanceMethod("start", &osn::SimpleReplayBuffer::Start),
             InstanceMethod("stop", &osn::SimpleReplayBuffer::Stop),
