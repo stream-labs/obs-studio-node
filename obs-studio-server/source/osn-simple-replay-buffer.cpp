@@ -319,23 +319,29 @@ void osn::ISimpleReplayBuffer::GetLegacySettings(
             ConfigManager::getInstance().getBasic(),
             "SimpleOutput", "replayBufferUseStreamOutput");
 
-    obs_encoder_t* videoEncoder = nullptr;
-    if (obs_get_multiple_rendering() &&
-        replayBuffer->usesStream) {
-        replayBuffer->videoEncoder =
-            osn::ISimpleStreaming::GetLegacyVideoEncoderSettings();
-        replayBuffer->audioEncoder =
-            osn::ISimpleStreaming::GetLegacyAudioEncoderSettings();
-    } else {
-        replayBuffer->videoEncoder =
-            osn::ISimpleRecording::GetLegacyVideoEncoderSettings();
-        replayBuffer->audioEncoder =
-            osn::ISimpleRecording::GetLegacyAudioEncoderSettings();
-    }
-    osn::VideoEncoder::Manager::GetInstance().
-        allocate(replayBuffer->videoEncoder);
-    osn::AudioEncoder::Manager::GetInstance().
-        allocate(replayBuffer->audioEncoder);
+    // I'm commmenting and intentionnaly returning
+    // nullptr since it is very easy for the client
+    // to recreate these encoders on its own instead
+    // of using the ones already created by the
+    // streaming and recording outputs
+
+    // obs_encoder_t* videoEncoder = nullptr;
+    // if (obs_get_multiple_rendering() &&
+    //     replayBuffer->usesStream) {
+    //     replayBuffer->videoEncoder =
+    //         osn::ISimpleStreaming::GetLegacyVideoEncoderSettings();
+    //     replayBuffer->audioEncoder =
+    //         osn::ISimpleStreaming::GetLegacyAudioEncoderSettings();
+    // } else {
+    //     replayBuffer->videoEncoder =
+    //         osn::ISimpleRecording::GetLegacyVideoEncoderSettings();
+    //     replayBuffer->audioEncoder =
+    //         osn::ISimpleRecording::GetLegacyAudioEncoderSettings();
+    // }
+    // osn::VideoEncoder::Manager::GetInstance().
+    //     allocate(replayBuffer->videoEncoder);
+    // osn::AudioEncoder::Manager::GetInstance().
+    //     allocate(replayBuffer->audioEncoder);
 
     uint64_t uid =
         osn::ISimpleReplayBuffer::Manager::GetInstance().
