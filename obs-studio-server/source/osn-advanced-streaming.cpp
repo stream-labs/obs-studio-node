@@ -469,6 +469,47 @@ static inline void StopTwitchSoundtrackAudio(osn::Streaming* streaming)
     obs_source_release(desktopSource2);
 }
 
+void osn::AdvancedStreaming::UpdateEncoders()
+{
+    if (!videoEncoder)
+        return;
+
+    if (obs_encoder_active(videoEncoder))
+        return;
+
+    obs_data_t* settings = obs_encoder_get_settings(videoEncoder);
+    if (enforceServiceBitrate) {
+
+        int bitrate = (int)obs_data_get_int(settings, "bitrate");
+        int keyint_sec = (int)obs_data_get_int(settings, "keyint_sec");
+        obs_service_apply_encoder_settings(
+            service, settings, nullptr);
+
+        int enforced_keyint_sec =
+            (int)obs_data_get_int(settings, "keyint_sec");
+        if (keyint_sec != 0 && keyint_sec < enforced_keyint_sec)
+            obs_data_set_int(settings, "keyint_sec", keyint_sec);
+    }
+
+    video_t *video = obs_get_video();
+    enum video_format format = video_output_get_format(video);
+
+    switch (format) {
+        case VIDEO_FORMAT_I420:
+        case VIDEO_FORMAT_NV12:
+        // case VIDEO_FORMAT_I010:
+        // case VIDEO_FORMAT_P010:
+            break;
+        default:
+            obs_encoder_set_preferred_video_format(
+                videoEncoder,
+                VIDEO_FORMAT_NV12);
+	}
+
+    obs_encoder_update(videoEncoder, settings);
+    obs_data_release(settings);
+}
+
 void osn::IAdvancedStreaming::Start(
     void*                          data,
     const int64_t                  id,
@@ -486,6 +527,8 @@ void osn::IAdvancedStreaming::Start(
     if (!streaming->videoEncoder) {
         PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Invalid video encoder.");
     }
+
+    streaming->UpdateEncoders();
 
     if (!streaming->service) {
         PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Invalid service.");
@@ -634,6 +677,10 @@ void osn::IAdvancedStreaming::GetLegacySettings(
         config_get_int(
             ConfigManager::getInstance().getBasic(),
             "AdvOut", "VodTrackIndex") - 1;
+    streaming->enforceServiceBitrate =
+        config_get_bool(
+            ConfigManager::getInstance().getBasic(),
+            "AdvOut", "ApplyServiceSettings");
 
     streaming->rescaling =
         config_get_bool(

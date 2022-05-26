@@ -45,6 +45,8 @@ namespace osn
         bool rescaling;
         uint32_t outputWidth;
         uint32_t outputHeight;
+
+        void UpdateEncoders();
     };
 
     class IAdvancedStreaming: public IStreaming
