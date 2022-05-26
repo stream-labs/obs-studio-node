@@ -448,3 +448,54 @@ void osn::Streaming::getNetworkLegacySettings()
     osn::INetwork::Manager::GetInstance().
         allocate(network);
 }
+
+void osn::Streaming::setDelayLegacySettings()
+{
+    if (!delay)
+        return;
+
+    config_set_bool(
+        ConfigManager::getInstance().getBasic(),
+        "Output", "DelayEnable", delay->enabled);
+    config_set_int(
+        ConfigManager::getInstance().getBasic(),
+        "Output", "DelaySec", delay->delaySec);
+    config_set_bool(
+        ConfigManager::getInstance().getBasic(),
+        "Output", "DelayPreserve", delay->preserveDelay);
+}
+
+void osn::Streaming::setReconnectLegacySettings()
+{
+    if (!reconnect)
+        return;
+
+    config_set_bool(
+        ConfigManager::getInstance().getBasic(),
+        "Output", "Reconnect", reconnect->enabled);
+    config_set_uint(
+        ConfigManager::getInstance().getBasic(),
+        "Output", "RetryDelay", reconnect->retryDelay);
+    config_set_uint(
+        ConfigManager::getInstance().getBasic(),
+        "Output", "MaxRetries", reconnect->maxRetries);
+}
+
+void osn::Streaming::setNetworkLegacySettings()
+{
+    if (network)
+        return;
+
+    config_set_string(
+        ConfigManager::getInstance().getBasic(),
+        "Output", "BindIP", network->bindIP.c_str());
+    config_set_bool(
+        ConfigManager::getInstance().getBasic(),
+        "Output", "DynamicBitrate", network->enableDynamicBitrate);
+    config_set_bool(
+        ConfigManager::getInstance().getBasic(),
+        "Output", "NewSocketLoopEnable", network->enableDynamicBitrate);
+    config_set_bool(
+        ConfigManager::getInstance().getBasic(),
+        "Output", "LowLatencyEnable", network->enableDynamicBitrate);
+}

@@ -74,6 +74,9 @@ namespace osn
         void getDelayLegacySettings();
         void getReconnectLegacySettings();
         void getNetworkLegacySettings();
+        void setDelayLegacySettings();
+        void setReconnectLegacySettings();
+        void setNetworkLegacySettings();
     };
 
     class IStreaming

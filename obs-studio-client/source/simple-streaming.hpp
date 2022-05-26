@@ -35,7 +35,12 @@ namespace osn
 
         Napi::Value GetAudioEncoder(const Napi::CallbackInfo& info);
         void SetAudioEncoder(const Napi::CallbackInfo& info, const Napi::Value& value);
+        Napi::Value GetUseAdvanced(const Napi::CallbackInfo& info);
+        void SetUseAdvanced(const Napi::CallbackInfo& info, const Napi::Value& value);
+        Napi::Value GetCustomEncSettings(const Napi::CallbackInfo& info);
+        void SetCustomEncSettings(const Napi::CallbackInfo& info, const Napi::Value& value);
 
         static Napi::Value GetLegacySettings(const Napi::CallbackInfo& info);
+        static void SetLegacySettings(const Napi::CallbackInfo& info, const Napi::Value& value);
     };
 }

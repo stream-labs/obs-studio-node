@@ -1600,11 +1600,13 @@ export interface EOutputSignal {
 
 export interface ISimpleStreaming extends IStreaming {
     audioEncoder: IAudioEncoder,
+    useAdvanced: boolean,
+    customEncSettings: string
 }
 
 export interface ISimpleStreamingFactory {
     create(): ISimpleStreaming;
-    readonly legacySettings: ISimpleStreaming;
+    legacySettings: ISimpleStreaming;
 }
 
 export interface IAdvancedStreaming extends IStreaming {

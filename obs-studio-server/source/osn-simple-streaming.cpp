@@ -54,6 +54,22 @@ void osn::ISimpleStreaming::Register(ipc::server& srv)
         std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64},
         SetAudioEncoder));
     cls->register_function(std::make_shared<ipc::function>(
+        "GetUseAdvanced",
+        std::vector<ipc::type>{ipc::type::UInt64},
+        GetUseAdvanced));
+    cls->register_function(std::make_shared<ipc::function>(
+        "SetUseAdvanced",
+        std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32},
+        SetUseAdvanced));
+    cls->register_function(std::make_shared<ipc::function>(
+        "GetCustomEncSettings",
+        std::vector<ipc::type>{ipc::type::UInt64},
+        GetCustomEncSettings));
+    cls->register_function(std::make_shared<ipc::function>(
+        "SetCustomEncSettings",
+        std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String},
+        SetCustomEncSettings));
+    cls->register_function(std::make_shared<ipc::function>(
         "GetEnforceServiceBirate",
         std::vector<ipc::type>{ipc::type::UInt64},
         GetEnforceServiceBirate));
@@ -101,6 +117,8 @@ void osn::ISimpleStreaming::Register(ipc::server& srv)
         "Query", std::vector<ipc::type>{ipc::type::UInt64}, Query));
     cls->register_function(std::make_shared<ipc::function>(
         "GetLegacySettings", std::vector<ipc::type>{}, GetLegacySettings));
+    cls->register_function(std::make_shared<ipc::function>(
+        "SetLegacySettings", std::vector<ipc::type>{}, SetLegacySettings));
 
     srv.register_collection(cls);
 }
@@ -165,6 +183,84 @@ void osn::ISimpleStreaming::SetAudioEncoder(
     }
 
     streaming->audioEncoder = encoder;
+
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+    AUTO_DEBUG;
+}
+
+void osn::ISimpleStreaming::GetUseAdvanced(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+    SimpleStreaming* streaming =
+        static_cast<SimpleStreaming*>(
+            osn::ISimpleStreaming::Manager::GetInstance().
+            find(args[0].value_union.ui64));
+    if (!streaming) {
+        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Streaming reference is not valid.");
+    }
+
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+    rval.push_back(ipc::value(streaming->useAdvanced));
+    AUTO_DEBUG;
+}
+
+void osn::ISimpleStreaming::SetUseAdvanced(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+    SimpleStreaming* streaming =
+        static_cast<SimpleStreaming*>(
+            osn::ISimpleStreaming::Manager::GetInstance().
+            find(args[0].value_union.ui64));
+    if (!streaming) {
+        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Streaming reference is not valid.");
+    }
+
+    streaming->useAdvanced = args[1].value_union.ui32;
+
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+    AUTO_DEBUG;
+}
+
+void osn::ISimpleStreaming::GetCustomEncSettings(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+    SimpleStreaming* streaming =
+        static_cast<SimpleStreaming*>(
+            osn::ISimpleStreaming::Manager::GetInstance().
+            find(args[0].value_union.ui64));
+    if (!streaming) {
+        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Streaming reference is not valid.");
+    }
+
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+    rval.push_back(ipc::value(streaming->customEncSettings));
+    AUTO_DEBUG;
+}
+
+void osn::ISimpleStreaming::SetCustomEncSettings(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+    SimpleStreaming* streaming =
+        static_cast<SimpleStreaming*>(
+            osn::ISimpleStreaming::Manager::GetInstance().
+            find(args[0].value_union.ui64));
+    if (!streaming) {
+        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Streaming reference is not valid.");
+    }
+
+    streaming->customEncSettings = args[1].value_str;
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
     AUTO_DEBUG;
@@ -522,10 +618,22 @@ void osn::ISimpleStreaming::GetLegacySettings(
     osn::AudioEncoder::Manager::GetInstance().
         allocate(streaming->audioEncoder);
 
+    streaming->useAdvanced =
+        config_get_bool(
+            ConfigManager::getInstance().getBasic(),
+            "SimpleOutput", "UseAdvanced");
     streaming->enableTwitchVOD =
         config_get_bool(
             ConfigManager::getInstance().getBasic(),
             "SimpleOutput", "VodTrackEnabled");
+    streaming->enforceServiceBitrate =
+            config_get_bool(
+            ConfigManager::getInstance().getBasic(),
+            "SimpleOutput", "EnforceBitrate");
+    streaming->customEncSettings =
+            config_get_string(
+            ConfigManager::getInstance().getBasic(),
+            "SimpleOutput", "x264Settings");
 
     streaming->getDelayLegacySettings();
     streaming->getReconnectLegacySettings();
@@ -542,5 +650,114 @@ void osn::ISimpleStreaming::GetLegacySettings(
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
     rval.push_back(ipc::value(uid));
+    AUTO_DEBUG;
+}
+
+void osn::ISimpleStreaming::SetLegacyVideoEncoderSettings(
+    obs_encoder_t* encoder)
+{
+    const char* encId = nullptr;
+    const char* encIdOBS =
+        obs_encoder_get_id(encoder);
+
+    obs_data_t* settings = obs_encoder_get_settings(encoder);
+    uint32_t bitrate = obs_data_get_int(settings, "bitrate");
+    config_set_uint(
+            ConfigManager::getInstance().getBasic(),
+            "SimpleOutput", "VBitrate", bitrate);
+
+    const char* custom =
+        config_get_string(
+            ConfigManager::getInstance().getBasic(),
+            "SimpleOutput", "x264Settings");
+
+    const char* preset = nullptr;
+    const char* presetType = nullptr;
+    if (strcmp(encIdOBS, "obs_qsv11") == 0) {
+        presetType = "QSVPreset";
+        encId = SIMPLE_ENCODER_QSV;
+    } else if (strcmp(encIdOBS, "amd_amf_h264") == 0) {
+        presetType = "AMDPreset";
+        encId = SIMPLE_ENCODER_AMD;
+    } else if (strcmp(encIdOBS, "ffmpeg_nvenc") == 0) {
+        presetType = "NVENCPreset";
+        encId = SIMPLE_ENCODER_NVENC;
+    } else if (strcmp(encIdOBS, "jim_nvenc") == 0) {
+        presetType = "NVENCPreset";
+        encId  = ENCODER_NEW_NVENC;
+    } else {
+        presetType = "Preset";
+        encId  = "obs_x264";
+    }
+    config_set_string(
+        ConfigManager::getInstance().getBasic(),
+        "SimpleOutput", "StreamEncoder", encId);
+
+    if (presetType) {
+        preset = obs_data_get_string(settings, "preset");
+        config_set_string(
+            ConfigManager::getInstance().getBasic(),
+            "SimpleOutput", presetType, preset);
+    }
+
+    obs_data_release(settings);
+}
+
+void osn::ISimpleStreaming::SetLegacyAudioEncoderSettings(
+    obs_encoder_t* encoder)
+{
+    obs_data_t* settings = obs_encoder_get_settings(encoder);
+    uint32_t bitrate = obs_data_get_int(settings, "bitrate");
+    config_set_uint(
+            ConfigManager::getInstance().getBasic(),
+            "SimpleOutput", "ABitrate", bitrate);
+
+    obs_data_release(settings);
+}
+
+void osn::ISimpleStreaming::SetLegacySettings(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+    SimpleStreaming* streaming =
+        static_cast<SimpleStreaming*>(
+            osn::ISimpleStreaming::Manager::GetInstance().
+            find(args[0].value_union.ui64));
+    if (!streaming) {
+        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Streaming reference is not valid.");
+    }
+
+    streaming->setDelayLegacySettings();
+    streaming->setReconnectLegacySettings();
+    streaming->setNetworkLegacySettings();
+
+    osn::Service::SetLegacyServiceSettings(streaming->service);
+
+    config_set_bool(
+        ConfigManager::getInstance().getBasic(),
+        "SimpleOutput", "VodTrackEnabled",
+        streaming->enableTwitchVOD);
+    config_set_bool(
+        ConfigManager::getInstance().getBasic(),
+        "SimpleOutput", "EnforceBitrate",
+        streaming->enforceServiceBitrate);
+    config_set_bool(
+        ConfigManager::getInstance().getBasic(),
+        "SimpleOutput", "UseAdvanced",
+        streaming->useAdvanced);
+    config_set_string(
+        ConfigManager::getInstance().getBasic(),
+        "SimpleOutput", "x264Settings",
+        streaming->customEncSettings.c_str());
+
+    SetLegacyVideoEncoderSettings(streaming->videoEncoder);
+    SetLegacyAudioEncoderSettings(streaming->audioEncoder);
+
+    config_save_safe(
+        ConfigManager::getInstance().getBasic(), "tmp", nullptr);
+
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
     AUTO_DEBUG;
 }

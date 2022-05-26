@@ -59,6 +59,14 @@ Napi::Object osn::SimpleStreaming::Init(Napi::Env env, Napi::Object exports) {
                 &osn::SimpleStreaming::GetAudioEncoder,
                 &osn::SimpleStreaming::SetAudioEncoder),
             InstanceAccessor(
+                "useAdvanced",
+                &osn::SimpleStreaming::GetUseAdvanced,
+                &osn::SimpleStreaming::SetUseAdvanced),
+            InstanceAccessor(
+                "customEncSettings",
+                &osn::SimpleStreaming::GetCustomEncSettings,
+                &osn::SimpleStreaming::SetCustomEncSettings),
+            InstanceAccessor(
                 "signalHandler",
                 &osn::SimpleStreaming::GetSignalHandler,
                 &osn::SimpleStreaming::SetSignalHandler),
@@ -80,7 +88,7 @@ Napi::Object osn::SimpleStreaming::Init(Napi::Env env, Napi::Object exports) {
 
             StaticAccessor(
                 "legacySettings",
-                &osn::SimpleStreaming::GetLegacySettings, nullptr)
+                &osn::SimpleStreaming::GetLegacySettings, &osn::SimpleStreaming::SetLegacySettings)
         });
 
     exports.Set("SimpleStreaming", func);
@@ -145,6 +153,64 @@ Napi::Value osn::SimpleStreaming::GetAudioEncoder(const Napi::CallbackInfo& info
     return instance;
 }
 
+Napi::Value osn::SimpleStreaming::GetUseAdvanced(const Napi::CallbackInfo& info) {
+    auto conn = GetConnection(info);
+    if (!conn)
+        return info.Env().Undefined();
+
+    std::vector<ipc::value> response =
+        conn->call_synchronous_helper(
+            "SimpleStreaming",
+            "GetUseAdvanced",
+            {ipc::value(this->uid)});
+
+    if (!ValidateResponse(info, response))
+        return info.Env().Undefined();
+
+    return Napi::Boolean::New(info.Env(), response[1].value_union.ui32);
+}
+
+void osn::SimpleStreaming::SetUseAdvanced(
+    const Napi::CallbackInfo& info, const Napi::Value& value) {
+    auto conn = GetConnection(info);
+    if (!conn)
+        return;
+
+    conn->call_synchronous_helper(
+        "SimpleStreaming",
+        "SetUseAdvanced",
+        {ipc::value(this->uid), ipc::value(value.ToBoolean().Value())});
+}
+
+Napi::Value osn::SimpleStreaming::GetCustomEncSettings(const Napi::CallbackInfo& info) {
+    auto conn = GetConnection(info);
+    if (!conn)
+        return info.Env().Undefined();
+
+    std::vector<ipc::value> response =
+        conn->call_synchronous_helper(
+            "SimpleStreaming",
+            "GetCustomEncSettings",
+            {ipc::value(this->uid)});
+
+    if (!ValidateResponse(info, response))
+        return info.Env().Undefined();
+
+    return Napi::String::New(info.Env(), response[1].value_str.c_str());
+}
+
+void osn::SimpleStreaming::SetCustomEncSettings(
+    const Napi::CallbackInfo& info, const Napi::Value& value) {
+    auto conn = GetConnection(info);
+    if (!conn)
+        return;
+
+    conn->call_synchronous_helper(
+        "SimpleStreaming",
+        "SetCustomEncSettings",
+        {ipc::value(this->uid), ipc::value(value.ToString().Utf8Value())});
+}
+
 void osn::SimpleStreaming::SetAudioEncoder(const Napi::CallbackInfo& info, const Napi::Value& value) {
     osn::AudioEncoder* encoder =
         Napi::ObjectWrap<osn::AudioEncoder>::Unwrap(value.ToObject());
@@ -182,4 +248,27 @@ Napi::Value osn::SimpleStreaming::GetLegacySettings(const Napi::CallbackInfo& in
             });
 
     return instance;
+}
+
+void osn::SimpleStreaming::SetLegacySettings(
+    const Napi::CallbackInfo& info, const Napi::Value &value) {
+    osn::SimpleStreaming* streaming =
+        Napi::ObjectWrap<osn::SimpleStreaming>::Unwrap(value.ToObject());
+
+    if (!streaming) {
+        Napi::TypeError::New(info.Env(),
+            "Invalid service argument").ThrowAsJavaScriptException();
+        return;
+    }
+
+    auto conn = GetConnection(info);
+    if (!conn)
+        return;
+
+    std::vector<ipc::value> response =
+		conn->call_synchronous_helper(
+            "SimpleStreaming", "SetLegacySettings", {streaming->uid});
+
+    if (!ValidateResponse(info, response))
+        return;
 }
