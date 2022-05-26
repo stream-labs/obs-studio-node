@@ -751,7 +751,7 @@ export interface IAdvancedStreaming extends IStreaming {
 }
 export interface IAdvancedStreamingFactory {
     create(): IAdvancedStreaming;
-    readonly legacySettings: IAdvancedStreaming;
+    legacySettings: IAdvancedStreaming;
 }
 export interface IFileOutput {
     path: string;
@@ -794,14 +794,14 @@ export interface IReplayBuffer extends IFileOutput {
     prefix: string;
     suffix: string;
     usesStream: boolean;
+    streaming: IStreaming;
+    recording: IRecording;
     signalHandler: (signal: EOutputSignal) => void;
     start(): void;
     stop(force?: boolean): void;
     save(): void;
 }
 export interface ISimpleReplayBuffer extends IReplayBuffer {
-    streaming: IStreaming;
-    recording: IRecording;
 }
 export interface IAdvancedReplayBuffer extends IReplayBuffer {
     mixer: number;

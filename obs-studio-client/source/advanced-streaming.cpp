@@ -92,7 +92,8 @@ Napi::Object osn::AdvancedStreaming::Init(Napi::Env env, Napi::Object exports) {
 
             StaticAccessor(
                 "legacySettings",
-                &osn::AdvancedStreaming::GetLegacySettings, nullptr)
+                &osn::AdvancedStreaming::GetLegacySettings,
+                &osn::AdvancedStreaming::SetLegacySettings)
         });
 
     exports.Set("AdvancedStreaming", func);
@@ -299,4 +300,27 @@ Napi::Value osn::AdvancedStreaming::GetLegacySettings(
             });
 
     return instance;
+}
+
+void osn::AdvancedStreaming::SetLegacySettings(
+    const Napi::CallbackInfo& info, const Napi::Value &value) {
+    osn::AdvancedStreaming* streaming =
+        Napi::ObjectWrap<osn::AdvancedStreaming>::Unwrap(value.ToObject());
+
+    if (!streaming) {
+        Napi::TypeError::New(info.Env(),
+            "Invalid service argument").ThrowAsJavaScriptException();
+        return;
+    }
+
+    auto conn = GetConnection(info);
+    if (!conn)
+        return;
+
+    std::vector<ipc::value> response =
+		conn->call_synchronous_helper(
+            "AdvancedStreaming", "SetLegacySettings", {streaming->uid});
+
+    if (!ValidateResponse(info, response))
+        return;
 }

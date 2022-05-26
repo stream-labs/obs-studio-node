@@ -118,7 +118,7 @@ void osn::ISimpleStreaming::Register(ipc::server& srv)
     cls->register_function(std::make_shared<ipc::function>(
         "GetLegacySettings", std::vector<ipc::type>{}, GetLegacySettings));
     cls->register_function(std::make_shared<ipc::function>(
-        "SetLegacySettings", std::vector<ipc::type>{}, SetLegacySettings));
+        "SetLegacySettings", std::vector<ipc::type>{ipc::type::UInt64}, SetLegacySettings));
 
     srv.register_collection(cls);
 }

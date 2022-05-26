@@ -88,7 +88,8 @@ Napi::Object osn::SimpleStreaming::Init(Napi::Env env, Napi::Object exports) {
 
             StaticAccessor(
                 "legacySettings",
-                &osn::SimpleStreaming::GetLegacySettings, &osn::SimpleStreaming::SetLegacySettings)
+                &osn::SimpleStreaming::GetLegacySettings,
+                &osn::SimpleStreaming::SetLegacySettings)
         });
 
     exports.Set("SimpleStreaming", func);

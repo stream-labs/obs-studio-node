@@ -133,6 +133,8 @@ void osn::IAdvancedStreaming::Register(ipc::server& srv)
         "Query", std::vector<ipc::type>{ipc::type::UInt64}, Query));
     cls->register_function(std::make_shared<ipc::function>(
         "GetLegacySettings", std::vector<ipc::type>{}, GetLegacySettings));
+    cls->register_function(std::make_shared<ipc::function>(
+        "SetLegacySettings", std::vector<ipc::type>{ipc::type::UInt64}, SetLegacySettings));
 
     srv.register_collection(cls);
 }
@@ -667,5 +669,72 @@ void osn::IAdvancedStreaming::GetLegacySettings(
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
     rval.push_back(ipc::value(uid));
+    AUTO_DEBUG;
+}
+
+void osn::IAdvancedStreaming::SetLegacySettings(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+    AdvancedStreaming* streaming =
+        static_cast<AdvancedStreaming*>(
+            osn::IAdvancedStreaming::Manager::GetInstance().
+            find(args[0].value_union.ui64));
+    if (!streaming) {
+        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Streaming reference is not valid.");
+    }
+
+    streaming->setDelayLegacySettings();
+    streaming->setReconnectLegacySettings();
+    streaming->setNetworkLegacySettings();
+
+    osn::Service::SetLegacyServiceSettings(streaming->service);
+
+    config_set_bool(
+        ConfigManager::getInstance().getBasic(),
+        "AdvOut", "VodTrackEnabled",
+        streaming->enableTwitchVOD);
+    config_set_bool(
+        ConfigManager::getInstance().getBasic(),
+        "AdvOut", "ApplyServiceSettings",
+        streaming->enforceServiceBitrate);
+    config_set_int(
+        ConfigManager::getInstance().getBasic(),
+        "AdvOut", "TrackIndex", streaming->audioTrack + 1);
+    config_set_int(
+        ConfigManager::getInstance().getBasic(),
+        "AdvOut", "VodTrackIndex", streaming->twitchTrack + 1);
+
+    config_set_bool(
+        ConfigManager::getInstance().getBasic(),
+        "AdvOut", "Rescale", streaming->rescaling);
+    std::string rescaledRes = std::to_string(streaming->outputWidth);
+    rescaledRes += 'x';
+    rescaledRes += std::to_string(streaming->outputHeight);
+    config_set_string(ConfigManager::getInstance().getBasic(),
+        "AdvOut", "RescaleRes", rescaledRes.c_str());
+
+    if (streaming->videoEncoder) {
+        config_set_string(
+            ConfigManager::getInstance().getBasic(),
+            "AdvOut", "Encoder", obs_encoder_get_id(streaming->videoEncoder));
+
+        obs_data_t* settings =
+            obs_encoder_get_settings(streaming->videoEncoder);
+
+        if (!obs_data_save_json_safe(
+            settings, ConfigManager::getInstance().getStream().c_str(), "tmp", "bak")) {
+            blog(LOG_ERROR, "Failed to save encoder %s",
+                ConfigManager::getInstance().getStream().c_str());
+	    }
+        obs_data_release(settings);
+    }
+
+    config_save_safe(
+        ConfigManager::getInstance().getBasic(), "tmp", nullptr);
+
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
     AUTO_DEBUG;
 }

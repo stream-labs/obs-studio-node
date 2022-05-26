@@ -135,7 +135,7 @@ void osn::Delay::SetDelaySec(const Napi::CallbackInfo& info, const Napi::Value& 
 
     conn->call_synchronous_helper(
         "Delay",
-        "SetEnabled",
+        "SetDelaySec",
         {ipc::value(this->uid), ipc::value(value.ToNumber().Uint32Value())});
 }
 

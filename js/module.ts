@@ -1619,7 +1619,7 @@ export interface IAdvancedStreaming extends IStreaming {
 
 export interface IAdvancedStreamingFactory {
     create(): IAdvancedStreaming;
-    readonly legacySettings: IAdvancedStreaming;
+    legacySettings: IAdvancedStreaming;
 }
 
 export interface IFileOutput {
