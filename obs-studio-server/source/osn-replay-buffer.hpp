@@ -21,6 +21,8 @@
 #include "utility.hpp"
 #include "osn-streaming.hpp"
 #include "osn-file-output.hpp"
+#include "osn-simple-streaming.hpp"
+#include "osn-simple-recording.hpp"
 
 namespace osn
 {
@@ -32,7 +34,8 @@ namespace osn
             prefix = "Replay";
             suffix = "";
             usesStream = false;
-            videoEncoder = nullptr;
+            streaming = nullptr;
+            recording = nullptr;
             signals = {
                 "start",
                 "stop",
@@ -50,7 +53,8 @@ namespace osn
         std::string prefix;
         std::string suffix;
         bool usesStream;
-        obs_encoder_t* videoEncoder;
+        SimpleStreaming* streaming;
+        SimpleRecording* recording;
     };
 
     class IReplayBuffer: public IFileOutput
@@ -96,22 +100,32 @@ namespace osn
             const int64_t                  id,
             const std::vector<ipc::value>& args,
             std::vector<ipc::value>&       rval);
-        static void GetVideoEncoder(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-        static void SetVideoEncoder(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
         static void Query(
             void*                          data,
             const int64_t                  id,
             const std::vector<ipc::value>& args,
             std::vector<ipc::value>&       rval);
         static void Save(
+            void*                          data,
+            const int64_t                  id,
+            const std::vector<ipc::value>& args,
+            std::vector<ipc::value>&       rval);
+        static void GetStreaming(
+            void*                          data,
+            const int64_t                  id,
+            const std::vector<ipc::value>& args,
+            std::vector<ipc::value>&       rval);
+        static void SetStreaming(
+            void*                          data,
+            const int64_t                  id,
+            const std::vector<ipc::value>& args,
+            std::vector<ipc::value>&       rval);
+        static void GetRecording(
+            void*                          data,
+            const int64_t                  id,
+            const std::vector<ipc::value>& args,
+            std::vector<ipc::value>&       rval);
+        static void SetRecording(
             void*                          data,
             const int64_t                  id,
             const std::vector<ipc::value>& args,

@@ -48,6 +48,8 @@ namespace osn
         RecQuality quality;
         bool lowCPU;
         SimpleStreaming* streaming;
+
+        void UpdateEncoders();
     };
 
     class ISimpleRecording: public IRecording

@@ -21,8 +21,6 @@
 #include "osn-error.hpp"
 #include "shared.hpp"
 #include "nodeobs_audio_encoders.h"
-#include "osn-simple-recording.hpp"
-#include "osn-simple-streaming.hpp"
 
 void osn::ISimpleReplayBuffer::Register(ipc::server& srv)
 {
@@ -63,22 +61,6 @@ void osn::ISimpleReplayBuffer::Register(ipc::server& srv)
         std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32},
         SetUsesStream));
     cls->register_function(std::make_shared<ipc::function>(
-        "GetVideoEncoder",
-        std::vector<ipc::type>{ipc::type::UInt64},
-        GetVideoEncoder));
-    cls->register_function(std::make_shared<ipc::function>(
-        "SetVideoEncoder",
-        std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64},
-        SetVideoEncoder));
-    cls->register_function(std::make_shared<ipc::function>(
-        "GetAudioEncoder",
-        std::vector<ipc::type>{ipc::type::UInt64},
-        GetAudioEncoder));
-    cls->register_function(std::make_shared<ipc::function>(
-        "SetAudioEncoder",
-        std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64},
-        SetAudioEncoder));
-    cls->register_function(std::make_shared<ipc::function>(
         "Save",
         std::vector<ipc::type>{ipc::type::UInt64},
         Save));
@@ -90,6 +72,22 @@ void osn::ISimpleReplayBuffer::Register(ipc::server& srv)
         "Query", std::vector<ipc::type>{ipc::type::UInt64}, Query));
     cls->register_function(std::make_shared<ipc::function>(
         "GetLegacySettings", std::vector<ipc::type>{}, GetLegacySettings));
+    cls->register_function(std::make_shared<ipc::function>(
+        "GetStreaming",
+        std::vector<ipc::type>{ipc::type::UInt64},
+        GetStreaming));
+    cls->register_function(std::make_shared<ipc::function>(
+        "SetStreaming",
+        std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64},
+        SetStreaming));
+    cls->register_function(std::make_shared<ipc::function>(
+        "GetRecording",
+        std::vector<ipc::type>{ipc::type::UInt64},
+        GetRecording));
+    cls->register_function(std::make_shared<ipc::function>(
+        "SetRecording",
+        std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64},
+        SetRecording));
 
     srv.register_collection(cls);
 }
@@ -108,52 +106,6 @@ void osn::ISimpleReplayBuffer::Create(
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
     rval.push_back(ipc::value(uid));
-    AUTO_DEBUG;
-}
-
-void osn::ISimpleReplayBuffer::GetAudioEncoder(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-    SimpleReplayBuffer* replayBuffer =
-        static_cast<SimpleReplayBuffer*>(
-            osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64));
-    if (!replayBuffer) {
-        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Replay buffer reference is not valid.");
-    }
-
-    uint64_t uid =
-        osn::AudioEncoder::Manager::GetInstance().find(replayBuffer->audioEncoder);
-
-    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-    rval.push_back(ipc::value(uid));
-    AUTO_DEBUG;
-}
-
-void osn::ISimpleReplayBuffer::SetAudioEncoder(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-    SimpleReplayBuffer* replayBuffer =
-        static_cast<SimpleReplayBuffer*>(
-            osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64));
-    if (!replayBuffer) {
-        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Replay buffer reference is not valid.");
-    }
-
-    obs_encoder_t* encoder =
-        osn::AudioEncoder::Manager::GetInstance().find(args[1].value_union.ui64);
-    if (!encoder) {
-        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Encoder reference is not valid.");
-    }
-
-    replayBuffer->audioEncoder = encoder;
-
-    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
     AUTO_DEBUG;
 }
 
@@ -186,21 +138,34 @@ void osn::ISimpleReplayBuffer::Start(
     if (!replayBuffer->output)
         replayBuffer->createOutput("replay_buffer", "replay-buffer");
 
-    if (!replayBuffer->audioEncoder) {
+    obs_encoder_t* audioEncoder = nullptr;
+    obs_encoder_t* videoEncoder = nullptr;
+
+    if (obs_get_multiple_rendering() && replayBuffer->usesStream) {
+        replayBuffer->streaming->UpdateEncoders();
+        audioEncoder = replayBuffer->streaming->audioEncoder;
+        videoEncoder = replayBuffer->streaming->videoEncoder;
+    } else {
+        replayBuffer->recording->UpdateEncoders();
+        audioEncoder = replayBuffer->recording->audioEncoder;
+        videoEncoder = replayBuffer->recording->videoEncoder;
+    }
+
+    if (!audioEncoder) {
         PRETTY_ERROR_RETURN(
             ErrorCode::InvalidReference, "Invalid audio encoder.");
     }
 
-    obs_encoder_set_audio(replayBuffer->audioEncoder, obs_get_audio());
-    obs_output_set_audio_encoder(replayBuffer->output, replayBuffer->audioEncoder, 0);
+    obs_encoder_set_audio(audioEncoder, obs_get_audio());
+    obs_output_set_audio_encoder(replayBuffer->output, audioEncoder, 0);
 
-    if (!replayBuffer->videoEncoder) {
+    if (!videoEncoder) {
         PRETTY_ERROR_RETURN(
             ErrorCode::InvalidReference, "Invalid video encoder.");
     }
 
-    obs_encoder_set_video(replayBuffer->videoEncoder, obs_get_video());
-    obs_output_set_video_encoder(replayBuffer->output, replayBuffer->videoEncoder);
+    obs_encoder_set_video(videoEncoder, obs_get_video());
+    obs_output_set_video_encoder(replayBuffer->output, videoEncoder);
 
     if (!replayBuffer->path.size()) {
         PRETTY_ERROR_RETURN(
@@ -249,7 +214,8 @@ void osn::ISimpleReplayBuffer::Stop(
 {
     SimpleReplayBuffer* replayBuffer =
         static_cast<SimpleReplayBuffer*>(
-            osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64));
+            osn::IFileOutput::Manager::GetInstance().
+            find(args[0].value_union.ui64));
     if (!replayBuffer) {
         PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Simple replay buffer reference is not valid.");
     }

@@ -175,52 +175,6 @@ void osn::IReplayBuffer::SetUsesStream(
     AUTO_DEBUG;
 }
 
-void osn::IReplayBuffer::GetVideoEncoder(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-    ReplayBuffer* replayBuffer =
-        static_cast<ReplayBuffer*>(
-            osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64));
-    if (!replayBuffer) {
-        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Simple replayBuffer reference is not valid.");
-    }
-
-    uint64_t uid =
-        osn::VideoEncoder::Manager::GetInstance().find(replayBuffer->videoEncoder);
-
-    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-    rval.push_back(ipc::value(uid));
-    AUTO_DEBUG;
-}
-
-void osn::IReplayBuffer::SetVideoEncoder(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-    ReplayBuffer* replayBuffer =
-        static_cast<ReplayBuffer*>(
-            osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64));
-    if (!replayBuffer) {
-        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Simple replayBuffer reference is not valid.");
-    }
-
-    obs_encoder_t* encoder =
-        osn::VideoEncoder::Manager::GetInstance().find(args[1].value_union.ui64);
-    if (!encoder) {
-        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Encoder reference is not valid.");
-    }
-
-    replayBuffer->videoEncoder = encoder;
-
-    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-    AUTO_DEBUG;
-}
-
 void osn::IReplayBuffer::Query(
     void*                          data,
     const int64_t                  id,
@@ -275,4 +229,118 @@ void osn::IReplayBuffer::Save(
         nullptr);
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+}
+
+void osn::IReplayBuffer::GetStreaming(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+    ReplayBuffer* replayBuffer =
+        static_cast<ReplayBuffer*>(
+            osn::IFileOutput::Manager::GetInstance().
+            find(args[0].value_union.ui64));
+    if (!replayBuffer) {
+        PRETTY_ERROR_RETURN(
+            ErrorCode::InvalidReference,
+            "Simple replay buffer reference is not valid.");
+    }
+
+    uint64_t uid =
+        osn::ISimpleStreaming::Manager::GetInstance().
+        find(replayBuffer->streaming);
+
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+    rval.push_back(ipc::value(uid));
+    AUTO_DEBUG;
+}
+
+void osn::IReplayBuffer::SetStreaming(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+    ReplayBuffer* replayBuffer =
+        static_cast<ReplayBuffer*>(
+            osn::IFileOutput::Manager::GetInstance().
+            find(args[0].value_union.ui64));
+    if (!replayBuffer) {
+        PRETTY_ERROR_RETURN(
+            ErrorCode::InvalidReference,
+            "Simple replay buffer reference is not valid.");
+    }
+
+    SimpleStreaming* streaming =
+        static_cast<SimpleStreaming*>(
+            osn::ISimpleStreaming::Manager::GetInstance().
+            find(args[1].value_union.ui64));
+    if (!streaming) {
+        PRETTY_ERROR_RETURN(
+            ErrorCode::InvalidReference,
+            "Streaming reference is not valid.");
+    }
+
+    replayBuffer->streaming = streaming;
+
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+    AUTO_DEBUG;
+}
+
+void osn::IReplayBuffer::GetRecording(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+    ReplayBuffer* replayBuffer =
+        static_cast<ReplayBuffer*>(
+            osn::IFileOutput::Manager::GetInstance().
+            find(args[0].value_union.ui64));
+    if (!replayBuffer) {
+        PRETTY_ERROR_RETURN(
+            ErrorCode::InvalidReference,
+            "Simple replay buffer reference is not valid.");
+    }
+
+    uint64_t uid =
+        osn::ISimpleRecording::Manager::GetInstance().
+        find(replayBuffer->recording);
+
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+    rval.push_back(ipc::value(uid));
+    AUTO_DEBUG;
+}
+
+void osn::IReplayBuffer::SetRecording(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+    ReplayBuffer* replayBuffer =
+        static_cast<ReplayBuffer*>(
+            osn::IFileOutput::Manager::GetInstance().
+            find(args[0].value_union.ui64));
+    if (!replayBuffer) {
+        PRETTY_ERROR_RETURN(
+            ErrorCode::InvalidReference,
+            "Simple replay buffer reference is not valid.");
+    }
+
+    SimpleRecording* recording =
+        static_cast<SimpleRecording*>(
+            osn::ISimpleRecording::Manager::GetInstance().
+            find(args[1].value_union.ui64));
+    if (!recording) {
+        PRETTY_ERROR_RETURN(
+            ErrorCode::InvalidReference,
+            "Recording reference is not valid.");
+    }
+
+    replayBuffer->recording = recording;
+
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+    AUTO_DEBUG;
 }

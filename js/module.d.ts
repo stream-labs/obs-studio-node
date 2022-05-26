@@ -794,14 +794,14 @@ export interface IReplayBuffer extends IFileOutput {
     prefix: string;
     suffix: string;
     usesStream: boolean;
-    videoEncoder: IVideoEncoder;
     signalHandler: (signal: EOutputSignal) => void;
     start(): void;
     stop(force?: boolean): void;
     save(): void;
 }
 export interface ISimpleReplayBuffer extends IReplayBuffer {
-    audioEncoder: IAudioEncoder;
+    streaming: IStreaming;
+    recording: IRecording;
 }
 export interface IAdvancedReplayBuffer extends IReplayBuffer {
     mixer: number;

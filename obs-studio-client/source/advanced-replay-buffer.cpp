@@ -67,10 +67,6 @@ Napi::Object osn::AdvancedReplayBuffer::Init(Napi::Env env, Napi::Object exports
                 &osn::AdvancedReplayBuffer::GetSuffix,
                 &osn::AdvancedReplayBuffer::SetSuffix),
             InstanceAccessor(
-                "videoEncoder",
-                &osn::AdvancedReplayBuffer::GetVideoEncoder,
-                &osn::AdvancedReplayBuffer::SetVideoEncoder),
-            InstanceAccessor(
                 "signalHandler",
                 &osn::AdvancedReplayBuffer::GetSignalHandler,
                 &osn::AdvancedReplayBuffer::SetSignalHandler),

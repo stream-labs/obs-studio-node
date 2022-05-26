@@ -35,17 +35,26 @@ namespace osn
         std::string className;
 
         Napi::Value GetDuration(const Napi::CallbackInfo& info);
-        void SetDuration(const Napi::CallbackInfo& info, const Napi::Value& value);
+        void SetDuration(
+            const Napi::CallbackInfo& info, const Napi::Value& value);
         Napi::Value GetPrefix(const Napi::CallbackInfo& info);
-        void SetPrefix(const Napi::CallbackInfo& info, const Napi::Value& value);
+        void SetPrefix(
+            const Napi::CallbackInfo& info, const Napi::Value& value);
         Napi::Value GetSuffix(const Napi::CallbackInfo& info);
-        void SetSuffix(const Napi::CallbackInfo& info, const Napi::Value& value);
+        void SetSuffix(
+            const Napi::CallbackInfo& info, const Napi::Value& value);
         Napi::Value GetUsesStream(const Napi::CallbackInfo& info);
-        void SetUsesStream(const Napi::CallbackInfo& info, const Napi::Value& value);
-        Napi::Value GetVideoEncoder(const Napi::CallbackInfo& info);
-        void SetVideoEncoder(const Napi::CallbackInfo& info, const Napi::Value& value);
+        void SetUsesStream(
+            const Napi::CallbackInfo& info, const Napi::Value& value);
+        Napi::Value GetStreaming(const Napi::CallbackInfo& info);
+        void SetStreaming(
+            const Napi::CallbackInfo& info, const Napi::Value& value);
+        Napi::Value GetRecording(const Napi::CallbackInfo& info);
+        void SetRecording(
+            const Napi::CallbackInfo& info, const Napi::Value& value);
         Napi::Value GetSignalHandler(const Napi::CallbackInfo& info);
-        void SetSignalHandler(const Napi::CallbackInfo& info, const Napi::Value& value);
+        void SetSignalHandler(
+            const Napi::CallbackInfo& info, const Napi::Value& value);
         
         void Start(const Napi::CallbackInfo& info);
         void Stop(const Napi::CallbackInfo& info);

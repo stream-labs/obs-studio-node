@@ -61,14 +61,6 @@ void osn::IAdvancedReplayBuffer::Register(ipc::server& srv)
         std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32},
         SetUsesStream));
     cls->register_function(std::make_shared<ipc::function>(
-        "GetVideoEncoder",
-        std::vector<ipc::type>{ipc::type::UInt64},
-        GetVideoEncoder));
-    cls->register_function(std::make_shared<ipc::function>(
-        "SetVideoEncoder",
-        std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64},
-        SetVideoEncoder));
-    cls->register_function(std::make_shared<ipc::function>(
         "GetMixer",
         std::vector<ipc::type>{ipc::type::UInt64},
         GetMixer));
@@ -189,13 +181,24 @@ void osn::IAdvancedReplayBuffer::Start(
         }
     }
 
-    if (!replayBuffer->videoEncoder) {
+    obs_encoder_t* videoEncoder = nullptr;
+    if (obs_get_multiple_rendering() && replayBuffer->usesStream) {
+        if (!replayBuffer->streaming)
+            return;
+        videoEncoder = replayBuffer->streaming->videoEncoder;
+    }
+    else {
+        if (!replayBuffer->recording)
+        videoEncoder = replayBuffer->recording->videoEncoder;
+    }
+
+    if (!videoEncoder) {
         PRETTY_ERROR_RETURN(
             ErrorCode::InvalidReference, "Invalid video encoder.");
     }
 
-    obs_encoder_set_video(replayBuffer->videoEncoder, obs_get_video());
-    obs_output_set_video_encoder(replayBuffer->output, replayBuffer->videoEncoder);
+    obs_encoder_set_video(videoEncoder, obs_get_video());
+    obs_output_set_video_encoder(replayBuffer->output, videoEncoder);
 
     if (!replayBuffer->path.size()) {
         PRETTY_ERROR_RETURN(

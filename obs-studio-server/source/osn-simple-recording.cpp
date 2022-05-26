@@ -321,6 +321,42 @@ static inline void UpdateRecordingSettings_crf(
     obs_data_release(settings);
 }
 
+void osn::SimpleRecording::UpdateEncoders()
+{
+    if (videoEncoder && obs_encoder_active(videoEncoder))
+        return;
+
+    if (audioEncoder && obs_encoder_active(audioEncoder))
+        return;
+
+    switch(quality) {
+        case RecQuality::Stream: {
+            if (!streaming)
+                return;
+            streaming->UpdateEncoders();
+            videoEncoder = streaming->videoEncoder;
+            audioEncoder = streaming->audioEncoder;
+            if (obs_get_multiple_rendering()) {
+                obs_encoder_t* videoEncDup =
+                    osn::IRecording::duplicate_encoder(videoEncoder);
+                videoEncoder = videoEncDup;
+            }
+            break;
+        }
+        case RecQuality::HighQuality: {
+            UpdateRecordingSettings_crf(16, this);
+            break;
+        }
+        case RecQuality::HigherQuality: {
+            UpdateRecordingSettings_crf(23, this);
+            break;
+        }
+        default: {
+            break;
+        }
+    }
+}
+
 void osn::ISimpleRecording::Start(
     void*                          data,
     const int64_t                  id,
@@ -348,44 +384,13 @@ void osn::ISimpleRecording::Start(
     std::string format = recording->format;
     std::string pathProperty = "path";
 
-    switch(recording->quality) {
-        case RecQuality::Stream: {
-            if (!recording->streaming)
-                return;
-            recording->streaming->UpdateEncoders();
-            break;
-        }
-        case RecQuality::HighQuality: {
-            UpdateRecordingSettings_crf(16, recording);
-            break;
-        }
-        case RecQuality::HigherQuality: {
-            UpdateRecordingSettings_crf(23, recording);
-            break;
-        }
-        case RecQuality::Lossless: {
-            recording->createOutput("ffmpeg_output", "recording");
-            LoadLosslessPreset(recording);
-            format = "avi";
-            pathProperty = "url";
-            break;
-        }
-        default: {
-            PRETTY_ERROR_RETURN(ErrorCode::InvalidReference,
-                "Error while loading the recording pressets.");
-        }
-    }
-
-    if (recording->quality == RecQuality::Stream) {
-        recording->videoEncoder =
-            recording->streaming->videoEncoder;
-        recording->audioEncoder =
-            recording->streaming->audioEncoder;
-        if (obs_get_multiple_rendering()) {
-            obs_encoder_t* videoEncDup =
-                duplicate_encoder(recording->videoEncoder);
-            recording->videoEncoder = videoEncDup;
-        }
+    if (recording->quality == RecQuality::Lossless) {
+        recording->createOutput("ffmpeg_output", "recording");
+        LoadLosslessPreset(recording);
+        format = "avi";
+        pathProperty = "url";
+    } else {
+        recording->UpdateEncoders();
     }
 
     if (!recording->videoEncoder) {

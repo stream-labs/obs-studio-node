@@ -67,21 +67,21 @@ Napi::Object osn::SimpleReplayBuffer::Init(Napi::Env env, Napi::Object exports) 
                 &osn::SimpleReplayBuffer::GetSuffix,
                 &osn::SimpleReplayBuffer::SetSuffix),
             InstanceAccessor(
-                "videoEncoder",
-                &osn::SimpleReplayBuffer::GetVideoEncoder,
-                &osn::SimpleReplayBuffer::SetVideoEncoder),
-            InstanceAccessor(
                 "signalHandler",
                 &osn::SimpleReplayBuffer::GetSignalHandler,
                 &osn::SimpleReplayBuffer::SetSignalHandler),
             InstanceAccessor(
-                "audioEncoder",
-                &osn::SimpleReplayBuffer::GetAudioEncoder,
-                &osn::SimpleReplayBuffer::SetAudioEncoder),
-            InstanceAccessor(
                 "usesStream",
                 &osn::SimpleReplayBuffer::GetUsesStream,
                 &osn::SimpleReplayBuffer::SetUsesStream),
+            InstanceAccessor(
+                "streaming",
+                &osn::SimpleReplayBuffer::GetStreaming,
+                &osn::SimpleReplayBuffer::SetStreaming),
+            InstanceAccessor(
+                "recording",
+                &osn::SimpleReplayBuffer::GetRecording,
+                &osn::SimpleReplayBuffer::SetRecording),
 
             InstanceMethod("start", &osn::SimpleReplayBuffer::Start),
             InstanceMethod("stop", &osn::SimpleReplayBuffer::Stop),
@@ -134,47 +134,6 @@ Napi::Value osn::SimpleReplayBuffer::Create(const Napi::CallbackInfo& info) {
         });
 
     return instance;
-}
-
-Napi::Value osn::SimpleReplayBuffer::GetAudioEncoder(const Napi::CallbackInfo& info) {
-    auto conn = GetConnection(info);
-    if (!conn)
-        return info.Env().Undefined();
-
-    std::vector<ipc::value> response =
-        conn->call_synchronous_helper(
-            className,
-            "GetAudioEncoder",
-            {ipc::value(this->uid)});
-
-    if (!ValidateResponse(info, response))
-        return info.Env().Undefined();
-
-    auto instance =
-        osn::AudioEncoder::constructor.New({
-            Napi::Number::New(info.Env(), response[1].value_union.ui64)
-        });
-    return instance;
-}
-
-void osn::SimpleReplayBuffer::SetAudioEncoder(const Napi::CallbackInfo& info, const Napi::Value& value) {
-    osn::AudioEncoder* encoder =
-        Napi::ObjectWrap<osn::AudioEncoder>::Unwrap(value.ToObject());
-
-    if (!encoder) {
-        Napi::TypeError::New(info.Env(),
-            "Invalid encoder argument").ThrowAsJavaScriptException();
-        return;
-    }
-
-    auto conn = GetConnection(info);
-    if (!conn)
-        return;
-
-    conn->call(
-        className,
-        "SetAudioEncoder",
-        {ipc::value(this->uid), ipc::value(encoder->uid)});
 }
 
 Napi::Value osn::SimpleReplayBuffer::GetLegacySettings(

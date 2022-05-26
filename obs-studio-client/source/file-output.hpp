@@ -25,10 +25,10 @@ namespace osn
     class FileOutput
     {
         public:
+        uint64_t uid;
         FileOutput() {};
 
         protected:
-        uint64_t uid;
 
         Napi::Value GetPath(const Napi::CallbackInfo& info);
         void SetPath(const Napi::CallbackInfo& info, const Napi::Value& value);

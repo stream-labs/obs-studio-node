@@ -19,6 +19,8 @@
 #include "replay-buffer.hpp"
 #include "utility.hpp"
 #include "video-encoder.hpp"
+#include "simple-streaming.hpp"
+#include "simple-recording.hpp"
 
 Napi::Value osn::ReplayBuffer::GetDuration(const Napi::CallbackInfo& info) {
     auto conn = GetConnection(info);
@@ -136,47 +138,6 @@ void osn::ReplayBuffer::SetUsesStream(
         {ipc::value(this->uid), ipc::value(value.ToBoolean().Value())});
 }
 
-Napi::Value osn::ReplayBuffer::GetVideoEncoder(const Napi::CallbackInfo& info) {
-    auto conn = GetConnection(info);
-    if (!conn)
-        return info.Env().Undefined();
-
-    std::vector<ipc::value> response =
-        conn->call_synchronous_helper(
-            className,
-            "GetVideoEncoder",
-            {ipc::value(this->uid)});
-
-    if (!ValidateResponse(info, response))
-        return info.Env().Undefined();
-
-    auto instance =
-        osn::VideoEncoder::constructor.New({
-            Napi::Number::New(info.Env(), response[1].value_union.ui64)
-        });
-
-    return instance;
-}
-
-void osn::ReplayBuffer::SetVideoEncoder(const Napi::CallbackInfo& info, const Napi::Value& value) {
-    osn::VideoEncoder* encoder = Napi::ObjectWrap<osn::VideoEncoder>::Unwrap(value.ToObject());
-
-    if (!encoder) {
-        Napi::TypeError::New(info.Env(),
-            "Invalid encoder argument").ThrowAsJavaScriptException();
-        return;
-    }
-
-    auto conn = GetConnection(info);
-    if (!conn)
-        return;
-
-    conn->call(
-        className,
-        "SetVideoEncoder",
-        {ipc::value(this->uid), ipc::value(encoder->uid)});
-}
-
 Napi::Value osn::ReplayBuffer::GetSignalHandler(const Napi::CallbackInfo& info) {
     if (this->cb.IsEmpty())
         return info.Env().Undefined();
@@ -228,4 +189,90 @@ void osn::ReplayBuffer::Save(const Napi::CallbackInfo& info) {
         return;
 
     conn->call(className, "Save", {ipc::value(this->uid)});
+}
+
+Napi::Value osn::ReplayBuffer::GetStreaming(
+    const Napi::CallbackInfo& info) {
+    auto conn = GetConnection(info);
+    if (!conn)
+        return info.Env().Undefined();
+
+    std::vector<ipc::value> response =
+        conn->call_synchronous_helper(
+            className,
+            "GetStreaming",
+            {ipc::value(this->uid)});
+
+    if (!ValidateResponse(info, response))
+        return info.Env().Undefined();
+
+    auto instance =
+        osn::SimpleStreaming::constructor.New({
+            Napi::Number::New(info.Env(), response[1].value_union.ui64)
+        });
+    return instance;
+}
+
+void osn::ReplayBuffer::SetStreaming(
+    const Napi::CallbackInfo& info, const Napi::Value& value) {
+    osn::SimpleStreaming* encoder =
+        Napi::ObjectWrap<osn::SimpleStreaming>::Unwrap(value.ToObject());
+
+    if (!encoder) {
+        Napi::TypeError::New(info.Env(),
+            "Invalid streaming argument").ThrowAsJavaScriptException();
+        return;
+    }
+
+    auto conn = GetConnection(info);
+    if (!conn)
+        return;
+
+    conn->call(
+        className,
+        "SetStreaming",
+        {ipc::value(this->uid), ipc::value(encoder->uid)});
+}
+
+Napi::Value osn::ReplayBuffer::GetRecording(
+    const Napi::CallbackInfo& info) {
+    auto conn = GetConnection(info);
+    if (!conn)
+        return info.Env().Undefined();
+
+    std::vector<ipc::value> response =
+        conn->call_synchronous_helper(
+            className,
+            "GetRecording",
+            {ipc::value(this->uid)});
+
+    if (!ValidateResponse(info, response))
+        return info.Env().Undefined();
+
+    auto instance =
+        osn::SimpleRecording::constructor.New({
+            Napi::Number::New(info.Env(), response[1].value_union.ui64)
+        });
+    return instance;
+}
+
+void osn::ReplayBuffer::SetRecording(
+    const Napi::CallbackInfo& info, const Napi::Value& value) {
+    osn::SimpleRecording* recording =
+        Napi::ObjectWrap<osn::SimpleRecording>::Unwrap(value.ToObject());
+
+    if (!recording) {
+        Napi::TypeError::New(info.Env(),
+            "Invalid streaming argument").ThrowAsJavaScriptException();
+        return;
+    }
+
+    auto conn = GetConnection(info);
+    if (!conn)
+        return;
+
+    conn->call(
+        className,
+        "SetRecording",
+        {ipc::value(this->uid), ipc::value(recording->uid)});
 }

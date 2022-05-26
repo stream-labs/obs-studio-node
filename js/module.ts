@@ -1669,7 +1669,8 @@ export interface IReplayBuffer extends IFileOutput {
     prefix: string,
     suffix: string,
     usesStream: boolean,
-    videoEncoder: IVideoEncoder,
+    streaming: IStreaming,
+    recording: IRecording,
     signalHandler: (signal: EOutputSignal) => void,
     start(): void,
     stop(force?: boolean): void,
@@ -1677,7 +1678,6 @@ export interface IReplayBuffer extends IFileOutput {
 }
 
 export interface ISimpleReplayBuffer extends IReplayBuffer {
-    audioEncoder: IAudioEncoder
 }
 
 export interface IAdvancedReplayBuffer extends IReplayBuffer {

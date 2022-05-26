@@ -21,6 +21,8 @@
 #include <obs.h>
 #include "utility.hpp"
 #include "osn-replay-buffer.hpp"
+#include "osn-simple-recording.hpp"
+#include "osn-simple-streaming.hpp"
 
 namespace osn
 {
@@ -28,12 +30,9 @@ namespace osn
     {
         public:
         SimpleReplayBuffer() {
-            audioEncoder = nullptr;
         }
         ~SimpleReplayBuffer() {}
 
-        public:
-        obs_encoder_t* audioEncoder;
     };
 
     class ISimpleReplayBuffer: public IReplayBuffer
@@ -42,16 +41,6 @@ namespace osn
         static void Register(ipc::server&);
 
         static void Create(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-        static void GetAudioEncoder(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-        static void SetAudioEncoder(
             void*                          data,
             const int64_t                  id,
             const std::vector<ipc::value>& args,
