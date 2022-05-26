@@ -41,6 +41,8 @@ namespace osn
         obs_encoder_t* audioEncoder;
         bool useAdvanced;
         std::string customEncSettings;
+
+        void UpdateEncoders();
     };
 
     class ISimpleStreaming: public IStreaming

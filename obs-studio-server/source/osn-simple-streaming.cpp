@@ -349,6 +349,78 @@ static inline void StopTwitchSoundtrackAudio(osn::Streaming* streaming)
     obs_source_release(desktopSource2);
 }
 
+void UpdateStreamingSettings_amd(obs_data_t* settings, int bitrate)
+{
+    // Static Properties
+    obs_data_set_int(settings, "Usage", 0);
+    obs_data_set_int(settings, "Profile", 100); // High
+
+    // Rate Control Properties
+    obs_data_set_int(settings, "RateControlMethod", 3);
+    obs_data_set_int(settings, "Bitrate.Target", bitrate);
+    obs_data_set_int(settings, "FillerData", 1);
+    obs_data_set_int(settings, "VBVBuffer", 1);
+    obs_data_set_int(settings, "VBVBuffer.Size", bitrate);
+
+    // Picture Control Properties
+    obs_data_set_double(settings, "KeyframeInterval", 2.0);
+    obs_data_set_int(settings, "BFrame.Pattern", 0);
+}
+
+void osn::SimpleStreaming::UpdateEncoders()
+{
+    if (!videoEncoder || !audioEncoder)
+        return;
+
+    obs_data_t* videoEncSettings = obs_encoder_get_settings(videoEncoder);
+    obs_data_t* audioEncSettings = obs_encoder_get_settings(audioEncoder);
+    uint32_t vBitrate = obs_data_get_int(videoEncSettings, "bitrate");
+    uint32_t aBitrate = obs_data_get_int(audioEncSettings, "bitrate");
+
+    std::string id = obs_encoder_get_id(videoEncoder);
+    if (id.compare("amd_amf_h264") == 0)
+        UpdateStreamingSettings_amd(videoEncSettings, vBitrate);
+
+    obs_data_set_string(videoEncSettings, "rate_control", "CBR");
+    obs_data_set_int(videoEncSettings, "bitrate", vBitrate);
+
+    if (useAdvanced) {
+        obs_data_set_string(videoEncSettings, "x264opts", customEncSettings.c_str());
+    }
+
+    obs_data_set_string(audioEncSettings, "rate_control", "CBR");
+    obs_data_set_int(audioEncSettings, "bitrate", aBitrate);
+
+    obs_service_apply_encoder_settings(
+        service, videoEncSettings, audioEncSettings);
+
+    if (useAdvanced && !enforceServiceBitrate) {
+        obs_data_set_int(videoEncSettings, "bitrate", vBitrate);
+        obs_data_set_int(audioEncSettings, "bitrate", aBitrate);
+    }
+
+    video_t *video = obs_get_video();
+    enum video_format format = video_output_get_format(video);
+
+    switch (format) {
+        case VIDEO_FORMAT_I420:
+        case VIDEO_FORMAT_NV12:
+        // case VIDEO_FORMAT_I010:
+        // case VIDEO_FORMAT_P010:
+            break;
+        default:
+            obs_encoder_set_preferred_video_format(
+                videoEncoder,
+                VIDEO_FORMAT_NV12);
+	}
+
+    obs_encoder_update(videoEncoder, videoEncSettings);
+    obs_encoder_update(audioEncoder, audioEncSettings);
+
+    obs_data_release(videoEncSettings);
+    obs_data_release(audioEncSettings);
+}
+
 void osn::ISimpleStreaming::Start(
     void*                          data,
     const int64_t                  id,
@@ -361,10 +433,6 @@ void osn::ISimpleStreaming::Start(
             find(args[0].value_union.ui64));
     if (!streaming) {
         PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Simple streaming reference is not valid.");
-    }
-
-    if (!streaming->videoEncoder) {
-        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Invalid video encoder.");
     }
 
     if (!streaming->service) {
@@ -395,6 +463,7 @@ void osn::ISimpleStreaming::Start(
             ErrorCode::InvalidReference, "Invalid audio encoder.");
     }
 
+    streaming->UpdateEncoders();
     obs_encoder_set_audio(streaming->audioEncoder, obs_get_audio());
     obs_output_set_audio_encoder(streaming->output, streaming->audioEncoder, 0);
 
