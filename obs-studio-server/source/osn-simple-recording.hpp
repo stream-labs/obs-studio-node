@@ -21,6 +21,7 @@
 #include <obs.h>
 #include "utility.hpp"
 #include "osn-recording.hpp"
+#include "osn-simple-streaming.hpp"
 
 namespace osn
 {
@@ -38,6 +39,7 @@ namespace osn
             audioEncoder = nullptr;
             quality = RecQuality::Stream;
             lowCPU = false;
+            streaming = nullptr;
         }
         ~SimpleRecording() {}
 
@@ -45,6 +47,7 @@ namespace osn
         obs_encoder_t* audioEncoder;
         RecQuality quality;
         bool lowCPU;
+        SimpleStreaming* streaming;
     };
 
     class ISimpleRecording: public IRecording
@@ -104,5 +107,15 @@ namespace osn
             std::vector<ipc::value>&       rval);
         static obs_encoder_t* GetLegacyVideoEncoderSettings();
         static obs_encoder_t* GetLegacyAudioEncoderSettings();
+        static void GetStreaming(
+            void*                          data,
+            const int64_t                  id,
+            const std::vector<ipc::value>& args,
+            std::vector<ipc::value>&       rval);
+        static void SetStreaming(
+            void*                          data,
+            const int64_t                  id,
+            const std::vector<ipc::value>& args,
+            std::vector<ipc::value>&       rval);
     };
 }

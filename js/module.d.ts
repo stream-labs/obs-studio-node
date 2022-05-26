@@ -772,6 +772,7 @@ export interface ISimpleRecording extends IRecording {
     quality: ERecordingQuality;
     audioEncoder: IAudioEncoder;
     lowCPU: boolean;
+    streaming: ISimpleStreaming;
 }
 export interface IAdvancedRecording extends IRecording {
     mixer: number;

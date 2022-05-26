@@ -24,6 +24,7 @@
 #include "nodeobs_audio_encoders.h"
 #include "osn-file-output.hpp"
 
+
 void osn::ISimpleRecording::Register(ipc::server& srv)
 {
     std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("SimpleRecording");
@@ -69,6 +70,14 @@ void osn::ISimpleRecording::Register(ipc::server& srv)
         SetLowCPU));
     cls->register_function(std::make_shared<ipc::function>(
         "GetLegacySettings", std::vector<ipc::type>{}, GetLegacySettings));
+    cls->register_function(std::make_shared<ipc::function>(
+        "GetStreaming",
+        std::vector<ipc::type>{ipc::type::UInt64},
+        GetStreaming));
+    cls->register_function(std::make_shared<ipc::function>(
+        "SetStreaming",
+        std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64},
+        SetStreaming));
 
     srv.register_collection(cls);
 }
@@ -336,21 +345,14 @@ void osn::ISimpleRecording::Start(
             ErrorCode::InvalidReference, "Error while creating the recording output.");
     }
 
-    if (!recording->videoEncoder) {
-        PRETTY_ERROR_RETURN(
-            ErrorCode::InvalidReference, "Invalid video encoder.");
-    }
-
     std::string format = recording->format;
     std::string pathProperty = "path";
 
     switch(recording->quality) {
         case RecQuality::Stream: {
-            if (obs_get_multiple_rendering()) {
-                obs_encoder_t* videoEncDup =
-                    duplicate_encoder(recording->videoEncoder);
-                recording->videoEncoder = videoEncDup;
-            }
+            if (!recording->streaming)
+                return;
+            recording->streaming->UpdateEncoders();
             break;
         }
         case RecQuality::HighQuality: {
@@ -372,6 +374,23 @@ void osn::ISimpleRecording::Start(
             PRETTY_ERROR_RETURN(ErrorCode::InvalidReference,
                 "Error while loading the recording pressets.");
         }
+    }
+
+    if (recording->quality == RecQuality::Stream) {
+        recording->videoEncoder =
+            recording->streaming->videoEncoder;
+        recording->audioEncoder =
+            recording->streaming->audioEncoder;
+        if (obs_get_multiple_rendering()) {
+            obs_encoder_t* videoEncDup =
+                duplicate_encoder(recording->videoEncoder);
+            recording->videoEncoder = videoEncDup;
+        }
+    }
+
+    if (!recording->videoEncoder) {
+        PRETTY_ERROR_RETURN(
+            ErrorCode::InvalidReference, "Invalid video encoder.");
     }
 
     if (!recording->audioEncoder) {
@@ -602,5 +621,62 @@ void osn::ISimpleRecording::GetLegacySettings(
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
     rval.push_back(ipc::value(uid));
+    AUTO_DEBUG;
+}
+
+void osn::ISimpleRecording::GetStreaming(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+    SimpleRecording* recording =
+        static_cast<SimpleRecording*>(
+            osn::IFileOutput::Manager::GetInstance().
+            find(args[0].value_union.ui64));
+    if (!recording) {
+        PRETTY_ERROR_RETURN(
+            ErrorCode::InvalidReference,
+            "Recording reference is not valid.");
+    }
+
+    uint64_t uid =
+        osn::ISimpleStreaming::Manager::GetInstance().
+        find(recording->streaming);
+
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+    rval.push_back(ipc::value(uid));
+    AUTO_DEBUG;
+}
+
+void osn::ISimpleRecording::SetStreaming(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+    SimpleRecording* recording =
+        static_cast<SimpleRecording*>(
+            osn::IFileOutput::Manager::GetInstance().
+            find(args[0].value_union.ui64));
+    if (!recording) {
+        PRETTY_ERROR_RETURN(
+            ErrorCode::InvalidReference,
+            "Recording reference is not valid.");
+    }
+
+    SimpleStreaming* streaming =
+        static_cast<SimpleStreaming*>(
+            osn::ISimpleStreaming::Manager::GetInstance().
+            find(args[1].value_union.ui64));
+    if (!streaming) {
+        PRETTY_ERROR_RETURN(
+            ErrorCode::InvalidReference,
+            "Streaming reference is not valid.");
+    }
+
+    recording->streaming = streaming;
+
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
     AUTO_DEBUG;
 }

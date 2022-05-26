@@ -372,6 +372,12 @@ void osn::SimpleStreaming::UpdateEncoders()
     if (!videoEncoder || !audioEncoder)
         return;
 
+    if (obs_encoder_active(videoEncoder))
+        return;
+
+    if (obs_encoder_active(audioEncoder))
+        return;
+
     obs_data_t* videoEncSettings = obs_encoder_get_settings(videoEncoder);
     obs_data_t* audioEncSettings = obs_encoder_get_settings(audioEncoder);
     uint32_t vBitrate = obs_data_get_int(videoEncSettings, "bitrate");

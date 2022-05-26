@@ -1642,7 +1642,8 @@ export interface IRecording extends IFileOutput {
 export interface ISimpleRecording extends IRecording {
     quality: ERecordingQuality,
     audioEncoder: IAudioEncoder,
-    lowCPU: boolean
+    lowCPU: boolean,
+    streaming: ISimpleStreaming
 }
 
 export interface IAdvancedRecording extends IRecording {
