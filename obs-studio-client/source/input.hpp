@@ -43,6 +43,7 @@ namespace osn
 		Napi::Value AddFilter(const Napi::CallbackInfo& info);
 		Napi::Value RemoveFilter(const Napi::CallbackInfo& info);
 		Napi::Value SetFilterOrder(const Napi::CallbackInfo& info);
+		Napi::Value SetFilterPosition(const Napi::CallbackInfo& info);
 		Napi::Value FindFilter(const Napi::CallbackInfo& info);
 		Napi::Value CopyFilters(const Napi::CallbackInfo& info);
 

@@ -98,6 +98,8 @@ void osn::Input::Register(ipc::server& srv)
 	cls->register_function(std::make_shared<ipc::function>(
 	    "MoveFilter", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64, ipc::type::UInt32}, MoveFilter));
 	cls->register_function(std::make_shared<ipc::function>(
+	    "PositionFilter", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64, ipc::type::UInt32}, PositionFilter));
+	cls->register_function(std::make_shared<ipc::function>(
 	    "FindFilter", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String}, FindFilter));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "CopyFiltersTo", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64}, CopyFiltersTo));
@@ -632,6 +634,30 @@ void osn::Input::MoveFilter(
 	AUTO_DEBUG;
 }
 
+void osn::Input::PositionFilter(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	if (!input) {
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Input reference is not valid.");
+	}
+
+	obs_source_t* filter = osn::Source::Manager::GetInstance().find(args[1].value_union.ui64);
+	if (!filter) {
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Filter reference is not valid.");
+	}
+
+	size_t position = (size_t)args[2].value_union.ui32;
+
+	obs_source_filter_set_position(input, filter, position);
+
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
+}
+
 void osn::Input::FindFilter(
     void*                          data,
     const int64_t                  id,
@@ -676,6 +702,7 @@ void osn::Input::GetFilters(
 		std::vector<ipc::value>* rval = reinterpret_cast<std::vector<ipc::value>*>(data);
 
 		uint64_t id = osn::Source::Manager::GetInstance().find(filter);
+		blog(LOG_DEBUG, "osn::Input::GetFilters: %s", obs_source_get_name(filter));
 		if (id != UINT64_MAX) {
 			rval->push_back(id);
 		}
