@@ -290,6 +290,8 @@ void osn::IAdvancedRecording::Start(
 
     obs_data_t* settings = obs_data_create();
     obs_data_set_string(settings, "path", path.c_str());
+    obs_data_set_string(settings,
+        "muxer_settings", recording->muxerSettings.c_str());
     obs_output_update(recording->output, settings);
     obs_data_release(settings);
 
@@ -435,6 +437,10 @@ void osn::IAdvancedRecording::GetLegacySettings(
         config_get_bool(
             ConfigManager::getInstance().getBasic(),
             "Output", "OverwriteIfExists");
+    recording->muxerSettings =
+        config_get_string(
+            ConfigManager::getInstance().getBasic(),
+            "AdvOut", "RecMuxerCustom");
 
     recording->rescaling =
         config_get_bool(
