@@ -73,6 +73,8 @@ void osn::ISimpleReplayBuffer::Register(ipc::server& srv)
     cls->register_function(std::make_shared<ipc::function>(
         "GetLegacySettings", std::vector<ipc::type>{}, GetLegacySettings));
     cls->register_function(std::make_shared<ipc::function>(
+        "SetLegacySettings", std::vector<ipc::type>{ipc::type::UInt64}, SetLegacySettings));
+    cls->register_function(std::make_shared<ipc::function>(
         "GetStreaming",
         std::vector<ipc::type>{ipc::type::UInt64},
         GetStreaming));
@@ -142,10 +144,14 @@ void osn::ISimpleReplayBuffer::Start(
     obs_encoder_t* videoEncoder = nullptr;
 
     if (obs_get_multiple_rendering() && replayBuffer->usesStream) {
+        if (!replayBuffer->streaming)
+            return;
         replayBuffer->streaming->UpdateEncoders();
         audioEncoder = replayBuffer->streaming->audioEncoder;
         videoEncoder = replayBuffer->streaming->videoEncoder;
     } else {
+        if (!replayBuffer->recording)
+            return;
         replayBuffer->recording->UpdateEncoders();
         audioEncoder = replayBuffer->recording->audioEncoder;
         videoEncoder = replayBuffer->recording->videoEncoder;
@@ -314,5 +320,55 @@ void osn::ISimpleReplayBuffer::GetLegacySettings(
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
     rval.push_back(ipc::value(uid));
+    AUTO_DEBUG;
+}
+
+void osn::ISimpleReplayBuffer::SetLegacySettings(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+    SimpleReplayBuffer* replayBuffer =
+        static_cast<SimpleReplayBuffer*>(
+            osn::ISimpleReplayBuffer::Manager::GetInstance().
+            find(args[0].value_union.ui64));
+    if (!replayBuffer) {
+        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Replay buffer reference is not valid.");
+    }
+
+    config_set_string(
+        ConfigManager::getInstance().getBasic(),
+        "SimpleOutput", "FilePath", replayBuffer->path.c_str());
+    config_set_string(
+        ConfigManager::getInstance().getBasic(),
+        "SimpleOutput", "RecFormat", replayBuffer->format.c_str());
+    config_set_string(
+        ConfigManager::getInstance().getBasic(),
+        "SimpleOutput", "MuxerCustom", replayBuffer->muxerSettings.c_str());
+    config_set_bool(
+        ConfigManager::getInstance().getBasic(),
+        "SimpleOutput", "FileNameWithoutSpace", replayBuffer->noSpace);
+    config_set_string(
+        ConfigManager::getInstance().getBasic(),
+        "Output", "FilenameFormatting", replayBuffer->fileFormat.c_str());
+    config_set_bool(
+        ConfigManager::getInstance().getBasic(),
+        "Output", "OverwriteIfExists", replayBuffer->overwrite);
+    config_set_string(
+        ConfigManager::getInstance().getBasic(),
+        "SimpleOutput", "RecRBPrefix", replayBuffer->prefix.c_str());
+    config_set_string(
+        ConfigManager::getInstance().getBasic(),
+        "SimpleOutput", "RecRBSuffix", replayBuffer->suffix.c_str());
+    config_set_int(
+        ConfigManager::getInstance().getBasic(),
+        "SimpleOutput", "RecRBTime", replayBuffer->duration);
+    config_set_bool(
+        ConfigManager::getInstance().getBasic(),
+        "SimpleOutput", "replayBufferUseStreamOutput",
+        replayBuffer->usesStream);
+
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
     AUTO_DEBUG;
 }

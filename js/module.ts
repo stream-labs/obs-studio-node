@@ -1686,7 +1686,7 @@ export interface IAdvancedReplayBuffer extends IReplayBuffer {
 
 export interface ISimpleReplayBufferFactory {
     create(): ISimpleReplayBuffer;
-    readonly legacySettings: ISimpleReplayBuffer;
+    legacySettings: ISimpleReplayBuffer;
 }
 
 export interface IAdvancedReplayBufferFactory {

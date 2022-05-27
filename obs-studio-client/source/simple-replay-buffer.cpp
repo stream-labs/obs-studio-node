@@ -92,7 +92,8 @@ Napi::Object osn::SimpleReplayBuffer::Init(Napi::Env env, Napi::Object exports) 
 
             StaticAccessor(
                 "legacySettings",
-                &osn::SimpleReplayBuffer::GetLegacySettings, nullptr)
+                &osn::SimpleReplayBuffer::GetLegacySettings,
+                &osn::SimpleReplayBuffer::SetLegacySettings)
         });
 
     exports.Set("SimpleReplayBuffer", func);
@@ -155,4 +156,27 @@ Napi::Value osn::SimpleReplayBuffer::GetLegacySettings(
             });
 
     return instance;
+}
+
+void osn::SimpleReplayBuffer::SetLegacySettings(
+    const Napi::CallbackInfo& info, const Napi::Value &value) {
+    osn::SimpleReplayBuffer* replayBuffer =
+        Napi::ObjectWrap<osn::SimpleReplayBuffer>::Unwrap(value.ToObject());
+
+    if (!replayBuffer) {
+        Napi::TypeError::New(info.Env(),
+            "Invalid replay buffer argument").ThrowAsJavaScriptException();
+        return;
+    }
+
+    auto conn = GetConnection(info);
+    if (!conn)
+        return;
+
+    std::vector<ipc::value> response =
+		conn->call_synchronous_helper(
+            "SimpleReplayBuffer", "SetLegacySettings", {replayBuffer->uid});
+
+    if (!ValidateResponse(info, response))
+        return;
 }
