@@ -19,6 +19,8 @@
 #include "osn-error.hpp"
 #include "shared.hpp"
 
+#include "nodeobs_configManager.hpp"
+
 std::array<osn::AudioTrack*, NUM_AUDIO_TRACKS> osn::IAudioTrack::audioTracks = {};
 
 void osn::IAudioTrack::Register(ipc::server& srv)
@@ -61,6 +63,14 @@ void osn::IAudioTrack::Register(ipc::server& srv)
         "SetName",
         std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String},
         SetName));
+    cls->register_function(std::make_shared<ipc::function>(
+        "ImportLegacySettings",
+        std::vector<ipc::type>{},
+        ImportLegacySettings));
+    cls->register_function(std::make_shared<ipc::function>(
+        "SaveLegacySettings",
+        std::vector<ipc::type>{},
+        SaveLegacySettings));
 
     srv.register_collection(cls);
 }
@@ -132,6 +142,19 @@ void osn::IAudioTrack::GetAtIndex(
     AUTO_DEBUG;
 }
 
+void osn::IAudioTrack::SetAudioTrack(AudioTrack* track, uint32_t index)
+{
+    AudioTrack* oldTrack = audioTracks[index];
+    if (oldTrack)
+        delete oldTrack;
+
+    track->audioEnc =
+        obs_audio_encoder_create(
+            GetAACEncoderForBitrate(track->bitrate),
+            track->name.c_str(), nullptr, index, nullptr);
+    audioTracks[index] = track;
+}
+
 void osn::IAudioTrack::SetAtIndex(
     void*                          data,
     const int64_t                  id,
@@ -145,15 +168,7 @@ void osn::IAudioTrack::SetAtIndex(
     }
     uint32_t index = args[1].value_union.ui32;
 
-    AudioTrack* oldTrack = audioTracks[index];
-    if (oldTrack)
-        delete oldTrack;
-
-    audioTrack->audioEnc =
-        obs_audio_encoder_create(
-            GetAACEncoderForBitrate(audioTrack->bitrate),
-            audioTrack->name.c_str(), nullptr, index, nullptr);
-    audioTracks[index] = audioTrack;
+    SetAudioTrack(audioTrack, index);
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
     AUTO_DEBUG;
@@ -243,4 +258,72 @@ osn::IAudioTrack::Manager& osn::IAudioTrack::Manager::GetInstance()
 {
     static osn::IAudioTrack::Manager _inst;
     return _inst;
+}
+
+void osn::IAudioTrack::ImportLegacySettings(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+    for (uint32_t i = 0; i < NUM_AUDIO_TRACKS; i++) {
+        std::string prefix = "Track";
+        prefix += std::to_string(i + 1);
+        std::string bitrateParam = prefix;
+        bitrateParam += "Bitrate";
+        std::string nameParam = prefix;
+        nameParam += "Name";
+        auto track = new AudioTrack();
+        auto uid =
+            osn::IAudioTrack::Manager::GetInstance().allocate(track);
+        if (uid != UINT64_MAX) {
+            track->bitrate =
+                config_get_uint(
+                    ConfigManager::getInstance().getBasic(),
+                    "AdvOut", bitrateParam.c_str());
+            track->name =
+                config_get_string(
+                    ConfigManager::getInstance().getBasic(),
+                    "AdvOut", nameParam.c_str());
+            if (track->name.size())
+                SetAudioTrack(track, i);
+            else
+                delete track;
+        } else {
+            delete track;
+        }
+    }
+
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+    AUTO_DEBUG;
+}
+
+void osn::IAudioTrack::SaveLegacySettings(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+    for (uint32_t i = 0; i < NUM_AUDIO_TRACKS; i++) {
+        if (audioTracks[i]) {
+            std::string prefix = "Track";
+            prefix += std::to_string(i + 1);
+            std::string bitrateParam = prefix;
+            bitrateParam += "Bitrate";
+            std::string nameParam = prefix;
+            nameParam += "Name";
+            config_set_uint(
+                ConfigManager::getInstance().getBasic(),
+                "AdvOut", bitrateParam.c_str(), audioTracks[i]->bitrate);
+            config_set_string(
+                ConfigManager::getInstance().getBasic(),
+                "AdvOut", nameParam.c_str(), audioTracks[i]->name.c_str());
+        }
+    }
+
+    config_save_safe(
+        ConfigManager::getInstance().getBasic(), "tmp", nullptr);
+
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+    AUTO_DEBUG;
 }

@@ -116,7 +116,18 @@ namespace osn
             const int64_t                  id,
             const std::vector<ipc::value>& args,
             std::vector<ipc::value>&       rval);
+        static void ImportLegacySettings(
+            void*                          data,
+            const int64_t                  id,
+            const std::vector<ipc::value>& args,
+            std::vector<ipc::value>&       rval);
+        static void SaveLegacySettings(
+            void*                          data,
+            const int64_t                  id,
+            const std::vector<ipc::value>& args,
+            std::vector<ipc::value>&       rval);
 
+        static void SetAudioTrack(AudioTrack* track, uint32_t index);
         static std::array<AudioTrack*, NUM_AUDIO_TRACKS> audioTracks;
     };
 }

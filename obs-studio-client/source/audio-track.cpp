@@ -28,8 +28,8 @@ Napi::Object osn::AudioTrack::Init(Napi::Env env, Napi::Object exports) {
         "AudioTrack",
         {
             StaticMethod("create", &osn::AudioTrack::Create),
-            StaticMethod("audioTracks", &osn::AudioTrack::GetAudioTracks),
-            StaticMethod("audioBitrates", &osn::AudioTrack::GetAudioBitrates),
+            StaticAccessor("audioTracks", &osn::AudioTrack::GetAudioTracks, nullptr),
+            StaticAccessor("audioBitrates", &osn::AudioTrack::GetAudioBitrates, nullptr),
             StaticMethod("getAtIndex", &osn::AudioTrack::GetAtIndex),
             StaticMethod("setAtIndex", &osn::AudioTrack::SetAtIndex),
 
@@ -39,6 +39,8 @@ Napi::Object osn::AudioTrack::Init(Napi::Env env, Napi::Object exports) {
             InstanceAccessor("name",
                 &osn::AudioTrack::GetName,
                 &osn::AudioTrack::SetName),
+            StaticMethod("importLegacySettings", &osn::AudioTrack::ImportLegacySettings),
+            StaticMethod("saveLegacySettings", &osn::AudioTrack::SaveLegacySettings)
         });
 
     exports.Set("AudioTrack", func);
@@ -204,7 +206,7 @@ void osn::AudioTrack::SetBitrate(
     if (!conn)
         return;
 
-    conn->call_synchronous_helper(
+    conn->call(
         "AudioTrack",
         "SetBitrate",
         {ipc::value(this->uid), ipc::value(value.ToNumber().Uint32Value())});
@@ -233,8 +235,31 @@ void osn::AudioTrack::SetName(
     if (!conn)
         return;
 
-    conn->call_synchronous_helper(
+    conn->call(
         "AudioTrack",
         "SetName",
         {ipc::value(this->uid), ipc::value(value.ToString().Utf8Value())});
+}
+
+void osn::AudioTrack::ImportLegacySettings(const Napi::CallbackInfo& info) {
+    auto conn = GetConnection(info);
+    if (!conn)
+        return;
+
+    conn->call(
+        "AudioTrack",
+        "ImportLegacySettings",
+        {});
+
+}
+
+void osn::AudioTrack::SaveLegacySettings(const Napi::CallbackInfo& info) {
+    auto conn = GetConnection(info);
+    if (!conn)
+        return;
+
+    conn->call(
+        "AudioTrack",
+        "SaveLegacySettings",
+        {});
 }

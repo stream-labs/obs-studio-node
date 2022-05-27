@@ -1738,6 +1738,9 @@ export interface IAudioTrackFactory {
     readonly audioBitrates: number[];
     getAtIndex(index: number): IAudioTrack;
     setAtIndex(audioTrack: IAudioTrack, index: number): void;
+
+    importLegacySettings(): void;
+    saveLegacySettings(): void;
 }
 
 // Initialization and other stuff which needs local data.

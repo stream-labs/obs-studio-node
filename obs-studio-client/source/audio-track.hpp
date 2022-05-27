@@ -42,5 +42,8 @@ namespace osn
         void SetBitrate(const Napi::CallbackInfo& info, const Napi::Value& value);
         Napi::Value GetName(const Napi::CallbackInfo& info);
         void SetName(const Napi::CallbackInfo& info, const Napi::Value& value);
+
+        static void ImportLegacySettings(const Napi::CallbackInfo& info);
+        static void SaveLegacySettings(const Napi::CallbackInfo& info);
     };
 }
