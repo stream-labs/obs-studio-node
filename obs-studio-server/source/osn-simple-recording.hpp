@@ -107,6 +107,11 @@ namespace osn
             const int64_t                  id,
             const std::vector<ipc::value>& args,
             std::vector<ipc::value>&       rval);
+        static void SetLegacySettings(
+            void*                          data,
+            const int64_t                  id,
+            const std::vector<ipc::value>& args,
+            std::vector<ipc::value>&       rval);
         static obs_encoder_t* GetLegacyVideoEncoderSettings();
         static obs_encoder_t* GetLegacyAudioEncoderSettings();
         static void GetStreaming(

@@ -258,7 +258,7 @@ void osn::SimpleStreaming::SetLegacySettings(
 
     if (!streaming) {
         Napi::TypeError::New(info.Env(),
-            "Invalid service argument").ThrowAsJavaScriptException();
+            "Invalid streaming argument").ThrowAsJavaScriptException();
         return;
     }
 

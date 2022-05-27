@@ -71,6 +71,8 @@ void osn::ISimpleRecording::Register(ipc::server& srv)
     cls->register_function(std::make_shared<ipc::function>(
         "GetLegacySettings", std::vector<ipc::type>{}, GetLegacySettings));
     cls->register_function(std::make_shared<ipc::function>(
+        "SetLegacySettings", std::vector<ipc::type>{ipc::type::UInt64}, SetLegacySettings));
+    cls->register_function(std::make_shared<ipc::function>(
         "GetStreaming",
         std::vector<ipc::type>{ipc::type::UInt64},
         GetStreaming));
@@ -687,6 +689,98 @@ void osn::ISimpleRecording::SetStreaming(
     }
 
     recording->streaming = streaming;
+
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+    AUTO_DEBUG;
+}
+
+void osn::ISimpleRecording::SetLegacySettings(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+    SimpleRecording* recording =
+        static_cast<SimpleRecording*>(
+            osn::ISimpleRecording::Manager::GetInstance().
+            find(args[0].value_union.ui64));
+    if (!recording) {
+        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Recording reference is not valid.");
+    }
+
+    std::string recQuality = "";
+    switch (recording->quality) {
+        case RecQuality::Stream: {
+            recQuality = "Stream";
+            break;
+        }
+        case RecQuality::HighQuality: {
+            recQuality = "Small";
+            break;
+        }
+        case RecQuality::HigherQuality: {
+            recQuality = "HQ";
+            break;
+        }
+        case RecQuality::Lossless: {
+            recQuality = "Lossless";
+            break;
+        }
+        default: {
+            recQuality = "Stream";
+            break;
+        }
+    }
+    config_set_string(
+        ConfigManager::getInstance().getBasic(),
+        "SimpleOutput", "RecQuality", recQuality.c_str());
+
+    config_set_string(
+        ConfigManager::getInstance().getBasic(),
+        "SimpleOutput", "FilePath", recording->path.c_str());
+    config_set_string(
+        ConfigManager::getInstance().getBasic(),
+        "SimpleOutput", "RecFormat", recording->format.c_str());
+    config_set_string(
+        ConfigManager::getInstance().getBasic(),
+        "SimpleOutput", "MuxerCustom", recording->muxerSettings.c_str());
+    config_set_bool(
+        ConfigManager::getInstance().getBasic(),
+        "SimpleOutput", "FileNameWithoutSpace", recording->noSpace);
+    config_set_string(
+        ConfigManager::getInstance().getBasic(),
+        "Output", "FilenameFormatting", recording->fileFormat.c_str());
+    config_set_bool(
+        ConfigManager::getInstance().getBasic(),
+        "Output", "OverwriteIfExists", recording->overwrite);
+    config_set_string(
+        ConfigManager::getInstance().getBasic(),
+        "SimpleOutput", "MuxerCustom", recording->muxerSettings.c_str());
+
+    if (recording->videoEncoder) {
+        const char* encId = nullptr;
+        const char* encIdOBS = obs_encoder_get_id(recording->videoEncoder);
+        if (strcmp(encIdOBS, "obs_x264") == 0 && !recording->lowCPU) {
+            encId = SIMPLE_ENCODER_X264;
+        } else if (strcmp(encIdOBS, "obs_x264") == 0 && recording->lowCPU) {
+            encId = SIMPLE_ENCODER_X264_LOWCPU;
+        } else if (strcmp(encIdOBS, "obs_qsv11") == 0) {
+            encId = SIMPLE_ENCODER_QSV;
+        } else if (strcmp(encIdOBS, "amd_amf_h264") == 0) {
+            encId = SIMPLE_ENCODER_AMD;
+        } else if (strcmp(encIdOBS, "ffmpeg_nvenc") == 0) {
+            encId = SIMPLE_ENCODER_NVENC;
+        } else if (strcmp(encIdOBS, "jim_nvenc") == 0) {
+            encId = ENCODER_NEW_NVENC;
+        }
+
+        config_set_string(
+            ConfigManager::getInstance().getBasic(),
+            "SimpleOutput", "RecEncoder", encId);
+    }
+
+    config_save_safe(
+        ConfigManager::getInstance().getBasic(), "tmp", nullptr);
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
     AUTO_DEBUG;

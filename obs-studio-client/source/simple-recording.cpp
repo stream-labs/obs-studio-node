@@ -89,7 +89,8 @@ Napi::Object osn::SimpleRecording::Init(Napi::Env env, Napi::Object exports) {
 
             StaticAccessor(
                 "legacySettings",
-                &osn::SimpleRecording::GetLegacySettings, nullptr),
+                &osn::SimpleRecording::GetLegacySettings,
+                &osn::SimpleRecording::SetLegacySettings),
             InstanceMethod("lastFile",
                 &osn::SimpleRecording::GetLastFile),
         });
@@ -293,4 +294,27 @@ Napi::Value osn::SimpleRecording::GetLegacySettings(
             });
 
     return instance;
+}
+
+void osn::SimpleRecording::SetLegacySettings(
+    const Napi::CallbackInfo& info, const Napi::Value &value) {
+    osn::SimpleRecording* recording =
+        Napi::ObjectWrap<osn::SimpleRecording>::Unwrap(value.ToObject());
+
+    if (!recording) {
+        Napi::TypeError::New(info.Env(),
+            "Invalid recording argument").ThrowAsJavaScriptException();
+        return;
+    }
+
+    auto conn = GetConnection(info);
+    if (!conn)
+        return;
+
+    std::vector<ipc::value> response =
+		conn->call_synchronous_helper(
+            "SimpleRecording", "SetLegacySettings", {recording->uid});
+
+    if (!ValidateResponse(info, response))
+        return;
 }
