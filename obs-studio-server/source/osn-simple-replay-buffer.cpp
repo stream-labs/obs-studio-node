@@ -369,6 +369,9 @@ void osn::ISimpleReplayBuffer::SetLegacySettings(
         "SimpleOutput", "replayBufferUseStreamOutput",
         replayBuffer->usesStream);
 
+    config_save_safe(
+        ConfigManager::getInstance().getBasic(), "tmp", nullptr);
+
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
     AUTO_DEBUG;
 }
