@@ -45,5 +45,6 @@ namespace osn
         void SetUseStreamEncoders(const Napi::CallbackInfo& info, const Napi::Value& value);
 
         static Napi::Value GetLegacySettings(const Napi::CallbackInfo& info);
+        static void SetLegacySettings(const Napi::CallbackInfo& info, const Napi::Value& value);
     };
 }

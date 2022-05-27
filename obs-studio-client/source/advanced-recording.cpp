@@ -88,7 +88,8 @@ Napi::Object osn::AdvancedRecording::Init(Napi::Env env, Napi::Object exports) {
 
             StaticAccessor(
                 "legacySettings",
-                &osn::AdvancedRecording::GetLegacySettings, nullptr),
+                &osn::AdvancedRecording::GetLegacySettings,
+                &osn::AdvancedRecording::SetLegacySettings),
             InstanceMethod("lastFile",
                 &osn::AdvancedRecording::GetLastFile),
         });
@@ -293,4 +294,27 @@ Napi::Value osn::AdvancedRecording::GetLegacySettings(
             });
 
     return instance;
+}
+
+void osn::AdvancedRecording::SetLegacySettings(
+    const Napi::CallbackInfo& info, const Napi::Value &value) {
+    osn::AdvancedRecording* recording =
+        Napi::ObjectWrap<osn::AdvancedRecording>::Unwrap(value.ToObject());
+
+    if (!recording) {
+        Napi::TypeError::New(info.Env(),
+            "Invalid recording argument").ThrowAsJavaScriptException();
+        return;
+    }
+
+    auto conn = GetConnection(info);
+    if (!conn)
+        return;
+
+    std::vector<ipc::value> response =
+		conn->call_synchronous_helper(
+            "AdvancedRecording", "SetLegacySettings", {recording->uid});
+
+    if (!ValidateResponse(info, response))
+        return;
 }

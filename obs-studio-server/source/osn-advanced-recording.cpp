@@ -83,6 +83,8 @@ void osn::IAdvancedRecording::Register(ipc::server& srv)
         "Query", std::vector<ipc::type>{ipc::type::UInt64}, Query));
     cls->register_function(std::make_shared<ipc::function>(
         "GetLegacySettings", std::vector<ipc::type>{}, GetLegacySettings));
+    cls->register_function(std::make_shared<ipc::function>(
+        "SetLegacySettings", std::vector<ipc::type>{ipc::type::UInt64}, SetLegacySettings));
 
     srv.register_collection(cls);
 }
@@ -493,5 +495,82 @@ void osn::IAdvancedRecording::GetLegacySettings(
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
     rval.push_back(ipc::value(uid));
+    AUTO_DEBUG;
+}
+
+void osn::IAdvancedRecording::SetLegacySettings(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+    AdvancedRecording* recording =
+        static_cast<AdvancedRecording*>(
+            osn::IAdvancedRecording::Manager::GetInstance().
+            find(args[0].value_union.ui64));
+    if (!recording) {
+        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Recording reference is not valid.");
+    }
+
+    config_set_string(
+        ConfigManager::getInstance().getBasic(),
+        "AdvOut", "RecFilePath", recording->path.c_str());
+    config_set_string(
+        ConfigManager::getInstance().getBasic(),
+        "AdvOut", "RecFormat", recording->format.c_str());
+    config_set_string(
+        ConfigManager::getInstance().getBasic(),
+        "AdvOut", "RecMuxerCustom", recording->muxerSettings.c_str());
+    config_set_bool(
+        ConfigManager::getInstance().getBasic(),
+        "AdvOut", "RecFileNameWithoutSpace", recording->noSpace);
+    config_set_string(
+        ConfigManager::getInstance().getBasic(),
+        "Output", "FilenameFormatting", recording->fileFormat.c_str());
+    config_set_bool(
+        ConfigManager::getInstance().getBasic(),
+        "Output", "OverwriteIfExists", recording->overwrite);
+    config_set_string(
+        ConfigManager::getInstance().getBasic(),
+        "AdvOut", "RecMuxerCustom", recording->muxerSettings.c_str());
+
+    config_set_bool(
+        ConfigManager::getInstance().getBasic(),
+        "AdvOut", "RecRescale", recording->rescaling);
+    std::string rescaledRes = std::to_string(recording->outputWidth);
+    rescaledRes += 'x';
+    rescaledRes += std::to_string(recording->outputHeight);
+    config_set_string(ConfigManager::getInstance().getBasic(),
+        "AdvOut", "RecRescaleRes", rescaledRes.c_str());
+
+    config_set_int(
+        ConfigManager::getInstance().getBasic(),
+        "AdvOut", "RecTracks", recording->mixer);
+
+    if (recording->useStreamEncoders) {
+        config_set_string(
+                ConfigManager::getInstance().getBasic(),
+                "AdvOut", "RecEncoder", "none");
+    } else if (!recording->useStreamEncoders && recording->videoEncoder) {
+        config_set_string(
+                ConfigManager::getInstance().getBasic(),
+                "AdvOut", "RecEncoder",
+                obs_encoder_get_id(recording->videoEncoder));
+
+        obs_data_t* settings =
+            obs_encoder_get_settings(recording->videoEncoder);
+
+        if (!obs_data_save_json_safe(
+            settings, ConfigManager::getInstance().getRecord().c_str(), "tmp", "bak")) {
+            blog(LOG_ERROR, "Failed to save encoder %s",
+                ConfigManager::getInstance().getStream().c_str());
+	    }
+        obs_data_release(settings);
+    }
+
+    config_save_safe(
+        ConfigManager::getInstance().getBasic(), "tmp", nullptr);
+
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
     AUTO_DEBUG;
 }
