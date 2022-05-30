@@ -702,7 +702,7 @@ void osn::Input::GetFilters(
 		std::vector<ipc::value>* rval = reinterpret_cast<std::vector<ipc::value>*>(data);
 
 		uint64_t id = osn::Source::Manager::GetInstance().find(filter);
-		blog(LOG_DEBUG, "osn::Input::GetFilters: %s", obs_source_get_name(filter));
+
 		if (id != UINT64_MAX) {
 			rval->push_back(id);
 		}
