@@ -45,7 +45,7 @@ struct SourceDataInfo
 	uint32_t audioMixers        = UINT32_MAX;
 	bool     audioMixersChanged = true;
 
-	std::vector<uint64_t>* filters             = new std::vector<uint64_t>();
+	std::vector<std::pair<uint64_t, int>>* filters = new std::vector<std::pair<uint64_t, int>>();
 	bool                   filtersOrderChanged = true;
 };
 

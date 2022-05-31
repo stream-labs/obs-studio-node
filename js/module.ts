@@ -824,12 +824,22 @@ export interface IInput extends ISource {
      * @param position - The position to make within the list.
      */
     setFilterPosition(filter: IFilter, position: number): void;
+    setVideoFilterPosition(filter: IFilter, position: number): void;
+    setAudioFilterPosition(filter: IFilter, position: number): void;
 
 
     /**
      * Obtain a list of all filters associated with the input source
      */
-    readonly filters: IFilter[];
+     readonly filters: IFilter[];
+    /**
+     * Obtain a list of video filters associated with the input source
+     */
+     readonly videoFilters: IFilter[];
+    /**
+     * Obtain a list of audio filters associated with the input source
+     */
+     readonly audioFilters: IFilter[];
 
     /**
      * Width of the underlying source

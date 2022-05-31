@@ -48,6 +48,8 @@ Napi::Object osn::Input::Init(Napi::Env env, Napi::Object exports) {
 			InstanceMethod("removeFilter", &osn::Input::RemoveFilter),
 			InstanceMethod("setFilterOrder", &osn::Input::SetFilterOrder),
 			InstanceMethod("setFilterPosition", &osn::Input::SetFilterPosition),
+			InstanceMethod("setVideoFilterPosition", &osn::Input::SetVideoFilterPosition),
+			InstanceMethod("setAudioFilterPosition", &osn::Input::SetAudioFilterPosition),
 			InstanceMethod("findFilter", &osn::Input::FindFilter),
 			InstanceMethod("copyFilters", &osn::Input::CopyFilters),
 
@@ -62,6 +64,8 @@ Napi::Object osn::Input::Init(Napi::Env env, Napi::Object exports) {
 			InstanceAccessor("deinterlaceFieldOrder", &osn::Input::GetDeinterlaceFieldOrder, &osn::Input::SetDeinterlaceFieldOrder),
 			InstanceAccessor("deinterlaceMode", &osn::Input::GetDeinterlaceMode, &osn::Input::SetDeinterlaceMode),
 			InstanceAccessor("filters", &osn::Input::Filters, nullptr),
+			InstanceAccessor("videoFilters", &osn::Input::VideoFilters, nullptr),
+			InstanceAccessor("audioFilters", &osn::Input::AudioFilters, nullptr),
 			InstanceAccessor("seek", &osn::Input::GetTime, &osn::Input::SetTime),
 
 			InstanceAccessor("configurable", &osn::Input::CallIsConfigurable, nullptr),
@@ -574,19 +578,43 @@ void osn::Input::SetDeinterlaceMode(const Napi::CallbackInfo& info, const Napi::
 
 Napi::Value osn::Input::Filters(const Napi::CallbackInfo& info)
 {
+	return GetFilters(info, osn::FilterSubset::All);
+}
+
+Napi::Value osn::Input::AudioFilters(const Napi::CallbackInfo& info)
+{
+	return GetFilters(info, osn::FilterSubset::Audio);
+}
+
+Napi::Value osn::Input::VideoFilters(const Napi::CallbackInfo& info)
+{
+	return GetFilters(info, osn::FilterSubset::Video);
+}
+
+Napi::Value osn::Input::FiltersFromCache(const Napi::CallbackInfo& info, osn::FilterSubset subset, std::vector<std::pair<uint64_t, int>> * filters)
+{
+	Napi::Array array = Napi::Array::New(info.Env());
+	int index = 0;
+	for (uint32_t i = 0; i < filters->size(); i++) {
+		if ((filters->at(i).second == static_cast<int>(osn::FilterSubset::Video) && subset == osn::FilterSubset::Audio) 
+		|| (filters->at(i).second == static_cast<int>(osn::FilterSubset::Audio) && subset == osn::FilterSubset::Video))
+			continue;
+		auto instance =
+			osn::Filter::constructor.New({
+				Napi::Number::New(info.Env(), filters->at(i).first)
+				});
+		array.Set(index, instance);
+		index++;
+	}
+	return array;
+}
+
+Napi::Value osn::Input::GetFilters(const Napi::CallbackInfo& info, osn::FilterSubset subset)
+{
 	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(this->sourceId);
 
 	if (sdi && !sdi->filtersOrderChanged) {
-		std::vector<uint64_t>* filters = sdi->filters;
-		Napi::Array array = Napi::Array::New(info.Env(), int(filters->size()));
-		for (uint32_t i = 0; i < filters->size(); i++) {
-			auto instance =
-				osn::Filter::constructor.New({
-					Napi::Number::New(info.Env(), filters->at(i))
-					});
-			array.Set(i, instance);
-		}
-		return array;
+		return FiltersFromCache(info, subset, sdi->filters);
 	}
 
 	auto conn = GetConnection(info);
@@ -599,28 +627,35 @@ Napi::Value osn::Input::Filters(const Napi::CallbackInfo& info)
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
 
-	std::vector<uint64_t>* filters;
+	Napi::Array array = Napi::Array::New(info.Env());
+	std::vector<std::pair<uint64_t, int>>* filters;
 	if (sdi) {
 		filters = sdi->filters;
 		filters->clear();
-	}
 
-	Napi::Array array = Napi::Array::New(info.Env(), response.size() - 1);
-	for (size_t idx = 1; idx < response.size(); idx++) {
-		auto instance =
-			osn::Filter::constructor.New({
-				Napi::Number::New(info.Env(), response[idx].value_union.ui64)
-				});
-		array.Set(uint32_t(idx) - 1, instance);
+		for (size_t idx = 1; idx < response.size(); idx += 2) {
+			filters->push_back(std::make_pair(response[idx].value_union.ui64, response[idx+1].value_union.i32));
+		}
 
-		if (sdi)
-			filters->push_back(response[idx].value_union.ui64);
-	}
-
-	if (sdi)
 		sdi->filtersOrderChanged = false;
 
-	return array;
+		return FiltersFromCache(info, subset, filters);
+	} else {
+		int index = 0;
+		for (size_t idx = 1; idx < response.size(); idx += 2) {
+			if ((response[idx+1].value_union.i32 == static_cast<int>(osn::FilterSubset::Video) && subset == osn::FilterSubset::Audio)
+			|| (response[idx+1].value_union.i32 == static_cast<int>(osn::FilterSubset::Audio) && subset == osn::FilterSubset::Video))
+			continue;
+
+			auto instance =
+				osn::Filter::constructor.New({
+					Napi::Number::New(info.Env(), response[idx].value_union.ui64)
+				});
+			array.Set(index, instance);
+			index++;
+		}
+		return array;
+	}
 }
 
 Napi::Value osn::Input::AddFilter(const Napi::CallbackInfo& info)
@@ -686,7 +721,47 @@ Napi::Value osn::Input::SetFilterPosition(const Napi::CallbackInfo& info)
 		return info.Env().Undefined();
 
 	conn->call(
-	    "Input", "PositionFilter", {ipc::value(this->sourceId), ipc::value(objfilter->sourceId), ipc::value(position)});
+	    "Input", "PositionFilter", {ipc::value(this->sourceId), ipc::value(objfilter->sourceId), ipc::value(position), ipc::value(0)});
+
+	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(this->sourceId);
+	if (sdi) {
+		sdi->filtersOrderChanged = true;
+	}
+
+	return info.Env().Undefined();
+}
+
+Napi::Value osn::Input::SetVideoFilterPosition(const Napi::CallbackInfo& info)
+{
+	osn::Filter* objfilter = Napi::ObjectWrap<osn::Filter>::Unwrap(info[0].ToObject());
+	uint32_t position = info[1].ToNumber().Uint32Value();
+
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
+
+	conn->call(
+	    "Input", "PositionFilter", {ipc::value(this->sourceId), ipc::value(objfilter->sourceId), ipc::value(position), ipc::value(static_cast<int>(osn::FilterSubset::Video))});
+
+	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(this->sourceId);
+	if (sdi) {
+		sdi->filtersOrderChanged = true;
+	}
+
+	return info.Env().Undefined();
+}
+
+Napi::Value osn::Input::SetAudioFilterPosition(const Napi::CallbackInfo& info)
+{
+	osn::Filter* objfilter = Napi::ObjectWrap<osn::Filter>::Unwrap(info[0].ToObject());
+	uint32_t position = info[1].ToNumber().Uint32Value();
+
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
+
+	conn->call(
+	    "Input", "PositionFilter", {ipc::value(this->sourceId), ipc::value(objfilter->sourceId), ipc::value(position), ipc::value(static_cast<int>(osn::FilterSubset::Video))});
 
 	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(this->sourceId);
 	if (sdi) {
