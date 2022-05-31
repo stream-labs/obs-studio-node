@@ -327,7 +327,7 @@ endif()
 
 if(WIN32)
 	target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_INCLUDE_PATHS})
-	target_link_libraries(${PROJECT_NAME} ${PROJECT_LIBRARIES} optimized crashpad)
+	target_link_libraries(${PROJECT_NAME} ${PROJECT_LIBRARIES} optimized crashpad strmiids)
 else()
 	target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_INCLUDE_PATHS} ${COREFOUNDATION} ${COCOA} ${IOSURF} ${GLKIT} ${AVFOUNDATION} ${IOKit} ${SECURITY_LIBRARY} ${BSM_LIBRARY})
 	target_link_libraries(${PROJECT_NAME} ${PROJECT_LIBRARIES} crashpad ${COREFOUNDATION} ${COCOA} ${IOSURF} ${GLKIT} ${AVFOUNDATION} ${IOKit} ${SECURITY_LIBRARY} ${BSM_LIBRARY})
