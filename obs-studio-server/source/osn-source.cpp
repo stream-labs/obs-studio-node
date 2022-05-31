@@ -288,7 +288,7 @@ void osn::Source::GetProperties(
 	obs_properties_t* prp = obs_source_properties(src);
 	obs_data* settings = obs_source_get_settings(src);
 
-	utility::ProcessProperties(prp, settings, updateSource, rval);
+	utility::ProcessProperties(prp, settings, rval);
 
 	obs_properties_destroy(prp);
 

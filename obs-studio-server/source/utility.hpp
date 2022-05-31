@@ -268,6 +268,5 @@ namespace utility
 	void ProcessProperties(
 		obs_properties_t*              prp,
 		obs_data*                      settings,
-		bool&                          updateSource,
 		std::vector<ipc::value>&       rval);
 } // namespace utility

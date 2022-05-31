@@ -191,7 +191,6 @@ void utility::unique_id::mark_free_range(utility::unique_id::id_t min, utility::
 void utility::ProcessProperties(
 	obs_properties_t*           prp,
 	obs_data*                   settings,
-	bool&                       updateSource,
 	std::vector<ipc::value>&    rval)
 {
 	const char* buf = nullptr;
@@ -275,11 +274,6 @@ void utility::ProcessProperties(
 			}
 			case obs::ListProperty::Format::String: {
 				prop2->current_value_str = (buf = obs_data_get_string(settings, name)) != nullptr ? buf : "";
-				if (prop2->current_value_str.compare("") == 0 && prop2->items.size() > 0 && obs_property_enabled(p)) {
-					prop2->current_value_str = prop2->items.front().value_string;
-					obs_data_set_string(settings, name, prop2->current_value_str.c_str());
-					updateSource = true;
-				}
 				break;
 			}
 			}
@@ -371,7 +365,7 @@ void utility::ProcessProperties(
 		}
 		case OBS_PROPERTY_GROUP: {
 			auto grp = obs_property_group_content(p);
-			ProcessProperties(grp, settings, updateSource, rval);
+			ProcessProperties(grp, settings, rval);
 			prop = nullptr;
 			break;
 		}
