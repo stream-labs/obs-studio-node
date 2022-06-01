@@ -257,7 +257,7 @@ int main(int argc, char* argv[])
     autoConfig::Register(myServer);
     osn::VideoEncoder::Register(myServer);
     osn::Service::Register(myServer);
-	osn::Audio::Register(myServer);
+    osn::Audio::Register(myServer);
     osn::ISimpleStreaming::Register(myServer);
     osn::IAdvancedStreaming::Register(myServer);
     osn::IDelay::Register(myServer);

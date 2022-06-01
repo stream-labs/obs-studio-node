@@ -22,17 +22,17 @@
 Napi::FunctionReference osn::Audio::constructor;
 
 Napi::Object osn::Audio::Init(Napi::Env env, Napi::Object exports) {
-	Napi::HandleScope scope(env);
-	Napi::Function func =
-		DefineClass(env,
-		"Audio",
-		{
-			StaticAccessor("audioContext", &osn::Audio::getAudioContext, &osn::Audio::setAudioContext)
-		});
-	exports.Set("Audio", func);
-	osn::Audio::constructor = Napi::Persistent(func);
-	osn::Audio::constructor.SuppressDestruct();
-	return exports;
+    Napi::HandleScope scope(env);
+    Napi::Function func =
+        DefineClass(env,
+        "Audio",
+        {
+            StaticAccessor("audioContext", &osn::Audio::getAudioContext, &osn::Audio::setAudioContext)
+        });
+    exports.Set("Audio", func);
+    osn::Audio::constructor = Napi::Persistent(func);
+    osn::Audio::constructor.SuppressDestruct();
+    return exports;
 }
 
 osn::Audio::Audio(const Napi::CallbackInfo& info)
@@ -43,15 +43,15 @@ osn::Audio::Audio(const Napi::CallbackInfo& info)
 
 Napi::Value osn::Audio::getAudioContext(const Napi::CallbackInfo& info)
 {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
+    auto conn = GetConnection(info);
+    if (!conn)
+        return info.Env().Undefined();
 
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Audio", "GetAudioContext", {});
+    std::vector<ipc::value> response =
+        conn->call_synchronous_helper("Audio", "GetAudioContext", {});
 
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
+    if (!ValidateResponse(info, response))
+        return info.Env().Undefined();
 
     if (response.size() != 3)
         return info.Env().Undefined();
@@ -60,30 +60,30 @@ Napi::Value osn::Audio::getAudioContext(const Napi::CallbackInfo& info)
     audio.Set("sampleRate", response[1].value_union.ui32);
     audio.Set("speakers", response[2].value_union.ui32);
 
-	return audio;
+    return audio;
 }
 
 void osn::Audio::setAudioContext(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
-	Napi::Object audio = value.ToObject();
-	if (!audio || !audio.IsObject()) {
-		Napi::Error::New(
-			info.Env(),
-			"The audio context object passed is invalid.").ThrowAsJavaScriptException();
-		return;
-	}
+    Napi::Object audio = value.ToObject();
+    if (!audio || !audio.IsObject()) {
+        Napi::Error::New(
+            info.Env(),
+            "The audio context object passed is invalid.").ThrowAsJavaScriptException();
+        return;
+    }
 
-	auto conn = GetConnection(info);
-	if (!conn)
-		return;
+    auto conn = GetConnection(info);
+    if (!conn)
+        return;
 
     uint32_t sampleRate = audio.Get("sampleRate").ToNumber().Uint32Value();
     uint32_t speakers = audio.Get("speakers").ToNumber().Uint32Value();
 
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper(
+    std::vector<ipc::value> response =
+        conn->call_synchronous_helper(
             "Audio", "SetAudioContext", {ipc::value(sampleRate), ipc::value(speakers)});
 
-	if (!ValidateResponse(info, response))
-		return;
+    if (!ValidateResponse(info, response))
+        return;
 }

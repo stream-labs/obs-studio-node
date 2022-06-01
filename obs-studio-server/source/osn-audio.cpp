@@ -25,13 +25,13 @@
 
 void osn::Audio::Register(ipc::server& srv)
 {
-	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Audio");
-	cls->register_function(std::make_shared<ipc::function>(
-	    "GetAudioContext", std::vector<ipc::type>{}, GetAudioContext));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "SetAudioContext",
+    std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Audio");
+    cls->register_function(std::make_shared<ipc::function>(
+        "GetAudioContext", std::vector<ipc::type>{}, GetAudioContext));
+    cls->register_function(std::make_shared<ipc::function>(
+        "SetAudioContext",
         std::vector<ipc::type>{ipc::type::UInt32, ipc::type::UInt32}, SetAudioContext));
-	srv.register_collection(cls);
+    srv.register_collection(cls);
 }
 
 void osn::Audio::GetAudioContext(
@@ -45,10 +45,10 @@ void osn::Audio::GetAudioContext(
         PRETTY_ERROR_RETURN(ErrorCode::Error, "No audio context is currently set.");
     }
 
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
     rval.push_back(ipc::value(audio.samples_per_sec));
     rval.push_back(ipc::value((uint32_t)audio.speakers));
-	AUTO_DEBUG;
+    AUTO_DEBUG;
 }
 
 static inline const char* GetSpeakers(enum speaker_layout speakers)
@@ -113,6 +113,6 @@ void osn::Audio::SetAudioContext(
         SaveAudioSettings(audio);
     }
 
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	AUTO_DEBUG;
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+    AUTO_DEBUG;
 }
