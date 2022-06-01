@@ -17,7 +17,7 @@
 ******************************************************************************/
 
 #include "isource.hpp"
-#include <error.hpp>
+#include "osn-error.hpp"
 #include <functional>
 #include "controller.hpp"
 #include "shared.hpp"
@@ -112,6 +112,32 @@ Napi::Value osn::ISource::GetProperties(const Napi::CallbackInfo& info, uint64_t
 			Napi::Number::New(info.Env(), (uint32_t)id)
 			});
 	return instance;
+}
+
+Napi::Value osn::ISource::GetSlowUncachedSettings(const Napi::CallbackInfo& info, uint64_t id)
+{
+	osn::ISource* source =
+		Napi::ObjectWrap<osn::ISource>::Unwrap(info.This().ToObject());
+	if (!source)
+		return info.Env().Undefined();
+	
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
+
+	std::vector<ipc::value> response =
+	    conn->call_synchronous_helper("Source", "GetSettings", {ipc::value(id)});
+
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
+	
+	Napi::Object json = info.Env().Global().Get("JSON").As<Napi::Object>();
+	Napi::Function parse = json.Get("parse").As<Napi::Function>();
+
+	Napi::String jsondata = Napi::String::New(info.Env(), response[1].value_str);
+	Napi::Object jsonObj = parse.Call(json, {jsondata}).As<Napi::Object>();
+
+	return jsonObj;
 }
 
 Napi::Value osn::ISource::GetSettings(const Napi::CallbackInfo& info, uint64_t id)
@@ -448,6 +474,33 @@ void osn::ISource::SetMuted(const Napi::CallbackInfo& info, const Napi::Value &v
 		CacheManager<SourceDataInfo*>::getInstance().Retrieve(id);
 	if (sdi)
 		sdi->mutedChanged = true;
+}
+	
+Napi::Object osn::ISource::CallHandler(const Napi::CallbackInfo& info, uint64_t id)
+{
+	Napi::Object result = Napi::Object::New(info.Env());
+	Napi::String fuction_name = info[0].ToString();
+	Napi::String fuction_input = info[1].ToString();
+
+	auto conn = GetConnection(info);
+
+	if (!conn)
+	{
+		Napi::TypeError::New(info.Env(), "IPC Connection Failed").ThrowAsJavaScriptException();
+		return result;
+	}
+
+	std::vector<ipc::value> response =
+	    conn->call_synchronous_helper("Source", "CallHandler", { ipc::value(id), ipc::value(fuction_name), ipc::value(fuction_input) });
+
+	if (!ValidateResponse(info, response))
+	{
+		Napi::TypeError::New(info.Env(), "Invalid IPC Response").ThrowAsJavaScriptException();
+		return result;
+	}
+	
+	result.Set("output", Napi::String::New(info.Env(), response[1].value_str.c_str()));
+	return result;
 }
 
 Napi::Value osn::ISource::GetEnabled(const Napi::CallbackInfo& info, uint64_t id)

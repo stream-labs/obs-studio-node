@@ -17,26 +17,28 @@
 ******************************************************************************/
 
 #pragma once
-#include <ipc-server.hpp>
-#include <obs.h>
-#include "utility.hpp"
+#include <napi.h>
 
 namespace osn
 {
-	class Audio
-	{
-		public:
-		static void Register(ipc::server&);
+    class Reconnect:
+        public Napi::ObjectWrap<osn::Reconnect>
+    {
+        public:
+        uint64_t uid;        
 
-		static void GetAudioContext(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void SetAudioContext(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-	};
+        public:
+        static Napi::FunctionReference constructor;
+        static Napi::Object Init(Napi::Env env, Napi::Object exports);
+        Reconnect(const Napi::CallbackInfo& info);
+
+        static Napi::Value Create(const Napi::CallbackInfo& info);
+
+        Napi::Value GetEnabled(const Napi::CallbackInfo& info);
+        void SetEnabled(const Napi::CallbackInfo& info, const Napi::Value& value);
+        Napi::Value GetRetryDelay(const Napi::CallbackInfo& info);
+        void SetRetryDelay(const Napi::CallbackInfo& info, const Napi::Value& value);
+        Napi::Value GetMaxRetries(const Napi::CallbackInfo& info);
+        void SetMaxRetries(const Napi::CallbackInfo& info, const Napi::Value& value);
+    };
 }

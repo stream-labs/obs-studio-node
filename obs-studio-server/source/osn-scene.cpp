@@ -18,7 +18,7 @@
 
 #include "osn-scene.hpp"
 #include <list>
-#include "error.hpp"
+#include "osn-error.hpp"
 #include "osn-sceneitem.hpp"
 #include "shared.hpp"
 

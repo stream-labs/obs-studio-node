@@ -22,14 +22,17 @@
 
 namespace osn
 {
-	class Video : public Napi::ObjectWrap<osn::Video>
-	{
-		public:
-		static Napi::FunctionReference constructor;
-		static Napi::Object Init(Napi::Env env, Napi::Object exports);
-		Video(const Napi::CallbackInfo& info);
+    class Video : public Napi::ObjectWrap<osn::Video>
+    {
+        public:
+        static Napi::FunctionReference constructor;
+        static Napi::Object Init(Napi::Env env, Napi::Object exports);
+        Video(const Napi::CallbackInfo& info);
 
-		static Napi::Value skippedFrames(const Napi::CallbackInfo& info);
-		static Napi::Value encodedFrames(const Napi::CallbackInfo& info);
-	};
+        static Napi::Value skippedFrames(const Napi::CallbackInfo& info);
+        static Napi::Value encodedFrames(const Napi::CallbackInfo& info);
+
+        static Napi::Value get(const Napi::CallbackInfo& info);
+        static void set(const Napi::CallbackInfo& info, const Napi::Value &value);
+    };
 }

@@ -40,8 +40,20 @@
 #include "nodeobs_service.hpp"
 #include "nodeobs_autoconfig.hpp"
 #include "callback-manager.hpp"
+#include "video-encoder.hpp"
 #include "service.hpp"
 #include "audio.hpp"
+#include "simple-streaming.hpp"
+#include "advanced-streaming.hpp"
+#include "delay.hpp"
+#include "reconnect.hpp"
+#include "network.hpp"
+#include "audio-track.hpp"
+#include "simple-recording.hpp"
+#include "audio-encoder.hpp"
+#include "advanced-recording.hpp"
+#include "simple-replay-buffer.hpp"
+#include "advanced-replay-buffer.hpp"
 
 #if defined(_WIN32)
 // Checks ForceGPUAsRenderDevice setting
@@ -111,8 +123,20 @@ Napi::Object main_node(Napi::Env env, Napi::Object exports) {
 	service::Init(env, exports);
 	autoConfig::Init(env, exports);
 	globalCallback::Init(env, exports);
+	osn::VideoEncoder::Init(env, exports);
 	osn::Service::Init(env, exports);
 	osn::Audio::Init(env, exports);
+	osn::SimpleStreaming::Init(env, exports);
+	osn::AdvancedStreaming::Init(env, exports);
+	osn::Delay::Init(env, exports);
+	osn::Reconnect::Init(env, exports);
+	osn::Network::Init(env, exports);
+	osn::AudioTrack::Init(env, exports);
+	osn::SimpleRecording::Init(env, exports);
+	osn::AudioEncoder::Init(env, exports);
+	osn::AdvancedRecording::Init(env, exports);
+	osn::SimpleReplayBuffer::Init(env, exports);
+	osn::AdvancedReplayBuffer::Init(env, exports);
 	return exports;
 };
 

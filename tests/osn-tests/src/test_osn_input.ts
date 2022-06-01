@@ -98,6 +98,7 @@ describe(testName, () => {
                     settings = inputSettings.ffmpegSource;
                     settings['speed_percent'] = 80;
                     settings['reconnect_delay_sec'] = 10;
+                    settings['volume'] = 100;
                     break;
                 }
                 case 'ndi_source': {

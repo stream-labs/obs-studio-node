@@ -38,5 +38,16 @@ namespace osn
 		    const int64_t                  id,
 		    const std::vector<ipc::value>& args,
 		    std::vector<ipc::value>&       rval);
+
+		static void GetVideoContext(
+		    void*                          data,
+		    const int64_t                  id,
+		    const std::vector<ipc::value>& args,
+		    std::vector<ipc::value>&       rval);
+		static void SetVideoContext(
+		    void*                          data,
+		    const int64_t                  id,
+		    const std::vector<ipc::value>& args,
+		    std::vector<ipc::value>&       rval);
 	};
 }

@@ -50,7 +50,7 @@
 #endif
 
 #include "nodeobs_api.h"
-#include "error.hpp"
+#include "osn-error.hpp"
 #include "shared.hpp"
 
 #ifdef ENABLE_CRASHREPORT
@@ -490,7 +490,8 @@ void util::CrashManager::Configure()
 	// You don't need to set the entire message, we will just check for a substring match
 	// in the main error message
 	{
-		handledOBSCrashes.push_back("Failed to recreate D3D11");
+		// commenting to let d3d11 crashes be reported to sentry 
+		// handledOBSCrashes.push_back("Failed to recreate D3D11");
 		// ...
 	}
 #endif

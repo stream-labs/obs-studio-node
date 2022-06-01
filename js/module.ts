@@ -3,25 +3,25 @@ import * as path from 'path';
 import * as fs from 'fs';
 
 /* Convenient paths to modules */
-export const DefaultD3D11Path: string = 
+export const DefaultD3D11Path: string =
     path.resolve(__dirname, `libobs-d3d11.dll`);
 
-export const DefaultOpenGLPath: string = 
+export const DefaultOpenGLPath: string =
     path.resolve(__dirname, `libobs-opengl.dll`);
 
-export const DefaultDrawPluginPath: string = 
+export const DefaultDrawPluginPath: string =
     path.resolve(__dirname, `simple_draw.dll`);
 
-export const DefaultBinPath: string = 
+export const DefaultBinPath: string =
     path.resolve(__dirname);
 
 export const DefaultDataPath: string =
     path.resolve(__dirname, `data`);
 
-export const DefaultPluginPath: string = 
+export const DefaultPluginPath: string =
     path.resolve(__dirname, `obs-plugins`);
 
-export const DefaultPluginDataPath: string = 
+export const DefaultPluginDataPath: string =
     path.resolve(__dirname, `data/obs-plugins/%module%`);
 
 /**
@@ -199,14 +199,6 @@ export const enum ESourceType {
 }
 
 /**
- * Describes the type of encoder
- */
-export const enum EEncoderType {
-    Audio,
-    Video
-}
-
-/**
  * Describes algorithm type to use for volume representation.
  */
 export const enum EFaderType {
@@ -236,20 +228,13 @@ export const enum EColorFormat {
 	DXT5
 }
 
-export const enum EZStencilFormat {
-	None,
-	Z16,
-	Z24_S8,
-	Z32F,
-	Z32F_S8X24
-}
-
 export const enum EScaleType {
     Default,
     Point,
-    FastBilinear,
+    Bicubic,
     Bilinear,
-    Bicubic
+    Lanczos,
+    Area
 }
 
 export const enum ERangeType {
@@ -269,7 +254,13 @@ export const enum EVideoFormat {
     BGRA,
     BGRX,
     Y800,
-    I444
+    I444,
+    BGR3,
+    I422,
+    I40A,
+    I42A,
+    YUVA,
+    AYUV
 }
 
 export const enum EBoundsType {
@@ -285,7 +276,8 @@ export const enum EBoundsType {
 export const enum EColorSpace {
     Default,
     CS601,
-    CS709
+    CS709,
+    CSSRGB
 }
 
 export const enum ESpeakerLayout {
@@ -297,16 +289,6 @@ export const enum ESpeakerLayout {
     FourOne,
     FiveOne,
     SevenOne = 8
-}
-
-export const enum ESceneSignalType {
-    ItemAdd,
-    ItemRemove,
-    Reorder,
-    ItemVisible,
-    ItemSelect,
-    ItemDeselect,
-    ItemTransform
 }
 
 export const enum EOutputCode {
@@ -333,12 +315,16 @@ export const enum ERenderingMode {
 	OBS_RECORDING_RENDERING = 2
 }
 
+export const enum EIPCError {
+    STILL_RUNNING = 259,
+    VERSION_MISMATCH = 252,
+    OTHER_ERROR = 253,
+    MISSING_DEPENDENCY = 254,
+    NORMAL_EXIT = 0,
+}
+
 export const Global: IGlobal = obs.Global;
 export const Video: IVideo = obs.Video;
-export const OutputFactory: IOutputFactory = obs.Output;
-export const AudioEncoderFactory: IAudioEncoderFactory = obs.AudioEncoder;
-export const VideoEncoderFactory: IVideoEncoderFactory = obs.VideoEncoder;
-export const ServiceFactory: IServiceFactory = obs.Service;
 export const InputFactory: IInputFactory = obs.Input;
 export const SceneFactory: ISceneFactory = obs.Scene;
 export const FilterFactory: IFilterFactory = obs.Filter;
@@ -349,6 +335,19 @@ export const FaderFactory: IFaderFactory = obs.Fader;
 export const Audio: IAudio = obs.Audio;
 export const ModuleFactory: IModuleFactory = obs.Module;
 export const IPC: IIPC = obs.IPC;
+export const VideoEncoderFactory: IVideoEncoderFactory = obs.VideoEncoder;
+export const ServiceFactory: IServiceFactory = obs.Service;
+export const SimpleStreamingFactory: ISimpleStreamingFactory = obs.SimpleStreaming;
+export const AdvancedStreamingFactory: IAdvancedStreamingFactory = obs.AdvancedStreaming;
+export const DelayFactory: IDelayFactory = obs.Delay;
+export const ReconnectFactory: IReconnectFactory = obs.Reconnect;
+export const NetworkFactory: INetworkFactory = obs.Network;
+export const AudioTrackFactory: IAudioTrackFactory = obs.AudioTrack;
+export const SimpleRecordingFactory: ISimpleRecordingFactory = obs.SimpleRecording;
+export const AdvancedRecordingFactory: IAdvancedRecordingFactory = obs.AdvancedRecording;
+export const AudioEncoderFactory: IAudioEncoderFactory = obs.AudioEncoder;
+export const SimpleReplayBufferFactory: ISimpleReplayBufferFactory = obs.SimpleReplayBuffer;
+export const AdvancedReplayBufferFactory: IAdvancedReplayBufferFactory = obs.AdvancedReplayBuffer;
 
 /**
  * Meta object in order to better describe settings
@@ -398,29 +397,6 @@ export interface ICropInfo {
     readonly bottom: number;
 }
 
-export interface IVideoInfo {
-    readonly graphicsModule: string;
-    readonly fpsNum: number;
-    readonly fpsDen: number;
-    readonly baseWidth: number;
-    readonly baseHeight: number;
-    readonly outputWidth: number;
-    readonly outputHeight: number;
-    readonly outputFormat: EVideoFormat;
-    readonly adapter: number;
-    readonly gpuConversion: boolean;
-    readonly colorspace: EColorSpace;
-    readonly range: ERangeType;
-    readonly scaleType: EScaleType;
-}
-
-export interface IDisplayInit {
-    width: number;
-    height: number;
-    format: EColorFormat;
-    zsformat: EZStencilFormat;
-}
-
 /** 
  * Namespace representing the global libobs functionality
  */
@@ -451,7 +427,7 @@ export interface IIPC {
 	 * @throws TypeError if a parameter is of invalid type.
 	 * @throws Error if it failed to host and connect.
      */
-	host(uri: string): void;
+	host(uri: string): EIPCError;
 	
     /**
      * Disconnect from a server.
@@ -693,139 +669,6 @@ export interface IFactoryTypes {
 
 export interface IReleasable {
     release(): void;
-}
-
-export interface IEncoder extends IConfigurable, IReleasable {
-    name: string;
-    readonly id: string;
-    readonly type: EEncoderType;
-    readonly caps: number;
-    readonly codec: string;
-    readonly active: boolean;
-}
-
-export interface IVideoEncoderFactory extends IFactoryTypes {
-    create(id: string, name: string, settings?: ISettings, hotkeys?: ISettings): IVideoEncoder;
-    fromName(name: string): IVideoEncoder;
-}
-
-export interface IVideoEncoder extends IEncoder {
-    setVideo(video: IVideo): void;
-    getVideo(): IVideo;
-
-    getHeight(): number;
-    getWidth(): number;
-
-    setScaledSize(width: number, height: number): void;
-    setPreferredFormat(format: EVideoFormat): void;
-    getPreferredFormat(): EVideoFormat;
-}
-
-export interface IAudioEncoderFactory extends IFactoryTypes {
-    create(id: string, name: string, settings?: ISettings, track?: number, hotkeys?: ISettings): IAudioEncoder;
-    fromName(name: string): IAudioEncoder;
-}
-
-export interface IAudioEncoder extends IEncoder {
-    setAudio(video: IAudio): void;
-    getAudio(): IAudio;
-
-    getSampleRate(): number;
-}
-
-export interface IOutput extends IConfigurable, IReleasable {
-    setMedia(video: IVideo, audio: IAudio): void;
-    getVideo(): IVideo;
-    getAudio(): IAudio;
-
-    /** 32-bit integer representing mixer track.
-      * Note that the backend treats this as size_t.
-      * The bindings only accept a 32-bit integer
-      * to prevent complication.  */
-    mixer: number;
-
-    getVideoEncoder(): IVideoEncoder;
-    setVideoEncoder(encoder: IVideoEncoder): void;
-
-    getAudioEncoder(idx: number): IAudioEncoder;
-    setAudioEncoder(encoder: IAudioEncoder, idx: number): void;
-
-    service: IService;
-
-    setReconnectOptions(retry_count: number, retry_sec: number): void;
-    setPreferredSize(width: number, height: number): void;
-
-    readonly width: number;
-    readonly height: number;
-
-    /** Statistic from 0.0f to 1.0f 
-      * representing congestion */
-    readonly congestion: number;
-
-    /** Time output spent connecting its service */
-    readonly connectTime: number;
-
-    /** If it's in the state of reconnecting */
-    readonly reconnecting: boolean;
-
-    /** 
-      * This will return a list of supported codec
-      * standards, not the implementations. For instance
-      * rtmp_output will return 'h264'.
-      *
-      * You may fetch what codecs are implemented by
-      * iterating through the video encoders.
-      */
-    readonly supportedVideoCodecs: string[];
-
-    /** 
-      * This will return a list of supported codec
-      * standards, not the implementations. For instance
-      * rtmp_output will return 'aac'.
-      *
-      * You may fetch what codecs are implemented by
-      * iterating through the audio encoders.
-      */
-    readonly supportedAudioCodecs: string[];
-
-    /** Number of frames dropped total */
-    readonly framesDropped: number;
-
-    /** Total number of processed frames, 
-      * including dropped frames */
-    readonly totalFrames: number;
-
-    /** Start outputing data. Please 
-      * note that this doesn't mean the
-      * output starts immediately. In order
-      * to determine when the output 
-      * actually starts, you must use signals.
-      * libobs will provide a start signal
-      * when it's actually started. */
-    start(): void;
-
-    /** Stop outputing data. Please 
-      * note that this doesn't mean the
-      * output stops immediately. In order
-      * to determine when the output 
-      * actually starts, you must use signals.
-      * libobs will provide a stop signal
-      * when it's actually stopped. */
-    stop(): void;
-
-    /** Set delay to output */
-    setDelay(ms: number, flags: EDelayFlags): void;
-    getDelay(): void;
-    getActiveDelay(): void;
-}
-
-export interface IOutputFactory extends IFactoryTypes {
-    create(id: string, name: string, settings?: ISettings, hotkeys?: ISettings): IOutput;
-    fromName(name: string): IOutput;
-}
-
-export enum EDelayFlags {
-    PreserveDelay = (1<<0)
 }
 
 export interface IFilterFactory extends IFactoryTypes {
@@ -1124,17 +967,6 @@ export interface IScene extends ISource {
      * @returns - The array of item instances
      */
     getItems(): ISceneItem[];
-
-    /**
-     * Connect a callback to a particular signal 
-     * associated with this scene. 
-     */
-    connect(sigType: ESceneSignalType, cb: (info: ISettings) => void): ICallbackData;
-
-    /**
-     * Disconnect the signal registered with connect()
-     */
-    disconnect(data: ICallbackData): void;
 }
 
 /**
@@ -1325,7 +1157,7 @@ export interface ISource extends IConfigurable, IReleasable {
      * as it allows the source to know it needs to update 
      * its settings.
      */
-     save(): void;
+    save(): void;
 
     /**
      * The validity of the source
@@ -1371,6 +1203,17 @@ export interface ISource extends IConfigurable, IReleasable {
      * Easy way to disable a filter.
      */
     enabled: boolean;
+	
+    /**
+     * Function to get latest version of settings
+	 * Expensive, shouldn't be used unless sure
+     */
+    readonly slowUncachedSettings: ISettings;
+
+    /** 
+     * Executes a named function from obs internals
+    */
+     callHandler(fuction_name: string, fuction_input: string): Object;
 }
 
 export interface IFaderFactory {
@@ -1516,9 +1359,21 @@ export interface IDisplay {
     setResizeBoxInnerColor(r: number, g: number, b: number, a: number): void;
 }
 
+export interface VideoContext {
+    fpsNum: number;
+    fpsDen: number;
+    baseWidth: number;
+    baseHeight: number;
+    outputWidth: number;
+    outputHeight: number;
+    outputFormat: EVideoFormat;
+    colorspace: EColorSpace;
+    range: ERangeType;
+    scaleType: EScaleType;
+}
+
 /**
  * This represents a video_t structure from within libobs
- * For now, only the global context functions are implemented
  */
 export interface IVideo {
 	
@@ -1531,6 +1386,11 @@ export interface IVideo {
      * Number of total encoded frames
      */
     readonly encodedFrames: number;
+
+    /**
+     * Current video context
+     */
+    videoContext: VideoContext;
 }
 
 export interface AudioContext {
@@ -1541,7 +1401,6 @@ export interface AudioContext {
 export interface IAudio {
     audioContext: AudioContext;
 }
-
 
 export interface IModuleFactory extends IFactoryTypes {
     open(binPath: string, dataPath: string): IModule;
@@ -1573,16 +1432,19 @@ export function addItems(scene: IScene, sceneItems: ISceneItemInfo[]): ISceneIte
     }
     return items;
 }
+
 export interface FilterInfo {
     name: string,
     type: string,
     settings: ISettings,
     enabled: boolean
 }
+
 export interface SyncOffset {
     sec: number,
     nsec: number
 }
+
 export interface SourceInfo {
     filters: FilterInfo[],
     muted: boolean,
@@ -1592,6 +1454,7 @@ export interface SourceInfo {
     volume: number,
     syncOffset: SyncOffset
 }
+
 export function createSources(sources: SourceInfo[]): IInput[] {
     const items: IInput[] = [];
     if (Array.isArray(sources)) {
@@ -1639,6 +1502,7 @@ export interface IServiceFactory {
     types(): string[];
     create(id: string, name: string, settings?: ISettings): IService;
     serviceContext: IService;
+    legacySettings: IService;
 }
 /**
  * Class representing a service
@@ -1675,6 +1539,218 @@ export interface IService {
      * object passed. 
      */
     update(settings: ISettings): void;
+}
+
+const enum ERecordingFormat {
+    MP4 = 'mp4',
+    FLV = 'flv',
+    MOV = 'mov',
+    MKV = 'mkv',
+    TS = 'ts',
+    M3M8 = 'm3m8'
+}
+
+const enum ERecordingQuality {
+    Stream,
+    HighQuality,
+    HigherQuality,
+    Lossless
+}
+
+const enum EVideoEncoderType {
+    Audio,
+    Video
+}
+
+export interface IVideoEncoder extends IConfigurable {
+    name: string,
+    readonly type: EVideoEncoderType,
+    readonly active: boolean,
+    readonly id: string,
+    readonly lastError: string
+}
+
+export interface IAudioEncoder {
+    name: string,
+    bitrate: number
+}
+
+export interface IAudioEncoderFactory {
+    create(): IAudioEncoder
+}
+
+export interface IVideoEncoderFactory {
+    types(): string[],
+    types(filter: EVideoEncoderType): string[],
+    create(id: string, name: string, settings?: ISettings): IVideoEncoder,
+}
+
+export interface IStreaming {
+    videoEncoder: IVideoEncoder,
+    service: IService,
+    enforceServiceBitrate: boolean,
+    enableTwitchVOD: boolean,
+    delay: IDelay,
+    reconnect: IReconnect,
+    network: INetwork,
+    signalHandler: (signal: EOutputSignal) => void,
+    start(): void,
+    stop(force?: boolean): void,
+}
+
+export interface EOutputSignal {
+    type: string,
+    signal: string,
+    code: number,
+    error: string
+}
+
+export interface ISimpleStreaming extends IStreaming {
+    audioEncoder: IAudioEncoder,
+    useAdvanced: boolean,
+    customEncSettings: string
+}
+
+export interface ISimpleStreamingFactory {
+    create(): ISimpleStreaming;
+    legacySettings: ISimpleStreaming;
+}
+
+export interface IAdvancedStreaming extends IStreaming {
+    audioTrack: number,
+    twitchTrack: number,
+    rescaling: boolean,
+    outputWidth?: number,
+    outputHeight?: number
+}
+
+export interface IAdvancedStreamingFactory {
+    create(): IAdvancedStreaming;
+    legacySettings: IAdvancedStreaming;
+}
+
+export interface IFileOutput {
+    path: string,
+    format: ERecordingFormat,
+    fileFormat: string,
+    overwrite: boolean,
+    noSpace: boolean,
+    muxerSettings: string,
+    lastFile(): string
+}
+
+export interface IRecording extends IFileOutput {
+    videoEncoder: IVideoEncoder,
+    signalHandler: (signal: EOutputSignal) => void,
+    start(): void,
+    stop(force?: boolean): void
+}
+
+export interface ISimpleRecording extends IRecording {
+    quality: ERecordingQuality,
+    audioEncoder: IAudioEncoder,
+    lowCPU: boolean,
+    streaming: ISimpleStreaming
+}
+
+export interface IAdvancedRecording extends IRecording {
+    mixer: number,
+    rescaling: boolean,
+    outputWidth?: number,
+    outputHeight?: number,
+    useStreamEncoders: boolean,
+    streaming: IAdvancedStreaming
+}
+
+export interface ISimpleRecordingFactory {
+    create(): ISimpleRecording;
+    legacySettings: ISimpleRecording;
+}
+
+export interface IAdvancedRecordingFactory {
+    create(): IAdvancedRecording;
+    legacySettings: IAdvancedRecording;
+}
+
+export interface IReplayBuffer extends IFileOutput {
+    duration: number,
+    prefix: string,
+    suffix: string,
+    usesStream: boolean,
+    signalHandler: (signal: EOutputSignal) => void,
+    start(): void,
+    stop(force?: boolean): void,
+    save(): void
+}
+
+export interface ISimpleReplayBuffer extends IReplayBuffer {
+    streaming: ISimpleStreaming,
+    recording: ISimpleRecording,
+}
+
+export interface IAdvancedReplayBuffer extends IReplayBuffer {
+    mixer: number,
+    streaming: IAdvancedStreaming,
+    recording: IAdvancedRecording,
+}
+
+export interface ISimpleReplayBufferFactory {
+    create(): ISimpleReplayBuffer;
+    legacySettings: ISimpleReplayBuffer;
+}
+
+export interface IAdvancedReplayBufferFactory {
+    create(): IAdvancedReplayBuffer;
+    legacySettings: IAdvancedReplayBufferFactory;
+}
+
+export interface IDelay {
+    enabled: boolean,
+    delaySec: number,
+    preserveDelay: number
+}
+
+export interface IDelayFactory {
+    create(): IDelay,
+}
+
+export interface IReconnect {
+    enabled: boolean,
+    retryDelay: number,
+    maxRetries: number
+}
+
+export interface IReconnectFactory {
+    create(): IReconnect
+}
+
+export interface INetwork {
+    bindIP: string,
+    readonly networkInterfaces: ISettings,
+    enableDynamicBitrate: boolean,
+    enableOptimizations: boolean,
+    enableLowLatency: boolean
+}
+
+export interface INetworkFactory {
+    create(): INetwork
+}
+
+export interface IAudioTrack {
+    bitrate: number;
+    name: string
+}
+
+export interface IAudioTrackFactory {
+    create(bitrate: number, name: string): IAudioTrack;
+
+    readonly audioTracks: IAudioTrack[];
+    readonly audioBitrates: number[];
+    getAtIndex(index: number): IAudioTrack;
+    setAtIndex(audioTrack: IAudioTrack, index: number): void;
+
+    importLegacySettings(): void;
+    saveLegacySettings(): void;
 }
 
 // Initialization and other stuff which needs local data.

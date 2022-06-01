@@ -30,6 +30,17 @@
 #include "util-crashmanager.h"
 #include "util-metricsprovider.h"
 
+#include "osn-streaming.hpp"
+#include "osn-recording.hpp"
+#include "osn-video-encoder.hpp"
+#include "osn-audio-encoder.hpp"
+#include "osn-service.hpp"
+#include "osn-delay.hpp"
+#include "osn-reconnect.hpp"
+#include "osn-network.hpp"
+#include "osn-audio-track.hpp"
+#include "memory-manager.h"
+
 #include <sys/types.h>
 
 #ifdef __APPLE
@@ -76,7 +87,7 @@
 #include <fcntl.h>
 #endif
 
-#include "error.hpp"
+#include "osn-error.hpp"
 #include "shared.hpp"
 
 #include <fstream>
@@ -113,6 +124,9 @@ std::chrono::high_resolution_clock::time_point         start_wait_acknowledge;
 
 ipc::server* g_server = nullptr;
 
+bool browserAccel = true;
+bool mediaFileCaching = true;
+
 void OBS_API::Register(ipc::server& srv)
 {
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("API");
@@ -136,6 +150,14 @@ void OBS_API::Register(ipc::server& srv)
 	    ProcessHotkeyStatus));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "SetUsername", std::vector<ipc::type>{ipc::type::String}, SetUsername));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "SetBrowserAcceleration",
+		std::vector<ipc::type>{ipc::type::UInt32},
+		SetBrowserAcceleration));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "SetMediaFileCaching",
+		std::vector<ipc::type>{ipc::type::UInt32},
+		SetMediaFileCaching));
 
 	srv.register_collection(cls);
 	g_server = &srv;
@@ -843,9 +865,8 @@ void OBS_API::OBS_API_initAPI(
 	ConfigManager::getInstance().setAppdataPath(appdata);
 
 	/* Set global private settings for whomever it concerns */
-	bool        browserHWAccel   = config_get_bool(ConfigManager::getInstance().getGlobal(), "General", "BrowserHWAccel");
 	obs_data_t* private_settings = obs_data_create();
-	obs_data_set_bool(private_settings, "BrowserHWAccel", browserHWAccel);
+	obs_data_set_bool(private_settings, "BrowserHWAccel", browserAccel);
 	obs_apply_private_data(private_settings);
 	obs_data_release(private_settings);
 
@@ -1452,6 +1473,7 @@ void OBS_API::destroyOBS_API(void)
 	autoConfig::WaitPendingTests();
 
 	OBS_service::stopAllOutputs();
+	OBS_service::waitReleaseWorker();
 
 	obs_encoder_t* streamingEncoder = OBS_service::getStreamingEncoder();
 	if (streamingEncoder != NULL)
@@ -1497,10 +1519,89 @@ void OBS_API::destroyOBS_API(void)
 	if (service != NULL)
 		obs_service_release(service);
 
-    OBS_service::waitReleaseWorker();
     OBS_service::clearAudioEncoder();
     osn::Volmeter::ClearVolmeters();
     osn::Fader::ClearFaders();
+
+	obs_wait_for_destroy_queue();
+
+	// Release all streaming ouputs
+	std::vector<osn::Streaming*> streamingOutputs;
+	osn::IStreaming::Manager::GetInstance().
+		for_each([&streamingOutputs](osn::Streaming* streamingOutput)
+	{
+		delete streamingOutput;
+	});
+
+	// Release all recording ouputs
+	std::vector<osn::FileOutput*> fileOutputs;
+	osn::IFileOutput::Manager::GetInstance().
+		for_each([&fileOutputs](osn::FileOutput* fileOutput)
+	{
+		delete fileOutput;
+	});
+
+	// Release all video encoders
+	std::vector<obs_encoder_t*> videoEncoders;
+	osn::VideoEncoder::Manager::GetInstance().
+		for_each([&videoEncoders](obs_encoder_t* videoEncoder)
+	{
+		obs_encoder_release(videoEncoder);
+		videoEncoder = nullptr;
+	});
+
+	// Release all audio encoders
+	std::vector<obs_encoder_t*> audioEncoders;
+	osn::AudioEncoder::Manager::GetInstance().
+		for_each([&audioEncoders](obs_encoder_t* audioEncoder)
+	{
+		obs_encoder_release(audioEncoder);
+		audioEncoder = nullptr;
+	});
+
+	// Release all audio track encoders
+	std::vector<osn::AudioTrack*> audioTrackEncoders;
+	// osn::IAudioTrack::Manager::GetInstance().
+	// 	for_each([&audioTrackEncoders](osn::AudioTrack* audioTrackEncoder)
+	for (auto const& audioTrack: osn::IAudioTrack::audioTracks)	{
+		if(audioTrack && audioTrack->audioEnc) {
+			obs_encoder_release(audioTrack->audioEnc);
+			audioTrack->audioEnc = nullptr;
+		}
+	};
+
+	// Release all services
+	std::vector<obs_encoder_t*> services;
+	osn::Service::Manager::GetInstance().
+		for_each([&services](obs_service_t* service)
+	{
+		obs_service_release(service);
+		service = nullptr;
+	});
+
+	// Release all delays
+	std::vector<osn::Delay*> delays;
+	osn::IDelay::Manager::GetInstance().
+		for_each([&delays](osn::Delay* delay)
+	{
+		delete delay;
+	});
+
+	// Release all reconnects
+	std::vector<osn::Reconnect*> reconnects;
+	osn::IReconnect::Manager::GetInstance().
+		for_each([&reconnects](osn::Reconnect* reconnect)
+	{
+		delete reconnect;
+	});
+
+	// Release all networks
+	std::vector<osn::Network*> networks;
+	osn::INetwork::Manager::GetInstance().
+		for_each([&networks](osn::Network* network)
+	{
+		delete network;
+	});
 
 	// Check if the frontend was able to shutdown correctly:
 	// If there are some sources here it's because it ended unexpectedly, this represents a 
@@ -1939,4 +2040,37 @@ std::vector<std::pair<uint32_t, uint32_t>> OBS_API::availableResolutions(void)
 	resolutions = g_util_osx->getAvailableScreenResolutions();
 #endif
 	return resolutions;
+}
+
+void OBS_API::SetBrowserAcceleration(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	browserAccel = args[0].value_union.ui32;
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
+}
+
+void OBS_API::SetMediaFileCaching(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	mediaFileCaching = args[0].value_union.ui32;
+	MemoryManager::GetInstance().updateSourcesCache();
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
+}
+
+bool OBS_API::getBrowserAcceleration()
+{
+	return browserAccel;
+}
+
+bool OBS_API::getMediaFileCaching()
+{
+	return mediaFileCaching;
 }

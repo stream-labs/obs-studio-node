@@ -9,7 +9,7 @@ def process_sentry(project, directory):
                 path = os.path.join(directory, file)
                 print("processing file {}".format(path))
                 os.system("dsymutil " + path)
-                os.system("sentry-cli --auth-token ${SENTRY_AUTH_TOKEN} upload-dif --org streamlabs-obs --project " + project + " " + path + ".dSYM/Contents/Resources/DWARF/" + file)
+                os.system("sentry-cli --auth-token ${SENTRY_AUTH_TOKEN} upload-dif --org streamlabs-desktop --project " + project + " " + path + ".dSYM/Contents/Resources/DWARF/" + file)
 
 # # Upload client debug files
 process_sentry('obs-client', os.path.join(os.environ['PWD'], os.environ['SLBUILDDIRECTORY'], 'obs-studio-client', os.environ['BUILDCONFIG']))

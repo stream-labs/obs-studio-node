@@ -123,7 +123,21 @@ class OBS_API
 	    const std::vector<ipc::value>& args,
 	    std::vector<ipc::value>&       rval);
 
-	protected:
+	static void SetBrowserAcceleration(
+	    void*                          data,
+	    const int64_t                  id,
+	    const std::vector<ipc::value>& args,
+	    std::vector<ipc::value>&       rval);
+	static void SetMediaFileCaching(
+	    void*                          data,
+	    const int64_t                  id,
+	    const std::vector<ipc::value>& args,
+	    std::vector<ipc::value>&       rval);
+
+	static bool getBrowserAcceleration();
+	static bool getMediaFileCaching();
+
+	public:
 	static void initAPI(void);
 	static bool openAllModules(int& video_err);
 
