@@ -17,7 +17,7 @@
 ******************************************************************************/
 
 #include "osn-audio.hpp"
-#include "error.hpp"
+#include "osn-error.hpp"
 #include "shared.hpp"
 
 // DELETE ME WHEN REMOVING NODEOBS
