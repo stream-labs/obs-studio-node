@@ -285,13 +285,10 @@ export const enum ESpeakerLayout {
     Mono,
     Stereo,
     TwoOne,
-    Quad,
+    Four,
     FourOne,
     FiveOne,
-    FiveOneSurround,
-    SevenOne,
-    SevenOneSurround,
-    Surround
+    SevenOne = 8
 }
 
 export const enum EOutputCode {
@@ -335,6 +332,7 @@ export const TransitionFactory: ITransitionFactory = obs.Transition;
 export const DisplayFactory: IDisplayFactory = obs.Display;
 export const VolmeterFactory: IVolmeterFactory = obs.Volmeter;
 export const FaderFactory: IFaderFactory = obs.Fader;
+export const Audio: IAudio = obs.Audio;
 export const ModuleFactory: IModuleFactory = obs.Module;
 export const IPC: IIPC = obs.IPC;
 export const VideoEncoderFactory: IVideoEncoderFactory = obs.VideoEncoder;
@@ -1393,6 +1391,15 @@ export interface IVideo {
      * Current video context
      */
     videoContext: VideoContext;
+}
+
+export interface AudioContext {
+    sampleRate: (44100 | 48000),
+    speakers: ESpeakerLayout
+}
+
+export interface IAudio {
+    audioContext: AudioContext;
 }
 
 export interface IModuleFactory extends IFactoryTypes {

@@ -47,6 +47,7 @@
 #include "callback-manager.h"
 #include "osn-video-encoder.hpp"
 #include "osn-service.hpp"
+#include "osn-audio.hpp"
 #include "osn-simple-streaming.hpp"
 #include "osn-advanced-streaming.hpp"
 #include "osn-delay.hpp"
@@ -256,6 +257,7 @@ int main(int argc, char* argv[])
     autoConfig::Register(myServer);
     osn::VideoEncoder::Register(myServer);
     osn::Service::Register(myServer);
+    osn::Audio::Register(myServer);
     osn::ISimpleStreaming::Register(myServer);
     osn::IAdvancedStreaming::Register(myServer);
     osn::IDelay::Register(myServer);

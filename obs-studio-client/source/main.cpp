@@ -42,6 +42,7 @@
 #include "callback-manager.hpp"
 #include "video-encoder.hpp"
 #include "service.hpp"
+#include "audio.hpp"
 #include "simple-streaming.hpp"
 #include "advanced-streaming.hpp"
 #include "delay.hpp"
@@ -124,6 +125,7 @@ Napi::Object main_node(Napi::Env env, Napi::Object exports) {
 	globalCallback::Init(env, exports);
 	osn::VideoEncoder::Init(env, exports);
 	osn::Service::Init(env, exports);
+	osn::Audio::Init(env, exports);
 	osn::SimpleStreaming::Init(env, exports);
 	osn::AdvancedStreaming::Init(env, exports);
 	osn::Delay::Init(env, exports);

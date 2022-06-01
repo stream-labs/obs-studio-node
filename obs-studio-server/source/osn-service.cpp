@@ -463,15 +463,15 @@ void osn::Service::SetLegacyServiceSettings(obs_service_t* service)
         return;
     
     obs_data_t* settings = obs_service_get_settings(service);
-	obs_data_t* serviceData = obs_data_create();
-	obs_data_set_string(serviceData, "type", obs_service_get_type(service));
-	obs_data_set_obj(serviceData, "settings", settings);
+    obs_data_t* serviceData = obs_data_create();
+    obs_data_set_string(serviceData, "type", obs_service_get_type(service));
+    obs_data_set_obj(serviceData, "settings", settings);
 
-	if (!obs_data_save_json_safe(
+    if (!obs_data_save_json_safe(
         serviceData,
         ConfigManager::getInstance().getService().c_str(), "tmp", "bak")) {
-		blog(LOG_WARNING, "Failed to save service");
-	}
+        blog(LOG_WARNING, "Failed to save service");
+    }
 
     obs_data_release(settings);
     obs_data_release(serviceData);

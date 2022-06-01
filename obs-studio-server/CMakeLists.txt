@@ -244,6 +244,8 @@ SET(osn-server_SOURCES
     "${PROJECT_SOURCE_DIR}/source/osn-sceneitem.hpp"
     "${PROJECT_SOURCE_DIR}/source/osn-service.cpp"
     "${PROJECT_SOURCE_DIR}/source/osn-service.hpp"
+    "${PROJECT_SOURCE_DIR}/source/osn-audio.cpp"
+    "${PROJECT_SOURCE_DIR}/source/osn-audio.hpp"
     "${PROJECT_SOURCE_DIR}/source/osn-source.cpp"
     "${PROJECT_SOURCE_DIR}/source/osn-source.hpp"
     "${PROJECT_SOURCE_DIR}/source/osn-transition.cpp"

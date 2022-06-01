@@ -94,6 +94,8 @@ SET(osn-client_SOURCES
     "source/video-encoder.cpp"
     "source/service.hpp"
     "source/service.cpp"
+    "source/audio.hpp"
+    "source/audio.cpp"
     "source/streaming.hpp"
     "source/streaming.cpp"
     "source/simple-streaming.hpp"

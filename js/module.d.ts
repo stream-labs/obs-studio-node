@@ -218,13 +218,10 @@ export declare const enum ESpeakerLayout {
     Mono = 1,
     Stereo = 2,
     TwoOne = 3,
-    Quad = 4,
+    Four = 4,
     FourOne = 5,
     FiveOne = 6,
-    FiveOneSurround = 7,
-    SevenOne = 8,
-    SevenOneSurround = 9,
-    Surround = 10
+    SevenOne = 8
 }
 export declare const enum EOutputCode {
     Success = 0,
@@ -263,6 +260,7 @@ export declare const TransitionFactory: ITransitionFactory;
 export declare const DisplayFactory: IDisplayFactory;
 export declare const VolmeterFactory: IVolmeterFactory;
 export declare const FaderFactory: IFaderFactory;
+export declare const Audio: IAudio;
 export declare const ModuleFactory: IModuleFactory;
 export declare const IPC: IIPC;
 export declare const VideoEncoderFactory: IVideoEncoderFactory;
@@ -616,6 +614,13 @@ export interface IVideo {
     readonly skippedFrames: number;
     readonly encodedFrames: number;
     videoContext: VideoContext;
+}
+export interface AudioContext {
+    sampleRate: (44100 | 48000);
+    speakers: ESpeakerLayout;
+}
+export interface IAudio {
+    audioContext: AudioContext;
 }
 export interface IModuleFactory extends IFactoryTypes {
     open(binPath: string, dataPath: string): IModule;
