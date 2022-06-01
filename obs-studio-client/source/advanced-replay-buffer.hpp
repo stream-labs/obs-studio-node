@@ -39,5 +39,11 @@ namespace osn
         static Napi::Value GetLegacySettings(const Napi::CallbackInfo& info);
         static void SetLegacySettings(const Napi::CallbackInfo& info,
             const Napi::Value& value);
+        Napi::Value GetStreaming(const Napi::CallbackInfo& info);
+        void SetStreaming(
+            const Napi::CallbackInfo& info, const Napi::Value& value);
+        Napi::Value GetRecording(const Napi::CallbackInfo& info);
+        void SetRecording(
+            const Napi::CallbackInfo& info, const Napi::Value& value);
     };
 }

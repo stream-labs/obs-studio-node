@@ -46,12 +46,6 @@ namespace osn
         Napi::Value GetUsesStream(const Napi::CallbackInfo& info);
         void SetUsesStream(
             const Napi::CallbackInfo& info, const Napi::Value& value);
-        Napi::Value GetStreaming(const Napi::CallbackInfo& info);
-        void SetStreaming(
-            const Napi::CallbackInfo& info, const Napi::Value& value);
-        Napi::Value GetRecording(const Napi::CallbackInfo& info);
-        void SetRecording(
-            const Napi::CallbackInfo& info, const Napi::Value& value);
         Napi::Value GetSignalHandler(const Napi::CallbackInfo& info);
         void SetSignalHandler(
             const Napi::CallbackInfo& info, const Napi::Value& value);

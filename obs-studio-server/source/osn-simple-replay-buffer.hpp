@@ -30,9 +30,14 @@ namespace osn
     {
         public:
         SimpleReplayBuffer() {
+            streaming = nullptr;
+            recording = nullptr;
         }
         ~SimpleReplayBuffer() {}
 
+        public:
+        SimpleStreaming* streaming;
+        SimpleRecording* recording;
     };
 
     class ISimpleReplayBuffer: public IReplayBuffer
@@ -61,6 +66,26 @@ namespace osn
             const std::vector<ipc::value>& args,
             std::vector<ipc::value>&       rval);
         static void SetLegacySettings(
+            void*                          data,
+            const int64_t                  id,
+            const std::vector<ipc::value>& args,
+            std::vector<ipc::value>&       rval);
+        static void GetStreaming(
+            void*                          data,
+            const int64_t                  id,
+            const std::vector<ipc::value>& args,
+            std::vector<ipc::value>&       rval);
+        static void SetStreaming(
+            void*                          data,
+            const int64_t                  id,
+            const std::vector<ipc::value>& args,
+            std::vector<ipc::value>&       rval);
+        static void GetRecording(
+            void*                          data,
+            const int64_t                  id,
+            const std::vector<ipc::value>& args,
+            std::vector<ipc::value>&       rval);
+        static void SetRecording(
             void*                          data,
             const int64_t                  id,
             const std::vector<ipc::value>& args,

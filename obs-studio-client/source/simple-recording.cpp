@@ -233,48 +233,6 @@ void osn::SimpleRecording::SetLowCPU(const Napi::CallbackInfo& info, const Napi:
         {ipc::value(this->uid), ipc::value(value.ToBoolean().Value())});
 }
 
-Napi::Value osn::SimpleRecording::GetStreaming(const Napi::CallbackInfo& info) {
-    auto conn = GetConnection(info);
-    if (!conn)
-        return info.Env().Undefined();
-
-    std::vector<ipc::value> response =
-        conn->call_synchronous_helper(
-            "SimpleRecording",
-            "GetStreaming",
-            {ipc::value(this->uid)});
-
-    if (!ValidateResponse(info, response))
-        return info.Env().Undefined();
-
-    auto instance =
-        osn::SimpleStreaming::constructor.New({
-            Napi::Number::New(info.Env(), response[1].value_union.ui64)
-        });
-    return instance;
-}
-
-void osn::SimpleRecording::SetStreaming(
-    const Napi::CallbackInfo& info, const Napi::Value& value) {
-    osn::SimpleStreaming* streaming =
-        Napi::ObjectWrap<osn::SimpleStreaming>::Unwrap(value.ToObject());
-
-    if (!streaming) {
-        Napi::TypeError::New(info.Env(),
-            "Invalid streaming argument").ThrowAsJavaScriptException();
-        return;
-    }
-
-    auto conn = GetConnection(info);
-    if (!conn)
-        return;
-
-    conn->call(
-        className,
-        "SetStreaming",
-        {ipc::value(this->uid), ipc::value(streaming->uid)});
-}
-
 Napi::Value osn::SimpleRecording::GetLegacySettings(
     const Napi::CallbackInfo& info) {
     auto conn = GetConnection(info);
@@ -317,4 +275,46 @@ void osn::SimpleRecording::SetLegacySettings(
 
     if (!ValidateResponse(info, response))
         return;
+}
+
+Napi::Value osn::SimpleRecording::GetStreaming(const Napi::CallbackInfo& info) {
+    auto conn = GetConnection(info);
+    if (!conn)
+        return info.Env().Undefined();
+
+    std::vector<ipc::value> response =
+        conn->call_synchronous_helper(
+            className,
+            "GetStreaming",
+            {ipc::value(this->uid)});
+
+    if (!ValidateResponse(info, response))
+        return info.Env().Undefined();
+
+    auto instance =
+        osn::SimpleStreaming::constructor.New({
+            Napi::Number::New(info.Env(), response[1].value_union.ui64)
+        });
+    return instance;
+}
+
+void osn::SimpleRecording::SetStreaming(
+    const Napi::CallbackInfo& info, const Napi::Value& value) {
+    osn::SimpleStreaming* streaming =
+        Napi::ObjectWrap<osn::SimpleStreaming>::Unwrap(value.ToObject());
+
+    if (!streaming) {
+        Napi::TypeError::New(info.Env(),
+            "Invalid streaming argument").ThrowAsJavaScriptException();
+        return;
+    }
+
+    auto conn = GetConnection(info);
+    if (!conn)
+        return;
+
+    conn->call(
+        className,
+        "SetStreaming",
+        {ipc::value(this->uid), ipc::value(streaming->uid)});
 }

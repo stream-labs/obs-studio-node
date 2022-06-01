@@ -21,8 +21,6 @@
 #include "utility.hpp"
 #include "osn-streaming.hpp"
 #include "osn-file-output.hpp"
-#include "osn-simple-streaming.hpp"
-#include "osn-simple-recording.hpp"
 
 namespace osn
 {
@@ -34,8 +32,6 @@ namespace osn
             prefix = "Replay";
             suffix = "";
             usesStream = false;
-            streaming = nullptr;
-            recording = nullptr;
             signals = {
                 "start",
                 "stop",
@@ -53,8 +49,6 @@ namespace osn
         std::string prefix;
         std::string suffix;
         bool usesStream;
-        SimpleStreaming* streaming;
-        SimpleRecording* recording;
     };
 
     class IReplayBuffer: public IFileOutput
@@ -106,26 +100,6 @@ namespace osn
             const std::vector<ipc::value>& args,
             std::vector<ipc::value>&       rval);
         static void Save(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-        static void GetStreaming(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-        static void SetStreaming(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-        static void GetRecording(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-        static void SetRecording(
             void*                          data,
             const int64_t                  id,
             const std::vector<ipc::value>& args,

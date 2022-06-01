@@ -1636,7 +1636,7 @@ export interface IRecording extends IFileOutput {
     videoEncoder: IVideoEncoder,
     signalHandler: (signal: EOutputSignal) => void,
     start(): void,
-    stop(force?: boolean): void,
+    stop(force?: boolean): void
 }
 
 export interface ISimpleRecording extends IRecording {
@@ -1651,7 +1651,8 @@ export interface IAdvancedRecording extends IRecording {
     rescaling: boolean,
     outputWidth?: number,
     outputHeight?: number,
-    useStreamEncoders: boolean
+    useStreamEncoders: boolean,
+    streaming: IAdvancedStreaming
 }
 
 export interface ISimpleRecordingFactory {
@@ -1669,8 +1670,6 @@ export interface IReplayBuffer extends IFileOutput {
     prefix: string,
     suffix: string,
     usesStream: boolean,
-    streaming: IStreaming,
-    recording: IRecording,
     signalHandler: (signal: EOutputSignal) => void,
     start(): void,
     stop(force?: boolean): void,
@@ -1678,10 +1677,14 @@ export interface IReplayBuffer extends IFileOutput {
 }
 
 export interface ISimpleReplayBuffer extends IReplayBuffer {
+    streaming: ISimpleStreaming,
+    recording: ISimpleRecording,
 }
 
 export interface IAdvancedReplayBuffer extends IReplayBuffer {
     mixer: number,
+    streaming: IAdvancedStreaming,
+    recording: IAdvancedRecording,
 }
 
 export interface ISimpleReplayBufferFactory {

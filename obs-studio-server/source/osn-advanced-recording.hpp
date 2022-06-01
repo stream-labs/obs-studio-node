@@ -21,6 +21,7 @@
 #include <obs.h>
 #include "utility.hpp"
 #include "osn-recording.hpp"
+#include "osn-advanced-streaming.hpp"
 
 namespace osn
 {
@@ -33,6 +34,7 @@ namespace osn
             outputWidth = 1280;
             outputHeight = 720;
             useStreamEncoders = true;
+            streaming = nullptr;
         }
         ~AdvancedRecording() {}
 
@@ -42,6 +44,9 @@ namespace osn
         uint32_t outputWidth;
         uint32_t outputHeight;
         bool useStreamEncoders;
+        AdvancedStreaming* streaming;
+
+        bool UpdateEncoders();
     };
 
     class IAdvancedRecording: public IRecording
@@ -120,6 +125,16 @@ namespace osn
             const std::vector<ipc::value>& args,
             std::vector<ipc::value>&       rval);
         static void SetLegacySettings(
+            void*                          data,
+            const int64_t                  id,
+            const std::vector<ipc::value>& args,
+            std::vector<ipc::value>&       rval);
+        static void GetStreaming(
+            void*                          data,
+            const int64_t                  id,
+            const std::vector<ipc::value>& args,
+            std::vector<ipc::value>&       rval);
+        static void SetStreaming(
             void*                          data,
             const int64_t                  id,
             const std::vector<ipc::value>& args,

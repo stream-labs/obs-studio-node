@@ -18,6 +18,7 @@
 
 #include "advanced-recording.hpp"
 #include "utility.hpp"
+#include "advanced-streaming.hpp"
 
 Napi::FunctionReference osn::AdvancedRecording::constructor;
 
@@ -92,6 +93,10 @@ Napi::Object osn::AdvancedRecording::Init(Napi::Env env, Napi::Object exports) {
                 &osn::AdvancedRecording::SetLegacySettings),
             InstanceMethod("lastFile",
                 &osn::AdvancedRecording::GetLastFile),
+            InstanceAccessor(
+                "streaming",
+                &osn::AdvancedRecording::GetStreaming,
+                &osn::AdvancedRecording::SetStreaming)
         });
 
     exports.Set("AdvancedRecording", func);
@@ -317,4 +322,46 @@ void osn::AdvancedRecording::SetLegacySettings(
 
     if (!ValidateResponse(info, response))
         return;
+}
+
+Napi::Value osn::AdvancedRecording::GetStreaming(const Napi::CallbackInfo& info) {
+    auto conn = GetConnection(info);
+    if (!conn)
+        return info.Env().Undefined();
+
+    std::vector<ipc::value> response =
+        conn->call_synchronous_helper(
+            className,
+            "GetStreaming",
+            {ipc::value(this->uid)});
+
+    if (!ValidateResponse(info, response))
+        return info.Env().Undefined();
+
+    auto instance =
+        osn::AdvancedStreaming::constructor.New({
+            Napi::Number::New(info.Env(), response[1].value_union.ui64)
+        });
+    return instance;
+}
+
+void osn::AdvancedRecording::SetStreaming(
+    const Napi::CallbackInfo& info, const Napi::Value& value) {
+    osn::AdvancedStreaming* streaming =
+        Napi::ObjectWrap<osn::AdvancedStreaming>::Unwrap(value.ToObject());
+
+    if (!streaming) {
+        Napi::TypeError::New(info.Env(),
+            "Invalid streaming argument").ThrowAsJavaScriptException();
+        return;
+    }
+
+    auto conn = GetConnection(info);
+    if (!conn)
+        return;
+
+    conn->call(
+        className,
+        "SetStreaming",
+        {ipc::value(this->uid), ipc::value(streaming->uid)});
 }

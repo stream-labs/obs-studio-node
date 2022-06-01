@@ -82,6 +82,22 @@ void osn::IAdvancedReplayBuffer::Register(ipc::server& srv)
         "GetLegacySettings", std::vector<ipc::type>{}, GetLegacySettings));
     cls->register_function(std::make_shared<ipc::function>(
         "SetLegacySettings", std::vector<ipc::type>{ipc::type::UInt64}, SetLegacySettings));
+    cls->register_function(std::make_shared<ipc::function>(
+        "GetStreaming",
+        std::vector<ipc::type>{ipc::type::UInt64},
+        GetStreaming));
+    cls->register_function(std::make_shared<ipc::function>(
+        "SetStreaming",
+        std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64},
+        SetStreaming));
+    cls->register_function(std::make_shared<ipc::function>(
+        "GetRecording",
+        std::vector<ipc::type>{ipc::type::UInt64},
+        GetRecording));
+    cls->register_function(std::make_shared<ipc::function>(
+        "SetRecording",
+        std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64},
+        SetRecording));
 
     srv.register_collection(cls);
 }
@@ -187,10 +203,13 @@ void osn::IAdvancedReplayBuffer::Start(
     if (obs_get_multiple_rendering() && replayBuffer->usesStream) {
         if (!replayBuffer->streaming)
             return;
+        replayBuffer->streaming->UpdateEncoders();
         videoEncoder = replayBuffer->streaming->videoEncoder;
-    }
-    else {
+    } else {
         if (!replayBuffer->recording)
+            return;
+        if (!replayBuffer->recording->UpdateEncoders())
+            return;
         videoEncoder = replayBuffer->recording->videoEncoder;
     }
 
@@ -383,6 +402,120 @@ void osn::IAdvancedReplayBuffer::SetLegacySettings(
 
     config_save_safe(
         ConfigManager::getInstance().getBasic(), "tmp", nullptr);
+
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+    AUTO_DEBUG;
+}
+
+void osn::IAdvancedReplayBuffer::GetStreaming(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+    AdvancedReplayBuffer* replayBuffer =
+        static_cast<AdvancedReplayBuffer*>(
+            osn::IFileOutput::Manager::GetInstance().
+            find(args[0].value_union.ui64));
+    if (!replayBuffer) {
+        PRETTY_ERROR_RETURN(
+            ErrorCode::InvalidReference,
+            "Advanced replay buffer reference is not valid.");
+    }
+
+    uint64_t uid =
+        osn::IAdvancedStreaming::Manager::GetInstance().
+        find(replayBuffer->streaming);
+
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+    rval.push_back(ipc::value(uid));
+    AUTO_DEBUG;
+}
+
+void osn::IAdvancedReplayBuffer::SetStreaming(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+    AdvancedReplayBuffer* replayBuffer =
+        static_cast<AdvancedReplayBuffer*>(
+            osn::IFileOutput::Manager::GetInstance().
+            find(args[0].value_union.ui64));
+    if (!replayBuffer) {
+        PRETTY_ERROR_RETURN(
+            ErrorCode::InvalidReference,
+            "Advanced replay buffer reference is not valid.");
+    }
+
+    AdvancedStreaming* streaming =
+        static_cast<AdvancedStreaming*>(
+            osn::IAdvancedStreaming::Manager::GetInstance().
+            find(args[1].value_union.ui64));
+    if (!streaming) {
+        PRETTY_ERROR_RETURN(
+            ErrorCode::InvalidReference,
+            "Streaming reference is not valid.");
+    }
+
+    replayBuffer->streaming = streaming;
+
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+    AUTO_DEBUG;
+}
+
+void osn::IAdvancedReplayBuffer::GetRecording(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+    AdvancedReplayBuffer* replayBuffer =
+        static_cast<AdvancedReplayBuffer*>(
+            osn::IFileOutput::Manager::GetInstance().
+            find(args[0].value_union.ui64));
+    if (!replayBuffer) {
+        PRETTY_ERROR_RETURN(
+            ErrorCode::InvalidReference,
+            "Advanced replay buffer reference is not valid.");
+    }
+
+    uint64_t uid =
+        osn::IAdvancedRecording::Manager::GetInstance().
+        find(replayBuffer->recording);
+
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+    rval.push_back(ipc::value(uid));
+    AUTO_DEBUG;
+}
+
+void osn::IAdvancedReplayBuffer::SetRecording(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+    AdvancedReplayBuffer* replayBuffer =
+        static_cast<AdvancedReplayBuffer*>(
+            osn::IFileOutput::Manager::GetInstance().
+            find(args[0].value_union.ui64));
+    if (!replayBuffer) {
+        PRETTY_ERROR_RETURN(
+            ErrorCode::InvalidReference,
+            "Advanced replay buffer reference is not valid.");
+    }
+
+    AdvancedRecording* recording =
+        static_cast<AdvancedRecording*>(
+            osn::IAdvancedRecording::Manager::GetInstance().
+            find(args[1].value_union.ui64));
+    if (!recording) {
+        PRETTY_ERROR_RETURN(
+            ErrorCode::InvalidReference,
+            "Recording reference is not valid.");
+    }
+
+    replayBuffer->recording = recording;
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
     AUTO_DEBUG;

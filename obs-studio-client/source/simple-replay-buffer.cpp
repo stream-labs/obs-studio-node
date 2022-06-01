@@ -19,6 +19,8 @@
 #include "simple-replay-buffer.hpp"
 #include "utility.hpp"
 #include "audio-encoder.hpp"
+#include "simple-streaming.hpp"
+#include "simple-recording.hpp"
 
 Napi::FunctionReference osn::SimpleReplayBuffer::constructor;
 
@@ -179,4 +181,90 @@ void osn::SimpleReplayBuffer::SetLegacySettings(
 
     if (!ValidateResponse(info, response))
         return;
+}
+
+Napi::Value osn::SimpleReplayBuffer::GetStreaming(
+    const Napi::CallbackInfo& info) {
+    auto conn = GetConnection(info);
+    if (!conn)
+        return info.Env().Undefined();
+
+    std::vector<ipc::value> response =
+        conn->call_synchronous_helper(
+            className,
+            "GetStreaming",
+            {ipc::value(this->uid)});
+
+    if (!ValidateResponse(info, response))
+        return info.Env().Undefined();
+
+    auto instance =
+        osn::SimpleStreaming::constructor.New({
+            Napi::Number::New(info.Env(), response[1].value_union.ui64)
+        });
+    return instance;
+}
+
+void osn::SimpleReplayBuffer::SetStreaming(
+    const Napi::CallbackInfo& info, const Napi::Value& value) {
+    osn::SimpleStreaming* encoder =
+        Napi::ObjectWrap<osn::SimpleStreaming>::Unwrap(value.ToObject());
+
+    if (!encoder) {
+        Napi::TypeError::New(info.Env(),
+            "Invalid streaming argument").ThrowAsJavaScriptException();
+        return;
+    }
+
+    auto conn = GetConnection(info);
+    if (!conn)
+        return;
+
+    conn->call(
+        className,
+        "SetStreaming",
+        {ipc::value(this->uid), ipc::value(encoder->uid)});
+}
+
+Napi::Value osn::SimpleReplayBuffer::GetRecording(
+    const Napi::CallbackInfo& info) {
+    auto conn = GetConnection(info);
+    if (!conn)
+        return info.Env().Undefined();
+
+    std::vector<ipc::value> response =
+        conn->call_synchronous_helper(
+            className,
+            "GetRecording",
+            {ipc::value(this->uid)});
+
+    if (!ValidateResponse(info, response))
+        return info.Env().Undefined();
+
+    auto instance =
+        osn::SimpleRecording::constructor.New({
+            Napi::Number::New(info.Env(), response[1].value_union.ui64)
+        });
+    return instance;
+}
+
+void osn::SimpleReplayBuffer::SetRecording(
+    const Napi::CallbackInfo& info, const Napi::Value& value) {
+    osn::SimpleRecording* recording =
+        Napi::ObjectWrap<osn::SimpleRecording>::Unwrap(value.ToObject());
+
+    if (!recording) {
+        Napi::TypeError::New(info.Env(),
+            "Invalid streaming argument").ThrowAsJavaScriptException();
+        return;
+    }
+
+    auto conn = GetConnection(info);
+    if (!conn)
+        return;
+
+    conn->call(
+        className,
+        "SetRecording",
+        {ipc::value(this->uid), ipc::value(recording->uid)});
 }

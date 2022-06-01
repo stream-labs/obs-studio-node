@@ -780,6 +780,7 @@ export interface IAdvancedRecording extends IRecording {
     outputWidth?: number;
     outputHeight?: number;
     useStreamEncoders: boolean;
+    streaming: IAdvancedStreaming;
 }
 export interface ISimpleRecordingFactory {
     create(): ISimpleRecording;
@@ -794,17 +795,19 @@ export interface IReplayBuffer extends IFileOutput {
     prefix: string;
     suffix: string;
     usesStream: boolean;
-    streaming: IStreaming;
-    recording: IRecording;
     signalHandler: (signal: EOutputSignal) => void;
     start(): void;
     stop(force?: boolean): void;
     save(): void;
 }
 export interface ISimpleReplayBuffer extends IReplayBuffer {
+    streaming: ISimpleStreaming;
+    recording: ISimpleRecording;
 }
 export interface IAdvancedReplayBuffer extends IReplayBuffer {
     mixer: number;
+    streaming: IAdvancedStreaming;
+    recording: IAdvancedRecording;
 }
 export interface ISimpleReplayBufferFactory {
     create(): ISimpleReplayBuffer;

@@ -21,6 +21,8 @@
 #include <obs.h>
 #include "utility.hpp"
 #include "osn-replay-buffer.hpp"
+#include "osn-advanced-recording.hpp"
+#include "osn-advanced-streaming.hpp"
 
 namespace osn
 {
@@ -29,11 +31,15 @@ namespace osn
         public:
         AdvancedReplayBuffer() {
             mixer = 1 << 0;
+            streaming = nullptr;
+            recording = nullptr;
         }
         ~AdvancedReplayBuffer() {}
 
         public:
         uint32_t mixer;
+        AdvancedStreaming* streaming;
+        AdvancedRecording* recording;
     };
 
     class IAdvancedReplayBuffer: public IReplayBuffer
@@ -72,6 +78,26 @@ namespace osn
             const std::vector<ipc::value>& args,
             std::vector<ipc::value>&       rval);
         static void SetLegacySettings(
+            void*                          data,
+            const int64_t                  id,
+            const std::vector<ipc::value>& args,
+            std::vector<ipc::value>&       rval);
+        static void GetStreaming(
+            void*                          data,
+            const int64_t                  id,
+            const std::vector<ipc::value>& args,
+            std::vector<ipc::value>&       rval);
+        static void SetStreaming(
+            void*                          data,
+            const int64_t                  id,
+            const std::vector<ipc::value>& args,
+            std::vector<ipc::value>&       rval);
+        static void GetRecording(
+            void*                          data,
+            const int64_t                  id,
+            const std::vector<ipc::value>& args,
+            std::vector<ipc::value>&       rval);
+        static void SetRecording(
             void*                          data,
             const int64_t                  id,
             const std::vector<ipc::value>& args,
