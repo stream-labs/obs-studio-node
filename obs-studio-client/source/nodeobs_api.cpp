@@ -338,6 +338,36 @@ void api::SetMediaFileCaching(const Napi::CallbackInfo& info)
 	conn->call("API", "SetMediaFileCaching", {ipc::value(mediaFileCaching)});
 }
 
+Napi::Value api::GetBrowserAccelerationLegacy(const Napi::CallbackInfo& info)
+{
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
+
+	std::vector<ipc::value> response = conn->call_synchronous_helper(
+		"API", "GetBrowserAccelerationLegacy", {});
+
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
+
+    return Napi::Boolean::New(info.Env(), response[1].value_union.ui32);
+}
+
+Napi::Value api::GetMediaFileCachingLegacy(const Napi::CallbackInfo& info)
+{
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
+
+	std::vector<ipc::value> response = conn->call_synchronous_helper(
+		"API", "GetMediaFileCachingLegacy", {});
+
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
+
+    return Napi::Boolean::New(info.Env(), response[1].value_union.ui32);
+}
+
 void api::Init(Napi::Env env, Napi::Object exports)
 {
 	exports.Set(Napi::String::New(env, "OBS_API_initAPI"), Napi::Function::New(env, api::OBS_API_initAPI));
@@ -352,4 +382,6 @@ void api::Init(Napi::Env env, Napi::Object exports)
 	exports.Set(Napi::String::New(env, "RequestPermissions"), Napi::Function::New(env, api::RequestPermissions));
 	exports.Set(Napi::String::New(env, "SetBrowserAcceleration"), Napi::Function::New(env, api::SetBrowserAcceleration));
 	exports.Set(Napi::String::New(env, "SetMediaFileCaching"), Napi::Function::New(env, api::SetMediaFileCaching));
+	exports.Set(Napi::String::New(env, "GetBrowserAccelerationLegacy"), Napi::Function::New(env, api::GetBrowserAccelerationLegacy));
+	exports.Set(Napi::String::New(env, "GetMediaFileCachingLegacy"), Napi::Function::New(env, api::GetMediaFileCachingLegacy));
 }

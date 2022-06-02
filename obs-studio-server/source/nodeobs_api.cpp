@@ -158,6 +158,14 @@ void OBS_API::Register(ipc::server& srv)
 	    "SetMediaFileCaching",
 		std::vector<ipc::type>{ipc::type::UInt32},
 		SetMediaFileCaching));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "GetBrowserAccelerationLegacy",
+		std::vector<ipc::type>{},
+		GetBrowserAccelerationLegacy));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "GetMediaFileCachingLegacy",
+		std::vector<ipc::type>{},
+		GetMediaFileCachingLegacy));
 
 	srv.register_collection(cls);
 	g_server = &srv;
@@ -2049,6 +2057,9 @@ void OBS_API::SetBrowserAcceleration(
     std::vector<ipc::value>&       rval)
 {
 	browserAccel = args[0].value_union.ui32;
+    config_set_bool(
+        ConfigManager::getInstance().getGlobal(), "General", "BrowserHWAccel", browserAccel);
+    config_save_safe(ConfigManager::getInstance().getBasic(), "tmp", nullptr);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }
@@ -2060,6 +2071,8 @@ void OBS_API::SetMediaFileCaching(
     std::vector<ipc::value>&       rval)
 {
 	mediaFileCaching = args[0].value_union.ui32;
+    config_set_bool(
+        ConfigManager::getInstance().getGlobal(), "General", "fileCaching", mediaFileCaching);
 	MemoryManager::GetInstance().updateSourcesCache();
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
@@ -2073,4 +2086,28 @@ bool OBS_API::getBrowserAcceleration()
 bool OBS_API::getMediaFileCaching()
 {
 	return mediaFileCaching;
+}
+
+void OBS_API::GetBrowserAccelerationLegacy(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value((uint32_t)
+        config_get_bool(ConfigManager::getInstance().getGlobal(), "General", "BrowserHWAccel")));
+	AUTO_DEBUG;
+}
+
+void OBS_API::GetMediaFileCachingLegacy(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value((uint32_t)
+        config_get_bool(ConfigManager::getInstance().getGlobal(), "General", "fileCaching")));
+	AUTO_DEBUG;
 }

@@ -43,4 +43,6 @@ namespace api
 	Napi::Value RequestPermissions(const Napi::CallbackInfo& info);
     void SetBrowserAcceleration(const Napi::CallbackInfo& info);
     void SetMediaFileCaching(const Napi::CallbackInfo& info);
+    Napi::Value GetBrowserAccelerationLegacy(const Napi::CallbackInfo& info);
+    Napi::Value GetMediaFileCachingLegacy(const Napi::CallbackInfo& info);
 }
