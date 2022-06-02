@@ -59,16 +59,6 @@ void osn::Service::Register(ipc::server& srv)
             CreatePrivate));
     cls->register_function(
         std::make_shared<ipc::function>(
-            "GetCurrent",
-            std::vector<ipc::type>{},
-            GetCurrent));
-    cls->register_function(
-        std::make_shared<ipc::function>(
-            "SetService",
-            std::vector<ipc::type>{ipc::type::UInt64},
-            SetService));
-    cls->register_function(
-        std::make_shared<ipc::function>(
             "GetName",
             std::vector<ipc::type>{ipc::type::UInt64},
             GetName));
@@ -207,67 +197,6 @@ void osn::Service::CreatePrivate(
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
     rval.push_back(ipc::value(uid));
-    AUTO_DEBUG;
-}
-
-void osn::Service::GetCurrent(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-    obs_service_t* service = OBS_service::getService();
-    if (!service) {
-        PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "No valid service is currently set.");
-    }
-
-    uint64_t uid = osn::Service::Manager::GetInstance().allocate(service);
-    if (uid == UINT64_MAX) {
-        PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Index list is full.");
-    }
-
-    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-    rval.push_back(ipc::value(uid));
-    AUTO_DEBUG;
-}
-
-static inline void SaveStreamSettings(obs_service_t* service)
-{
-    obs_data_t* settings = obs_service_get_settings(service);
-    obs_data_t* data = obs_data_create();
-    obs_data_set_string(data, "type", obs_service_get_type(service));
-    obs_data_set_obj(data, "settings", settings);
-
-    if (!obs_data_save_json_safe(data, ConfigManager::getInstance().getService().c_str(), "tmp", "bak")) {
-        blog(LOG_WARNING, "Failed to save service");
-    }
-
-    obs_data_release(data);
-    obs_data_release(settings);
-}
-
-void osn::Service::SetService(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-    obs_service_t* service = osn::Service::Manager::GetInstance().find(args[0].value_union.ui64);
-    if (!service) {
-        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Service reference is not valid.");
-    }
-
-    obs_service_t* current = OBS_service::getService();
-    if (service == current) {
-        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Service reference is already set.");
-    }
-
-    OBS_service::setService(service);
-
-    // DELETE ME WHEN REMOVING NODEOBS
-    SaveStreamSettings(service);
-
-    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
     AUTO_DEBUG;
 }
 

@@ -33,9 +33,6 @@ Napi::Object osn::Service::Init(Napi::Env env, Napi::Object exports) {
         {
             StaticMethod("types", &osn::Service::Types),
             StaticMethod("create", &osn::Service::Create),
-            StaticAccessor("serviceContext",
-                &osn::Service::GetCurrent, &osn::Service::SetService),
-
             InstanceMethod("update", &osn::Service::Update),
 
             InstanceAccessor("name", &osn::Service::GetName, nullptr),
@@ -140,42 +137,6 @@ Napi::Value osn::Service::Create(const Napi::CallbackInfo& info) {
             });
 
     return instance;
-}
-
-Napi::Value osn::Service::GetCurrent(const Napi::CallbackInfo& info) {
-    auto conn = GetConnection(info);
-    if (!conn)
-        return info.Env().Undefined();
-
-    std::vector<ipc::value> response = conn->call_synchronous_helper("Service", "GetCurrent", {});
-
-    if (!ValidateResponse(info, response))
-        return info.Env().Undefined();
-
-    auto instance =
-        osn::Service::constructor.New({
-            Napi::Number::New(info.Env(), response[1].value_union.ui64)
-            });
-
-    return instance;
-}
-
-void osn::Service::SetService(const Napi::CallbackInfo& info, const Napi::Value &value) {
-    osn::Service* service = Napi::ObjectWrap<osn::Service>::Unwrap(value.ToObject());
-
-    if (!service) {
-        Napi::TypeError::New(info.Env(), "Invalid service argument").ThrowAsJavaScriptException();
-        return;
-    }
-
-    auto conn = GetConnection(info);
-    if (!conn)
-        return;
-
-    std::vector<ipc::value> response = conn->call_synchronous_helper("Service", "SetService", {service->uid});
-
-    if (!ValidateResponse(info, response))
-        return;
 }
 
 Napi::Value osn::Service::GetName(const Napi::CallbackInfo& info) {

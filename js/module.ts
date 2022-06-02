@@ -1501,7 +1501,6 @@ export function getSourcesSize(sourcesNames: string[]): ISourceSize[] {
 export interface IServiceFactory {
     types(): string[];
     create(id: string, name: string, settings?: ISettings): IService;
-    serviceContext: IService;
     legacySettings: IService;
 }
 /**

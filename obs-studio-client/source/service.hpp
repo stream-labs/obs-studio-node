@@ -33,8 +33,6 @@ namespace osn
 
         static Napi::Value Types(const Napi::CallbackInfo& info);
         static Napi::Value Create(const Napi::CallbackInfo& info);
-        static Napi::Value GetCurrent(const Napi::CallbackInfo& info);
-        static void SetService(const Napi::CallbackInfo& info, const Napi::Value &value);
 
         Napi::Value GetName(const Napi::CallbackInfo& info);
         Napi::Value GetProperties(const Napi::CallbackInfo& info);
@@ -45,7 +43,9 @@ namespace osn
         Napi::Value GetUsername(const Napi::CallbackInfo& info);
         Napi::Value GetPassword(const Napi::CallbackInfo& info);
 
-		static Napi::Value GetLegacySettings(const Napi::CallbackInfo& info);
-		static void SetLegacySettings(const Napi::CallbackInfo& info, const Napi::Value &value);
+        static Napi::Value GetLegacySettings(
+            const Napi::CallbackInfo& info);
+        static void SetLegacySettings(
+            const Napi::CallbackInfo& info, const Napi::Value &value);
     };
 }
