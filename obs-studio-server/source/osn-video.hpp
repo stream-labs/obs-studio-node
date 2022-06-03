@@ -25,7 +25,7 @@ namespace osn
 {
 	class Video
 	{
-		public:
+        public:
 		static void Register(ipc::server&);
 
 		static void GetSkippedFrames(
@@ -45,6 +45,16 @@ namespace osn
 		    const std::vector<ipc::value>& args,
 		    std::vector<ipc::value>&       rval);
 		static void SetVideoContext(
+		    void*                          data,
+		    const int64_t                  id,
+		    const std::vector<ipc::value>& args,
+		    std::vector<ipc::value>&       rval);
+		static void GetLegacySettings(
+		    void*                          data,
+		    const int64_t                  id,
+		    const std::vector<ipc::value>& args,
+		    std::vector<ipc::value>&       rval);
+		static void SetLegacySettings(
 		    void*                          data,
 		    const int64_t                  id,
 		    const std::vector<ipc::value>& args,

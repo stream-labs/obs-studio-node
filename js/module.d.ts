@@ -174,6 +174,11 @@ export declare const enum EScaleType {
     Lanczos = 4,
     Area = 5
 }
+export declare const enum EFPSType {
+    Common = 0,
+    Integer = 1,
+    Fractional = 2
+}
 export declare const enum ERangeType {
     Default = 0,
     Partial = 1,
@@ -253,6 +258,7 @@ export declare const enum EIPCError {
 }
 export declare const Global: IGlobal;
 export declare const Video: IVideo;
+export declare const VideoFactory: IVideo;
 export declare const InputFactory: IInputFactory;
 export declare const SceneFactory: ISceneFactory;
 export declare const FilterFactory: IFilterFactory;
@@ -598,7 +604,7 @@ export interface IDisplay {
     setResizeBoxOuterColor(r: number, g: number, b: number, a: number): void;
     setResizeBoxInnerColor(r: number, g: number, b: number, a: number): void;
 }
-export interface VideoContext {
+export interface IVideo {
     fpsNum: number;
     fpsDen: number;
     baseWidth: number;
@@ -609,11 +615,13 @@ export interface VideoContext {
     colorspace: EColorSpace;
     range: ERangeType;
     scaleType: EScaleType;
-}
-export interface IVideo {
+    fpsType: EFPSType;
     readonly skippedFrames: number;
     readonly encodedFrames: number;
-    videoContext: VideoContext;
+}
+export interface IVideoFactory {
+    videoContext: IVideo;
+    legacySettings: IVideo;
 }
 export interface AudioContext {
     sampleRate: (44100 | 48000);

@@ -237,6 +237,12 @@ export const enum EScaleType {
     Area
 }
 
+export const enum EFPSType {
+    Common,
+    Integer,
+    Fractional
+}
+
 export const enum ERangeType {
     Default,
     Partial,
@@ -325,6 +331,7 @@ export const enum EIPCError {
 
 export const Global: IGlobal = obs.Global;
 export const Video: IVideo = obs.Video;
+export const VideoFactory: IVideo = obs.Video;
 export const InputFactory: IInputFactory = obs.Input;
 export const SceneFactory: ISceneFactory = obs.Scene;
 export const FilterFactory: IFilterFactory = obs.Filter;
@@ -1359,7 +1366,10 @@ export interface IDisplay {
     setResizeBoxInnerColor(r: number, g: number, b: number, a: number): void;
 }
 
-export interface VideoContext {
+/**
+ * This represents a video_t structure from within libobs
+ */
+export interface IVideo {
     fpsNum: number;
     fpsDen: number;
     baseWidth: number;
@@ -1370,13 +1380,8 @@ export interface VideoContext {
     colorspace: EColorSpace;
     range: ERangeType;
     scaleType: EScaleType;
-}
+    fpsType: EFPSType;
 
-/**
- * This represents a video_t structure from within libobs
- */
-export interface IVideo {
-	
 	/**
      * Number of total skipped frames
      */
@@ -1386,11 +1391,11 @@ export interface IVideo {
      * Number of total encoded frames
      */
     readonly encodedFrames: number;
+}
 
-    /**
-     * Current video context
-     */
-    videoContext: VideoContext;
+export interface IVideoFactory {
+    videoContext: IVideo;
+    legacySettings: IVideo;
 }
 
 export interface AudioContext {
