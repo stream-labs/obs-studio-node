@@ -136,6 +136,8 @@ void OBS_API::Register(ipc::server& srv)
 	    ProcessHotkeyStatus));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "SetUsername", std::vector<ipc::type>{ipc::type::String}, SetUsername));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "OBS_API_forceCrash", std::vector<ipc::type>{}, OBS_API_forceCrash));
 
 	srv.register_collection(cls);
 	g_server = &srv;
@@ -1130,6 +1132,19 @@ void OBS_API::UpdateProcessPriority()
 	const char* priority = config_get_string(ConfigManager::getInstance().getGlobal(), "General", "ProcessPriority");
 	if (priority && strcmp(priority, "Normal") != 0)
 		SetProcessPriority(priority);
+}
+
+void OBS_API::OBS_API_forceCrash(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	throw std::runtime_error("Simulated crash to test crash handling functionality");
+
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+
+	AUTO_DEBUG;
 }
 
 bool DisableAudioDucking(bool disable)
