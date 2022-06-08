@@ -331,7 +331,7 @@ export const enum EIPCError {
 
 export const Global: IGlobal = obs.Global;
 export const Video: IVideo = obs.Video;
-export const VideoFactory: IVideo = obs.Video;
+export const VideoFactory: IVideoFactory = obs.Video;
 export const InputFactory: IInputFactory = obs.Input;
 export const SceneFactory: ISceneFactory = obs.Scene;
 export const FilterFactory: IFilterFactory = obs.Filter;
@@ -340,7 +340,7 @@ export const DisplayFactory: IDisplayFactory = obs.Display;
 export const VolmeterFactory: IVolmeterFactory = obs.Volmeter;
 export const FaderFactory: IFaderFactory = obs.Fader;
 export const Audio: IAudio = obs.Audio;
-export const AudioFactory: IAudio = obs.Audio;
+export const AudioFactory: IAudioFactory = obs.Audio;
 export const ModuleFactory: IModuleFactory = obs.Module;
 export const IPC: IIPC = obs.IPC;
 export const VideoEncoderFactory: IVideoEncoderFactory = obs.VideoEncoder;
@@ -1382,21 +1382,21 @@ export interface IVideo {
     range: ERangeType;
     scaleType: EScaleType;
     fpsType: EFPSType;
-
-	/**
-     * Number of total skipped frames
-     */
-    readonly skippedFrames: number;
-	
-    /**
-     * Number of total encoded frames
-     */
-    readonly encodedFrames: number;
 }
 
 export interface IVideoFactory {
     videoContext: IVideo;
     legacySettings: IVideo;
+
+	/**
+     * Number of total skipped frames
+     */
+     readonly skippedFrames: number;
+	
+     /**
+      * Number of total encoded frames
+      */
+     readonly encodedFrames: number;
 }
 
 export interface IAudio {

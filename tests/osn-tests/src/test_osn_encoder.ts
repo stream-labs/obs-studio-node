@@ -44,28 +44,14 @@ describe(testName, () => {
     it('Create a video encoder', async () => {
         await new Promise(r => setTimeout(r, 5000));
 
-        const types = osn.EncoderFactory.types();
-        console.log(types);
-
-        const encoder = osn.EncoderFactory.create('obs_x264', "My x264", {});
-        console.log(encoder);
+        const types = osn.VideoEncoderFactory.types();
+        const encoder = osn.VideoEncoderFactory.create('obs_x264', "My x264", {});
 
         const props = encoder.properties;
         let prop: any = props.first();
         while (prop) {
-            console.log(prop.name);
             prop = prop.next();
         }
 
-        console.log(encoder.settings);
-        encoder.update({ bitrate: 6000 });
-        console.log(encoder.settings);
-        console.log(encoder.name);
-        encoder.name = 'New name';
-        console.log(encoder.name);
-        console.log(encoder.type);
-        console.log(encoder.active);
-        console.log(encoder.id);
-        console.log(encoder.lastError);
     });
 });

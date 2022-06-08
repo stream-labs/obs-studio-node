@@ -258,7 +258,7 @@ export declare const enum EIPCError {
 }
 export declare const Global: IGlobal;
 export declare const Video: IVideo;
-export declare const VideoFactory: IVideo;
+export declare const VideoFactory: IVideoFactory;
 export declare const InputFactory: IInputFactory;
 export declare const SceneFactory: ISceneFactory;
 export declare const FilterFactory: IFilterFactory;
@@ -267,7 +267,7 @@ export declare const DisplayFactory: IDisplayFactory;
 export declare const VolmeterFactory: IVolmeterFactory;
 export declare const FaderFactory: IFaderFactory;
 export declare const Audio: IAudio;
-export declare const AudioFactory: IAudio;
+export declare const AudioFactory: IAudioFactory;
 export declare const ModuleFactory: IModuleFactory;
 export declare const IPC: IIPC;
 export declare const VideoEncoderFactory: IVideoEncoderFactory;
@@ -617,12 +617,12 @@ export interface IVideo {
     range: ERangeType;
     scaleType: EScaleType;
     fpsType: EFPSType;
-    readonly skippedFrames: number;
-    readonly encodedFrames: number;
 }
 export interface IVideoFactory {
     videoContext: IVideo;
     legacySettings: IVideo;
+    readonly skippedFrames: number;
+    readonly encodedFrames: number;
 }
 export interface IAudio {
     sampleRate: (44100 | 48000);
