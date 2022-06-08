@@ -28,7 +28,11 @@ namespace osn
         static Napi::Object Init(Napi::Env env, Napi::Object exports);
         Audio(const Napi::CallbackInfo& info);
 
-        static Napi::Value getAudioContext(const Napi::CallbackInfo& info);
-        static void setAudioContext(const Napi::CallbackInfo& info, const Napi::Value &value);
+        static Napi::Value GetAudioContext(const Napi::CallbackInfo& info);
+        static void SetAudioContext(
+            const Napi::CallbackInfo& info, const Napi::Value &value);
+        static Napi::Value GetLegacySettings(const Napi::CallbackInfo& info);
+        static void SetLegacySettings(
+            const Napi::CallbackInfo& info, const Napi::Value &value);
     };
 }

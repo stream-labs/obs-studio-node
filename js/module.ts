@@ -340,6 +340,7 @@ export const DisplayFactory: IDisplayFactory = obs.Display;
 export const VolmeterFactory: IVolmeterFactory = obs.Volmeter;
 export const FaderFactory: IFaderFactory = obs.Fader;
 export const Audio: IAudio = obs.Audio;
+export const AudioFactory: IAudio = obs.Audio;
 export const ModuleFactory: IModuleFactory = obs.Module;
 export const IPC: IIPC = obs.IPC;
 export const VideoEncoderFactory: IVideoEncoderFactory = obs.VideoEncoder;
@@ -1398,13 +1399,14 @@ export interface IVideoFactory {
     legacySettings: IVideo;
 }
 
-export interface AudioContext {
+export interface IAudio {
     sampleRate: (44100 | 48000),
     speakers: ESpeakerLayout
 }
 
-export interface IAudio {
-    audioContext: AudioContext;
+export interface IAudioFactory {
+    audioContext: IAudio;
+    legacySettings: IAudio;
 }
 
 export interface IModuleFactory extends IFactoryTypes {

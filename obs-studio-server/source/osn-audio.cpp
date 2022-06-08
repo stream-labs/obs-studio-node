@@ -31,6 +31,11 @@ void osn::Audio::Register(ipc::server& srv)
     cls->register_function(std::make_shared<ipc::function>(
         "SetAudioContext",
         std::vector<ipc::type>{ipc::type::UInt32, ipc::type::UInt32}, SetAudioContext));
+    cls->register_function(std::make_shared<ipc::function>(
+        "GetLegacySettings", std::vector<ipc::type>{}, GetLegacySettings));
+    cls->register_function(std::make_shared<ipc::function>(
+        "SetLegacySettings",
+        std::vector<ipc::type>{ipc::type::UInt32, ipc::type::UInt32}, SetLegacySettings));
     srv.register_collection(cls);
 }
 
@@ -75,16 +80,26 @@ static inline const char* GetSpeakers(enum speaker_layout speakers)
     }
 }
 
-static inline void SaveAudioSettings(obs_audio_info audio)
+static inline enum speaker_layout GetSpeakersFromStr(const std::string& value)
 {
-    config_set_uint(
-        ConfigManager::getInstance().getBasic(),
-        "Audio", "SampleRate", audio.samples_per_sec);
-    config_set_string(
-        ConfigManager::getInstance().getBasic(),
-        "Audio", "ChannelSetup", GetSpeakers(audio.speakers));
-
-    config_save_safe(ConfigManager::getInstance().getBasic(), "tmp", nullptr);
+    if (value.compare("Unknown") == 0)
+        return SPEAKERS_UNKNOWN;
+    else if (value.compare("Mono") == 0)
+        return SPEAKERS_MONO;
+    else if (value.compare("Stereo") == 0)
+        return SPEAKERS_STEREO;
+    else if (value.compare("2.1") == 0)
+        return SPEAKERS_2POINT1;
+    else if (value.compare("4.0") == 0)
+        return SPEAKERS_4POINT0;
+    else if (value.compare("4.1") == 0)
+        return SPEAKERS_4POINT1;
+    else if (value.compare("5.1") == 0)
+        return SPEAKERS_5POINT1;
+    else if (value.compare("7.1") == 0)
+        return SPEAKERS_7POINT1;
+    else
+        return SPEAKERS_STEREO;
 }
 
 void osn::Audio::SetAudioContext(
@@ -108,10 +123,61 @@ void osn::Audio::SetAudioContext(
     if(!obs_reset_audio(&audio)) {
         blog(LOG_ERROR, "Failed to reset audio context, sampleRate: %d and speakers: %d",
         audio.samples_per_sec, audio.speakers);
-    } else {
-        // DELETE ME WHEN REMOVING NODEOBS
-        SaveAudioSettings(audio);
     }
+
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+    AUTO_DEBUG;
+}
+
+static inline void SaveAudioSettings(obs_audio_info audio)
+{
+    config_set_uint(
+        ConfigManager::getInstance().getBasic(),
+        "Audio", "SampleRate", audio.samples_per_sec);
+    config_set_string(
+        ConfigManager::getInstance().getBasic(),
+        "Audio", "ChannelSetup", GetSpeakers(audio.speakers));
+
+    config_save_safe(ConfigManager::getInstance().getBasic(), "tmp", nullptr);
+}
+
+void osn::Audio::GetLegacySettings(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+    uint32_t sampleRate =
+        config_get_uint(ConfigManager::getInstance().getBasic(),
+        "Audio", "SampleRate");
+    std::string channelSetup =
+        config_get_string(ConfigManager::getInstance().getBasic(),
+        "Audio", "ChannelSetup");
+
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+    rval.push_back(ipc::value(sampleRate));
+    rval.push_back(ipc::value((uint32_t)GetSpeakersFromStr(channelSetup)));
+    AUTO_DEBUG;
+}
+
+void osn::Audio::SetLegacySettings(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+    uint32_t sampleRate = args[0].value_union.ui32;
+    uint32_t channelSetup = args[1].value_union.ui32;
+
+    config_set_uint(
+        ConfigManager::getInstance().getBasic(),
+        "Audio", "SampleRate", sampleRate);
+    config_set_string(
+        ConfigManager::getInstance().getBasic(),
+        "Audio", "ChannelSetup",
+        GetSpeakers((enum speaker_layout)channelSetup));
+
+    config_save_safe(ConfigManager::getInstance().getBasic(), "tmp", nullptr);
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
     AUTO_DEBUG;

@@ -267,6 +267,7 @@ export declare const DisplayFactory: IDisplayFactory;
 export declare const VolmeterFactory: IVolmeterFactory;
 export declare const FaderFactory: IFaderFactory;
 export declare const Audio: IAudio;
+export declare const AudioFactory: IAudio;
 export declare const ModuleFactory: IModuleFactory;
 export declare const IPC: IIPC;
 export declare const VideoEncoderFactory: IVideoEncoderFactory;
@@ -623,12 +624,13 @@ export interface IVideoFactory {
     videoContext: IVideo;
     legacySettings: IVideo;
 }
-export interface AudioContext {
+export interface IAudio {
     sampleRate: (44100 | 48000);
     speakers: ESpeakerLayout;
 }
-export interface IAudio {
-    audioContext: AudioContext;
+export interface IAudioFactory {
+    audioContext: IAudio;
+    legacySettings: IAudio;
 }
 export interface IModuleFactory extends IFactoryTypes {
     open(binPath: string, dataPath: string): IModule;
