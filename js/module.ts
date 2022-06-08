@@ -1547,7 +1547,7 @@ export interface IService {
     update(settings: ISettings): void;
 }
 
-const enum ERecordingFormat {
+export const enum ERecordingFormat {
     MP4 = 'mp4',
     FLV = 'flv',
     MOV = 'mov',
@@ -1556,16 +1556,24 @@ const enum ERecordingFormat {
     M3M8 = 'm3m8'
 }
 
-const enum ERecordingQuality {
+export const enum ERecordingQuality {
     Stream,
     HighQuality,
     HigherQuality,
     Lossless
 }
 
-const enum EVideoEncoderType {
+export const enum EVideoEncoderType {
     Audio,
     Video
+}
+
+export const enum EProcessPriority {
+    High = 'High',
+    AboveNormal = 'AboveNormal',
+    Normal = 'Normal',
+    BelowNormal = 'BelowNormal',
+    Idle = 'Idle'
 }
 
 export interface IVideoEncoder extends IConfigurable {

@@ -692,7 +692,7 @@ export interface IService {
     readonly password: string;
     update(settings: ISettings): void;
 }
-declare const enum ERecordingFormat {
+export declare const enum ERecordingFormat {
     MP4 = "mp4",
     FLV = "flv",
     MOV = "mov",
@@ -700,15 +700,22 @@ declare const enum ERecordingFormat {
     TS = "ts",
     M3M8 = "m3m8"
 }
-declare const enum ERecordingQuality {
+export declare const enum ERecordingQuality {
     Stream = 0,
     HighQuality = 1,
     HigherQuality = 2,
     Lossless = 3
 }
-declare const enum EVideoEncoderType {
+export declare const enum EVideoEncoderType {
     Audio = 0,
     Video = 1
+}
+export declare const enum EProcessPriority {
+    High = "High",
+    AboveNormal = "AboveNormal",
+    Normal = "Normal",
+    BelowNormal = "BelowNormal",
+    Idle = "Idle"
 }
 export interface IVideoEncoder extends IConfigurable {
     name: string;
@@ -871,4 +878,3 @@ export interface IAudioTrackFactory {
     saveLegacySettings(): void;
 }
 export declare const NodeObs: any;
-export {};
