@@ -3592,7 +3592,7 @@ std::vector<SubCategory> OBS_settings::getAdvancedSettings()
 		    ConfigManager::getInstance().getGlobal(), "General", "ProcessPriority", processPriorityCurrentValue);
 	}
 
-	OBS_API::SetProcessPriority(processPriorityCurrentValue);
+	OBS_API::SetProcessPriorityOld(processPriorityCurrentValue);
 
 	entries.push_back(processPriority);
 

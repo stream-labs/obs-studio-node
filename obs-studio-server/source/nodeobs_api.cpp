@@ -124,8 +124,9 @@ std::chrono::high_resolution_clock::time_point         start_wait_acknowledge;
 
 ipc::server* g_server = nullptr;
 
-bool browserAccel = true;
-bool mediaFileCaching = true;
+static bool browserAccel = true;
+static bool mediaFileCaching = true;
+static std::string processPriority = "Normal";
 
 void OBS_API::Register(ipc::server& srv)
 {
@@ -155,17 +156,25 @@ void OBS_API::Register(ipc::server& srv)
 		std::vector<ipc::type>{ipc::type::UInt32},
 		SetBrowserAcceleration));
 	cls->register_function(std::make_shared<ipc::function>(
-	    "SetMediaFileCaching",
-		std::vector<ipc::type>{ipc::type::UInt32},
-		SetMediaFileCaching));
-	cls->register_function(std::make_shared<ipc::function>(
 	    "GetBrowserAccelerationLegacy",
 		std::vector<ipc::type>{},
 		GetBrowserAccelerationLegacy));
 	cls->register_function(std::make_shared<ipc::function>(
+	    "SetMediaFileCaching",
+		std::vector<ipc::type>{ipc::type::UInt32},
+		SetMediaFileCaching));
+	cls->register_function(std::make_shared<ipc::function>(
 	    "GetMediaFileCachingLegacy",
 		std::vector<ipc::type>{},
 		GetMediaFileCachingLegacy));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "SetProcessPriority",
+		std::vector<ipc::type>{ipc::type::String},
+		SetProcessPriority));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "GetProcessPriorityLegacy",
+		std::vector<ipc::type>{},
+		GetProcessPriorityLegacy));
 
 	srv.register_collection(cls);
 	g_server = &srv;
@@ -1136,7 +1145,7 @@ void OBS_API::SetUsername(
 	AUTO_DEBUG;
 }
 
-void OBS_API::SetProcessPriority(const char* priority)
+void OBS_API::SetProcessPriorityOld(const char* priority)
 {
 	if (!priority)
 		return;
@@ -1152,13 +1161,6 @@ void OBS_API::SetProcessPriority(const char* priority)
 	else if (strcmp(priority, "Idle") == 0)
 		SetPriorityClass(GetCurrentProcess(), IDLE_PRIORITY_CLASS);
 #endif
-}
-
-void OBS_API::UpdateProcessPriority()
-{
-	const char* priority = config_get_string(ConfigManager::getInstance().getGlobal(), "General", "ProcessPriority");
-	if (priority && strcmp(priority, "Normal") != 0)
-		SetProcessPriority(priority);
 }
 
 bool DisableAudioDucking(bool disable)
@@ -2058,8 +2060,9 @@ void OBS_API::SetBrowserAcceleration(
 {
 	browserAccel = args[0].value_union.ui32;
     config_set_bool(
-        ConfigManager::getInstance().getGlobal(), "General", "BrowserHWAccel", browserAccel);
-    config_save_safe(ConfigManager::getInstance().getBasic(), "tmp", nullptr);
+        ConfigManager::getInstance().getGlobal(),
+        "General", "BrowserHWAccel", browserAccel);
+    config_save_safe(ConfigManager::getInstance().getGlobal(), "tmp", nullptr);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }
@@ -2072,8 +2075,39 @@ void OBS_API::SetMediaFileCaching(
 {
 	mediaFileCaching = args[0].value_union.ui32;
     config_set_bool(
-        ConfigManager::getInstance().getGlobal(), "General", "fileCaching", mediaFileCaching);
+        ConfigManager::getInstance().getGlobal(),
+        "General", "fileCaching", mediaFileCaching);
+    config_save_safe(ConfigManager::getInstance().getGlobal(), "tmp", nullptr);
 	MemoryManager::GetInstance().updateSourcesCache();
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
+}
+
+void OBS_API::SetProcessPriority(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	processPriority = args[0].value_str;
+    config_set_string(
+        ConfigManager::getInstance().getGlobal(),
+        "General", "ProcessPriority", processPriority.c_str());
+    config_save_safe(ConfigManager::getInstance().getGlobal(), "tmp", nullptr);
+
+#ifdef WIN32
+	if (processPriority.compare("High") == 0)
+		SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
+	else if (processPriority.compare("AboveNormal") == 0)
+		SetPriorityClass(GetCurrentProcess(), ABOVE_NORMAL_PRIORITY_CLASS);
+	else if (processPriority.compare("Normal") == 0)
+		SetPriorityClass(GetCurrentProcess(), NORMAL_PRIORITY_CLASS);
+	else if (processPriority.compare("BelowNormal") == 0)
+		SetPriorityClass(GetCurrentProcess(), BELOW_NORMAL_PRIORITY_CLASS);
+	else if (processPriority.compare("Idle") == 0)
+		SetPriorityClass(GetCurrentProcess(), IDLE_PRIORITY_CLASS);
+#endif
+
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }
@@ -2096,7 +2130,8 @@ void OBS_API::GetBrowserAccelerationLegacy(
 {
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value((uint32_t)
-        config_get_bool(ConfigManager::getInstance().getGlobal(), "General", "BrowserHWAccel")));
+        config_get_bool(ConfigManager::getInstance().getGlobal(),
+        "General", "BrowserHWAccel")));
 	AUTO_DEBUG;
 }
 
@@ -2108,6 +2143,20 @@ void OBS_API::GetMediaFileCachingLegacy(
 {
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value((uint32_t)
-        config_get_bool(ConfigManager::getInstance().getGlobal(), "General", "fileCaching")));
+        config_get_bool(ConfigManager::getInstance().getGlobal(),
+        "General", "fileCaching")));
+	AUTO_DEBUG;
+}
+
+void OBS_API::GetProcessPriorityLegacy(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(
+        config_get_string(ConfigManager::getInstance().getGlobal(),
+        "General", "ProcessPriority")));
 	AUTO_DEBUG;
 }
