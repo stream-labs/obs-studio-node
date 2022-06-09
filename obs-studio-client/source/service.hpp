@@ -38,10 +38,6 @@ namespace osn
         Napi::Value GetProperties(const Napi::CallbackInfo& info);
         void Update(const Napi::CallbackInfo& info);
         Napi::Value GetSettings(const Napi::CallbackInfo& info);
-        Napi::Value GetURL(const Napi::CallbackInfo& info);
-        Napi::Value GetKey(const Napi::CallbackInfo& info);
-        Napi::Value GetUsername(const Napi::CallbackInfo& info);
-        Napi::Value GetPassword(const Napi::CallbackInfo& info);
 
         static Napi::Value GetLegacySettings(
             const Napi::CallbackInfo& info);

@@ -1527,18 +1527,6 @@ export interface IService {
      */
     readonly settings: ISettings;
 
-    /** The service name */
-    readonly url: string;
-
-    /** The service name */
-    readonly key: string;
-
-    /** The service name */
-    readonly username: string;
-
-    /** The service name */
-    readonly password: string;
-
     /**
      * Update the settings of the service instance
      * correlating to the values held within the

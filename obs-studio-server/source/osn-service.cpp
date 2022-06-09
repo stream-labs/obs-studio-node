@@ -79,26 +79,6 @@ void osn::Service::Register(ipc::server& srv)
             GetSettings));
     cls->register_function(
         std::make_shared<ipc::function>(
-            "GetURL",
-            std::vector<ipc::type>{ipc::type::UInt64},
-            GetURL));
-    cls->register_function(
-        std::make_shared<ipc::function>(
-            "GetKey",
-            std::vector<ipc::type>{ipc::type::UInt64},
-            GetKey));
-    cls->register_function(
-        std::make_shared<ipc::function>(
-            "GetUsername",
-            std::vector<ipc::type>{ipc::type::UInt64},
-            GetUsername));
-    cls->register_function(
-        std::make_shared<ipc::function>(
-            "GetPassword",
-            std::vector<ipc::type>{ipc::type::UInt64},
-            GetPassword));
-    cls->register_function(
-        std::make_shared<ipc::function>(
             "GetLegacySettings",
             std::vector<ipc::type>{}, GetLegacySettings));
     cls->register_function(
@@ -277,74 +257,6 @@ void osn::Service::GetSettings(
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
     rval.push_back(ipc::value(obs_data_get_full_json(settings)));
     obs_data_release(settings);
-    AUTO_DEBUG;
-}
-
-void osn::Service::GetURL(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-    obs_service_t* service = osn::Service::Manager::GetInstance().find(args[0].value_union.ui64);
-    if (!service) {
-        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Service reference is not valid.");
-    }
-
-    const char* url = obs_service_get_url(service);
-    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-    rval.push_back(ipc::value(url ? url : ""));
-    AUTO_DEBUG;
-}
-
-void osn::Service::GetKey(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-    obs_service_t* service = osn::Service::Manager::GetInstance().find(args[0].value_union.ui64);
-    if (!service) {
-        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Service reference is not valid.");
-    }
-
-    const char* key = obs_service_get_key(service);
-    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-    rval.push_back(ipc::value(key ? key : ""));
-    AUTO_DEBUG;
-}
-
-void osn::Service::GetUsername(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-    obs_service_t* service = osn::Service::Manager::GetInstance().find(args[0].value_union.ui64);
-    if (!service) {
-        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Service reference is not valid.");
-    }
-
-    const char* username = obs_service_get_username(service);
-    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-    rval.push_back(ipc::value(username ? username : ""));
-    AUTO_DEBUG;
-}
-
-void osn::Service::GetPassword(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-    obs_service_t* service = osn::Service::Manager::GetInstance().find(args[0].value_union.ui64);
-    if (!service) {
-        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Service reference is not valid.");
-    }
-
-    const char* password = obs_service_get_password(service);
-    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-    rval.push_back(ipc::value(password ? password : ""));
     AUTO_DEBUG;
 }
 

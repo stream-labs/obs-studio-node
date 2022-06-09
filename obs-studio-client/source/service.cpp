@@ -38,10 +38,6 @@ Napi::Object osn::Service::Init(Napi::Env env, Napi::Object exports) {
             InstanceAccessor("name", &osn::Service::GetName, nullptr),
             InstanceAccessor("properties", &osn::Service::GetProperties, nullptr),
             InstanceAccessor("settings", &osn::Service::GetSettings, nullptr),
-            InstanceAccessor("url", &osn::Service::GetURL, nullptr),
-            InstanceAccessor("key", &osn::Service::GetKey, nullptr),
-            InstanceAccessor("username", &osn::Service::GetUsername, nullptr),
-            InstanceAccessor("password", &osn::Service::GetPassword, nullptr),
 
             StaticAccessor("legacySettings",
                 &osn::Service::GetLegacySettings, &osn::Service::SetLegacySettings)
@@ -216,62 +212,6 @@ Napi::Value osn::Service::GetSettings(const Napi::CallbackInfo& info) {
     Napi::String jsondata = Napi::String::New(info.Env(), response[1].value_str);
     Napi::Object jsonObj = parse.Call(json, {jsondata}).As<Napi::Object>();
     return jsonObj;
-}
-
-Napi::Value osn::Service::GetURL(const Napi::CallbackInfo& info) {
-    auto conn = GetConnection(info);
-    if (!conn)
-        return info.Env().Undefined();
-
-    std::vector<ipc::value> response =
-        conn->call_synchronous_helper("Service", "GetURL", {ipc::value((uint64_t)this->uid)});
-
-    if (!ValidateResponse(info, response))
-        return info.Env().Undefined();
-
-    return Napi::String::New(info.Env(), response[1].value_str);
-}
-
-Napi::Value osn::Service::GetKey(const Napi::CallbackInfo& info) {
-    auto conn = GetConnection(info);
-    if (!conn)
-        return info.Env().Undefined();
-
-    std::vector<ipc::value> response =
-        conn->call_synchronous_helper("Service", "GetKey", {ipc::value((uint64_t)this->uid)});
-
-    if (!ValidateResponse(info, response))
-        return info.Env().Undefined();
-
-    return Napi::String::New(info.Env(), response[1].value_str);
-}
-
-Napi::Value osn::Service::GetUsername(const Napi::CallbackInfo& info) {
-    auto conn = GetConnection(info);
-    if (!conn)
-        return info.Env().Undefined();
-
-    std::vector<ipc::value> response =
-        conn->call_synchronous_helper("Service", "GetUsername", {ipc::value((uint64_t)this->uid)});
-
-    if (!ValidateResponse(info, response))
-        return info.Env().Undefined();
-
-    return Napi::String::New(info.Env(), response[1].value_str);
-}
-
-Napi::Value osn::Service::GetPassword(const Napi::CallbackInfo& info) {
-    auto conn = GetConnection(info);
-    if (!conn)
-        return info.Env().Undefined();
-
-    std::vector<ipc::value> response =
-        conn->call_synchronous_helper("Service", "GetPassword", {ipc::value((uint64_t)this->uid)});
-
-    if (!ValidateResponse(info, response))
-        return info.Env().Undefined();
-
-    return Napi::String::New(info.Env(), response[1].value_str);
 }
 
 Napi::Value osn::Service::GetLegacySettings(const Napi::CallbackInfo& info) {

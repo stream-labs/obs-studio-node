@@ -80,26 +80,6 @@ namespace osn
                 const int64_t id,
                 const std::vector<ipc::value>& args,
                 std::vector<ipc::value>& rval);
-        static void GetURL(
-                void* data,
-                const int64_t id,
-                const std::vector<ipc::value>& args,
-                std::vector<ipc::value>& rval);
-        static void GetKey(
-                void* data,
-                const int64_t id,
-                const std::vector<ipc::value>& args,
-                std::vector<ipc::value>& rval);
-        static void GetUsername(
-                void* data,
-                const int64_t id,
-                const std::vector<ipc::value>& args,
-                std::vector<ipc::value>& rval);
-        static void GetPassword(
-                void* data,
-                const int64_t id,
-                const std::vector<ipc::value>& args,
-                std::vector<ipc::value>& rval);
         static void GetLegacySettings(
                 void* data,
                 const int64_t id,

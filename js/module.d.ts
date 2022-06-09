@@ -686,10 +686,6 @@ export interface IService {
     readonly name: string;
     readonly properties: IProperties;
     readonly settings: ISettings;
-    readonly url: string;
-    readonly key: string;
-    readonly username: string;
-    readonly password: string;
     update(settings: ISettings): void;
 }
 export declare const enum ERecordingFormat {
