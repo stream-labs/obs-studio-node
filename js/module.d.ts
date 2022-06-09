@@ -841,7 +841,7 @@ export interface IAdvancedReplayBufferFactory {
 export interface IDelay {
     enabled: boolean;
     delaySec: number;
-    preserveDelay: number;
+    preserveDelay: boolean;
 }
 export interface IDelayFactory {
     create(): IDelay;
