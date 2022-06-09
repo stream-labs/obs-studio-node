@@ -58,8 +58,8 @@ describe(testName, () => {
         delay.delaySec = 50;
         delay.preserveDelay = false;
 
-        expect(delay.enabled).to.equal(true, 'Invalid delay enabled default value');
-        expect(delay.delaySec).to.equal(50, 'Invalid delay sec default value');
-        expect(delay.preserveDelay).to.equal(false, 'Invalid preserve delay default value');
+        expect(delay.enabled).to.equal(true, 'Invalid delay enabled value');
+        expect(delay.delaySec).to.equal(50, 'Invalid delay sec value');
+        expect(delay.preserveDelay).to.equal(false, 'Invalid preserve delay value');
     });
 });
