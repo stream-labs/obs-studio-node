@@ -29,7 +29,7 @@ void osn::VideoEncoder::Register(ipc::server& srv)
             ipc::type::String, ipc::type::String, ipc::type::String},
         Create));
     cls->register_function(std::make_shared<ipc::function>(
-        "GetTypes", std::vector<ipc::type>{ipc::type::Int32}, GeTypes));
+        "GetTypes", std::vector<ipc::type>{}, GeTypes));
     cls->register_function(std::make_shared<ipc::function>(
         "GetName", std::vector<ipc::type>{ipc::type::UInt64}, GetName));
     cls->register_function(std::make_shared<ipc::function>(
@@ -88,16 +88,11 @@ void osn::VideoEncoder::GeTypes(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-    int32_t type = args[0].value_union.i32;
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
     const char* typeId = nullptr;
     for (size_t idx = 0; obs_enum_encoder_types(idx, &typeId); idx++) {
-        if (type > 0) {
-            if (obs_get_encoder_type(typeId) == (enum obs_encoder_type)type)
-                rval.push_back(ipc::value(typeId ? typeId : ""));
-        } else {
+        if (obs_get_encoder_type(typeId) == OBS_ENCODER_VIDEO)
             rval.push_back(ipc::value(typeId ? typeId : ""));
-        }
     }
     AUTO_DEBUG;
 }

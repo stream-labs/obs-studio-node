@@ -103,12 +103,8 @@ Napi::Value osn::VideoEncoder::GetTypes(const Napi::CallbackInfo& info) {
     if (!conn)
         return info.Env().Undefined();
     
-    int32_t type = -1;
-    if (info.Length() > 0)
-        type = info[0].ToNumber().Int32Value();
-
     std::vector<ipc::value> response =
-        conn->call_synchronous_helper("VideoEncoder", "GetTypes", {ipc::value(type)});
+        conn->call_synchronous_helper("VideoEncoder", "GetTypes", {});
 
     if (!ValidateResponse(info, response))
         return info.Env().Undefined();
