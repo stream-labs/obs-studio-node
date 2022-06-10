@@ -315,6 +315,21 @@ Napi::Value api::RequestPermissions(const Napi::CallbackInfo& info)
     return info.Env().Undefined();
 }
 
+Napi::Value api::GetBrowserAcceleration(const Napi::CallbackInfo& info)
+{
+    auto conn = GetConnection(info);
+    if (!conn)
+        return info.Env().Undefined();
+
+    std::vector<ipc::value> response = conn->call_synchronous_helper(
+        "API", "GetBrowserAcceleration", {});
+
+    if (!ValidateResponse(info, response))
+        return info.Env().Undefined();
+
+    return Napi::Boolean::New(info.Env(), response[1].value_union.ui32);
+}
+
 void api::SetBrowserAcceleration(const Napi::CallbackInfo& info)
 {
     bool browserAceel = info[0].ToBoolean().Value();
@@ -335,6 +350,21 @@ Napi::Value api::GetBrowserAccelerationLegacy(const Napi::CallbackInfo& info)
 
     std::vector<ipc::value> response = conn->call_synchronous_helper(
         "API", "GetBrowserAccelerationLegacy", {});
+
+    if (!ValidateResponse(info, response))
+        return info.Env().Undefined();
+
+    return Napi::Boolean::New(info.Env(), response[1].value_union.ui32);
+}
+
+Napi::Value api::GetMediaFileCaching(const Napi::CallbackInfo& info)
+{
+    auto conn = GetConnection(info);
+    if (!conn)
+        return info.Env().Undefined();
+
+    std::vector<ipc::value> response = conn->call_synchronous_helper(
+        "API", "GetMediaFileCaching", {});
 
     if (!ValidateResponse(info, response))
         return info.Env().Undefined();
@@ -366,6 +396,21 @@ Napi::Value api::GetMediaFileCachingLegacy(const Napi::CallbackInfo& info)
         return info.Env().Undefined();
 
     return Napi::Boolean::New(info.Env(), response[1].value_union.ui32);
+}
+
+Napi::Value api::GetProcessPriority(const Napi::CallbackInfo& info)
+{
+    auto conn = GetConnection(info);
+    if (!conn)
+        return info.Env().Undefined();
+
+    std::vector<ipc::value> response = conn->call_synchronous_helper(
+        "API", "GetProcessPriority", {});
+
+    if (!ValidateResponse(info, response))
+        return info.Env().Undefined();
+
+    return Napi::String::New(info.Env(), response[1].value_str);
 }
 
 void api::SetProcessPriority(const Napi::CallbackInfo& info)
@@ -420,12 +465,18 @@ void api::Init(Napi::Env env, Napi::Object exports)
         Napi::Function::New(env, api::SetBrowserAcceleration));
     exports.Set(Napi::String::New(env, "GetBrowserAccelerationLegacy"),
         Napi::Function::New(env, api::GetBrowserAccelerationLegacy));
+    exports.Set(Napi::String::New(env, "GetBrowserAcceleration"),
+        Napi::Function::New(env, api::GetBrowserAcceleration));
     exports.Set(Napi::String::New(env, "SetMediaFileCaching"),
         Napi::Function::New(env, api::SetMediaFileCaching));
     exports.Set(Napi::String::New(env, "GetMediaFileCachingLegacy"),
         Napi::Function::New(env, api::GetMediaFileCachingLegacy));
+    exports.Set(Napi::String::New(env, "GetMediaFileCaching"),
+        Napi::Function::New(env, api::GetMediaFileCaching));
     exports.Set(Napi::String::New(env, "SetProcessPriority"),
         Napi::Function::New(env, api::SetProcessPriority));
     exports.Set(Napi::String::New(env, "GetProcessPriorityLegacy"),
         Napi::Function::New(env, api::GetProcessPriorityLegacy));
+    exports.Set(Napi::String::New(env, "GetProcessPriority"),
+        Napi::Function::New(env, api::GetProcessPriority));
 }

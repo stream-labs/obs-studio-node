@@ -156,6 +156,10 @@ void OBS_API::Register(ipc::server& srv)
 		std::vector<ipc::type>{ipc::type::UInt32},
 		SetBrowserAcceleration));
 	cls->register_function(std::make_shared<ipc::function>(
+	    "GetBrowserAcceleration",
+		std::vector<ipc::type>{},
+		GetBrowserAcceleration));
+	cls->register_function(std::make_shared<ipc::function>(
 	    "GetBrowserAccelerationLegacy",
 		std::vector<ipc::type>{},
 		GetBrowserAccelerationLegacy));
@@ -164,6 +168,10 @@ void OBS_API::Register(ipc::server& srv)
 		std::vector<ipc::type>{ipc::type::UInt32},
 		SetMediaFileCaching));
 	cls->register_function(std::make_shared<ipc::function>(
+	    "GetMediaFileCaching",
+		std::vector<ipc::type>{},
+		GetMediaFileCaching));
+	cls->register_function(std::make_shared<ipc::function>(
 	    "GetMediaFileCachingLegacy",
 		std::vector<ipc::type>{},
 		GetMediaFileCachingLegacy));
@@ -171,6 +179,10 @@ void OBS_API::Register(ipc::server& srv)
 	    "SetProcessPriority",
 		std::vector<ipc::type>{ipc::type::String},
 		SetProcessPriority));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "GetProcessPriority",
+		std::vector<ipc::type>{},
+		GetProcessPriority));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "GetProcessPriorityLegacy",
 		std::vector<ipc::type>{},
@@ -2120,6 +2132,39 @@ bool OBS_API::getBrowserAcceleration()
 bool OBS_API::getMediaFileCaching()
 {
 	return mediaFileCaching;
+}
+
+void OBS_API::GetBrowserAcceleration(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value((uint32_t)browserAccel));
+	AUTO_DEBUG;
+}
+
+void OBS_API::GetMediaFileCaching(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value((uint32_t)mediaFileCaching));
+	AUTO_DEBUG;
+}
+
+void OBS_API::GetProcessPriority(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(processPriority));
+	AUTO_DEBUG;
 }
 
 void OBS_API::GetBrowserAccelerationLegacy(

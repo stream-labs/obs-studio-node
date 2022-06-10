@@ -123,6 +123,11 @@ class OBS_API
         const std::vector<ipc::value>& args,
         std::vector<ipc::value>&       rval);
 
+    static void GetBrowserAcceleration(
+        void*                          data,
+        const int64_t                  id,
+        const std::vector<ipc::value>& args,
+        std::vector<ipc::value>&       rval);
     static void SetBrowserAcceleration(
         void*                          data,
         const int64_t                  id,
@@ -133,12 +138,22 @@ class OBS_API
         const int64_t                  id,
         const std::vector<ipc::value>& args,
         std::vector<ipc::value>&       rval);
+    static void GetMediaFileCaching(
+        void*                          data,
+        const int64_t                  id,
+        const std::vector<ipc::value>& args,
+        std::vector<ipc::value>&       rval);
     static void SetMediaFileCaching(
         void*                          data,
         const int64_t                  id,
         const std::vector<ipc::value>& args,
         std::vector<ipc::value>&       rval);
     static void GetMediaFileCachingLegacy(
+        void*                          data,
+        const int64_t                  id,
+        const std::vector<ipc::value>& args,
+        std::vector<ipc::value>&       rval);
+    static void GetProcessPriority(
         void*                          data,
         const int64_t                  id,
         const std::vector<ipc::value>& args,
