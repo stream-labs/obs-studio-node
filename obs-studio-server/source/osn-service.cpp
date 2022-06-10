@@ -316,7 +316,6 @@ void osn::Service::SetLegacyServiceSettings(obs_service_t* service)
 
     obs_data_release(settings);
     obs_data_release(serviceData);
-    OBS_service::setService(service);
 }
 
 void osn::Service::SetLegacySettings(

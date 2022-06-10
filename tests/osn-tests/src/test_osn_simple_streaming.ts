@@ -75,12 +75,7 @@ describe(testName, () => {
         
         stream.videoEncoder =
             osn.VideoEncoderFactory.create('obs_x264', 'video-encoder');
-        stream.service =
-            osn.ServiceFactory.create('rtmp_common', 'service', {
-                service: 'Twitch',
-                server: 'auto',
-                key: obs.userStreamKey
-            })
+        stream.service = osn.ServiceFactory.legacySettings;
         stream.delay =
             osn.DelayFactory.create();
         stream.reconnect =
@@ -151,12 +146,8 @@ describe(testName, () => {
         const stream = osn.SimpleStreamingFactory.create();
         stream.videoEncoder =
             osn.VideoEncoderFactory.create('obs_x264', 'video-encoder');
-        stream.service =
-            osn.ServiceFactory.create('rtmp_common', 'service', {
-                service: 'Twitch',
-                server: 'auto',
-                key: 'invalid'
-            })
+        stream.service = osn.ServiceFactory.legacySettings;
+        stream.service.update({ key: 'invalid' });
         stream.delay =
             osn.DelayFactory.create();
         stream.reconnect =
@@ -182,5 +173,7 @@ describe(testName, () => {
         expect(signalInfo.signal).to.equal(
             EOBSOutputSignal.Stop, GetErrorMessage(ETestErrorMsg.StreamOutput));
         expect(signalInfo.code).to.equal(-3, GetErrorMessage(ETestErrorMsg.StreamOutput));
+
+        stream.service.update({ key: obs.userStreamKey });
     });
 });

@@ -393,23 +393,23 @@ void osn::ISimpleRecording::Start(
         pathProperty = "url";
     } else {
         recording->UpdateEncoders();
+
+        if (!recording->videoEncoder) {
+            PRETTY_ERROR_RETURN(
+                ErrorCode::InvalidReference, "Invalid video encoder.");
+        }
+
+        if (!recording->audioEncoder) {
+            PRETTY_ERROR_RETURN(
+                ErrorCode::InvalidReference, "Invalid audio encoder.");
+        }
+
+        obs_encoder_set_audio(recording->audioEncoder, obs_get_audio());
+        obs_output_set_audio_encoder(recording->output, recording->audioEncoder, 0);
+
+        obs_encoder_set_video(recording->videoEncoder, obs_get_video());
+        obs_output_set_video_encoder(recording->output, recording->videoEncoder);
     }
-
-    if (!recording->videoEncoder) {
-        PRETTY_ERROR_RETURN(
-            ErrorCode::InvalidReference, "Invalid video encoder.");
-    }
-
-    if (!recording->audioEncoder) {
-        PRETTY_ERROR_RETURN(
-            ErrorCode::InvalidReference, "Invalid audio encoder.");
-    }
-
-    obs_encoder_set_audio(recording->audioEncoder, obs_get_audio());
-    obs_output_set_audio_encoder(recording->output, recording->audioEncoder, 0);
-
-    obs_encoder_set_video(recording->videoEncoder, obs_get_video());
-    obs_output_set_video_encoder(recording->output, recording->videoEncoder);
 
     if (!recording->path.size()) {
         PRETTY_ERROR_RETURN(

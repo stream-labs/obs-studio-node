@@ -1498,36 +1498,52 @@ void OBS_API::destroyOBS_API(void)
 	OBS_service::waitReleaseWorker();
 
 	obs_encoder_t* streamingEncoder = OBS_service::getStreamingEncoder();
-	if (streamingEncoder != NULL)
+	if (streamingEncoder != NULL) {
 		obs_encoder_release(streamingEncoder);
+		streamingEncoder = nullptr;
+    }
 
 	obs_encoder_t* recordingEncoder = OBS_service::getRecordingEncoder();
-	if (recordingEncoder != NULL && (OBS_service::useRecordingPreset() || obs_get_multiple_rendering()))
+	if (recordingEncoder != NULL && (OBS_service::useRecordingPreset() || obs_get_multiple_rendering())) {
 		obs_encoder_release(recordingEncoder);
+		recordingEncoder = nullptr;
+    }
 
 	obs_encoder_t* audioStreamingEncoder = OBS_service::getAudioSimpleStreamingEncoder();
-	if (audioStreamingEncoder != NULL)
+	if (audioStreamingEncoder != NULL) {
 		obs_encoder_release(audioStreamingEncoder);
+		audioStreamingEncoder = nullptr;
+    }
 
 	obs_encoder_t* audioRecordingEncoder = OBS_service::getAudioSimpleRecordingEncoder();
-	if (audioRecordingEncoder != NULL && (OBS_service::useRecordingPreset() || obs_get_multiple_rendering()))
+	if (audioRecordingEncoder != NULL && (OBS_service::useRecordingPreset() || obs_get_multiple_rendering())) {
 		obs_encoder_release(audioRecordingEncoder);
+		audioRecordingEncoder = nullptr;
+    }
 
 	obs_encoder_t* archiveEncoder = OBS_service::getArchiveEncoder();
-	if (archiveEncoder != NULL)
+	if (archiveEncoder != NULL) {
 		obs_encoder_release(archiveEncoder);
+		archiveEncoder = nullptr;
+    }
 
 	obs_output_t* streamingOutput = OBS_service::getStreamingOutput();
-	if (streamingOutput != NULL)
+	if (streamingOutput != NULL) {
 		obs_output_release(streamingOutput);
+		streamingEncoder = nullptr;
+    }
 
 	obs_output_t* recordingOutput = OBS_service::getRecordingOutput();
-	if (recordingOutput != NULL)
+	if (recordingOutput != NULL) {
 		obs_output_release(recordingOutput);
+		recordingOutput = nullptr;
+    }
 
 	obs_output_t* replayBufferOutput = OBS_service::getReplayBufferOutput();
-	if (replayBufferOutput != NULL)
+	if (replayBufferOutput != NULL) {
 		obs_output_release(replayBufferOutput);
+		replayBufferOutput = nullptr;
+    }
 
 	obs_output* virtualWebcamOutput = OBS_service::getVirtualWebcamOutput();
 	if (virtualWebcamOutput != NULL) {
@@ -1535,11 +1551,14 @@ void OBS_API::destroyOBS_API(void)
 			obs_output_stop(virtualWebcamOutput);
 
 		obs_output_release(virtualWebcamOutput);
+		virtualWebcamOutput = nullptr;
 	}
 
 	obs_service_t* service = OBS_service::getService();
-	if (service != NULL)
+	if (service != NULL) {
 		obs_service_release(service);
+		service = nullptr;
+    }
 
     OBS_service::clearAudioEncoder();
     osn::Volmeter::ClearVolmeters();
@@ -1547,29 +1566,15 @@ void OBS_API::destroyOBS_API(void)
 
 	obs_wait_for_destroy_queue();
 
-	// Release all streaming ouputs
-	std::vector<osn::Streaming*> streamingOutputs;
-	osn::IStreaming::Manager::GetInstance().
-		for_each([&streamingOutputs](osn::Streaming* streamingOutput)
-	{
-		delete streamingOutput;
-	});
-
-	// Release all recording ouputs
-	std::vector<osn::FileOutput*> fileOutputs;
-	osn::IFileOutput::Manager::GetInstance().
-		for_each([&fileOutputs](osn::FileOutput* fileOutput)
-	{
-		delete fileOutput;
-	});
-
 	// Release all video encoders
 	std::vector<obs_encoder_t*> videoEncoders;
 	osn::VideoEncoder::Manager::GetInstance().
 		for_each([&videoEncoders](obs_encoder_t* videoEncoder)
 	{
-		obs_encoder_release(videoEncoder);
-		videoEncoder = nullptr;
+		if (videoEncoder) {
+			obs_encoder_release(videoEncoder);
+			videoEncoder = nullptr;
+		}
 	});
 
 	// Release all audio encoders
@@ -1577,8 +1582,10 @@ void OBS_API::destroyOBS_API(void)
 	osn::AudioEncoder::Manager::GetInstance().
 		for_each([&audioEncoders](obs_encoder_t* audioEncoder)
 	{
-		obs_encoder_release(audioEncoder);
-		audioEncoder = nullptr;
+		if (audioEncoder) {
+			obs_encoder_release(audioEncoder);
+			audioEncoder = nullptr;
+		}
 	});
 
 	// Release all audio track encoders
@@ -1597,8 +1604,10 @@ void OBS_API::destroyOBS_API(void)
 	osn::Service::Manager::GetInstance().
 		for_each([&services](obs_service_t* service)
 	{
-		obs_service_release(service);
-		service = nullptr;
+		if (service) {
+			obs_service_release(service);
+			service = nullptr;
+		}
 	});
 
 	// Release all delays
@@ -1606,7 +1615,8 @@ void OBS_API::destroyOBS_API(void)
 	osn::IDelay::Manager::GetInstance().
 		for_each([&delays](osn::Delay* delay)
 	{
-		delete delay;
+		if (delay)
+			delete delay;
 	});
 
 	// Release all reconnects
@@ -1614,7 +1624,8 @@ void OBS_API::destroyOBS_API(void)
 	osn::IReconnect::Manager::GetInstance().
 		for_each([&reconnects](osn::Reconnect* reconnect)
 	{
-		delete reconnect;
+		if (reconnect)
+			delete reconnect;
 	});
 
 	// Release all networks
@@ -1622,7 +1633,26 @@ void OBS_API::destroyOBS_API(void)
 	osn::INetwork::Manager::GetInstance().
 		for_each([&networks](osn::Network* network)
 	{
-		delete network;
+		if (network)
+			delete network;
+	});
+
+	// Release all streaming ouputs
+	std::vector<osn::Streaming*> streamingOutputs;
+	osn::IStreaming::Manager::GetInstance().
+		for_each([&streamingOutputs](osn::Streaming* streamingOutput)
+	{
+		if (streamingOutput)
+			delete streamingOutput;
+	});
+
+	// Release all recording ouputs
+	std::vector<osn::FileOutput*> fileOutputs;
+	osn::IFileOutput::Manager::GetInstance().
+		for_each([&fileOutputs](osn::FileOutput* fileOutput)
+	{
+		if (fileOutput)
+			delete fileOutput;
 	});
 
 	// Check if the frontend was able to shutdown correctly:

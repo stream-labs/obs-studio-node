@@ -59,11 +59,11 @@ void osn::IFileOutput::Register(ipc::server& srv)
     cls->register_function(std::make_shared<ipc::function>(
         "GetOverwrite",
         std::vector<ipc::type>{ipc::type::UInt64},
-        GetFileFormat));
+        GetOverwrite));
     cls->register_function(std::make_shared<ipc::function>(
         "SetOverwrite",
         std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32},
-        SetFileFormat));
+        SetOverwrite));
     cls->register_function(std::make_shared<ipc::function>(
         "GetNoSpace",
         std::vector<ipc::type>{ipc::type::UInt64},
