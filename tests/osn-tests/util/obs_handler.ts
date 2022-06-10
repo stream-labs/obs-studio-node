@@ -75,7 +75,7 @@ export class OBSHandler {
     private cacheUploader: CacheUploader;
     private hasUserFromPool: boolean = false;
     private osnTestName: string;
-    private signals = new WaitQueue();
+    signals = new WaitQueue();
     private progress = new  WaitQueue();
     inputTypes: string[];
     filterTypes: string[];
