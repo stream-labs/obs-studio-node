@@ -178,6 +178,7 @@ export class OBSHandler {
         const service = osn.ServiceFactory.legacySettings;
         service.update({ key: value });
         osn.ServiceFactory.legacySettings = service;
+        this.setSetting(EOBSSettingsCategories.Stream, 'key', value);
     }
 
     getStreamKey(): string {
