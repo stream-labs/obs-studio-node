@@ -7,7 +7,7 @@ import { OBSHandler } from '../util/obs_handler'
 import { deleteConfigFiles, sleep } from '../util/general';
 import { EOBSInputTypes, EOBSOutputSignal, EOBSOutputType } from '../util/obs_enums';
 
-const testName = 'osn-simple-streaming';
+const testName = 'osn-advanced-streaming';
 
 describe(testName, () => {
     let obs: OBSHandler;
@@ -59,8 +59,8 @@ describe(testName, () => {
         }
     });
 
-    it('Create simple streaming', async () => {
-        const stream = osn.SimpleStreamingFactory.create();
+    it('Create advanced streaming', async () => {
+        const stream = osn.AdvancedStreamingFactory.create();
         expect(stream).to.not.equal(
             undefined, "Error while creating the simple streaming output");
 
@@ -68,28 +68,44 @@ describe(testName, () => {
             true, "Invalid enforceServiceBitrate default value");
         expect(stream.enableTwitchVOD).to.equal(
             false, "Invalid enableTwitchVOD default value");
-        expect(stream.useAdvanced).to.equal(
-            false, "Invalid useAdvanced default value");
-        expect(stream.customEncSettings).to.equal(
-            '', "Invalid customEncSettings default value");
+        expect(stream.audioTrack).to.equal(
+            1, "Invalid audioTrack default value");
+        expect(stream.twitchTrack).to.equal(
+            2, "Invalid twitchTrack default value");
+        expect(stream.rescaling).to.equal(
+            false, "Invalid rescaling default value");
+        expect(stream.outputWidth).to.equal(
+            1280, "Invalid outputWidth default value");
+        expect(stream.outputHeight).to.equal(
+            720, "Invalid outputHeight default value");
+
 
         stream.enforceServiceBitrate = false;
         stream.enableTwitchVOD = true;
-        stream.useAdvanced = true;
-        stream.customEncSettings = 'test';
+        stream.audioTrack = 2;
+        stream.twitchTrack = 3;
+        stream.rescaling = true;
+        stream.outputWidth = 1920;
+        stream.outputHeight = 1080;
 
         expect(stream.enforceServiceBitrate).to.equal(
             false, "Invalid enforceServiceBitrate value");
         expect(stream.enableTwitchVOD).to.equal(
             true, "Invalid enableTwitchVOD value");
-        expect(stream.useAdvanced).to.equal(
-            true, "Invalid useAdvanced value");
-        expect(stream.customEncSettings).to.equal(
-            'test', "Invalid customEncSettings value");
+        expect(stream.audioTrack).to.equal(
+            2, "Invalid audioTrack default value");
+        expect(stream.twitchTrack).to.equal(
+            3, "Invalid twitchTrack default value");
+        expect(stream.rescaling).to.equal(
+            true, "Invalid rescaling default value");
+        expect(stream.outputWidth).to.equal(
+            1920, "Invalid outputWidth default value");
+        expect(stream.outputHeight).to.equal(
+            1080, "Invalid outputHeight default value");
     });
 
     it('Start streaming', async () => {
-        const stream = osn.SimpleStreamingFactory.create();
+        const stream = osn.AdvancedStreamingFactory.create();
         stream.videoEncoder =
             osn.VideoEncoderFactory.create('obs_x264', 'video-encoder');
         stream.service = osn.ServiceFactory.legacySettings;
@@ -99,7 +115,9 @@ describe(testName, () => {
             osn.ReconnectFactory.create();
         stream.network =
             osn.NetworkFactory.create();
-        stream.audioEncoder = osn.AudioEncoderFactory.create();
+        const track1 = osn.AudioTrackFactory.create(160, 'track1');
+        osn.AudioTrackFactory.setAtIndex(track1, 1);
+
         stream.signalHandler = (signal) => {obs.signals.push(signal)};
 
         stream.start();
@@ -116,7 +134,7 @@ describe(testName, () => {
 
         if (signalInfo.signal == EOBSOutputSignal.Stop) {
             throw Error(GetErrorMessage(
-                ETestErrorMsg.StreamOutputDidNotStart, signalInfo.code.toString(), signalInfo.error));
+                ETestErrorMsg.StreamOutputDidNotStart, signalInfo.code.toString()));
         }
 
         expect(signalInfo.type).to.equal(EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
@@ -160,7 +178,7 @@ describe(testName, () => {
     });
 
     it('Stream with invalid stream key', async function() {
-        const stream = osn.SimpleStreamingFactory.create();
+        const stream = osn.AdvancedStreamingFactory.create();
         stream.videoEncoder =
             osn.VideoEncoderFactory.create('obs_x264', 'video-encoder');
         stream.service = osn.ServiceFactory.legacySettings;
@@ -171,7 +189,8 @@ describe(testName, () => {
             osn.ReconnectFactory.create();
         stream.network =
             osn.NetworkFactory.create();
-        stream.audioEncoder = osn.AudioEncoderFactory.create();
+        const track1 = osn.AudioTrackFactory.create(160, 'track1');
+        osn.AudioTrackFactory.setAtIndex(track1, 1);
         stream.signalHandler = (signal) => {obs.signals.push(signal)};
 
         stream.start();

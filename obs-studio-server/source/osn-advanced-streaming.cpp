@@ -375,7 +375,7 @@ static inline obs_encoder_t* createAudioEncoder(uint32_t bitrate)
 static inline bool setAudioEncoder(osn::AdvancedStreaming* streaming)
 {
     osn::AudioTrack* audioTrack =
-        osn::IAudioTrack::audioTracks[streaming->audioTrack];
+        osn::IAudioTrack::audioTracks[streaming->audioTrack - 1];
     if (!audioTrack)
         return false;
     if (!audioTrack->audioEnc)

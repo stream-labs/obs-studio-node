@@ -129,7 +129,7 @@ void osn::IAudioTrack::GetAtIndex(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-    AudioTrack* audioTrack = audioTracks[args[0].value_union.ui32];
+    AudioTrack* audioTrack = audioTracks[args[0].value_union.ui32 - 1];
     if (!audioTrack) {
         PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "AudioTrack reference is not valid.");
     }
@@ -168,7 +168,7 @@ void osn::IAudioTrack::SetAtIndex(
     }
     uint32_t index = args[1].value_union.ui32;
 
-    SetAudioTrack(audioTrack, index);
+    SetAudioTrack(audioTrack, index - 1);
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
     AUTO_DEBUG;

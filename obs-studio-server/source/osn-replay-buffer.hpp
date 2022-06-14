@@ -35,7 +35,6 @@ namespace osn
             signals = {
                 "start",
                 "stop",
-                "starting",
                 "stopping",
                 "writing",
                 "wrote",
