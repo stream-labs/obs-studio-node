@@ -133,12 +133,12 @@ describe(testName, () => {
         stream.videoEncoder =
             osn.VideoEncoderFactory.create('obs_x264', 'video-encoder');
         stream.service = osn.ServiceFactory.legacySettings;
+        stream.signalHandler = (signal) => {obs.signals.push(signal)};
         const track1 = osn.AudioTrackFactory.create(160, 'track1');
         osn.AudioTrackFactory.setAtIndex(track1, 1);
         recording.streaming = stream;
 
         recording.start();
-        stream.start();
 
         let signalInfo = await obs.getNextSignalInfo(
             EOBSOutputType.Recording, EOBSOutputSignal.Start);
@@ -153,10 +153,34 @@ describe(testName, () => {
         expect(signalInfo.signal).to.equal(
             EOBSOutputSignal.Start, GetErrorMessage(ETestErrorMsg.RecordingOutput));
 
+        stream.start();
+
+        signalInfo = await obs.getNextSignalInfo(
+            EOBSOutputType.Streaming, EOBSOutputSignal.Starting);
+        expect(signalInfo.type).to.equal(
+            EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
+        expect(signalInfo.signal).to.equal(
+            EOBSOutputSignal.Starting, GetErrorMessage(ETestErrorMsg.StreamOutput));
+
+        signalInfo = await obs.getNextSignalInfo(
+            EOBSOutputType.Streaming, EOBSOutputSignal.Activate);
+
+        if (signalInfo.signal == EOBSOutputSignal.Stop) {
+            throw Error(GetErrorMessage(
+                ETestErrorMsg.StreamOutputDidNotStart, signalInfo.code.toString()));
+        }
+
+        expect(signalInfo.type).to.equal(EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
+        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Activate, GetErrorMessage(ETestErrorMsg.StreamOutput));
+
+        signalInfo = await obs.getNextSignalInfo(EOBSOutputType.Streaming, EOBSOutputSignal.Start);
+        expect(signalInfo.type).to.equal(EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
+        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Start, GetErrorMessage(ETestErrorMsg.StreamOutput));
+
+
         await sleep(500);
 
         recording.stop();
-        stream.stop();
 
         signalInfo = await obs.getNextSignalInfo(
             EOBSOutputType.Recording, EOBSOutputSignal.Stopping);
@@ -190,6 +214,36 @@ describe(testName, () => {
             EOBSOutputType.Recording, GetErrorMessage(ETestErrorMsg.RecordingOutput));
         expect(signalInfo.signal).to.equal(
             EOBSOutputSignal.Wrote, GetErrorMessage(ETestErrorMsg.RecordingOutput));
+
+        stream.stop();
+
+        signalInfo = await obs.getNextSignalInfo(
+            EOBSOutputType.Streaming, EOBSOutputSignal.Stopping);
+
+        expect(signalInfo.type).to.equal(
+            EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
+        expect(signalInfo.signal).to.equal(
+            EOBSOutputSignal.Stopping, GetErrorMessage(ETestErrorMsg.StreamOutput));
+
+        signalInfo = await obs.getNextSignalInfo(EOBSOutputType.Streaming, EOBSOutputSignal.Stop);
+
+        if (signalInfo.code != 0) {
+            throw Error(GetErrorMessage(
+                ETestErrorMsg.StreamOutputStoppedWithError,
+                signalInfo.code.toString(), signalInfo.error));
+        }
+
+        expect(signalInfo.type).to.equal(
+            EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
+        expect(signalInfo.signal).to.equal(
+            EOBSOutputSignal.Stop, GetErrorMessage(ETestErrorMsg.StreamOutput));
+
+        signalInfo = await obs.getNextSignalInfo(
+            EOBSOutputType.Streaming, EOBSOutputSignal.Deactivate);
+        expect(signalInfo.type).to.equal(
+            EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
+        expect(signalInfo.signal).to.equal(
+            EOBSOutputSignal.Deactivate, GetErrorMessage(ETestErrorMsg.StreamOutput));
     });
 
     it('Start recording - Custom encoders', async () => {
