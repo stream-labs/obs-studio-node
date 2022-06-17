@@ -3,7 +3,7 @@ import { expect } from 'chai';
 import * as osn from '../osn';
 import { logInfo, logEmptyLine } from '../util/logger';
 import { OBSHandler } from '../util/obs_handler';
-import { deleteConfigFiles } from '../util/general';
+import { deleteConfigFiles, sleep } from '../util/general';
 import { ETestErrorMsg, GetErrorMessage } from '../util/error_messages';
 import { EFPSType } from '../osn';
 
@@ -23,6 +23,7 @@ describe(testName, () => {
     // Shutdown OBS process
     after(async function() {
         obs.shutdown();
+        await sleep(5000);
 
         if (hasTestFailed === true) {
             logInfo(testName, 'One or more test cases failed. Uploading cache');
