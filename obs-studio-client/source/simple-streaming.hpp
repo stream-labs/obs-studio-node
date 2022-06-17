@@ -32,6 +32,7 @@ namespace osn
         SimpleStreaming(const Napi::CallbackInfo& info);
 
         static Napi::Value Create(const Napi::CallbackInfo& info);
+        static void Destroy(const Napi::CallbackInfo& info);
 
         Napi::Value GetAudioEncoder(const Napi::CallbackInfo& info);
         void SetAudioEncoder(const Napi::CallbackInfo& info, const Napi::Value& value);

@@ -32,6 +32,7 @@ namespace osn
         SimpleRecording(const Napi::CallbackInfo& info);
 
         static Napi::Value Create(const Napi::CallbackInfo& info);
+        static void Destroy(const Napi::CallbackInfo& info);
 
         Napi::Value GetQuality(const Napi::CallbackInfo& info);
         void SetQuality(const Napi::CallbackInfo& info, const Napi::Value& value);

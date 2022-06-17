@@ -32,6 +32,7 @@ namespace osn
         SimpleReplayBuffer(const Napi::CallbackInfo& info);
 
         static Napi::Value Create(const Napi::CallbackInfo& info);
+        static void Destroy(const Napi::CallbackInfo& info);
 
         static Napi::Value GetLegacySettings(
             const Napi::CallbackInfo& info);

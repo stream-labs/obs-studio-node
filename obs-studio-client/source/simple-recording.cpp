@@ -34,6 +34,7 @@ Napi::Object osn::SimpleRecording::Init(Napi::Env env, Napi::Object exports) {
         "SimpleRecording",
         {
             StaticMethod("create", &osn::SimpleRecording::Create),
+            StaticMethod("destroy", &osn::SimpleRecording::Destroy),
 
             InstanceAccessor(
                 "path",
@@ -134,6 +135,29 @@ Napi::Value osn::SimpleRecording::Create(const Napi::CallbackInfo& info) {
         });
 
     return instance;
+}
+
+void osn::SimpleRecording::Destroy(const Napi::CallbackInfo& info) {
+    if (info.Length() != 1)
+        return;
+
+    auto recording =
+        Napi::ObjectWrap<osn::SimpleRecording>::Unwrap(info[0].ToObject());
+
+    recording->stopWorker();
+    recording->cb.Reset();
+
+    auto conn = GetConnection(info);
+    if (!conn)
+        return;
+
+    std::vector<ipc::value> response =
+        conn->call_synchronous_helper("SimpleRecording", "Destroy", {ipc::value(recording->uid)});
+
+    if (!ValidateResponse(info, response))
+        return;
+
+    delete recording;
 }
 
 Napi::Value osn::SimpleRecording::GetQuality(const Napi::CallbackInfo& info) {

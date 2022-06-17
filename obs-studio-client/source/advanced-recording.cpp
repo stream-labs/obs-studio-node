@@ -29,6 +29,7 @@ Napi::Object osn::AdvancedRecording::Init(Napi::Env env, Napi::Object exports) {
         "AdvancedRecording",
         {
             StaticMethod("create", &osn::AdvancedRecording::Create),
+            StaticMethod("destroy", &osn::AdvancedRecording::Destroy),
 
             InstanceAccessor(
                 "path",
@@ -138,6 +139,29 @@ Napi::Value osn::AdvancedRecording::Create(const Napi::CallbackInfo& info) {
         });
 
     return instance;
+}
+
+void osn::AdvancedRecording::Destroy(const Napi::CallbackInfo& info) {
+    if (info.Length() != 1)
+        return;
+
+    auto recording =
+        Napi::ObjectWrap<osn::AdvancedRecording>::Unwrap(info[0].ToObject());
+
+    recording->stopWorker();
+    recording->cb.Reset();
+
+    auto conn = GetConnection(info);
+    if (!conn)
+        return;
+
+    std::vector<ipc::value> response =
+        conn->call_synchronous_helper("AdvancedRecording", "Destroy", {ipc::value(recording->uid)});
+
+    if (!ValidateResponse(info, response))
+        return;
+
+    delete recording;
 }
 
 Napi::Value osn::AdvancedRecording::GetMixer(const Napi::CallbackInfo& info) {

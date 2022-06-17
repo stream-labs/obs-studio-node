@@ -148,7 +148,7 @@ class WorkerSignals
     }
 
     void stopWorker(void) {
-        if (workerStop != false)
+        if (workerStop)
             return;
 
         workerStop = true;

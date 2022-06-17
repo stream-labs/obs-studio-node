@@ -31,6 +31,7 @@ Napi::Object osn::SimpleReplayBuffer::Init(Napi::Env env, Napi::Object exports) 
         "SimpleReplayBuffer",
         {
             StaticMethod("create", &osn::SimpleReplayBuffer::Create),
+            StaticMethod("destroy", &osn::SimpleReplayBuffer::Destroy),
 
             InstanceAccessor(
                 "path",
@@ -137,6 +138,29 @@ Napi::Value osn::SimpleReplayBuffer::Create(const Napi::CallbackInfo& info) {
         });
 
     return instance;
+}
+
+void osn::SimpleReplayBuffer::Destroy(const Napi::CallbackInfo& info) {
+    if (info.Length() != 1)
+        return;
+
+    auto replayBuffer =
+        Napi::ObjectWrap<osn::SimpleReplayBuffer>::Unwrap(info[0].ToObject());
+
+    replayBuffer->stopWorker();
+    replayBuffer->cb.Reset();
+
+    auto conn = GetConnection(info);
+    if (!conn)
+        return;
+
+    std::vector<ipc::value> response =
+        conn->call_synchronous_helper("SimpleReplayBuffer", "Destroy", {ipc::value(replayBuffer->uid)});
+
+    if (!ValidateResponse(info, response))
+        return;
+
+    delete replayBuffer;
 }
 
 Napi::Value osn::SimpleReplayBuffer::GetLegacySettings(

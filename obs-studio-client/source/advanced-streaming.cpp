@@ -32,6 +32,7 @@ Napi::Object osn::AdvancedStreaming::Init(Napi::Env env, Napi::Object exports) {
         "AdvancedStreaming",
         {
             StaticMethod("create", &osn::AdvancedStreaming::Create),
+            StaticMethod("destroy", &osn::AdvancedStreaming::Destroy),
 
             InstanceAccessor(
                 "videoEncoder",
@@ -135,6 +136,29 @@ Napi::Value osn::AdvancedStreaming::Create(const Napi::CallbackInfo& info) {
         });
 
     return instance;
+}
+
+void osn::AdvancedStreaming::Destroy(const Napi::CallbackInfo& info) {
+    if (info.Length() != 1)
+        return;
+
+    auto stream =
+        Napi::ObjectWrap<osn::AdvancedStreaming>::Unwrap(info[0].ToObject());
+
+    stream->stopWorker();
+    stream->cb.Reset();
+
+    auto conn = GetConnection(info);
+    if (!conn)
+        return;
+
+    std::vector<ipc::value> response =
+        conn->call_synchronous_helper("AdvancedStreaming", "Destroy", {ipc::value(stream->uid)});
+
+    if (!ValidateResponse(info, response))
+        return;
+
+    delete stream;
 }
 
 Napi::Value osn::AdvancedStreaming::GetAudioTrack(const Napi::CallbackInfo& info) {

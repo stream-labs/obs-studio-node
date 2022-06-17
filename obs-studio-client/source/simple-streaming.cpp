@@ -33,6 +33,7 @@ Napi::Object osn::SimpleStreaming::Init(Napi::Env env, Napi::Object exports) {
         "SimpleStreaming",
         {
             StaticMethod("create", &osn::SimpleStreaming::Create),
+            StaticMethod("destroy", &osn::SimpleStreaming::Destroy),
 
             InstanceAccessor(
                 "videoEncoder",
@@ -131,6 +132,29 @@ Napi::Value osn::SimpleStreaming::Create(const Napi::CallbackInfo& info) {
         });
 
     return instance;
+}
+
+void osn::SimpleStreaming::Destroy(const Napi::CallbackInfo& info) {
+    if (info.Length() != 1)
+        return;
+
+    auto stream =
+        Napi::ObjectWrap<osn::SimpleStreaming>::Unwrap(info[0].ToObject());
+
+    stream->stopWorker();
+    stream->cb.Reset();
+
+    auto conn = GetConnection(info);
+    if (!conn)
+        return;
+
+    std::vector<ipc::value> response =
+        conn->call_synchronous_helper("SimpleStreaming", "Destroy", {ipc::value(stream->uid)});
+
+    if (!ValidateResponse(info, response))
+        return;
+
+    delete stream;
 }
 
 Napi::Value osn::SimpleStreaming::GetAudioEncoder(const Napi::CallbackInfo& info) {

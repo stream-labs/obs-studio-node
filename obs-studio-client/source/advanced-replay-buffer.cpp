@@ -31,6 +31,7 @@ Napi::Object osn::AdvancedReplayBuffer::Init(Napi::Env env, Napi::Object exports
         "AdvancedReplayBuffer",
         {
             StaticMethod("create", &osn::AdvancedReplayBuffer::Create),
+            StaticMethod("destroy", &osn::AdvancedReplayBuffer::Destroy),
 
             InstanceAccessor(
                 "path",
@@ -141,6 +142,29 @@ Napi::Value osn::AdvancedReplayBuffer::Create(const Napi::CallbackInfo& info) {
         });
 
     return instance;
+}
+
+void osn::AdvancedReplayBuffer::Destroy(const Napi::CallbackInfo& info) {
+    if (info.Length() != 1)
+        return;
+
+    auto replayBuffer =
+        Napi::ObjectWrap<osn::AdvancedReplayBuffer>::Unwrap(info[0].ToObject());
+
+    replayBuffer->stopWorker();
+    replayBuffer->cb.Reset();
+
+    auto conn = GetConnection(info);
+    if (!conn)
+        return;
+
+    std::vector<ipc::value> response =
+        conn->call_synchronous_helper("AdvancedReplayBuffer", "Destroy", {ipc::value(replayBuffer->uid)});
+
+    if (!ValidateResponse(info, response))
+        return;
+
+    delete replayBuffer;
 }
 
 Napi::Value osn::AdvancedReplayBuffer::GetMixer(const Napi::CallbackInfo& info) {

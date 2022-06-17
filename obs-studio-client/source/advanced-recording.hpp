@@ -32,6 +32,7 @@ namespace osn
         AdvancedRecording(const Napi::CallbackInfo& info);
 
         static Napi::Value Create(const Napi::CallbackInfo& info);
+        static void Destroy(const Napi::CallbackInfo& info);
 
         Napi::Value GetMixer(const Napi::CallbackInfo& info);
         void SetMixer(const Napi::CallbackInfo& info, const Napi::Value& value);
