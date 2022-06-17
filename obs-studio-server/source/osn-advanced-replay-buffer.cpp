@@ -29,6 +29,8 @@ void osn::IAdvancedReplayBuffer::Register(ipc::server& srv)
     cls->register_function(std::make_shared<ipc::function>(
         "Create", std::vector<ipc::type>{}, Create));
     cls->register_function(std::make_shared<ipc::function>(
+        "Destroy", std::vector<ipc::type>{ipc::type::UInt64}, Destroy));
+    cls->register_function(std::make_shared<ipc::function>(
         "GetDuration",
         std::vector<ipc::type>{ipc::type::UInt64},
         GetDuration));
@@ -116,6 +118,27 @@ void osn::IAdvancedReplayBuffer::Create(
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
     rval.push_back(ipc::value(uid));
+    AUTO_DEBUG;
+}
+
+void osn::IAdvancedReplayBuffer::Destroy(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+    AdvancedReplayBuffer* replayBuffer =
+        static_cast<AdvancedReplayBuffer*>(
+            osn::IAdvancedReplayBuffer::Manager::GetInstance().
+            find(args[0].value_union.ui64));
+    if (!replayBuffer) {
+        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Replay buffer reference is not valid.");
+    }
+
+    osn::IAdvancedReplayBuffer::Manager::GetInstance().free(replayBuffer);
+    delete replayBuffer;
+
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
     AUTO_DEBUG;
 }
 
@@ -292,38 +315,38 @@ void osn::IAdvancedReplayBuffer::GetLegacySettings(
         new osn::AdvancedReplayBuffer();
 
     replayBuffer->path =
-        config_get_string(
+        utility::GetSafeString(config_get_string(
             ConfigManager::getInstance().getBasic(),
-            "AdvOut", "RecFilePath");
+            "AdvOut", "RecFilePath"));
     replayBuffer->format =
-        config_get_string(
+        utility::GetSafeString(config_get_string(
             ConfigManager::getInstance().getBasic(),
-            "AdvOut", "RecFormat");
+            "AdvOut", "RecFormat"));
     replayBuffer->muxerSettings =
-        config_get_string(
+        utility::GetSafeString(config_get_string(
             ConfigManager::getInstance().getBasic(),
-            "AdvOut", "RecMuxerCustom");
+            "AdvOut", "RecMuxerCustom"));
     replayBuffer->noSpace =
         config_get_bool(
             ConfigManager::getInstance().getBasic(),
             "AdvOut", "FileNameWithoutSpace");
     replayBuffer->fileFormat =
-        config_get_string(
+        utility::GetSafeString(config_get_string(
             ConfigManager::getInstance().getBasic(),
-            "Output", "FilenameFormatting");
+            "Output", "FilenameFormatting"));
     replayBuffer->overwrite =
         config_get_bool(
             ConfigManager::getInstance().getBasic(),
             "Output", "OverwriteIfExists");
 
     replayBuffer->prefix =
-        config_get_string(
+        utility::GetSafeString(config_get_string(
             ConfigManager::getInstance().getBasic(),
-            "SimpleOutput", "RecRBPrefix");
+            "SimpleOutput", "RecRBPrefix"));
     replayBuffer->suffix =
-        config_get_string(
+        utility::GetSafeString(config_get_string(
             ConfigManager::getInstance().getBasic(),
-            "SimpleOutput", "RecRBSuffix");
+            "SimpleOutput", "RecRBSuffix"));
     replayBuffer->duration =
         config_get_int(
             ConfigManager::getInstance().getBasic(),

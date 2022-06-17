@@ -29,6 +29,8 @@ void osn::ISimpleReplayBuffer::Register(ipc::server& srv)
     cls->register_function(std::make_shared<ipc::function>(
         "Create", std::vector<ipc::type>{}, Create));
     cls->register_function(std::make_shared<ipc::function>(
+        "Destroy", std::vector<ipc::type>{ipc::type::UInt64}, Destroy));
+    cls->register_function(std::make_shared<ipc::function>(
         "GetDuration",
         std::vector<ipc::type>{ipc::type::UInt64},
         GetDuration));
@@ -108,6 +110,27 @@ void osn::ISimpleReplayBuffer::Create(
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
     rval.push_back(ipc::value(uid));
+    AUTO_DEBUG;
+}
+
+void osn::ISimpleReplayBuffer::Destroy(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+    SimpleReplayBuffer* replayBuffer =
+        static_cast<SimpleReplayBuffer*>(
+            osn::ISimpleReplayBuffer::Manager::GetInstance().
+            find(args[0].value_union.ui64));
+    if (!replayBuffer) {
+        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Replay buffer reference is not valid.");
+    }
+
+    osn::ISimpleReplayBuffer::Manager::GetInstance().free(replayBuffer);
+    delete replayBuffer;
+
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
     AUTO_DEBUG;
 }
 
@@ -245,38 +268,38 @@ void osn::ISimpleReplayBuffer::GetLegacySettings(
         new osn::SimpleReplayBuffer();
 
     replayBuffer->path =
-        config_get_string(
+        utility::GetSafeString(config_get_string(
             ConfigManager::getInstance().getBasic(),
-            "SimpleOutput", "FilePath");
+            "SimpleOutput", "FilePath"));
     replayBuffer->format =
-        config_get_string(
+        utility::GetSafeString(config_get_string(
             ConfigManager::getInstance().getBasic(),
-            "SimpleOutput", "RecFormat");
+            "SimpleOutput", "RecFormat"));
     replayBuffer->muxerSettings =
-        config_get_string(
+        utility::GetSafeString(config_get_string(
             ConfigManager::getInstance().getBasic(),
-            "SimpleOutput", "MuxerCustom");
+            "SimpleOutput", "MuxerCustom"));
     replayBuffer->noSpace =
         config_get_bool(
             ConfigManager::getInstance().getBasic(),
             "SimpleOutput", "FileNameWithoutSpace");
     replayBuffer->fileFormat =
-        config_get_string(
+        utility::GetSafeString(config_get_string(
             ConfigManager::getInstance().getBasic(),
-            "Output", "FilenameFormatting");
+            "Output", "FilenameFormatting"));
     replayBuffer->overwrite =
         config_get_bool(
             ConfigManager::getInstance().getBasic(),
             "Output", "OverwriteIfExists");
 
     replayBuffer->prefix =
-        config_get_string(
+        utility::GetSafeString(config_get_string(
             ConfigManager::getInstance().getBasic(),
-            "SimpleOutput", "RecRBPrefix");
+            "SimpleOutput", "RecRBPrefix"));
     replayBuffer->suffix =
-        config_get_string(
+        utility::GetSafeString(config_get_string(
             ConfigManager::getInstance().getBasic(),
-            "SimpleOutput", "RecRBSuffix");
+            "SimpleOutput", "RecRBSuffix"));
     replayBuffer->duration =
         config_get_int(
             ConfigManager::getInstance().getBasic(),
@@ -286,30 +309,6 @@ void osn::ISimpleReplayBuffer::GetLegacySettings(
         config_get_bool(
             ConfigManager::getInstance().getBasic(),
             "SimpleOutput", "replayBufferUseStreamOutput");
-
-    // I'm commmenting and intentionnaly returning
-    // nullptr since it is very easy for the client
-    // to recreate these encoders on its own instead
-    // of using the ones already created by the
-    // streaming and recording outputs
-
-    // obs_encoder_t* videoEncoder = nullptr;
-    // if (obs_get_multiple_rendering() &&
-    //     replayBuffer->usesStream) {
-    //     replayBuffer->videoEncoder =
-    //         osn::ISimpleStreaming::GetLegacyVideoEncoderSettings();
-    //     replayBuffer->audioEncoder =
-    //         osn::ISimpleStreaming::GetLegacyAudioEncoderSettings();
-    // } else {
-    //     replayBuffer->videoEncoder =
-    //         osn::ISimpleRecording::GetLegacyVideoEncoderSettings();
-    //     replayBuffer->audioEncoder =
-    //         osn::ISimpleRecording::GetLegacyAudioEncoderSettings();
-    // }
-    // osn::VideoEncoder::Manager::GetInstance().
-    //     allocate(replayBuffer->videoEncoder);
-    // osn::AudioEncoder::Manager::GetInstance().
-    //     allocate(replayBuffer->audioEncoder);
 
     uint64_t uid =
         osn::ISimpleReplayBuffer::Manager::GetInstance().

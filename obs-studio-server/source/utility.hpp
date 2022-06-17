@@ -270,4 +270,5 @@ namespace utility
 		obs_data*                      settings,
 		bool&                          updateSource,
 		std::vector<ipc::value>&       rval);
+    const char* GetSafeString(const char* str);
 } // namespace utility

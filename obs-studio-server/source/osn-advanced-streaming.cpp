@@ -30,6 +30,8 @@ void osn::IAdvancedStreaming::Register(ipc::server& srv)
     cls->register_function(std::make_shared<ipc::function>(
         "Create", std::vector<ipc::type>{}, Create));
     cls->register_function(std::make_shared<ipc::function>(
+        "Destroy", std::vector<ipc::type>{ipc::type::UInt64}, Destroy));
+    cls->register_function(std::make_shared<ipc::function>(
         "GetService",
         std::vector<ipc::type>{ipc::type::UInt64},
         GetService));
@@ -153,6 +155,27 @@ void osn::IAdvancedStreaming::Create(
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
     rval.push_back(ipc::value(uid));
+    AUTO_DEBUG;
+}
+
+void osn::IAdvancedStreaming::Destroy(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+    AdvancedStreaming* streaming =
+        static_cast<AdvancedStreaming*>(
+            osn::IAdvancedStreaming::Manager::GetInstance().
+            find(args[0].value_union.ui64));
+    if (!streaming) {
+        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Streaming reference is not valid.");
+    }
+
+    osn::IAdvancedStreaming::Manager::GetInstance().free(streaming);
+    delete streaming;
+
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
     AUTO_DEBUG;
 }
 
@@ -653,9 +676,9 @@ void osn::IAdvancedStreaming::GetLegacySettings(
     osn::AdvancedStreaming* streaming =
         new osn::AdvancedStreaming();
     const char* encId =
-        config_get_string(
+        utility::GetSafeString(config_get_string(
             ConfigManager::getInstance().getBasic(),
-            "AdvOut", "Encoder");
+            "AdvOut", "Encoder"));
     obs_data_t* videoEncSettings =
         obs_data_create_from_json_file_safe(
             ConfigManager::getInstance().getStream().c_str(), "bak");
@@ -687,9 +710,9 @@ void osn::IAdvancedStreaming::GetLegacySettings(
             ConfigManager::getInstance().getBasic(),
             "AdvOut", "Rescale");
     const char* rescaleRes =
-        config_get_string(
+        utility::GetSafeString(config_get_string(
             ConfigManager::getInstance().getBasic(),
-            "AdvOut", "RescaleRes");
+            "AdvOut", "RescaleRes"));
     unsigned int cx = 0;
     unsigned int cy = 0;
     if (streaming->rescaling && rescaleRes) {

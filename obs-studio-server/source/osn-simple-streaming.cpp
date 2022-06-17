@@ -30,6 +30,8 @@ void osn::ISimpleStreaming::Register(ipc::server& srv)
     cls->register_function(std::make_shared<ipc::function>(
         "Create", std::vector<ipc::type>{}, Create));
     cls->register_function(std::make_shared<ipc::function>(
+        "Destroy", std::vector<ipc::type>{ipc::type::UInt64}, Destroy));
+    cls->register_function(std::make_shared<ipc::function>(
         "GetService",
         std::vector<ipc::type>{ipc::type::UInt64},
         GetService));
@@ -137,6 +139,27 @@ void osn::ISimpleStreaming::Create(
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
     rval.push_back(ipc::value(uid));
+    AUTO_DEBUG;
+}
+
+void osn::ISimpleStreaming::Destroy(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+    SimpleStreaming* streaming =
+        static_cast<SimpleStreaming*>(
+            osn::ISimpleStreaming::Manager::GetInstance().
+            find(args[0].value_union.ui64));
+    if (!streaming) {
+        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Streaming reference is not valid.");
+    }
+
+    osn::ISimpleStreaming::Manager::GetInstance().free(streaming);
+    delete streaming;
+
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
     AUTO_DEBUG;
 }
 
@@ -557,10 +580,10 @@ void osn::ISimpleStreaming::Stop(
 obs_encoder_t* osn::ISimpleStreaming::GetLegacyVideoEncoderSettings()
 {
     const char* encId =
-        config_get_string(
+        utility::GetSafeString(config_get_string(
             ConfigManager::getInstance().getBasic(),
             "SimpleOutput",
-            "StreamEncoder");
+            "StreamEncoder"));
     const char* encIdOBS = nullptr;
 
     obs_data_t* videoEncData = obs_data_create();
@@ -575,9 +598,9 @@ obs_encoder_t* osn::ISimpleStreaming::GetLegacyVideoEncoderSettings()
             ConfigManager::getInstance().getBasic(),
             "SimpleOutput", "UseAdvanced");
     const char* custom =
-        config_get_string(
+        utility::GetSafeString(config_get_string(
             ConfigManager::getInstance().getBasic(),
-            "SimpleOutput", "x264Settings");
+            "SimpleOutput", "x264Settings"));
 
     const char* preset = nullptr;
     const char* presetType = nullptr;
@@ -601,9 +624,9 @@ obs_encoder_t* osn::ISimpleStreaming::GetLegacyVideoEncoderSettings()
         encIdOBS  = "obs_x264";
     }
     if (presetType)
-        preset = config_get_string(
+        preset = utility::GetSafeString(config_get_string(
             ConfigManager::getInstance().getBasic(),
-            "SimpleOutput", presetType);
+            "SimpleOutput", presetType));
 
     if (advanced) {
         obs_data_set_string(videoEncData, "preset", preset);
@@ -625,9 +648,9 @@ obs_encoder_t* osn::ISimpleStreaming::GetLegacyVideoEncoderSettings()
     if (strcmp(encId, APPLE_SOFTWARE_VIDEO_ENCODER) == 0 ||
             strcmp(encId, APPLE_HARDWARE_VIDEO_ENCODER) == 0) {
         const char* profile =
-            config_get_string(
+            utility::GetSafeString(config_get_string(
                 ConfigManager::getInstance().getBasic(),
-                "SimpleOutput", "Profile");
+                "SimpleOutput", "Profile"));
         if (profile)
             obs_data_set_string(videoEncData, "profile", profile);
     }
@@ -702,13 +725,13 @@ void osn::ISimpleStreaming::GetLegacySettings(
             ConfigManager::getInstance().getBasic(),
             "SimpleOutput", "VodTrackEnabled");
     streaming->enforceServiceBitrate =
-            config_get_bool(
+        config_get_bool(
             ConfigManager::getInstance().getBasic(),
             "SimpleOutput", "EnforceBitrate");
     streaming->customEncSettings =
-            config_get_string(
+        utility::GetSafeString(config_get_string(
             ConfigManager::getInstance().getBasic(),
-            "SimpleOutput", "x264Settings");
+            "SimpleOutput", "x264Settings"));
 
     streaming->getDelayLegacySettings();
     streaming->getReconnectLegacySettings();
@@ -742,9 +765,9 @@ void osn::ISimpleStreaming::SetLegacyVideoEncoderSettings(
             "SimpleOutput", "VBitrate", bitrate);
 
     const char* custom =
-        config_get_string(
+        utility::GetSafeString(config_get_string(
             ConfigManager::getInstance().getBasic(),
-            "SimpleOutput", "x264Settings");
+            "SimpleOutput", "x264Settings"));
 
     const char* preset = nullptr;
     const char* presetType = nullptr;

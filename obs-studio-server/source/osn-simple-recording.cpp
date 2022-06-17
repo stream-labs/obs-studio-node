@@ -31,6 +31,8 @@ void osn::ISimpleRecording::Register(ipc::server& srv)
     cls->register_function(std::make_shared<ipc::function>(
         "Create", std::vector<ipc::type>{}, Create));
     cls->register_function(std::make_shared<ipc::function>(
+        "Destroy", std::vector<ipc::type>{ipc::type::UInt64}, Destroy));
+    cls->register_function(std::make_shared<ipc::function>(
         "GetVideoEncoder",
         std::vector<ipc::type>{ipc::type::UInt64},
         GetVideoEncoder));
@@ -99,6 +101,27 @@ void osn::ISimpleRecording::Create(
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
     rval.push_back(ipc::value(uid));
+    AUTO_DEBUG;
+}
+
+void osn::ISimpleRecording::Destroy(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+    SimpleRecording* recording =
+        static_cast<SimpleRecording*>(
+            osn::ISimpleRecording::Manager::GetInstance().
+            find(args[0].value_union.ui64));
+    if (!recording) {
+        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Recording reference is not valid.");
+    }
+
+    osn::ISimpleRecording::Manager::GetInstance().free(recording);
+    delete recording;
+
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
     AUTO_DEBUG;
 }
 
@@ -507,14 +530,14 @@ obs_encoder_t* osn::ISimpleRecording::GetLegacyVideoEncoderSettings()
     obs_encoder_t* videoEncoder = nullptr;
 
 	std::string simpleQuality =
-	    config_get_string(
+	    utility::GetSafeString(config_get_string(
             ConfigManager::getInstance().getBasic(),
-            "SimpleOutput", "RecQuality");
+            "SimpleOutput", "RecQuality"));
 
     const char* encId =
-        config_get_string(
+        utility::GetSafeString(config_get_string(
             ConfigManager::getInstance().getBasic(),
-            "SimpleOutput", "RecEncoder");
+            "SimpleOutput", "RecEncoder"));
     const char* encIdOBS = nullptr;
     if (strcmp(encId, SIMPLE_ENCODER_X264) == 0 ||
         strcmp(encId, ADVANCED_ENCODER_X264) == 0) {
@@ -565,8 +588,8 @@ void osn::ISimpleRecording::GetLegacySettings(
         new osn::SimpleRecording();
 
 	std::string simpleQuality =
-	    config_get_string(
-            ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecQuality");
+	    utility::GetSafeString(config_get_string(
+            ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecQuality"));
     if (simpleQuality.compare("Stream") == 0) {
         recording->quality = RecQuality::Stream;
     } else if (simpleQuality.compare("Small") == 0) {
@@ -580,38 +603,38 @@ void osn::ISimpleRecording::GetLegacySettings(
     }
 
     recording->path =
-        config_get_string(
+        utility::GetSafeString(config_get_string(
             ConfigManager::getInstance().getBasic(),
-            "SimpleOutput", "FilePath");
+            "SimpleOutput", "FilePath"));
     recording->format =
-        config_get_string(
+        utility::GetSafeString(config_get_string(
             ConfigManager::getInstance().getBasic(),
-            "SimpleOutput", "RecFormat");
+            "SimpleOutput", "RecFormat"));
     recording->muxerSettings =
-        config_get_string(
+        utility::GetSafeString(config_get_string(
             ConfigManager::getInstance().getBasic(),
-            "SimpleOutput", "MuxerCustom");
+            "SimpleOutput", "MuxerCustom"));
     recording->noSpace =
         config_get_bool(
             ConfigManager::getInstance().getBasic(),
             "SimpleOutput", "FileNameWithoutSpace");
     recording->fileFormat =
-        config_get_string(
+        utility::GetSafeString(config_get_string(
             ConfigManager::getInstance().getBasic(),
-            "Output", "FilenameFormatting");
+            "Output", "FilenameFormatting"));
     recording->overwrite =
         config_get_bool(
             ConfigManager::getInstance().getBasic(),
             "Output", "OverwriteIfExists");
     recording->muxerSettings =
-        config_get_string(
+        utility::GetSafeString(config_get_string(
             ConfigManager::getInstance().getBasic(),
-            "SimpleOutput", "MuxerCustom");
+            "SimpleOutput", "MuxerCustom"));
 
     const char* encId =
-        config_get_string(
+        utility::GetSafeString(config_get_string(
             ConfigManager::getInstance().getBasic(),
-            "SimpleOutput", "RecEncoder");
+            "SimpleOutput", "RecEncoder"));
     recording->lowCPU = false;
     if (strcmp(encId, SIMPLE_ENCODER_X264_LOWCPU) == 0)
         recording->lowCPU = true;

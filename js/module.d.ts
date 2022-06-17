@@ -757,6 +757,7 @@ export interface ISimpleStreaming extends IStreaming {
 }
 export interface ISimpleStreamingFactory {
     create(): ISimpleStreaming;
+    destroy(stream: ISimpleStreaming): void;
     legacySettings: ISimpleStreaming;
 }
 export interface IAdvancedStreaming extends IStreaming {
@@ -768,6 +769,7 @@ export interface IAdvancedStreaming extends IStreaming {
 }
 export interface IAdvancedStreamingFactory {
     create(): IAdvancedStreaming;
+    destroy(stream: IAdvancedStreaming): void;
     legacySettings: IAdvancedStreaming;
 }
 export interface IFileOutput {
@@ -801,10 +803,12 @@ export interface IAdvancedRecording extends IRecording {
 }
 export interface ISimpleRecordingFactory {
     create(): ISimpleRecording;
+    destroy(stream: ISimpleRecording): void;
     legacySettings: ISimpleRecording;
 }
 export interface IAdvancedRecordingFactory {
     create(): IAdvancedRecording;
+    destroy(stream: IAdvancedRecording): void;
     legacySettings: IAdvancedRecording;
 }
 export interface IReplayBuffer extends IFileOutput {
@@ -828,10 +832,12 @@ export interface IAdvancedReplayBuffer extends IReplayBuffer {
 }
 export interface ISimpleReplayBufferFactory {
     create(): ISimpleReplayBuffer;
+    destroy(stream: ISimpleReplayBuffer): void;
     legacySettings: ISimpleReplayBuffer;
 }
 export interface IAdvancedReplayBufferFactory {
     create(): IAdvancedReplayBuffer;
+    destroy(stream: IAdvancedReplayBuffer): void;
     legacySettings: IAdvancedReplayBufferFactory;
 }
 export interface IDelay {
