@@ -41,6 +41,9 @@ describe(testName, () => {
 
     // Shutdown OBS process
     after(async function() {
+        // Releasing user got from pool
+        await obs.releaseUser();
+
         obs.shutdown();
 
         if (hasTestFailed === true) {
@@ -111,6 +114,8 @@ describe(testName, () => {
             'Suffix', "Invalid suffix value");
         expect(replayBuffer.usesStream).to.equal(
             true, "Invalid usesStream value");
+
+        osn.SimpleReplayBufferFactory.destroy(replayBuffer);
     });
 
     it('Start replay buffer - Use Recording', async () => {
@@ -187,6 +192,9 @@ describe(testName, () => {
 
         expect(expectedPrefix).to.equal(true, 'Wrong prefix when saving the replay buffer');
         expect(expectedSuffix).to.equal(true, 'Wrong suffix when saving the replay buffer');
+
+        osn.SimpleReplayBufferFactory.destroy(replayBuffer);
+        osn.SimpleRecordingFactory.destroy(recording);
     });
 
     it('Start replay buffer - Use Stream through Recording', async () => {
@@ -370,5 +378,9 @@ describe(testName, () => {
 
         expect(expectedPrefix).to.equal(true, 'Wrong prefix when saving the replay buffer');
         expect(expectedSuffix).to.equal(true, 'Wrong suffix when saving the replay buffer');
+
+        osn.SimpleReplayBufferFactory.destroy(replayBuffer);
+        osn.SimpleRecordingFactory.destroy(recording);
+        osn.SimpleStreamingFactory.destroy(stream);
     });
 });

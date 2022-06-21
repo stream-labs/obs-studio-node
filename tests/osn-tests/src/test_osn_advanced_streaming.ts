@@ -40,6 +40,9 @@ describe(testName, () => {
 
     // Shutdown OBS process
     after(async function() {
+        // Releasing user got from pool
+        await obs.releaseUser();
+
         obs.shutdown();
 
         if (hasTestFailed === true) {
@@ -102,6 +105,8 @@ describe(testName, () => {
             1920, "Invalid outputWidth default value");
         expect(stream.outputHeight).to.equal(
             1080, "Invalid outputHeight default value");
+
+        osn.AdvancedStreamingFactory.destroy(stream);
     });
 
     it('Start streaming', async () => {
@@ -175,6 +180,8 @@ describe(testName, () => {
             EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
         expect(signalInfo.signal).to.equal(
             EOBSOutputSignal.Deactivate, GetErrorMessage(ETestErrorMsg.StreamOutput));
+
+        osn.AdvancedStreamingFactory.destroy(stream);
     });
 
     it('Stream with invalid stream key', async function() {
@@ -211,5 +218,7 @@ describe(testName, () => {
         expect(signalInfo.code).to.equal(-3, GetErrorMessage(ETestErrorMsg.StreamOutput));
 
         stream.service.update({ key: obs.userStreamKey });
+
+        osn.AdvancedStreamingFactory.destroy(stream);
     });
 });

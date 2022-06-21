@@ -156,8 +156,6 @@ void osn::SimpleRecording::Destroy(const Napi::CallbackInfo& info) {
 
     if (!ValidateResponse(info, response))
         return;
-
-    delete recording;
 }
 
 Napi::Value osn::SimpleRecording::GetQuality(const Napi::CallbackInfo& info) {

@@ -153,8 +153,6 @@ void osn::SimpleStreaming::Destroy(const Napi::CallbackInfo& info) {
 
     if (!ValidateResponse(info, response))
         return;
-
-    delete stream;
 }
 
 Napi::Value osn::SimpleStreaming::GetAudioEncoder(const Napi::CallbackInfo& info) {

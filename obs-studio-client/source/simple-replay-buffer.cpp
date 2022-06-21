@@ -159,8 +159,6 @@ void osn::SimpleReplayBuffer::Destroy(const Napi::CallbackInfo& info) {
 
     if (!ValidateResponse(info, response))
         return;
-
-    delete replayBuffer;
 }
 
 Napi::Value osn::SimpleReplayBuffer::GetLegacySettings(

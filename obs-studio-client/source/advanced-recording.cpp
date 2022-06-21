@@ -160,8 +160,6 @@ void osn::AdvancedRecording::Destroy(const Napi::CallbackInfo& info) {
 
     if (!ValidateResponse(info, response))
         return;
-
-    delete recording;
 }
 
 Napi::Value osn::AdvancedRecording::GetMixer(const Napi::CallbackInfo& info) {

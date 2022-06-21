@@ -41,6 +41,9 @@ describe(testName, () => {
 
     // Shutdown OBS process
     after(async function() {
+        // Releasing user got from pool
+        await obs.releaseUser();
+
         obs.shutdown();
 
         if (hasTestFailed === true) {
@@ -116,6 +119,8 @@ describe(testName, () => {
             true, "Invalid usesStream value");
         expect(replayBuffer.mixer).to.equal(
             7, "Invalid mixer default value");
+
+        osn.AdvancedReplayBufferFactory.destroy(replayBuffer);
     });
 
     it('Start replay buffer - Use Recording', async () => {
@@ -241,6 +246,9 @@ describe(testName, () => {
             EOBSOutputType.Recording, GetErrorMessage(ETestErrorMsg.RecordingOutput));
         expect(signalInfo.signal).to.equal(
             EOBSOutputSignal.Wrote, GetErrorMessage(ETestErrorMsg.RecordingOutput));
+
+        osn.AdvancedReplayBufferFactory.destroy(replayBuffer);
+        osn.AdvancedRecordingFactory.destroy(recording);
     });
 
     it('Start replay buffer - Use Stream through Recording', async () => {
@@ -426,5 +434,9 @@ describe(testName, () => {
             EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
         expect(signalInfo.signal).to.equal(
             EOBSOutputSignal.Deactivate, GetErrorMessage(ETestErrorMsg.StreamOutput));
+
+        osn.AdvancedReplayBufferFactory.destroy(replayBuffer);
+        osn.AdvancedRecordingFactory.destroy(recording);
+        osn.AdvancedStreamingFactory.destroy(stream);
     });
 });

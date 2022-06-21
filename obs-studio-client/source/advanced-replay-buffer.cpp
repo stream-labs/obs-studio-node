@@ -163,8 +163,6 @@ void osn::AdvancedReplayBuffer::Destroy(const Napi::CallbackInfo& info) {
 
     if (!ValidateResponse(info, response))
         return;
-
-    delete replayBuffer;
 }
 
 Napi::Value osn::AdvancedReplayBuffer::GetMixer(const Napi::CallbackInfo& info) {

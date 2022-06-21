@@ -42,6 +42,9 @@ describe(testName, () => {
 
     // Shutdown OBS process
     after(async function() {
+        // Releasing user got from pool
+        await obs.releaseUser();
+
         obs.shutdown();
 
         if (hasTestFailed === true) {
@@ -105,6 +108,8 @@ describe(testName, () => {
             true, "Invalid overwrite value");
         expect(recording.noSpace).to.equal(
             false, "Invalid noSpace value");
+
+        osn.SimpleRecordingFactory.destroy(recording);
     });
 
     it('Start recording - Stream', async () => {
@@ -230,6 +235,9 @@ describe(testName, () => {
             EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
         expect(signalInfo.signal).to.equal(
             EOBSOutputSignal.Deactivate, GetErrorMessage(ETestErrorMsg.StreamOutput));
+
+        osn.SimpleRecordingFactory.destroy(recording);
+        osn.SimpleStreamingFactory.destroy(stream);
     });
 
     it('Start recording - HighQuality', async () => {
@@ -296,6 +304,8 @@ describe(testName, () => {
             EOBSOutputType.Recording, GetErrorMessage(ETestErrorMsg.RecordingOutput));
         expect(signalInfo.signal).to.equal(
             EOBSOutputSignal.Wrote, GetErrorMessage(ETestErrorMsg.RecordingOutput));
+
+        osn.SimpleRecordingFactory.destroy(recording);
     });
 
     it('Start recording - HigherQuality', async () => {
@@ -362,6 +372,8 @@ describe(testName, () => {
             EOBSOutputType.Recording, GetErrorMessage(ETestErrorMsg.RecordingOutput));
         expect(signalInfo.signal).to.equal(
             EOBSOutputSignal.Wrote, GetErrorMessage(ETestErrorMsg.RecordingOutput));
+
+        osn.SimpleRecordingFactory.destroy(recording);
     });
 
     it('Start recording - Lossless', async () => {
@@ -412,5 +424,7 @@ describe(testName, () => {
             EOBSOutputType.Recording, GetErrorMessage(ETestErrorMsg.RecordingOutput));
         expect(signalInfo.signal).to.equal(
             EOBSOutputSignal.Stop, GetErrorMessage(ETestErrorMsg.RecordingOutput));
+
+        osn.SimpleRecordingFactory.destroy(recording);
     });
 });

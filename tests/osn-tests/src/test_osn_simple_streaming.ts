@@ -40,6 +40,9 @@ describe(testName, () => {
 
     // Shutdown OBS process
     after(async function() {
+        // Releasing user got from pool
+        await obs.releaseUser();
+
         obs.shutdown();
 
         if (hasTestFailed === true) {
@@ -86,6 +89,8 @@ describe(testName, () => {
             true, "Invalid useAdvanced value");
         expect(stream.customEncSettings).to.equal(
             'test', "Invalid customEncSettings value");
+
+        osn.SimpleStreamingFactory.destroy(stream);
     });
 
     it('Start streaming', async () => {
@@ -157,6 +162,8 @@ describe(testName, () => {
             EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
         expect(signalInfo.signal).to.equal(
             EOBSOutputSignal.Deactivate, GetErrorMessage(ETestErrorMsg.StreamOutput));
+
+        osn.SimpleStreamingFactory.destroy(stream);
     });
 
     it('Stream with invalid stream key', async function() {
@@ -192,5 +199,7 @@ describe(testName, () => {
         expect(signalInfo.code).to.equal(-3, GetErrorMessage(ETestErrorMsg.StreamOutput));
 
         stream.service.update({ key: obs.userStreamKey });
+
+        osn.SimpleStreamingFactory.destroy(stream);
     });
 });

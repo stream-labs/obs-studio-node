@@ -157,8 +157,6 @@ void osn::AdvancedStreaming::Destroy(const Napi::CallbackInfo& info) {
 
     if (!ValidateResponse(info, response))
         return;
-
-    delete stream;
 }
 
 Napi::Value osn::AdvancedStreaming::GetAudioTrack(const Napi::CallbackInfo& info) {

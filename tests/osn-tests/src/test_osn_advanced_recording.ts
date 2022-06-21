@@ -42,6 +42,9 @@ describe(testName, () => {
 
     // Shutdown OBS process
     after(async function() {
+        // Releasing user got from pool
+        await obs.releaseUser();
+
         obs.shutdown();
 
         if (hasTestFailed === true) {
@@ -119,6 +122,8 @@ describe(testName, () => {
             1080, "Invalid outputHeight default value");
         expect(recording.useStreamEncoders).to.equal(
             false, "Invalid useStreamEncoders default value");
+
+        osn.AdvancedRecordingFactory.destroy(recording);
     });
 
     it('Start recording - Stream', async () => {
@@ -244,6 +249,9 @@ describe(testName, () => {
             EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
         expect(signalInfo.signal).to.equal(
             EOBSOutputSignal.Deactivate, GetErrorMessage(ETestErrorMsg.StreamOutput));
+
+        osn.AdvancedRecordingFactory.destroy(recording);
+        osn.AdvancedStreamingFactory.destroy(stream);
     });
 
     it('Start recording - Custom encoders', async () => {
@@ -310,5 +318,7 @@ describe(testName, () => {
             EOBSOutputType.Recording, GetErrorMessage(ETestErrorMsg.RecordingOutput));
         expect(signalInfo.signal).to.equal(
             EOBSOutputSignal.Wrote, GetErrorMessage(ETestErrorMsg.RecordingOutput));
+
+        osn.AdvancedRecordingFactory.destroy(recording);
     });
 });
