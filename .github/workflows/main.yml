@@ -21,7 +21,7 @@ env:
   ElectronVersion: 13.4.0
   SLGenerator: Visual Studio 16 2019
   SLDistributeDirectory: distribute
-  SLFullDistributePath: "streamlabs-build\distribute"
+  SLFullDistributePath: "streamlabs-build\\distribute"
   LibOBSVersion: 27.5.38
   PACKAGE_NAME: osn
 
@@ -117,7 +117,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         run: node ci/bump-version.js "${{ steps.get_version.outputs.VERSION }}" "${{env.PACKAGE_PATH}}"
         env:
-          PACKAGE_PATH: "${{env.BUILD_DIRECTORY}}/ ${{env.SLFullDistributePath}}/${{env.InstallPath}}"
+          PACKAGE_PATH: "${{env.BUILD_DIRECTORY}}/${{env.SLFullDistributePath}}/${{env.InstallPath}}"
       - name: Build obs-studio-node
         run: ./ci/build-osn.cmd
         env:
