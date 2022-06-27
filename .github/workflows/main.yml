@@ -121,7 +121,7 @@ jobs:
         env:
           PACKAGE_PATH: "${{env.BUILD_DIRECTORY}}/${{env.SLFullDistributePath}}/${{env.InstallPath}}"
       - name: Build obs-studio-node
-        run: cmake --build %SLBuildDirectory% --target install --config ${{matrix.ReleaseConfig}}
+        run: cmake --build ${{SLBuildDirectory}} --target install --config ${{matrix.ReleaseConfig}}
       - name: 'Run tests'
         run: 'yarn run test'
         env:
