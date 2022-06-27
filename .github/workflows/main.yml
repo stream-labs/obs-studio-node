@@ -14,7 +14,7 @@ on:
 
 env:
   InstallPath: "obs-studio-node"
-  BUILD_DIRECTORY: "streamlabs-build"
+  SLBuildDirectory: "streamlabs-build"
   RELEASE_BUCKET: "obsstudionodes3.streamlabs.com"
   RuntimeURL: https://atom.io/download/atom-shell
   RuntimeName: iojs
@@ -91,7 +91,9 @@ jobs:
         ReleaseName: [release, debug]
         include:
         - ReleaseName: release
+          ReleaseConfig: RelWithDebInfo
         - ReleaseName: debug
+          ReleaseConfig: Debug
     env:
       OS_TAG: "win64"
     steps:
@@ -119,9 +121,7 @@ jobs:
         env:
           PACKAGE_PATH: "${{env.BUILD_DIRECTORY}}/${{env.SLFullDistributePath}}/${{env.InstallPath}}"
       - name: Build obs-studio-node
-        run: ./ci/build-osn.cmd
-        env:
-          ReleaseName: ${{matrix.ReleaseName}}
+        run: cmake --build %SLBuildDirectory% --target install --config ${{matrix.ReleaseConfig}}
       - name: 'Run tests'
         run: 'yarn run test'
         env:
