@@ -119,9 +119,9 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         run: node ci/bump-version.js "${{ steps.get_version.outputs.VERSION }}" "${{env.PACKAGE_PATH}}"
         env:
-          PACKAGE_PATH: "${{env.BUILD_DIRECTORY}}/${{env.SLFullDistributePath}}/${{env.InstallPath}}"
+          PACKAGE_PATH: "${{env.SLBuildDirectory}}/${{env.SLFullDistributePath}}/${{env.InstallPath}}"
       - name: Build obs-studio-node
-        run: cmake --build ${{SLBuildDirectory}} --target install --config ${{matrix.ReleaseConfig}}
+        run: cmake --build ${{env.SLBuildDirectory}} --target install --config ${{matrix.ReleaseConfig}}
       - name: 'Run tests'
         run: 'yarn run test'
         env:
@@ -140,7 +140,7 @@ jobs:
           path: symsrv-scripts
       - name: Run symbol server scripts
         if: startsWith(github.ref, 'refs/tags/')
-        run: ./symsrv-scripts/main.bat "${{ github.workspace }}/symsrv-scripts" ".\main.ps1 -pdbPaths '${{ github.workspace }}\$(BUILD_DIRECTORY)\lib-streamlabs-ipc,${{ github.workspace }}\$(BUILD_DIRECTORY)\obs-studio-client,${{ github.workspace }}\$(BUILD_DIRECTORY)\obs-studio-server' -localSourceDir '${{ github.workspace }}' -repo_userId 'stream-labs' -repo_name 'obs-studio-node' -repo_branch '${{ github.sha }}' -subModules 'lib-streamlabs-ipc,stream-labs,lib-streamlabs-ipc,streamlabs'"
+        run: ./symsrv-scripts/main.bat "${{ github.workspace }}/symsrv-scripts" ".\main.ps1 -pdbPaths '${{ github.workspace }}\$(SLBuildDirectory)\lib-streamlabs-ipc,${{ github.workspace }}\$(SLBuildDirectory)\obs-studio-client,${{ github.workspace }}\$(SLBuildDirectory)\obs-studio-server' -localSourceDir '${{ github.workspace }}' -repo_userId 'stream-labs' -repo_name 'obs-studio-node' -repo_branch '${{ github.sha }}' -subModules 'lib-streamlabs-ipc,stream-labs,lib-streamlabs-ipc,streamlabs'"
         env:
           AWS_SYMB_ACCESS_KEY_ID: ${{secrets.AWS_SYMB_ACCESS_KEY_ID}}
           AWS_SYMB_SECRET_ACCESS_KEY: ${{secrets.AWS_SYMB_SECRET_ACCESS_KEY}}
