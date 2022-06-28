@@ -57,8 +57,10 @@ jobs:
         with:
           node-version: '16.x'
       - name: Install dependencies
+        shell: bash
         run: './ci/install-dependencies-osx.sh'
       - name: 'Configure obs-studio-node'
+        shell: bash
         run: './ci/configure-osn-osx.sh'
         env:
           BUILD_CONFIG: ${{matrix.BuildConfig}}

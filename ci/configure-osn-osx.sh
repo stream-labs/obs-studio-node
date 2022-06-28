@@ -1,5 +1,4 @@
 set -x
-set -e
 
 mkdir ${SLBuildDirectory}
 cd ${SLBuildDirectory}
