@@ -49,7 +49,7 @@ describe(testName, function() {
         stats = osn.NodeObs.OBS_API_getPerformanceStatistics();
         
         // Checking if performance statistics values returned correctly
-        expect(stats.CPU).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.GetPerformanceStatistics, 'CPU'));
+        expect(stats.CPU).to.equal(undefined, GetErrorMessage(ETestErrorMsg.GetPerformanceStatistics, 'CPU'));
         expect(stats.numberDroppedFrames).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.GetPerformanceStatistics, 'numberDroppedFrames'));
         expect(stats.percentageDroppedFrames).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.GetPerformanceStatistics, 'percentageDroppedFrames'));
         expect(stats.streamingBandwidth).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.GetPerformanceStatistics, 'streamingBandwidth'));
