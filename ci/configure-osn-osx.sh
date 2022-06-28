@@ -1,8 +1,6 @@
 set -x
 
-mkdir ${SLBuildDirectory}
-cd ${SLBuildDirectory}
-mkdir ${SLFullDistributePath}
+mkdir -p ${SLFullDistributePath}
 cd ${SLFullDistributePath}
 mkdir ${InstallPath}
 cd ..
