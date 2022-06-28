@@ -35,10 +35,8 @@ jobs:
         include:
         - ReleaseName: release
           BuildConfig: RelWithDebInfo
-          CefBuildConfig: Release
         - ReleaseName: debug
           BuildConfig: Debug
-          CefBuildConfig: Debug
     env:
       OS_TAG: "osx"
       CEF_MAC_BUILD_VERSION: 4638
@@ -58,6 +56,34 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '16.x'
+      - name: Install dependencies
+        run: './ci/install-dependencies-osx.sh'
+      - name: 'Configure obs-studio-node'
+        run: './ci/configure-osn-osx.sh'
+        env:
+          BUILD_CONFIG: ${{matrix.BuildConfig}}
+          RELEASE_NAME: ${{matrix.ReleaseName}}
+      - name: 'Bump version number'
+        if: startsWith(github.ref, 'refs/tags/')
+        run : 'node ci/bump-version.js'
+      - name: 'Build obs-studio-node'
+        run: ./ci/build-osn-osx.sh
+        env:
+          SENTRY_AUTH_TOKEN: ${{secrets.sentryAuth}}
+      - name: 'Run tests'
+        run: 'yarn run test'
+        env:
+          SLOBS_BE_STREAMKEY: ${{secrets.testsStreamKey}}
+          SLOBS_TEST_USER_POOL_TOKEN:  ${{secrets.testsUserPoolToken}}
+
+          OSN_ACCESS_KEY_ID: ${{secrets.AWS_RELEASE_ACCESS_KEY_ID}}
+          OSN_SECRET_ACCESS_KEY: ${{secrets.AWS_RELEASE_SECRET_ACCESS_KEY}}
+          RELEASE_NAME: ${{matrix.ReleaseName}}
+
+      - name: 'Upload debug files to Sentry'
+        run: 'python ./ci/sentry-osx.py'
+        env:
+          SENTRY_AUTH_TOKEN: ${{secrets.sentryAuth}}
 
       - name: Tar artifact for deployment
         if: startsWith(github.ref, 'refs/tags/')
@@ -130,7 +156,7 @@ jobs:
 
           OSN_ACCESS_KEY_ID: ${{secrets.AWS_RELEASE_ACCESS_KEY_ID}}
           OSN_SECRET_ACCESS_KEY: ${{secrets.AWS_RELEASE_SECRET_ACCESS_KEY}}
-          RELEASE_NAME: $(ReleaseName)
+          RELEASE_NAME: ${{matrix.ReleaseName}}
       - name: Fetch symsrv-scripts
         if: startsWith(github.ref, 'refs/tags/')
         uses: actions/checkout@v3
