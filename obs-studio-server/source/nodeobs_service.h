@@ -294,6 +294,9 @@ class OBS_service
 	static bool resetAudioContext(bool reload = false);
 	static int  resetVideoContext(bool reload = false);
 
+	// Prepare video context configuration
+	static obs_video_info prepareOBSVideoInfo(bool reload, bool defaultConf);
+
 	static int GetSimpleAudioBitrate(void);
 	static int GetAdvancedAudioBitrate(int i);
 
