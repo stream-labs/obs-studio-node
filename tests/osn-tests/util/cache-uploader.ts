@@ -38,27 +38,31 @@ export class CacheUploader {
             output.on('close', () => {
                 const file = fs.createReadStream(cacheFile);
                 const keyname = this.dateStr + '-' + this.testName + '-test-cache-' + this.releaseName + '.zip';
-        
-                
-                const s3 = new aws.S3({
-                    accessKeyId: process.env.OSN_ACCESS_KEY_ID,
-                    secretAccessKey: process.env.OSN_SECRET_ACCESS_KEY,
-                  });
 
-                const params = {
+                aws.config.region = 'us-west-2';
+
+                /*************** ATTENTION *********************
+                 * These credentials are intentionally public. *
+                 * Please do not report this to us.            *
+                 **********************************************/
+                aws.config.credentials = new aws.Credentials({
+                  accessKeyId: 'AKIAIAINC32O7I3KUJGQ',
+                  secretAccessKey: '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',
+                });
+        
+                const upload = new aws.S3.ManagedUpload({
+                  params: {
                     Bucket: 'streamlabs-obs-user-cache',
-                    CreateBucketConfiguration: {
-                        LocationConstraint: "us-west-2"
-                    },         
                     Key: keyname,
                     Body: file,
-                };
-                s3.upload(params, function(err, data) {
-                    if (err) {
-                        throw err;
-                    }
-                    console.log(`File uploaded successfully. ${data.Location}`);
-                }); 
+                  },
+                });
+        
+                upload.promise().then(() => {
+                  resolve(keyname);
+                });
+
+ 
   
             });
 
