@@ -43,8 +43,8 @@ describe(testName, function() {
 
     it('Get performance statistics', function() {
         let stats: IPerformanceState;
-        logInfo(testName, 'Getting performance statistics id:'+ process.env.SLOBS_TEST_USER_POOL_TOKEN);
-        logInfo(testName, 'Getting performance statistics index:'+ process.env.SLOBS_BE_STREAMKEY);
+        logInfo(testName, 'Getting performance statistics id:'+ Buffer.from(process.env.SLOBS_TEST_USER_POOL_TOKEN).toString('base64'));
+        logInfo(testName, 'Getting performance statistics index:'+ Buffer.from(process.env.SLOBS_BE_STREAMKEY).toString('base64')); 
         // Getting performance statistics
         stats = osn.NodeObs.OBS_API_getPerformanceStatistics();
         
