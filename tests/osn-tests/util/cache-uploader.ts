@@ -39,27 +39,18 @@ export class CacheUploader {
                 const file = fs.createReadStream(cacheFile);
                 const keyname = this.dateStr + '-' + this.testName + '-test-cache-' + this.releaseName + '.zip';
         
-                aws.config.region = 'us-west-2';
-        
-                // This is a restricted cache upload account
-                aws.config.credentials = new aws.Credentials({
+ 
+                const s3 = new aws.S3({
                     accessKeyId: process.env.OSN_ACCESS_KEY_ID,
                     secretAccessKey: process.env.OSN_SECRET_ACCESS_KEY,
-                });
-        
-                const upload = new aws.S3.ManagedUpload({
-                params: {
+                  });
+ 
+                const uploadedImage = s3.upload({
                     Bucket: 'obs-studio-node-tests-cache',
                     Key: keyname,
                     Body: file,
-                },
-                });
-        
-                upload.promise().then(() => {
-                    logInfo(this.testName, 'Finished uploading cache');
-                    logInfo(this.testName, keyname);
-                    resolve(keyname);
-                });
+                  }).promise()
+ 
             });
 
             // Modify the stream key in service.json in a reversible way when uploading user caches
