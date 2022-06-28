@@ -125,7 +125,7 @@ jobs:
       - name: 'Run tests'
         run: 'yarn run test'
         env:
-          SLOBS_BE_STREAMKEY: ${{secret.testsStreamKey}}
+          SLOBS_BE_STREAMKEY: ${{secrets.testsStreamKey}}
           SLOBS_TEST_USER_POOL_TOKEN:  ${{secrets.testsUserPoolToken}}
 
           OSN_ACCESS_KEY_ID: ${{secrets.AWS_RELEASE_ACCESS_KEY_ID}}
