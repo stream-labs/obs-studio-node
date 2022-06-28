@@ -70,7 +70,9 @@ jobs:
           PACKAGE_PATH: "${{env.SLFullDistributePath}}/${{env.InstallPath}}"
       - name: 'Build obs-studio-node'
         run: ./ci/build-osn-osx.sh
+        shell: bash
         env:
+          BUILD_CONFIG: ${{matrix.BuildConfig}}
           SENTRY_AUTH_TOKEN: ${{secrets.sentryAuth}}
       - name: 'Run tests'
         run: 'yarn run test'
@@ -168,7 +170,7 @@ jobs:
           path: symsrv-scripts
       - name: Run symbol server scripts
         if: startsWith(github.ref, 'refs/tags/')
-        run: ./symsrv-scripts/main.bat "${{ github.workspace }}/symsrv-scripts" ".\main.ps1 -pdbPaths '${{ github.workspace }}\$(SLBuildDirectory)\lib-streamlabs-ipc,${{ github.workspace }}\$(SLBuildDirectory)\obs-studio-client,${{ github.workspace }}\$(SLBuildDirectory)\obs-studio-server' -localSourceDir '${{ github.workspace }}' -repo_userId 'stream-labs' -repo_name 'obs-studio-node' -repo_branch '${{ github.sha }}' -subModules 'lib-streamlabs-ipc,stream-labs,lib-streamlabs-ipc,streamlabs'"
+        run: ./symsrv-scripts/main.bat "${{ github.workspace }}/symsrv-scripts" ".\main.ps1 -pdbPaths '${{ github.workspace }}\${{env.SLBuildDirectory}}\lib-streamlabs-ipc,${{ github.workspace }}\${{env.SLBuildDirectory}}\obs-studio-client,${{ github.workspace }}\${{env.SLBuildDirectory}}\obs-studio-server' -localSourceDir '${{ github.workspace }}' -repo_userId 'stream-labs' -repo_name 'obs-studio-node' -repo_branch '${{ github.sha }}' -subModules 'lib-streamlabs-ipc,stream-labs,lib-streamlabs-ipc,streamlabs'"
         env:
           AWS_SYMB_ACCESS_KEY_ID: ${{secrets.AWS_SYMB_ACCESS_KEY_ID}}
           AWS_SYMB_SECRET_ACCESS_KEY: ${{secrets.AWS_SYMB_SECRET_ACCESS_KEY}}
