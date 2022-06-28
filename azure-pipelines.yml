@@ -10,10 +10,10 @@ variables:
   RuntimeURL: https://atom.io/download/atom-shell
   RuntimeName: iojs
   ElectronVersion: 13.4.0
-  SLBuildDirectory: streamlabs-build
+  SLBUILDDIRECTORY: streamlabs-build
   SLGenerator: Visual Studio 16 2019
   SLDistributeDirectory: distribute
-  SLFullDistributePath: $(SLBuildDirectory)\$(SLDistributeDirectory)
+  SLFullDistributePath: $(SLBUILDDIRECTORY)\$(SLDistributeDirectory)
   LibOBSVersion: 27.5.38
 
 jobs:
