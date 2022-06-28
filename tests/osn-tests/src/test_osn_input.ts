@@ -379,7 +379,8 @@ describe(testName, () => {
                             // Adding ndi filter to ndi source
                             input.addFilter(filter);
                         }
-                    } else if (filterType === 'async_delay_filter') {
+                    } else if (filterType === 'async_delay_filter' ||
+                        filterType === 'mediasoupconnector_vfilter') {
                         if (inputType === 'ffmpeg_source' ||
                             inputType === 'dshow_input') {
                             const filter = osn.FilterFactory.create(filterType, filterType);
