@@ -39,18 +39,27 @@ export class CacheUploader {
                 const file = fs.createReadStream(cacheFile);
                 const keyname = this.dateStr + '-' + this.testName + '-test-cache-' + this.releaseName + '.zip';
         
- 
+                
                 const s3 = new aws.S3({
                     accessKeyId: process.env.OSN_ACCESS_KEY_ID,
                     secretAccessKey: process.env.OSN_SECRET_ACCESS_KEY,
                   });
- 
-                const uploadedImage = s3.upload({
+
+                const params = {
                     Bucket: 'obs-studio-node-tests-cache',
+                    CreateBucketConfiguration: {
+                        LocationConstraint: "us-east-2"
+                    },         
                     Key: keyname,
                     Body: file,
-                  }).promise()
- 
+                };
+                s3.upload(params, function(err, data) {
+                    if (err) {
+                        throw err;
+                    }
+                    console.log(`File uploaded successfully. ${data.Location}`);
+                }); 
+  
             });
 
             // Modify the stream key in service.json in a reversible way when uploading user caches
