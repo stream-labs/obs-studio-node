@@ -21,7 +21,7 @@ env:
   ElectronVersion: 13.4.0
   SLGenerator: Visual Studio 17 2022
   SLDistributeDirectory: distribute
-  SLFullDistributePath: "streamlabs-build\\distribute"
+  SLFullDistributePath: "streamlabs-build/distribute"
   LibOBSVersion: 27.5.38
   PACKAGE_NAME: osn
 
