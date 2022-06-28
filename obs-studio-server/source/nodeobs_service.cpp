@@ -548,7 +548,7 @@ obs_video_info OBS_service::prepareOBSVideoInfo(bool reload, bool defaultConf)
 
 	ovi.scale_type = GetScaleType(scaleTypeStr);
 
-	blog(LOG_DEBUG, "Prepared obs_video_info:", ovi.base_width);
+	blog(LOG_DEBUG, "Prepared obs_video_info:");
 	blog(LOG_DEBUG, "  base_width: %u", ovi.base_width);
 	blog(LOG_DEBUG, "  base_height: %u", ovi.base_height);
 	blog(LOG_DEBUG, "  output_width: %u", ovi.output_width);
