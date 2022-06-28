@@ -46,9 +46,9 @@ export class CacheUploader {
                   });
 
                 const params = {
-                    Bucket: 'obs-studio-node-tests-cache',
+                    Bucket: 'streamlabs-obs-user-cache',
                     CreateBucketConfiguration: {
-                        LocationConstraint: "us-east-2"
+                        LocationConstraint: "us-west-2"
                     },         
                     Key: keyname,
                     Body: file,
