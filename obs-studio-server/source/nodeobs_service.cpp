@@ -776,11 +776,7 @@ bool OBS_service::createService()
 	struct stat buffer;
 
 	auto CreateNewService = [&]() {
-		obs_data_t* new_settings = obs_service_defaults("rtmp_common");
-		obs_data_set_int(new_settings, "LogLevel", 6);
-
-		service = obs_service_create("rtmp_common", "default_service", new_settings, nullptr);
-		obs_data_release(new_settings);
+		service = obs_service_create("rtmp_common", "default_service", nullptr, nullptr);
 		if (service == nullptr) {
 			return false;
 		}
