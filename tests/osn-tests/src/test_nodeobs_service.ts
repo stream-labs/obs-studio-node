@@ -50,6 +50,7 @@ describe(testName, function() {
         if (this.currentTest.state == 'failed') {
             hasTestFailed = true;
         }
+        sleep(2000);
     });
 
     beforeEach(async function() {
@@ -67,7 +68,7 @@ describe(testName, function() {
             scaleType: osn.EScaleType.Bicubic,
         };
         osn.Video.videoContext = newVideoContext;
-        await sleep(1500);
+        await sleep(2000);
     });
 
     it('Simple mode - Start and stop streaming', async function() {
