@@ -52,6 +52,23 @@ describe(testName, function() {
         }
     });
 
+    beforeEach(async function() {
+        let currentVideo = osn.Video.videoContext;
+        const newVideoContext: osn.VideoContext = {
+            fpsNum: 30,
+            fpsDen: 1,
+            baseWidth: 128,
+            baseHeight: 128,
+            outputWidth: 128,
+            outputHeight: 128,
+            outputFormat: osn.EVideoFormat.I420,
+            colorspace: osn.EColorSpace.Default,
+            range: osn.ERangeType.Default,
+            scaleType: osn.EScaleType.Bicubic,
+        };
+        osn.Video.videoContext = newVideoContext;
+    });
+
     it('Simple mode - Start and stop streaming', async function() {
         // Preparing environment
         obs.setSetting(EOBSSettingsCategories.Output, 'Mode', 'Simple');
@@ -290,20 +307,7 @@ describe(testName, function() {
 
         let signalInfo: IOBSOutputSignalInfo;
         
-        let currentVideo = osn.Video.videoContext;
-        const newVideoContext: osn.VideoContext = {
-            fpsNum: 30,
-            fpsDen: 2,
-            baseWidth: 640,
-            baseHeight: 480,
-            outputWidth: 640,
-            outputHeight: 480,
-            outputFormat: osn.EVideoFormat.I420,
-            colorspace: osn.EColorSpace.CS709,
-            range: osn.ERangeType.Full,
-            scaleType: osn.EScaleType.Bicubic,
-        };
-        osn.Video.videoContext = newVideoContext;
+
 
         osn.NodeObs.OBS_service_startStreaming();
 
@@ -391,20 +395,7 @@ describe(testName, function() {
         obs.setSetting(EOBSSettingsCategories.Output, 'FilePath', path.join(path.normalize(__dirname), '..', 'osnData'));
 
         let signalInfo: IOBSOutputSignalInfo;
-        let currentVideo = osn.Video.videoContext;
-        const newVideoContext: osn.VideoContext = {
-            fpsNum: 30,
-            fpsDen: 2,
-            baseWidth: 640,
-            baseHeight: 480,
-            outputWidth: 640,
-            outputHeight: 480,
-            outputFormat: osn.EVideoFormat.I420,
-            colorspace: osn.EColorSpace.CS709,
-            range: osn.ERangeType.Full,
-            scaleType: osn.EScaleType.Bicubic,
-        };
-        osn.Video.videoContext = newVideoContext;
+
         osn.NodeObs.OBS_service_startStreaming();
 
         signalInfo = await obs.getNextSignalInfo(EOBSOutputType.Streaming, EOBSOutputSignal.Starting);
@@ -532,20 +523,7 @@ describe(testName, function() {
         obs.setSetting(EOBSSettingsCategories.Output, 'RecFilePath', path.join(path.normalize(__dirname), '..', 'osnData'));
 
         let signalInfo: IOBSOutputSignalInfo;
-        let currentVideo = osn.Video.videoContext;
-        const newVideoContext: osn.VideoContext = {
-            fpsNum: 30,
-            fpsDen: 2,
-            baseWidth: 640,
-            baseHeight: 480,
-            outputWidth: 640,
-            outputHeight: 480,
-            outputFormat: osn.EVideoFormat.I420,
-            colorspace: osn.EColorSpace.CS709,
-            range: osn.ERangeType.Full,
-            scaleType: osn.EScaleType.Bicubic,
-        };
-        osn.Video.videoContext = newVideoContext;
+
         osn.NodeObs.OBS_service_startStreaming();
 
         signalInfo = await obs.getNextSignalInfo(EOBSOutputType.Streaming, EOBSOutputSignal.Starting);
@@ -596,20 +574,7 @@ describe(testName, function() {
         obs.setSetting(EOBSSettingsCategories.Output, 'RecFilePath', path.join(path.normalize(__dirname), '..', 'osnData'));
 
         let signalInfo: IOBSOutputSignalInfo;
-        let currentVideo = osn.Video.videoContext;
-        const newVideoContext: osn.VideoContext = {
-            fpsNum: 30,
-            fpsDen: 2,
-            baseWidth: 640,
-            baseHeight: 480,
-            outputWidth: 640,
-            outputHeight: 480,
-            outputFormat: osn.EVideoFormat.I420,
-            colorspace: osn.EColorSpace.CS709,
-            range: osn.ERangeType.Full,
-            scaleType: osn.EScaleType.Bicubic,
-        };
-        osn.Video.videoContext = newVideoContext;
+
         osn.NodeObs.OBS_service_startRecording();
 
         signalInfo = await obs.getNextSignalInfo(EOBSOutputType.Recording, EOBSOutputSignal.Start);
@@ -656,20 +621,7 @@ describe(testName, function() {
         obs.setSetting(EOBSSettingsCategories.Output, 'RecFilePath', path.join(path.normalize(__dirname), '..', 'osnData'));
 
         let signalInfo: IOBSOutputSignalInfo;
-        let currentVideo = osn.Video.videoContext;
-        const newVideoContext: osn.VideoContext = {
-            fpsNum: 30,
-            fpsDen: 2,
-            baseWidth: 640,
-            baseHeight: 480,
-            outputWidth: 640,
-            outputHeight: 480,
-            outputFormat: osn.EVideoFormat.I420,
-            colorspace: osn.EColorSpace.CS709,
-            range: osn.ERangeType.Full,
-            scaleType: osn.EScaleType.Bicubic,
-        };
-        osn.Video.videoContext = newVideoContext;
+
         osn.NodeObs.OBS_service_startReplayBuffer();
 
         signalInfo = await obs.getNextSignalInfo(EOBSOutputType.ReplayBuffer, EOBSOutputSignal.Start);
@@ -717,20 +669,7 @@ describe(testName, function() {
         obs.setSetting(EOBSSettingsCategories.Output, 'RecFilePath', path.join(path.normalize(__dirname), '..', 'osnData'));
 
         let signalInfo: IOBSOutputSignalInfo;
-        let currentVideo = osn.Video.videoContext;
-        const newVideoContext: osn.VideoContext = {
-            fpsNum: 30,
-            fpsDen: 2,
-            baseWidth: 640,
-            baseHeight: 480,
-            outputWidth: 640,
-            outputHeight: 480,
-            outputFormat: osn.EVideoFormat.I420,
-            colorspace: osn.EColorSpace.CS709,
-            range: osn.ERangeType.Full,
-            scaleType: osn.EScaleType.Bicubic,
-        };
-        osn.Video.videoContext = newVideoContext;
+
         osn.NodeObs.OBS_service_startStreaming();
 
         signalInfo = await obs.getNextSignalInfo(EOBSOutputType.Streaming, EOBSOutputSignal.Starting);
@@ -818,20 +757,7 @@ describe(testName, function() {
         obs.setSetting(EOBSSettingsCategories.Output, 'RecFilePath', path.join(path.normalize(__dirname), '..', 'osnData'));
 
         let signalInfo: IOBSOutputSignalInfo;
-        let currentVideo = osn.Video.videoContext;
-        const newVideoContext: osn.VideoContext = {
-            fpsNum: 30,
-            fpsDen: 2,
-            baseWidth: 640,
-            baseHeight: 480,
-            outputWidth: 640,
-            outputHeight: 480,
-            outputFormat: osn.EVideoFormat.I420,
-            colorspace: osn.EColorSpace.CS709,
-            range: osn.ERangeType.Full,
-            scaleType: osn.EScaleType.Bicubic,
-        };
-        osn.Video.videoContext = newVideoContext;
+
         osn.NodeObs.OBS_service_startStreaming();
 
         signalInfo = await obs.getNextSignalInfo(EOBSOutputType.Streaming, EOBSOutputSignal.Starting);
@@ -919,20 +845,7 @@ describe(testName, function() {
         obs.setSetting(EOBSSettingsCategories.Output, 'RecFilePath', path.join(path.normalize(__dirname), '..', 'osnData'));
 
         let signalInfo: IOBSOutputSignalInfo;
-        let currentVideo = osn.Video.videoContext;
-        const newVideoContext: osn.VideoContext = {
-            fpsNum: 30,
-            fpsDen: 2,
-            baseWidth: 640,
-            baseHeight: 480,
-            outputWidth: 640,
-            outputHeight: 480,
-            outputFormat: osn.EVideoFormat.I420,
-            colorspace: osn.EColorSpace.CS709,
-            range: osn.ERangeType.Full,
-            scaleType: osn.EScaleType.Bicubic,
-        };
-        osn.Video.videoContext = newVideoContext;
+
         osn.NodeObs.OBS_service_startStreaming();
 
         signalInfo = await obs.getNextSignalInfo(EOBSOutputType.Streaming, EOBSOutputSignal.Starting);
