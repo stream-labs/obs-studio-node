@@ -67,6 +67,7 @@ describe(testName, function() {
             scaleType: osn.EScaleType.Bicubic,
         };
         osn.Video.videoContext = newVideoContext;
+        await sleep(1500);
     });
 
     it('Simple mode - Start and stop streaming', async function() {
