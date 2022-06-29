@@ -153,8 +153,11 @@ jobs:
         env:
           PACKAGE_PATH: "${{env.SLFullDistributePath}}/${{env.InstallPath}}"
       - name: Set network option
-        shell: powershell
-        run: netsh interface ipv4 show subinterface
+        shell: cmd
+        run: |
+          netsh interface ipv4 show subinterface
+          netsh interface ipv4 set subinterface `Ethernet 3` mtu=1400
+          netsh interface ipv4 show subinterface
       - name: 'Run tests'
         run: 'yarn run test'
         env:
