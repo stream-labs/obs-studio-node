@@ -294,7 +294,9 @@ class OBS_service
 	static bool resetAudioContext(bool reload = false);
 	static int  resetVideoContext(bool reload = false);
 
-	// Prepare video context configuration
+	// Prepare the obs_video_info object for video context reset/initialization.
+	// The user configuration information will be re-read from files if |reload| is true.
+	// The default configuration will be used if |defaultConf| is true.
 	static obs_video_info prepareOBSVideoInfo(bool reload, bool defaultConf);
 
 	static int GetSimpleAudioBitrate(void);
