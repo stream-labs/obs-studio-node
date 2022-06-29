@@ -158,6 +158,9 @@ jobs:
           netsh interface ipv4 show subinterface
           netsh interface ipv4 set subinterface "Ethernet 3" mtu=1400
           netsh interface ipv4 show subinterface
+      - name: check ip
+        shell: powershell
+        run: Resolve-DnsName dfw.contribute.live-video.net
       - name: 'Run tests'
         run: 'yarn run test'
         env:
