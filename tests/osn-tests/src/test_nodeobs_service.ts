@@ -294,9 +294,6 @@ describe(testName, function() {
         obs.setSetting(EOBSSettingsCategories.Output, 'FilePath', path.join(path.normalize(__dirname), '..', 'osnData'));
 
         let signalInfo: IOBSOutputSignalInfo;
-        
-
-
         osn.NodeObs.OBS_service_startStreaming();
 
         signalInfo = await obs.getNextSignalInfo(EOBSOutputType.Streaming, EOBSOutputSignal.Starting);
