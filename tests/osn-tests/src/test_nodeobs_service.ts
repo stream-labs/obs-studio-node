@@ -50,7 +50,7 @@ describe(testName, function() {
         if (this.currentTest.state == 'failed') {
             hasTestFailed = true;
         }
-        sleep(2000);
+        sleep(20000);
     });
 
     beforeEach(async function() {
