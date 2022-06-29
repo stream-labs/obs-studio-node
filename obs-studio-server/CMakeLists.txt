@@ -134,7 +134,7 @@ if (APPLE)
 endif ()
 
 # Getting LIBOBS_VERSION from azure script
-file(STRINGS ../azure-pipelines.yml VERSION_LINE REGEX "LibOBSVersion")
+file(STRINGS ../.github/workflows/main.yml VERSION_LINE REGEX "LibOBSVersion")
 string(REGEX MATCH "[^: ]*$" CURRENT_VERSION ${VERSION_LINE})
 
 set(
