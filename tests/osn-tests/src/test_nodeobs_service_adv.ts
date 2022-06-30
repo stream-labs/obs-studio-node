@@ -69,6 +69,7 @@ describe(testName, function() {
         };
         osn.Video.videoContext = newVideoContext;
         obs.setSetting(EOBSSettingsCategories.Output, 'bitrate', 256);
+        sleep(500);
     });
 
     it('Advanced mode - Start and stop streaming', async function() {
