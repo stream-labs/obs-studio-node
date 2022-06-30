@@ -54,7 +54,21 @@ describe(testName, function() {
     });
 
     beforeEach(async function() {
-        await sleep(500);
+        let currentVideo = osn.Video.videoContext;
+        const newVideoContext: osn.VideoContext = {
+            fpsNum: 15,
+            fpsDen: 1,
+            baseWidth: 128,
+            baseHeight: 128,
+            outputWidth: 128,
+            outputHeight: 128,
+            outputFormat: osn.EVideoFormat.I420,
+            colorspace: osn.EColorSpace.Default,
+            range: osn.ERangeType.Default,
+            scaleType: osn.EScaleType.Bicubic,
+        };
+        osn.Video.videoContext = newVideoContext;
+        obs.setSetting(EOBSSettingsCategories.Output, 'bitrate', 256);
     });
 
     it('Advanced mode - Start and stop streaming', async function() {
