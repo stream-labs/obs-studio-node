@@ -437,7 +437,7 @@ static const double vals[] = {1.0, 1.25, (1.0 / 0.75), 1.5, (1.0 / 0.6), 1.75, 2
 
 static const size_t numVals = sizeof(vals) / sizeof(double);
 
-int OBS_service::resetVideoContext(bool reload)
+int OBS_service::resetVideoContext(bool reload, bool retryWithDefaultConf)
 {
 	obs_video_info ovi = prepareOBSVideoInfo(reload, false);
 
@@ -458,8 +458,7 @@ int OBS_service::resetVideoContext(bool reload)
 	//   libobs-d3d11.dll,
 	//   libobs-opengl.
 	// OBS_VIDEO_FAIL: Generic failure.
-	if (errorcode == OBS_VIDEO_FAIL || errorcode == OBS_VIDEO_INVALID_PARAM) {
-
+	if (retryWithDefaultConf && (errorcode == OBS_VIDEO_FAIL || errorcode == OBS_VIDEO_INVALID_PARAM)) {
 		blog(LOG_ERROR, "The video context reset with the user configuration failed: %d", errorcode);
 
 		ovi = prepareOBSVideoInfo(false, true);
@@ -479,7 +478,12 @@ int OBS_service::resetVideoContext(bool reload)
 int OBS_service::doResetVideoContext(const obs_video_info& ovi)
 {
 	try {
-		return obs_reset_video(const_cast<obs_video_info*>(&ovi));
+		// obs_reset_video may change some parameters. For example,
+		// ovi->output_width &= 0xFFFFFFFC;
+		// ovi->output_height &= 0xFFFFFFFE;
+		// So just make a temporary copy and then forget about it.
+		obs_video_info tmp = ovi;
+		return obs_reset_video(&tmp);
 	} catch (const char* error) {
 		blog(LOG_ERROR, error);
 		return OBS_VIDEO_FAIL;

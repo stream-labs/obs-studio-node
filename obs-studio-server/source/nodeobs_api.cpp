@@ -1657,7 +1657,7 @@ typedef std::basic_string<char, ci_char_traits> istring;
 * if we go a server/client route. */
 bool OBS_API::openAllModules(int& video_err)
 {
-	video_err = OBS_service::resetVideoContext();
+	video_err = OBS_service::resetVideoContext(false, true);
 	if (video_err != OBS_VIDEO_SUCCESS) {
 		blog(LOG_INFO, "Reset video failed with error: %d", video_err);
 		return false;
