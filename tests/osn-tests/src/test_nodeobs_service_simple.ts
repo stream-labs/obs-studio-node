@@ -54,6 +54,19 @@ describe(testName, function() {
     });
 
     beforeEach(async function() {
+        const test_urls = [
+            'rtmp://sea.contribute.live-video.net/app', 
+            'rtmp://pdx.contribute.live-video.net/app',
+            'rtmp://slc.contribute.live-video.net/app',
+            'rtmp://sjc05.contribute.live-video.net/app',
+            'rtmp://sjc02.contribute.live-video.net/app',
+            'rtmp://lax.contribute.live-video.net/app',
+            'rtmp://den52.contribute.live-video.net/app',
+            'rtmp://phx.contribute.live-video.net/app',
+        ];
+        var test_url = test_urls[Math.floor(Math.random()*test_urls.length)];
+        osn.ServiceFactory.serviceContext.update({ url: test_url });
+
         let currentVideo = osn.Video.videoContext;
         const newVideoContext: osn.VideoContext = {
             fpsNum: 15,
