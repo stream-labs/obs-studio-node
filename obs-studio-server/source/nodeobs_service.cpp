@@ -437,14 +437,53 @@ static const double vals[] = {1.0, 1.25, (1.0 / 0.75), 1.5, (1.0 / 0.6), 1.75, 2
 
 static const size_t numVals = sizeof(vals) / sizeof(double);
 
-int OBS_service::resetVideoContext(bool reload)
+int OBS_service::resetVideoContext(bool reload, bool retryWithDefaultConf)
 {
 	obs_video_info ovi = prepareOBSVideoInfo(reload, false);
 
 	config_save_safe(ConfigManager::getInstance().getBasic(), "tmp", nullptr);
-	blog(LOG_INFO, "About to reset the video context");
+
+	blog(LOG_INFO, "About to reset the video context with the user configuration");
+	int errorcode = doResetVideoContext(ovi);
+
+	// OBS_VIDEO_NOT_SUPPORTED: any of the following functions fails:
+	//   gl_init_extensions,
+	//   CreateDXGIFactory1,
+	//   DXGIFactory1::EnumAdapters1,
+	//   D3D11CreateDevice,
+	//   etc.	
+	// OBS_VIDEO_INVALID_PARAM: A parameter is invalid.
+	// OBS_VIDEO_CURRENTLY_ACTIVE: Video is currently active.
+	// OBS_VIDEO_MODULE_NOT_FOUND: Could not load a dynamic library (ovi.graphics_module):
+	//   libobs-d3d11.dll,
+	//   libobs-opengl.
+	// OBS_VIDEO_FAIL: Generic failure.
+	if (retryWithDefaultConf && (errorcode == OBS_VIDEO_FAIL || errorcode == OBS_VIDEO_INVALID_PARAM)) {
+		blog(LOG_ERROR, "The video context reset with the user configuration failed: %d", errorcode);
+
+		ovi = prepareOBSVideoInfo(false, true);
+
+		blog(LOG_INFO, "About to reset the video context with the default configuration");
+		errorcode = doResetVideoContext(ovi);
+		if (errorcode == OBS_VIDEO_SUCCESS) {
+			keepFallbackVideoConfig(ovi);
+		} else {
+			blog(LOG_ERROR, "The video context reset with the default configuration failed: %d", errorcode);
+		}
+	}
+
+	return errorcode;
+}
+
+int OBS_service::doResetVideoContext(const obs_video_info& ovi)
+{
 	try {
-		return obs_reset_video(&ovi);
+		// obs_reset_video may change some parameters. For example,
+		// ovi->output_width &= 0xFFFFFFFC;
+		// ovi->output_height &= 0xFFFFFFFE;
+		// So just make a temporary copy and then forget about it.
+		obs_video_info tmp = ovi;
+		return obs_reset_video(&tmp);
 	} catch (const char* error) {
 		blog(LOG_ERROR, error);
 		return OBS_VIDEO_FAIL;
@@ -561,6 +600,49 @@ obs_video_info OBS_service::prepareOBSVideoInfo(bool reload, bool defaultConf)
 	blog(LOG_DEBUG, "  scale_type: %u", static_cast<uint32_t>(ovi.scale_type));
 
 	return ovi;
+}
+
+static void copyDefaultUIntToUserBasicConfig(const char* section, const char* name)
+{
+	config_set_uint(ConfigManager::getInstance().getBasic(), section, name,
+		config_get_default_uint(ConfigManager::getInstance().getBasic(), section, name));
+}
+
+static void copyDefaultStringToUserBasicConfig(const char* section, const char* name)
+{
+	config_set_string(ConfigManager::getInstance().getBasic(), section, name,
+		config_get_default_string(ConfigManager::getInstance().getBasic(), section, name));
+}
+
+void OBS_service::keepFallbackVideoConfig(const obs_video_info& ovi)
+{
+	blog(LOG_DEBUG, "Saving the fallback/default video configuration to basic.ini");
+
+	// Overall, we only copy and save parameters
+	// which were used for the successful obs_reset_video call.
+	// Some values come from config_get_default_uint/config_get_default_string.
+	// The other values come from |ovi| because the default configuration
+	// does not have some of the actual values.
+	config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "BaseCX", ovi.base_width);
+	config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "BaseCY", ovi.base_height);
+	config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "OutputCX", ovi.output_width);
+	config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "OutputCY", ovi.output_height);
+
+	// Currently, there is no "FPSNS" in the default configuration,
+	// So we do not copy it here.
+	copyDefaultUIntToUserBasicConfig("Video", "FPSType");
+	copyDefaultUIntToUserBasicConfig("Video", "FPSCommon");
+	copyDefaultUIntToUserBasicConfig("Video", "FPSInt");
+	copyDefaultUIntToUserBasicConfig("Video", "FPSNum");
+	copyDefaultUIntToUserBasicConfig("Video", "FPSDen");
+
+	copyDefaultStringToUserBasicConfig("Video", "ColorFormat");
+	copyDefaultStringToUserBasicConfig("Video", "ColorSpace");
+	copyDefaultStringToUserBasicConfig("Video", "ColorRange");
+
+	copyDefaultStringToUserBasicConfig("Video", "ScaleType");
+
+	config_save_safe(ConfigManager::getInstance().getBasic(), "tmp", nullptr);	
 }
 
 const char* FindAudioEncoderFromCodec(const char* type)
