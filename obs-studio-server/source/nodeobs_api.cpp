@@ -402,12 +402,8 @@ std::chrono::high_resolution_clock             hrc;
 std::chrono::high_resolution_clock::time_point tp = std::chrono::high_resolution_clock::now();
 static void                                    node_obs_log(int log_level, const char* msg, va_list args, void* param)
 {
-	std::lock_guard<std::mutex> lock(logMutex);
-
 	if (param == nullptr)
 		return;
-	
-	outdated_driver_error::instance()->catch_error(msg);
 
 	// Calculate log time.
 	auto timeSinceStart = (std::chrono::high_resolution_clock::now() - tp);
@@ -495,6 +491,9 @@ static void                                    node_obs_log(int log_level, const
 	// Format incoming text
 	std::string text = nodeobs_log_formatted_message(msg, args);
 
+	std::lock_guard<std::mutex> lock(logMutex);
+
+	outdated_driver_error::instance()->catch_error(msg);	
 	std::fstream* logStream = reinterpret_cast<std::fstream*>(param);
 
 	// Split by \n (new-line)
