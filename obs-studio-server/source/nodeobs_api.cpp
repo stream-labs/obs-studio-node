@@ -95,6 +95,12 @@ enum crashHandlerCommand {
 	CRASHWITHCODE = 3
 };
 
+struct NodeOBSLogParam final
+{
+	std::fstream logStream;
+	bool enableDebugLogs = false;
+};
+
 std::string g_moduleDirectory = "";
 os_cpu_usage_info_t* cpuUsageInfo      = nullptr;
 #ifdef WIN32
@@ -405,6 +411,12 @@ static void                                    node_obs_log(int log_level, const
 	if (param == nullptr)
 		return;
 
+	NodeOBSLogParam* logParam = reinterpret_cast<NodeOBSLogParam*>(param);
+
+	if (log_level == LOG_DEBUG && !logParam->enableDebugLogs) {
+		return;
+	}
+
 	// Calculate log time.
 	auto timeSinceStart = (std::chrono::high_resolution_clock::now() - tp);
 	auto days           = std::chrono::duration_cast<std::chrono::duration<int, std::ratio<86400>>>(timeSinceStart);
@@ -494,7 +506,6 @@ static void                                    node_obs_log(int log_level, const
 	std::lock_guard<std::mutex> lock(logMutex);
 
 	outdated_driver_error::instance()->catch_error(msg);	
-	std::fstream* logStream = reinterpret_cast<std::fstream*>(param);
 
 	// Split by \n (new-line)
 	size_t last_valid_idx = 0;
@@ -504,7 +515,7 @@ static void                                    node_obs_log(int log_level, const
 			last_valid_idx     = idx + 1;
 
 			// File Log
-			*logStream << newmsg << std::flush;
+			logParam->logStream << newmsg << std::flush;
 
             // Internal Log
 			logReport.push(newmsg, log_level);
@@ -537,7 +548,7 @@ static void                                    node_obs_log(int log_level, const
 #endif
 		}
 	}
-	*logStream << std::flush;
+	logParam->logStream << std::flush;
 
 #if defined(_WIN32) && defined(OBS_DEBUGBREAK_ON_ERROR)
 	if (log_level <= LOG_ERROR && IsDebuggerPresent())
@@ -717,6 +728,23 @@ void writeCrashHandler(std::vector<char> buffer)
 	close(file_descriptor);
 }
 #endif
+
+static bool checkIfDebugLogsEnabled(const std::string& appdata)
+{
+	bool enabled = false;
+#if defined(_DEBUG)
+	enabled = true;
+#else
+	std::string filename = appdata + "/enable-debug-logs";
+#if defined(_WIN32) && defined(UNICODE)
+	enabled = std::fstream(converter.from_bytes(filename).data()).is_open();
+#else
+	enabled = std::fstream(filename).is_open();
+#endif
+#endif
+	return enabled;
+}
+
 void OBS_API::OBS_API_initAPI(
     void*                          data,
     const int64_t                  id,
@@ -813,18 +841,21 @@ void OBS_API::OBS_API_initAPI(
 	DeleteOldestFile(log_path.c_str(), 3);
 	log_path.append(filename);
 
+	auto logParam = std::make_unique<NodeOBSLogParam>();	
+	logParam->enableDebugLogs = checkIfDebugLogsEnabled(appdata);
+
 #if defined(_WIN32) && defined(UNICODE)
-	std::fstream* logfile =
-	    new std::fstream(converter.from_bytes(log_path.c_str()).c_str(), std::ios_base::out | std::ios_base::trunc);
+	logParam->logStream =
+	    std::fstream(converter.from_bytes(log_path.c_str()).c_str(), std::ios_base::out | std::ios_base::trunc);
 #else
-	std::fstream* logfile = new std::fstream(log_path, std::ios_base::out | std::ios_base::trunc);
+	logParam->logStream = std::fstream(log_path, std::ios_base::out | std::ios_base::trunc);
 #endif
-	if (!logfile->is_open()) {
-		logfile = nullptr;
+	if (!logParam->logStream.is_open()) {
+		logParam.reset();
 		util::CrashManager::AddWarning("Error on log file, failed to open: " + log_path);
 		std::cerr << "Failed to open log file" << std::endl;
 	}
-	base_set_log_handler(node_obs_log, logfile);
+	base_set_log_handler(node_obs_log, (logParam) ? logParam.release() : nullptr);
 #ifndef _DEBUG
 	// Redirect the ipc log callbacks to our log handler
 	ipc::register_log_callback([](void* data, const char* fmt, va_list args) { 
