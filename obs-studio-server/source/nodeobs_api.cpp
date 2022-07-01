@@ -483,11 +483,8 @@ static void                                    node_obs_log(int log_level, const
         levelname.length(),
         levelname.c_str());
 #endif
-	if (length < 0) {
-		std::lock_guard<std::mutex> lock(logMutex);
-		outdated_driver_error::instance()->catch_error(msg);
+	if (length < 0)
 		return;
-	}
 
 	std::string time_and_level = std::string(timebuf.data(), length);
 
