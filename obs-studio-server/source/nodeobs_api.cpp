@@ -409,13 +409,7 @@ std::chrono::high_resolution_clock::time_point tp = std::chrono::high_resolution
 static void                                    node_obs_log(int log_level, const char* msg, va_list args, void* param)
 {
 	if (param == nullptr)
-		return;
-
-	NodeOBSLogParam* logParam = reinterpret_cast<NodeOBSLogParam*>(param);
-
-	if (log_level == LOG_DEBUG && !logParam->enableDebugLogs) {
-		return;
-	}
+		return;	
 
 	// Calculate log time.
 	auto timeSinceStart = (std::chrono::high_resolution_clock::now() - tp);
@@ -505,7 +499,8 @@ static void                                    node_obs_log(int log_level, const
 
 	std::lock_guard<std::mutex> lock(logMutex);
 
-	outdated_driver_error::instance()->catch_error(msg);	
+	outdated_driver_error::instance()->catch_error(msg);
+	NodeOBSLogParam* logParam = reinterpret_cast<NodeOBSLogParam*>(param);
 
 	// Split by \n (new-line)
 	size_t last_valid_idx = 0;
@@ -515,7 +510,9 @@ static void                                    node_obs_log(int log_level, const
 			last_valid_idx     = idx + 1;
 
 			// File Log
-			logParam->logStream << newmsg << std::flush;
+			if (log_level != LOG_DEBUG || logParam->enableDebugLogs) {
+				logParam->logStream << newmsg << std::flush;
+			}
 
             // Internal Log
 			logReport.push(newmsg, log_level);
@@ -548,7 +545,9 @@ static void                                    node_obs_log(int log_level, const
 #endif
 		}
 	}
-	logParam->logStream << std::flush;
+	if (log_level != LOG_DEBUG || logParam->enableDebugLogs) {
+		logParam->logStream << std::flush;
+	}
 
 #if defined(_WIN32) && defined(OBS_DEBUGBREAK_ON_ERROR)
 	if (log_level <= LOG_ERROR && IsDebuggerPresent())
