@@ -734,13 +734,18 @@ static bool checkIfDebugLogsEnabled(const std::string& appdata)
 #if defined(_DEBUG)
 	enabled = true;
 #else
-	std::string filename = appdata + "/enable-debug-logs";
+	char* envValue = getenv("SL_DESKTOP_ENABLE_DEBUG_LOGS");
+	if (envValue != nullptr) {
+		enabled = (astrcmpi(envValue, "on") == 0 || astrcmpi(envValue, "yes") == 0);
+	} else {
+		const std::string filename = appdata + "/enable-debug-logs";
 #if defined(_WIN32) && defined(UNICODE)
-	enabled = std::fstream(converter.from_bytes(filename).data()).is_open();
+		enabled = std::fstream(converter.from_bytes(filename).data()).is_open();
 #else
-	enabled = std::fstream(filename).is_open();
+		enabled = std::fstream(filename).is_open();
 #endif
 #endif
+	}
 	return enabled;
 }
 
