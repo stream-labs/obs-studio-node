@@ -730,23 +730,27 @@ void writeCrashHandler(std::vector<char> buffer)
 
 static bool checkIfDebugLogsEnabled(const std::string& appdata)
 {
-	bool enabled = false;
 #if defined(_DEBUG)
-	enabled = true;
+	return true;
 #else
+	// When you change the environment variable and start
+	// Streamlabs Desktop via a console/terminal,
+	// you may have to restart the console/terminal.
+	// Using the environment variable on macOS may be even more complicated:
+	// https://stackoverflow.com/questions/135688/setting-environment-variables-on-os-x
 	char* envValue = getenv("SL_DESKTOP_ENABLE_DEBUG_LOGS");
 	if (envValue != nullptr) {
-		enabled = (astrcmpi(envValue, "on") == 0 || astrcmpi(envValue, "yes") == 0);
-	} else {
-		const std::string filename = appdata + "/enable-debug-logs";
-#if defined(_WIN32) && defined(UNICODE)
-		enabled = std::fstream(converter.from_bytes(filename).data()).is_open();
-#else
-		enabled = std::fstream(filename).is_open();
-#endif
-#endif
+		return (astrcmpi(envValue, "on") == 0 || astrcmpi(envValue, "yes") == 0);
 	}
-	return enabled;
+	// Even if the environment variable is set and the logs are turned off,
+	// we still check for the file to avoid issues with finding where the variable is defined.
+	const std::string filename = appdata + "/enable-debug-logs";
+#if defined(_WIN32) && defined(UNICODE)
+	return std::fstream(converter.from_bytes(filename).data()).is_open();
+#else
+	return std::fstream(filename).is_open();
+#endif
+#endif
 }
 
 void OBS_API::OBS_API_initAPI(
