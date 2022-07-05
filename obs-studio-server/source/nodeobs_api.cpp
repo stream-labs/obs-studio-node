@@ -95,6 +95,12 @@ enum crashHandlerCommand {
 	CRASHWITHCODE = 3
 };
 
+struct NodeOBSLogParam final
+{
+	std::fstream logStream;
+	bool enableDebugLogs = false;
+};
+
 std::string g_moduleDirectory = "";
 os_cpu_usage_info_t* cpuUsageInfo      = nullptr;
 #ifdef WIN32
@@ -382,7 +388,7 @@ void outdated_driver_error::catch_error(const char* msg)
 	}
 }
 
-inline std::string nodeobs_log_formatted_message(const char* format, va_list args)
+inline std::string old_nodeobs_log_formatted_message(const char* format, va_list args)
 {
 	if (!format)
 		return "";
@@ -398,12 +404,58 @@ inline std::string nodeobs_log_formatted_message(const char* format, va_list arg
 	return std::string(buf.begin(), buf.begin() + length);
 }
 
+std::vector<char> new_nodeobs_log_formatted_message(const char* format, va_list args)
+{
+	if (!format)
+		return std::vector<char>();
+
+#ifdef WIN32
+	size_t            length  = _vscprintf(format, args);
+#else
+	va_list argcopy;
+	va_copy(argcopy, args);
+	size_t            length  = vsnprintf(NULL, 0, format, argcopy);
+#endif
+	std::vector<char> buf = std::vector<char>(length + 1, '\0');
+	size_t written = vsprintf(buf.data(), format, args);
+	buf.resize(written);
+	return buf;
+}
+
+std::vector<std::string> logMsgStore;
+
+void reserveLogMsgStoreSpace()
+{
+	logMsgStore.reserve(2000000);
+}
+
+void clearLogMsgStore()
+{
+	logMsgStore.clear();
+}
+
+std::uint64_t spentMcs = 0;
+
+void resetCounter()
+{
+	spentMcs = 0;
+}
+
+std::uint64_t getCounter()
+{
+	return spentMcs;
+}
+
 std::chrono::high_resolution_clock             hrc;
 std::chrono::high_resolution_clock::time_point tp = std::chrono::high_resolution_clock::now();
-static void                                    node_obs_log(int log_level, const char* msg, va_list args, void* param)
+
+void old_node_obs_log(int log_level, const char* msg, va_list args, void* param)
 {
-	if (param == nullptr)
-		return;
+  LARGE_INTEGER frequency;
+  QueryPerformanceFrequency(&frequency);
+
+  LARGE_INTEGER startTime;
+  QueryPerformanceCounter(&startTime);
 
 	// Calculate log time.
 	auto timeSinceStart = (std::chrono::high_resolution_clock::now() - tp);
@@ -489,12 +541,9 @@ static void                                    node_obs_log(int log_level, const
 	std::string time_and_level = std::string(timebuf.data(), length);
 
 	// Format incoming text
-	std::string text = nodeobs_log_formatted_message(msg, args);
+	std::string text = old_nodeobs_log_formatted_message(msg, args);
 
 	std::lock_guard<std::mutex> lock(logMutex);
-
-	outdated_driver_error::instance()->catch_error(msg);	
-	std::fstream* logStream = reinterpret_cast<std::fstream*>(param);
 
 	// Split by \n (new-line)
 	size_t last_valid_idx = 0;
@@ -502,47 +551,146 @@ static void                                    node_obs_log(int log_level, const
 		if ((idx == text.length()) || (text[idx] == '\n')) {
 			std::string newmsg = time_and_level + " " + std::string(&text[last_valid_idx], idx - last_valid_idx) + '\n';
 			last_valid_idx     = idx + 1;
-
-			// File Log
-			*logStream << newmsg << std::flush;
-
-            // Internal Log
-			logReport.push(newmsg, log_level);
-
-			// Std Out / Std Err
-			/// Why fwrite and not std::cout and std::cerr?
-			/// Well, it seems that std::cout and std::cerr break if you click in the console window and paste.
-			/// Which is really bad, as nothing gets logged into the console anymore.
-			if (log_level <= LOG_WARNING) {
-				fwrite(newmsg.data(), sizeof(char), newmsg.length(), stderr);
-			}
-			fwrite(newmsg.data(), sizeof(char), newmsg.length(), stdout);
-
-			// Debugger
-#ifdef _WIN32
-			if (IsDebuggerPresent()) {
-				int wNum = MultiByteToWideChar(CP_UTF8, 0, newmsg.c_str(), -1, NULL, 0);
-				if (wNum > 1) {
-					std::wstring wide_buf;
-					std::mutex   wide_mutex;
-
-					std::lock_guard<std::mutex> lock(wide_mutex);
-					wide_buf.reserve(wNum + 1);
-					wide_buf.resize(wNum - 1);
-					MultiByteToWideChar(CP_UTF8, 0, newmsg.c_str(), -1, &wide_buf[0], wNum);
-
-					OutputDebugStringW(wide_buf.c_str());
-				}
-			}
-#endif
+			//
+			logMsgStore.push_back(newmsg);
 		}
 	}
-	*logStream << std::flush;
 
-#if defined(_WIN32) && defined(OBS_DEBUGBREAK_ON_ERROR)
-	if (log_level <= LOG_ERROR && IsDebuggerPresent())
-		__debugbreak();
+  LARGE_INTEGER stopTime;
+  QueryPerformanceCounter(&stopTime);
+
+  LARGE_INTEGER elapsed;
+  elapsed.QuadPart = (stopTime.QuadPart - startTime.QuadPart) * 1000000;
+  elapsed.QuadPart /= frequency.QuadPart;
+	
+	spentMcs += elapsed.QuadPart;
+}
+
+void new_node_obs_log(int log_level, const char* msg, va_list args, void* param)
+{
+  LARGE_INTEGER frequency;
+  QueryPerformanceFrequency(&frequency);
+
+  LARGE_INTEGER startTime;
+  QueryPerformanceCounter(&startTime);
+
+	// Calculate log time.
+	auto timeSinceStart = (std::chrono::high_resolution_clock::now() - tp);
+	auto days           = std::chrono::duration_cast<std::chrono::duration<int, std::ratio<86400>>>(timeSinceStart);
+	timeSinceStart -= days;
+	auto hours = std::chrono::duration_cast<std::chrono::hours>(timeSinceStart);
+	timeSinceStart -= hours;
+	auto minutes = std::chrono::duration_cast<std::chrono::minutes>(timeSinceStart);
+	timeSinceStart -= minutes;
+	auto seconds = std::chrono::duration_cast<std::chrono::seconds>(timeSinceStart);
+	timeSinceStart -= seconds;
+	auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(timeSinceStart);
+	timeSinceStart -= milliseconds;
+	auto microseconds = std::chrono::duration_cast<std::chrono::microseconds>(timeSinceStart);
+	timeSinceStart -= microseconds;
+	auto nanoseconds = std::chrono::duration_cast<std::chrono::nanoseconds>(timeSinceStart);
+
+	// Generate timestamp and log_level part.
+	/// Convert level int to human readable name
+	std::string_view levelname("");
+	switch (log_level) {
+	case LOG_INFO:
+		levelname = "Info";
+		break;
+	case LOG_WARNING:
+		levelname = "Warning";
+		break;
+	case LOG_ERROR:
+		levelname = "Error";
+		break;
+	case LOG_DEBUG:
+		levelname = "Debug";
+		break;
+	default:
+		if (log_level <= 50) {
+			levelname = "Critical";
+		} else if (log_level > 50 && log_level < LOG_ERROR) {
+			levelname = "Error";
+		} else if (log_level > LOG_ERROR && log_level < LOG_WARNING) {
+			levelname = "Alert";
+		} else if (log_level > LOG_WARNING && log_level < LOG_INFO) {
+			levelname = "Hint";
+		} else if (log_level > LOG_INFO) {
+			levelname = "Notice";
+		}
+		break;
+	}
+
+	std::array<char, 128> timebuf{};
+	std::string       timeformat = "[%.3d:%.2d:%.2d:%.2d.%.3d.%.3d.%.3d][%*s]"; // "%*s";
+#ifdef WIN32
+	int length     = sprintf_s(
+        timebuf.data(),
+        timebuf.size(),
+        timeformat.c_str(),
+        days.count(),
+        hours.count(),
+        minutes.count(),
+        seconds.count(),
+        milliseconds.count(),
+        microseconds.count(),
+        nanoseconds.count(),
+        levelname.size(),
+        levelname.data());
+#else
+	int length     = snprintf(
+        timebuf.data(),
+        timebuf.size(),
+        timeformat.c_str(),
+        days.count(),
+        hours.count(),
+        minutes.count(),
+        seconds.count(),
+        milliseconds.count(),
+        microseconds.count(),
+        nanoseconds.count(),
+        levelname.size(),
+        levelname.c_str());
 #endif
+	if (length < 0)
+		return;
+
+	std::string_view time_and_level(timebuf.data(), length);
+
+	// Format incoming text
+	std::vector<char> buf = new_nodeobs_log_formatted_message(msg, args);
+	std::string_view text = (buf.size()) ?
+		std::string_view(buf.data(), buf.size()) : std::string_view("");
+
+	std::lock_guard<std::mutex> lock(logMutex);
+
+	// Split by \n (new-line)
+	size_t last_valid_idx = 0;
+	for (size_t idx = 0; idx <= text.length(); idx++) {
+		if ((idx == text.length()) || (text[idx] == '\n')) {
+			std::string_view line(&text[last_valid_idx], idx - last_valid_idx);
+
+			std::string newmsg;
+			newmsg.reserve(time_and_level.size() + line.size() + 3);
+			newmsg += time_and_level;
+			newmsg += " ";
+			newmsg += line;
+			newmsg += '\n';
+
+			last_valid_idx     = idx + 1;
+			//
+			logMsgStore.push_back(newmsg);
+		}
+	}
+
+  LARGE_INTEGER stopTime;
+  QueryPerformanceCounter(&stopTime);
+
+  LARGE_INTEGER elapsed;
+  elapsed.QuadPart = (stopTime.QuadPart - startTime.QuadPart) * 1000000;
+  elapsed.QuadPart /= frequency.QuadPart;
+	
+	spentMcs += elapsed.QuadPart;
 }
 
 #ifdef WIN32
@@ -717,6 +865,23 @@ void writeCrashHandler(std::vector<char> buffer)
 	close(file_descriptor);
 }
 #endif
+
+static bool checkIfDebugLogsEnabled(const std::string& appdata)
+{
+	bool enabled = false;
+#if defined(_DEBUG)
+	enabled = true;
+#else
+	std::string filename = appdata + "/enable-debug-logs";
+#if defined(_WIN32) && defined(UNICODE)
+	enabled = std::fstream(converter.from_bytes(filename).data()).is_open();
+#else
+	enabled = std::fstream(filename).is_open();
+#endif
+#endif
+	return enabled;
+}
+
 void OBS_API::OBS_API_initAPI(
     void*                          data,
     const int64_t                  id,
@@ -813,18 +978,21 @@ void OBS_API::OBS_API_initAPI(
 	DeleteOldestFile(log_path.c_str(), 3);
 	log_path.append(filename);
 
+	auto logParam = std::make_unique<NodeOBSLogParam>();	
+	logParam->enableDebugLogs = checkIfDebugLogsEnabled(appdata);
+
 #if defined(_WIN32) && defined(UNICODE)
-	std::fstream* logfile =
-	    new std::fstream(converter.from_bytes(log_path.c_str()).c_str(), std::ios_base::out | std::ios_base::trunc);
+	logParam->logStream =
+	    std::fstream(converter.from_bytes(log_path.c_str()).c_str(), std::ios_base::out | std::ios_base::trunc);
 #else
-	std::fstream* logfile = new std::fstream(log_path, std::ios_base::out | std::ios_base::trunc);
+	logParam->logStream = std::fstream(log_path, std::ios_base::out | std::ios_base::trunc);
 #endif
-	if (!logfile->is_open()) {
-		logfile = nullptr;
+	if (!logParam->logStream.is_open()) {
+		logParam.reset();
 		util::CrashManager::AddWarning("Error on log file, failed to open: " + log_path);
 		std::cerr << "Failed to open log file" << std::endl;
 	}
-	base_set_log_handler(node_obs_log, logfile);
+	base_set_log_handler(old_node_obs_log, (logParam) ? logParam.release() : nullptr);
 #ifndef _DEBUG
 	// Redirect the ipc log callbacks to our log handler
 	ipc::register_log_callback([](void* data, const char* fmt, va_list args) { 

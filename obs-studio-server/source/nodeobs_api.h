@@ -35,6 +35,15 @@
 
 extern std::string g_moduleDirectory;
 
+void reserveLogMsgStoreSpace();
+void clearLogMsgStore();
+
+void resetCounter();
+std::uint64_t getCounter();
+
+void old_node_obs_log(int log_level, const char* msg, va_list args, void* param);
+void new_node_obs_log(int log_level, const char* msg, va_list args, void* param);
+
 namespace util
 {
 	class CrashManager;
