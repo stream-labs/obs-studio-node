@@ -409,7 +409,7 @@ std::chrono::high_resolution_clock::time_point tp = std::chrono::high_resolution
 static void                                    node_obs_log(int log_level, const char* msg, va_list args, void* param)
 {
 	if (param == nullptr)
-		return;	
+		return;
 
 	// Calculate log time.
 	auto timeSinceStart = (std::chrono::high_resolution_clock::now() - tp);
