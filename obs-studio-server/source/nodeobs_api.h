@@ -21,6 +21,7 @@
 #include <io.h>
 #endif
 #include <iostream>
+#include <fstream>
 #include <ipc-server.hpp>
 #include <math.h>
 #include <obs.h>
@@ -34,6 +35,14 @@
 #include "util-osx.hpp"
 
 extern std::string g_moduleDirectory;
+
+struct NodeOBSLogParam final
+{
+	std::fstream logStream;
+	bool enableDebugLogs = false;
+};
+
+void node_obs_log(int log_level, const char* msg, va_list args, void* param);
 
 namespace util
 {

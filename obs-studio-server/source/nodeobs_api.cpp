@@ -382,10 +382,10 @@ void outdated_driver_error::catch_error(const char* msg)
 	}
 }
 
-inline std::string nodeobs_log_formatted_message(const char* format, va_list args)
+inline std::vector<char> nodeobs_log_formatted_message(const char* format, va_list args)
 {
 	if (!format)
-		return "";
+		return std::vector<char>();
 #ifdef WIN32
 	size_t            length  = _vscprintf(format, args);
 #else
@@ -395,15 +395,18 @@ inline std::string nodeobs_log_formatted_message(const char* format, va_list arg
 #endif
 	std::vector<char> buf     = std::vector<char>(length + 1, '\0');
 	size_t            written = vsprintf(buf.data(), format, args);
-	return std::string(buf.begin(), buf.begin() + length);
+	if (written <= 0)
+		return std::vector<char>();
+	buf.resize(written);
+	return buf;
 }
 
 std::chrono::high_resolution_clock             hrc;
 std::chrono::high_resolution_clock::time_point tp = std::chrono::high_resolution_clock::now();
-static void                                    node_obs_log(int log_level, const char* msg, va_list args, void* param)
+void                                    node_obs_log(int log_level, const char* msg, va_list args, void* param)
 {
 	if (param == nullptr)
-		return;
+		return;	
 
 	// Calculate log time.
 	auto timeSinceStart = (std::chrono::high_resolution_clock::now() - tp);
@@ -423,7 +426,7 @@ static void                                    node_obs_log(int log_level, const
 
 	// Generate timestamp and log_level part.
 	/// Convert level int to human readable name
-	std::string levelname = "";
+	std::string_view levelname("");
 	switch (log_level) {
 	case LOG_INFO:
 		levelname = "Info";
@@ -452,7 +455,7 @@ static void                                    node_obs_log(int log_level, const
 		break;
 	}
 
-	std::vector<char> timebuf(128, '\0');
+	std::array<char, 128> timebuf{};
 	std::string       timeformat = "[%.3d:%.2d:%.2d:%.2d.%.3d.%.3d.%.3d][%*s]"; // "%*s";
 #ifdef WIN32
 	int length     = sprintf_s(
@@ -467,7 +470,7 @@ static void                                    node_obs_log(int log_level, const
         microseconds.count(),
         nanoseconds.count(),
         levelname.length(),
-        levelname.c_str());
+        levelname.data());
 #else
 	int length     = snprintf(
         timebuf.data(),
@@ -481,30 +484,43 @@ static void                                    node_obs_log(int log_level, const
         microseconds.count(),
         nanoseconds.count(),
         levelname.length(),
-        levelname.c_str());
+        levelname.data());
 #endif
 	if (length < 0)
 		return;
 
-	std::string time_and_level = std::string(timebuf.data(), length);
+	std::string_view time_and_level(timebuf.data(), length);
 
 	// Format incoming text
-	std::string text = nodeobs_log_formatted_message(msg, args);
+	const std::vector<char> buf = nodeobs_log_formatted_message(msg, args);
+	std::string_view text = (buf.size()) ?
+		std::string_view(buf.data(), buf.size()) : std::string_view("");	
 
 	std::lock_guard<std::mutex> lock(logMutex);
 
-	outdated_driver_error::instance()->catch_error(msg);	
-	std::fstream* logStream = reinterpret_cast<std::fstream*>(param);
+	outdated_driver_error::instance()->catch_error(msg);
+	NodeOBSLogParam* logParam = reinterpret_cast<NodeOBSLogParam*>(param);
 
 	// Split by \n (new-line)
 	size_t last_valid_idx = 0;
 	for (size_t idx = 0; idx <= text.length(); idx++) {
 		if ((idx == text.length()) || (text[idx] == '\n')) {
-			std::string newmsg = time_and_level + " " + std::string(&text[last_valid_idx], idx - last_valid_idx) + '\n';
+			std::string_view line = (idx > last_valid_idx) ? 
+				std::string_view(&text[last_valid_idx], idx - last_valid_idx) : std::string_view("");
+
+			std::string newmsg;
+			newmsg.reserve(time_and_level.size() + line.size() + 3);
+			newmsg += time_and_level;
+			newmsg += " ";
+			newmsg += line;
+			newmsg += '\n';
+
 			last_valid_idx     = idx + 1;
 
 			// File Log
-			*logStream << newmsg << std::flush;
+			if (log_level != LOG_DEBUG || logParam->enableDebugLogs) {
+				logParam->logStream << newmsg << std::flush;
+			}
 
             // Internal Log
 			logReport.push(newmsg, log_level);
@@ -537,7 +553,9 @@ static void                                    node_obs_log(int log_level, const
 #endif
 		}
 	}
-	*logStream << std::flush;
+	if (log_level != LOG_DEBUG || logParam->enableDebugLogs) {
+		logParam->logStream << std::flush;
+	}
 
 #if defined(_WIN32) && defined(OBS_DEBUGBREAK_ON_ERROR)
 	if (log_level <= LOG_ERROR && IsDebuggerPresent())
@@ -717,6 +735,23 @@ void writeCrashHandler(std::vector<char> buffer)
 	close(file_descriptor);
 }
 #endif
+
+static bool checkIfDebugLogsEnabled(const std::string& appdata)
+{
+	bool enabled = false;
+#if defined(_DEBUG)
+	enabled = true;
+#else
+	std::string filename = appdata + "/enable-debug-logs";
+#if defined(_WIN32) && defined(UNICODE)
+	enabled = std::fstream(converter.from_bytes(filename).data()).is_open();
+#else
+	enabled = std::fstream(filename).is_open();
+#endif
+#endif
+	return enabled;
+}
+
 void OBS_API::OBS_API_initAPI(
     void*                          data,
     const int64_t                  id,
@@ -813,18 +848,21 @@ void OBS_API::OBS_API_initAPI(
 	DeleteOldestFile(log_path.c_str(), 3);
 	log_path.append(filename);
 
+	auto logParam = std::make_unique<NodeOBSLogParam>();	
+	logParam->enableDebugLogs = checkIfDebugLogsEnabled(appdata);
+
 #if defined(_WIN32) && defined(UNICODE)
-	std::fstream* logfile =
-	    new std::fstream(converter.from_bytes(log_path.c_str()).c_str(), std::ios_base::out | std::ios_base::trunc);
+	logParam->logStream =
+	    std::fstream(converter.from_bytes(log_path.c_str()).c_str(), std::ios_base::out | std::ios_base::trunc);
 #else
-	std::fstream* logfile = new std::fstream(log_path, std::ios_base::out | std::ios_base::trunc);
+	logParam->logStream = std::fstream(log_path, std::ios_base::out | std::ios_base::trunc);
 #endif
-	if (!logfile->is_open()) {
-		logfile = nullptr;
+	if (!logParam->logStream.is_open()) {
+		logParam.reset();
 		util::CrashManager::AddWarning("Error on log file, failed to open: " + log_path);
 		std::cerr << "Failed to open log file" << std::endl;
 	}
-	base_set_log_handler(node_obs_log, logfile);
+	base_set_log_handler(node_obs_log, (logParam) ? logParam.release() : nullptr);
 #ifndef _DEBUG
 	// Redirect the ipc log callbacks to our log handler
 	ipc::register_log_callback([](void* data, const char* fmt, va_list args) { 

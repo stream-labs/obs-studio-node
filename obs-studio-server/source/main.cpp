@@ -154,149 +154,57 @@ namespace System
 	}
 } // namespace System
 
+std::atomic_bool run = false;
+
+const std::string a1("streamlabs1");
+const std::string b1("logitech1");
+
+static void testThread1()
+{
+	std::uint64_t k = 0;
+	while (!run) {
+		++k;
+	}
+
+	for (int i = 0; i < 50000; ++i) {
+		blog(LOG_INFO, "THREAD1 LOG MESSAGE: %I64u %d %s\n%d %s", k, rand(), a1.data(), rand(), b1.data());
+	}
+}
+
+const std::string a2("streamlabs2");
+const std::string b2("logitech2");
+
+static void testThread2()
+{
+	std::uint64_t k = 0;
+	while (!run) {
+		++k;
+	}
+
+	for (int i = 0; i < 50000; ++i) {
+		blog(LOG_INFO, "THREAD2 LOG MESSAGE: %I64u %d %s\n%d %s", k, rand(), a2.data(), rand(), b2.data());
+	}
+}
+
 int main(int argc, char* argv[])
 {
-#ifdef __APPLE__
- 	// Reuse file discriptors 1 and 2 in case they not open at launch so output to stdout and stderr not redirected to unexpected file
-	struct stat sb;
-	bool override_std_fd = false;
-	int out_pid = -1;
-	int out_err = -1;
-	if (fstat(1, &sb) != 0) {
-		override_std_fd = true;
-		int out_pid = open("/tmp/slobs-stdout", O_WRONLY| O_CREAT | O_DSYNC);
-		int out_err = open("/tmp/slobs-stderr", O_WRONLY| O_CREAT | O_DSYNC);
-	}
+	auto logParam = std::make_unique<NodeOBSLogParam>();	
+	logParam->enableDebugLogs = true;
+	logParam->logStream = std::fstream(L"C:\\Temp\\test-log-stab.txt", std::ios_base::out | std::ios_base::trunc);
 
-	g_util_osx = new UtilInt();
-	g_util_osx->init();
-#endif
-	std::string socketPath      = "";
-	std::string receivedVersion = "";
-#ifdef __APPLE__
-	socketPath = "/tmp/";
-	if (argc != 4) {
-#else
-	if (argc != 3) {
-#endif
-		std::cerr << "Version mismatch. Expected <socketpath> <version> params";
-		return ipc::ProcessInfo::ExitCode::VERSION_MISMATCH;
-	}
+	base_set_log_handler(node_obs_log, logParam.release());
 
-	socketPath += argv[1];
-	receivedVersion = argv[2];
+	std::this_thread::sleep_for(std::chrono::milliseconds(10));
 
-    std::string myVersion = GET_OSN_VERSION;
+	std::thread thread1(testThread1);
+	std::thread thread2(testThread2);
 
-    #ifdef __APPLE__
-        std::cerr << "Version recv: " << receivedVersion << std::endl;
-        std::cerr << "Version compiled " << myVersion << std::endl;
-    #endif
+	std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
-	// Check versions
-	if (receivedVersion != myVersion) {
-		std::cerr << "Versions mismatch. Server version: " << myVersion << "but received client version: " << receivedVersion;
-		return ipc::ProcessInfo::ExitCode::VERSION_MISMATCH;
-	}
+	run = true;
 
-	// Usage:
-	// argv[0] = Path to this application. (Usually given by default if run via path-based command!)
-	// argv[1] = Path to a named socket.
-	// argv[2] = version from client ; must match the server version
+	thread1.join();
+	thread2.join();
 
-	// Instance
-	ipc::server myServer;
-	bool        doShutdown = false;
-	ServerData  sd;
-	sd.last_disconnect = sd.last_connect = std::chrono::high_resolution_clock::now();
-	sd.count_connected                   = 0;
-	OBS_API::SetCrashHandlerPipe(std::wstring(socketPath.begin(), socketPath.end()));
-
-	// Classes
-	/// System
-	{
-		std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("System");
-		cls->register_function(
-		    std::make_shared<ipc::function>("Shutdown", std::vector<ipc::type>{}, System::Shutdown, &doShutdown));
-		myServer.register_collection(cls);
-	};
-
-	/// OBS Studio Node
-	osn::Global::Register(myServer);
-	osn::Source::Register(myServer);
-	osn::Input::Register(myServer);
-	osn::Filter::Register(myServer);
-	osn::Transition::Register(myServer);
-	osn::Scene::Register(myServer);
-	osn::SceneItem::Register(myServer);
-	osn::Fader::Register(myServer);
-	osn::Volmeter::Register(myServer);
-	osn::Properties::Register(myServer);
-	osn::Video::Register(myServer);
-	osn::Module::Register(myServer);
-	CallbackManager::Register(myServer);
-	OBS_API::Register(myServer);
-	OBS_content::Register(myServer);
-	OBS_service::Register(myServer);
-	OBS_settings::Register(myServer);
-	OBS_settings::Register(myServer);
-	autoConfig::Register(myServer);
-	osn::Service::Register(myServer);
-
-	OBS_API::CreateCrashHandlerExitPipe();
-
-	// Register Connect/Disconnect Handlers
-	myServer.set_connect_handler(ServerConnectHandler, &sd);
-	myServer.set_disconnect_handler(ServerDisconnectHandler, &sd);
-
-	// Initialize Server
-	try {
-		myServer.initialize(socketPath.c_str());
-	} catch (std::exception& e) {
-		std::cerr << "Initialization failed with error " << e.what() << "." << std::endl;
-		return ipc::ProcessInfo::ExitCode::OTHER_ERROR;
-	} catch (...) {
-		std::cerr << "Failed to initialize server" << std::endl;
-		return ipc::ProcessInfo::ExitCode::OTHER_ERROR;
-	}
-
-	// Reset Connect/Disconnect time.
-	sd.last_disconnect = sd.last_connect = std::chrono::high_resolution_clock::now();
-
-#ifdef __APPLE__
-	// WARNING: Blocking function -> this won't return until the application
-	// receives a stop or terminate event
-	g_util_osx->runApplication();
-#endif
-#ifdef WIN32
-	bool waitBeforeClosing = false;
-	while (!doShutdown) {
-		if (sd.count_connected == 0) {
-			auto tp    = std::chrono::high_resolution_clock::now();
-			auto delta = tp - sd.last_disconnect;
-			if (std::chrono::duration_cast<std::chrono::milliseconds>(delta).count() > 5000) {
-				doShutdown = true;
-				waitBeforeClosing = true;
-			}
-		}
-		std::this_thread::sleep_for(std::chrono::milliseconds(50));
-	}
-	// Wait for crash handler listening thread to finish.
-	// flag waitBeforeClosing: server process expect to receive the exit message from the crash-handler 
-	// before going further with shutdown. It needed for usecase where obs64 process stay alive and 
-	// continue streaming till user confirms exit in crash-handler.
-	OBS_API::WaitCrashHandlerClose(waitBeforeClosing);
-#endif
-	osn::Source::finalize_global_signals();
-	OBS_API::destroyOBS_API();
-
-	// Finalize Server
-	myServer.finalize();
-#ifdef __APPLE__
-	if (override_std_fd) {
-		close(out_pid);
-		close(out_err);
-	}
-#endif		
 	return 0;
 }
