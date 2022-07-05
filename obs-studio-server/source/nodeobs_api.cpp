@@ -740,7 +740,9 @@ static bool checkIfDebugLogsEnabled(const std::string& appdata)
 	// https://stackoverflow.com/questions/135688/setting-environment-variables-on-os-x
 	char* envValue = getenv("SL_DESKTOP_ENABLE_DEBUG_LOGS");
 	if (envValue != nullptr) {
-		return (astrcmpi(envValue, "on") == 0 || astrcmpi(envValue, "yes") == 0);
+		if (astrcmpi(envValue, "on") == 0 || astrcmpi(envValue, "yes") == 0) {
+			return true;
+		}
 	}
 	// Even if the environment variable is set and the logs are turned off,
 	// we still check for the file to avoid issues with finding where the variable is defined.
