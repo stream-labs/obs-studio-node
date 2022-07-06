@@ -461,9 +461,10 @@ static void                                    node_obs_log(int log_level, const
 #ifdef WIN32
 	std::string thread_id = std::to_string(GetCurrentThreadId());
 #else
-	// I am not sure it is the most optimal way for macOS.
-	// Anyway, macOS is not a priority for us.
-	std::string thread_id = std::to_string(pthread_self());
+	// Not sure it is the best way for macOS.
+	uint64_t tid;
+	pthread_threadid_np(NULL, &tid);
+	std::string thread_id = std::to_string(tid);
 #endif
 
 	std::vector<char> timebuf(160, '\0');
