@@ -458,8 +458,16 @@ static void                                    node_obs_log(int log_level, const
 		break;
 	}
 
-	std::vector<char> timebuf(128, '\0');
-	std::string       timeformat = "[%.3d:%.2d:%.2d:%.2d.%.3d.%.3d.%.3d][%*s]"; // "%*s";
+#ifdef WIN32
+	std::string thread_id = std::to_string(GetCurrentThreadId());
+#else
+	// I am not sure it is the most optimal way for macOS.
+	// Anyway, macOS is not a priority for us.
+	std::string thread_id = std::to_string(pthread_self());
+#endif
+
+	std::vector<char> timebuf(160, '\0');
+	std::string       timeformat = "[%.3d:%.2d:%.2d:%.2d.%.3d.%.3d.%.3d][%*s][%*s]"; // "%*s";
 #ifdef WIN32
 	int length     = sprintf_s(
         timebuf.data(),
@@ -472,6 +480,8 @@ static void                                    node_obs_log(int log_level, const
         milliseconds.count(),
         microseconds.count(),
         nanoseconds.count(),
+        thread_id.length(),
+        thread_id.c_str(),
         levelname.length(),
         levelname.c_str());
 #else
@@ -486,6 +496,8 @@ static void                                    node_obs_log(int log_level, const
         milliseconds.count(),
         microseconds.count(),
         nanoseconds.count(),
+        thread_id.length(),
+        thread_id.c_str(),
         levelname.length(),
         levelname.c_str());
 #endif
