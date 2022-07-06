@@ -733,19 +733,21 @@ static bool checkIfDebugLogsEnabled(const std::string& appdata)
 #if defined(_DEBUG)
 	return true;
 #else
-	// When you change the environment variable and start
-	// Streamlabs Desktop via a console/terminal,
-	// you may have to restart the console/terminal.
-	// Using the environment variable on macOS may be even more complicated:
-	// https://stackoverflow.com/questions/135688/setting-environment-variables-on-os-x
+	// When you change the environment variable and start Streamlabs Desktop
+	// via a console/terminal, you may have to restart the console/terminal.
+	// On macOS, execute "export SL_DESKTOP_ENABLE_DEBUG_LOGS=YES" before starting
+	// Streamlabs Desktop via the console/terminal.
+	// To set the environment variable globally on macOS, use the solution from the question here:
+	// https://apple.stackexchange.com/questions/289060/setting-variables-in-environment-plist
+	// Reboot is required!
 	char* envValue = getenv("SL_DESKTOP_ENABLE_DEBUG_LOGS");
 	if (envValue != nullptr) {
 		if (astrcmpi(envValue, "on") == 0 || astrcmpi(envValue, "yes") == 0) {
 			return true;
 		}
 	}
-	// Even if the environment variable is set and the logs are turned off,
-	// we still check for the file to avoid issues with finding where the variable is defined.
+	// Even if the environment variable is set "off"/"no" explicitly,
+	// we ignore it and check for the file.
 	const std::string filename = appdata + "/enable-debug-logs";
 #if defined(_WIN32) && defined(UNICODE)
 	return std::fstream(converter.from_bytes(filename).data()).is_open();
