@@ -388,8 +388,6 @@ void outdated_driver_error::catch_error(const char* msg)
 	}
 }
 
-// - Return the vector to avoid copying
-// - I would use "inline" only in headers when it is required by modern C++.
 static std::vector<char> nodeobs_log_formatted_message(const char* format, va_list args)
 {
 	if (!format)
@@ -434,8 +432,6 @@ static void                                    node_obs_log(int log_level, const
 
 	// Generate timestamp and log_level part.
 	/// Convert level int to human readable name
-	// std::string_view is a light weight container which does not copy the data
-	// but just stores the data pointer and size.	
 	std::string_view levelname("");
 	switch (log_level) {
 	case LOG_INFO:
@@ -474,10 +470,7 @@ static void                                    node_obs_log(int log_level, const
 	std::string thread_id = std::to_string(tid);
 #endif
 
-	// For a pre-defined size array std::array may be more appropriate,
-	// it is C++ wrapper for regular arrays.
 	std::array<char, 160> timebuf{};
-	// Again, avoid copying here and create the object only once
 	static const std::string_view timeformat("[%.3d:%.2d:%.2d:%.2d.%.3d.%.3d.%.3d][%*s][%*s]");
 #ifdef WIN32
 	int length     = sprintf_s(
@@ -515,13 +508,10 @@ static void                                    node_obs_log(int log_level, const
 	if (length < 0)
 		return;
 
-	// Avoid copying again
 	std::string_view time_and_level(timebuf.data(), length); 
 
 	// Format incoming text	
 	std::vector<char> buf = nodeobs_log_formatted_message(msg, args);
-	// Again avoid copying from vector to std::string but just use std::string_view
-	// which has all the methods as std::string
 	std::string_view text = (buf.size()) ?
 		std::string_view(buf.data(), buf.size()) : std::string_view("");
 
@@ -534,13 +524,10 @@ static void                                    node_obs_log(int log_level, const
 	size_t last_valid_idx = 0;
 	for (size_t idx = 0; idx <= text.length(); idx++) {
 		if ((idx == text.length()) || (text[idx] == '\n')) {
-			// Again, avoid copying
 			std::string_view line = (idx > last_valid_idx) ?
 				std::string_view(&text[last_valid_idx], idx - last_valid_idx) : std::string_view("");
 
 			std::string newmsg;
-			// I hope it will use the same buffer without relocation
-			// but there is no guarantee
 			newmsg.reserve(time_and_level.size() + line.size() + 3);
 			newmsg += time_and_level;
 			newmsg += " ";
