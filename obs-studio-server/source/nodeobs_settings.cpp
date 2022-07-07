@@ -1073,6 +1073,7 @@ static bool EncoderAvailable(const char* encoder)
 	while (obs_enum_encoder_types(i++, &val)) {
 		if (val == nullptr)
 			continue;
+		blog(LOG_INFO, "enc ID: %s", val);
 		if (strcmp(val, encoder) == 0)
 			return true;
 	}
