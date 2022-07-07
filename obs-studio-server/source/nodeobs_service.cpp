@@ -1653,6 +1653,8 @@ void OBS_service::updateVideoStreamingEncoder(bool isSimpleMode)
 				encoderID  = APPLE_SOFTWARE_VIDEO_ENCODER;
 			} else if (strcmp(encoder, APPLE_HARDWARE_VIDEO_ENCODER) == 0)  {
 				encoderID  = APPLE_HARDWARE_VIDEO_ENCODER;
+			} else if (strcmp(encoder, APPLE_HARDWARE_VIDEO_ENCODER_M1) == 0)  {
+				encoderID  = APPLE_HARDWARE_VIDEO_ENCODER_M1;
 			} else {
 				presetType = "Preset";
 				encoderID  = "obs_x264";
@@ -1700,7 +1702,8 @@ void OBS_service::updateVideoStreamingEncoder(bool isSimpleMode)
 			obs_encoder_set_preferred_video_format(videoStreamingEncoder, VIDEO_FORMAT_NV12);
 
 		if (strcmp(encoder, APPLE_SOFTWARE_VIDEO_ENCODER) == 0 ||
-				strcmp(encoder, APPLE_HARDWARE_VIDEO_ENCODER) == 0) {
+				strcmp(encoder, APPLE_HARDWARE_VIDEO_ENCODER) == 0 ||
+                strcmp(encoder, APPLE_HARDWARE_VIDEO_ENCODER_M1) == 0) {
 			const char* profile = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "Profile");
 			if (profile)
 				obs_data_set_string(h264Settings, "profile", profile);
