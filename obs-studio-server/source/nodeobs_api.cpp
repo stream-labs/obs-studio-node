@@ -393,14 +393,16 @@ static std::vector<char> nodeobs_log_formatted_message(const char* format, va_li
 	if (!format)
 		return std::vector<char>();
 #ifdef WIN32
-	size_t            length  = _vscprintf(format, args);
+	int length  = _vscprintf(format, args);
 #else
 	va_list argcopy;
 	va_copy(argcopy, args);
-	size_t            length  = vsnprintf(NULL, 0, format, argcopy);
+	int length  = vsnprintf(NULL, 0, format, argcopy);
 #endif
+	if (length <= 0)
+		return std::vector<char>();
 	std::vector<char> buf     = std::vector<char>(length + 1, '\0');
-	size_t            written = vsprintf(buf.data(), format, args);
+	int written = vsprintf(buf.data(), format, args);
 	if (written <= 0)
 		return std::vector<char>();
 	buf.resize(written);
