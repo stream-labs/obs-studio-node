@@ -510,7 +510,7 @@ static void                                    node_obs_log(int log_level, const
 	if (length < 0)
 		return;
 
-	std::string_view time_and_level(timebuf.data(), length); 
+	std::string_view time_and_level(timebuf.data(), length);
 
 	// Format incoming text	
 	std::vector<char> buf = nodeobs_log_formatted_message(msg, args);
