@@ -388,20 +388,25 @@ void outdated_driver_error::catch_error(const char* msg)
 	}
 }
 
-inline std::string nodeobs_log_formatted_message(const char* format, va_list args)
+static std::vector<char> nodeobs_log_formatted_message(const char* format, va_list args)
 {
 	if (!format)
-		return "";
+		return std::vector<char>();
 #ifdef WIN32
-	size_t            length  = _vscprintf(format, args);
+	int length = _vscprintf(format, args);
 #else
 	va_list argcopy;
 	va_copy(argcopy, args);
-	size_t            length  = vsnprintf(NULL, 0, format, argcopy);
+	int length = vsnprintf(NULL, 0, format, argcopy);
 #endif
+	if (length <= 0)
+		return std::vector<char>();
 	std::vector<char> buf     = std::vector<char>(length + 1, '\0');
-	size_t            written = vsprintf(buf.data(), format, args);
-	return std::string(buf.begin(), buf.begin() + length);
+	int written = vsprintf(buf.data(), format, args);
+	if (written <= 0)
+		return std::vector<char>();
+	buf.resize(written);
+	return buf;
 }
 
 std::chrono::high_resolution_clock             hrc;
@@ -429,7 +434,7 @@ static void                                    node_obs_log(int log_level, const
 
 	// Generate timestamp and log_level part.
 	/// Convert level int to human readable name
-	std::string levelname = "";
+	std::string_view levelname("");
 	switch (log_level) {
 	case LOG_INFO:
 		levelname = "Info";
@@ -467,13 +472,13 @@ static void                                    node_obs_log(int log_level, const
 	std::string thread_id = std::to_string(tid);
 #endif
 
-	std::vector<char> timebuf(160, '\0');
-	std::string       timeformat = "[%.3d:%.2d:%.2d:%.2d.%.3d.%.3d.%.3d][%*s][%*s]"; // "%*s";
+	std::array<char, 160> timebuf{};
+	static const std::string_view timeformat("[%.3d:%.2d:%.2d:%.2d.%.3d.%.3d.%.3d][%*s][%*s]");
 #ifdef WIN32
 	int length     = sprintf_s(
         timebuf.data(),
         timebuf.size(),
-        timeformat.c_str(),
+        timeformat.data(),
         days.count(),
         hours.count(),
         minutes.count(),
@@ -484,12 +489,12 @@ static void                                    node_obs_log(int log_level, const
         thread_id.length(),
         thread_id.c_str(),
         levelname.length(),
-        levelname.c_str());
+        levelname.data());
 #else
 	int length     = snprintf(
         timebuf.data(),
         timebuf.size(),
-        timeformat.c_str(),
+        timeformat.data(),
         days.count(),
         hours.count(),
         minutes.count(),
@@ -500,15 +505,17 @@ static void                                    node_obs_log(int log_level, const
         thread_id.length(),
         thread_id.c_str(),
         levelname.length(),
-        levelname.c_str());
+        levelname.data());
 #endif
 	if (length < 0)
 		return;
 
-	std::string time_and_level = std::string(timebuf.data(), length);
+	std::string_view time_and_level(timebuf.data(), length);
 
-	// Format incoming text
-	std::string text = nodeobs_log_formatted_message(msg, args);
+	// Format incoming text	
+	std::vector<char> buf = nodeobs_log_formatted_message(msg, args);
+	std::string_view text = (buf.size()) ?
+		std::string_view(buf.data(), buf.size()) : std::string_view("");
 
 	std::lock_guard<std::mutex> lock(logMutex);
 
@@ -519,7 +526,16 @@ static void                                    node_obs_log(int log_level, const
 	size_t last_valid_idx = 0;
 	for (size_t idx = 0; idx <= text.length(); idx++) {
 		if ((idx == text.length()) || (text[idx] == '\n')) {
-			std::string newmsg = time_and_level + " " + std::string(&text[last_valid_idx], idx - last_valid_idx) + '\n';
+			std::string_view line = (idx > last_valid_idx) ?
+				std::string_view(&text[last_valid_idx], idx - last_valid_idx) : std::string_view("");
+
+			std::string newmsg;
+			newmsg.reserve(time_and_level.size() + line.size() + 3);
+			newmsg += time_and_level;
+			newmsg += " ";
+			newmsg += line;
+			newmsg += '\n';
+
 			last_valid_idx     = idx + 1;
 
 			// File Log
