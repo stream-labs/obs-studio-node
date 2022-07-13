@@ -762,16 +762,19 @@ static bool checkIfDebugLogsEnabled(const std::string& appdata)
 #if defined(_DEBUG)
 	return true;
 #else
+	if (currentVersion.find("preview") != std::string::npos) {
+		return true;
+	}
 	// When you change the environment variable and start Streamlabs Desktop
 	// via a console/terminal, you may have to restart the console/terminal.
-	// On macOS, execute "export SL_DESKTOP_ENABLE_DEBUG_LOGS=YES" before starting
+	// On macOS, execute "export SLOBS_PRODUCTION_DEBUG=true" before starting
 	// Streamlabs Desktop via the console/terminal.
 	// To set the environment variable globally on macOS, use the solution from the question here:
 	// https://apple.stackexchange.com/questions/289060/setting-variables-in-environment-plist
 	// Reboot is required!
-	char* envValue = getenv("SL_DESKTOP_ENABLE_DEBUG_LOGS");
+	char* envValue = getenv("SLOBS_PRODUCTION_DEBUG");
 	if (envValue != nullptr) {
-		if (astrcmpi(envValue, "on") == 0 || astrcmpi(envValue, "yes") == 0) {
+		if (astrcmpi(envValue, "true") == 0) {
 			return true;
 		}
 	}
