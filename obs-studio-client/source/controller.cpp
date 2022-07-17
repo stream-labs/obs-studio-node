@@ -361,7 +361,7 @@ std::shared_ptr<ipc::client> Controller::connect(
 #else
 			path = "/tmp/" + uri;
 #endif
-			cl = ipc::client::create(path);
+			cl = ipc::client::create(path, std::bind(&Controller::onDisconnect, this));
 		} catch (...) {
 			cl = nullptr;
 		}
@@ -383,6 +383,7 @@ std::shared_ptr<ipc::client> Controller::connect(
 		return nullptr;
 	}
 
+	m_exitOnDisconnect = true;
 	m_connection = cl;
 	return m_connection;
 }
@@ -390,7 +391,14 @@ std::shared_ptr<ipc::client> Controller::connect(
 void Controller::disconnect()
 {
 	if (m_isServer) {
+		// We are asking the server to shutdown,
+		// so we already know the server will disconnect.
+		// There is no reason to exit.
+		m_exitOnDisconnect = false;
 		m_connection->call_synchronous_helper("System", "Shutdown", {});
+		// We do not want to get any notifications from the client anymore,
+		// so just stop it.
+		m_connection->stop();
 		m_isServer = false;
 	}
 	m_connection = nullptr;
@@ -403,6 +411,15 @@ DWORD Controller::GetExitCode() {
 std::shared_ptr<ipc::client> Controller::GetConnection()
 {
 	return m_connection;
+}
+
+void Controller::onDisconnect()
+{
+	if (m_exitOnDisconnect) {
+		// This is just reproduces the original Windows client behavior.
+		// See: lib-streamlabs-ipc\source\windows\ipc-client-win.cpp
+		exit(1);
+	}
 }
 
 Napi::Value js_setServerPath(const Napi::CallbackInfo& info)
