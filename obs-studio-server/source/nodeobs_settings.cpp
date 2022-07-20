@@ -1336,8 +1336,8 @@ void OBS_settings::getSimpleOutputSettings(
 			// preset = curAMDPreset;
 			entries.push_back(preset);
 		} else if (strcmp(encoder, APPLE_SOFTWARE_VIDEO_ENCODER) == 0 ||
-            strcmp(encoder, APPLE_HARDWARE_VIDEO_ENCODER) == 0 ||
-            strcmp(encoder, APPLE_HARDWARE_VIDEO_ENCODER_M1) == 0) {
+			strcmp(encoder, APPLE_HARDWARE_VIDEO_ENCODER) == 0 ||
+			strcmp(encoder, APPLE_HARDWARE_VIDEO_ENCODER_M1) == 0) {
 			preset.push_back(std::make_pair("name", ipc::value("Profile")));
 			preset.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
 			preset.push_back(std::make_pair("description", ipc::value("")));
@@ -2895,8 +2895,8 @@ void OBS_settings::saveAdvancedOutputStreamingSettings(std::vector<SubCategory> 
 	std::string encoderID = config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "Encoder");
 
 	if (!applyServiceSettings && (
-        encoderID.compare(APPLE_HARDWARE_VIDEO_ENCODER) == 0 ||
-        encoderID.compare(APPLE_HARDWARE_VIDEO_ENCODER_M1) == 0))
+		encoderID.compare(APPLE_HARDWARE_VIDEO_ENCODER) == 0 ||
+		encoderID.compare(APPLE_HARDWARE_VIDEO_ENCODER_M1) == 0))
 		config_set_bool(ConfigManager::getInstance().getBasic(), "AdvOut", "ApplyServiceSettings", true);
 #endif
 
