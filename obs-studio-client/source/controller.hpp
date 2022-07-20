@@ -57,8 +57,7 @@ class Controller
 
 	private:
 	void onDisconnect();
-	
-	std::atomic_bool             m_exitOnDisconnect = true;
+
 	bool                         m_isServer = false;
 	std::shared_ptr<ipc::client> m_connection;
 	ipc::ProcessInfo                  procId;

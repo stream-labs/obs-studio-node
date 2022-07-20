@@ -383,7 +383,6 @@ std::shared_ptr<ipc::client> Controller::connect(
 		return nullptr;
 	}
 
-	m_exitOnDisconnect = true;
 	m_connection = cl;
 	return m_connection;
 }
@@ -391,10 +390,6 @@ std::shared_ptr<ipc::client> Controller::connect(
 void Controller::disconnect()
 {
 	if (m_isServer) {
-		// We are asking the server to shutdown,
-		// so we already know the server will disconnect.
-		// There is no reason to exit.
-		m_exitOnDisconnect = false;
 		m_connection->call_synchronous_helper("System", "Shutdown", {});
 		// We do not want to get any notifications from the client anymore,
 		// so just stop it.
@@ -415,11 +410,11 @@ std::shared_ptr<ipc::client> Controller::GetConnection()
 
 void Controller::onDisconnect()
 {
-	if (m_exitOnDisconnect) {
-		// This is just reproduces the original Windows client behavior.
-		// See: lib-streamlabs-ipc\source\windows\ipc-client-win.cpp
-		exit(1);
-	}
+	// In the previous IPC version it would call |exit(1)| instead of calling this method.
+	// That behavior caused at least 2 issues:
+	// - The worker window process exits prematurely on shutdown leaving the other window processes frozen.
+	// - The app window goes to an invalid state without any buttons to close it if the server process initialization fails.
+	// So, currently, we do nothing here.
 }
 
 Napi::Value js_setServerPath(const Napi::CallbackInfo& info)
