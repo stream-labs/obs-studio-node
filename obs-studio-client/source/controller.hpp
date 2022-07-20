@@ -17,7 +17,6 @@
 ******************************************************************************/
 
 #pragma once
-#include <atomic>
 #include <memory>
 #include <map>
 #include <string>
