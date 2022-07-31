@@ -294,7 +294,6 @@ int main(int argc, char* argv[])
 
 	// Then, shutdown OBS
 	OBS_API::destroyOBS_API();
-
 #ifdef __APPLE__
 	if (override_std_fd) {
 		close(out_pid);
