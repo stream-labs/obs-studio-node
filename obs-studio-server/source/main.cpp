@@ -288,10 +288,12 @@ int main(int argc, char* argv[])
 	OBS_API::WaitCrashHandlerClose(waitBeforeClosing);
 #endif
 	osn::Source::finalize_global_signals();
-	OBS_API::destroyOBS_API();
 
-	// Finalize Server
+	// First, be sure there are no connected clients
 	myServer.finalize();
+
+	// Then, shutdown OBS
+	OBS_API::destroyOBS_API();
 #ifdef __APPLE__
 	if (override_std_fd) {
 		close(out_pid);
