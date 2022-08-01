@@ -1592,6 +1592,11 @@ void OBS_API::destroyOBS_API(void)
 		for (int i = 0; i < MAX_CHANNELS; i++)
 			obs_set_output_source(i, nullptr);
 
+		// obs_set_output_source might cause destruction of some sources.
+		// Wait for the destruction thread to destroy the sources to be sure 
+		// |for_each| below will only return actual remaining sources.
+		obs_wait_for_destroy_queue();
+
 		std::vector<obs_source_t*> sources;
 		osn::Source::Manager::GetInstance().for_each([&sources](obs_source_t* source)
 		{
