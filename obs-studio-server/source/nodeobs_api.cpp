@@ -1649,6 +1649,12 @@ void OBS_API::destroyOBS_API(void)
 				obs_source_release(source);
 		}
 
+		// The destruction of the sources above is finalized in a separate thread.
+		// So, here, we have to call the function again to be sure the destruction has been finished.
+		// Otherwise, we may have a race condition between |obs_source_destroy_defer| and
+		// |obs_shutdown| which is called below.
+		obs_wait_for_destroy_queue();
+
 #ifdef WIN32
 		// Directly blame the frontend since it didn't release all objects and that could cause 
 		// a crash on the backend
