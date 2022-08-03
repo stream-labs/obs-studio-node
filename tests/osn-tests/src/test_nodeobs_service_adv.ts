@@ -54,7 +54,7 @@ describe(testName, function() {
     });
 
     beforeEach(async function() {
-        const test_urls = [
+    /*    const test_urls = [
             'rtmp://sea.contribute.live-video.net/app', 
             'rtmp://pdx.contribute.live-video.net/app',
             'rtmp://slc.contribute.live-video.net/app',
@@ -65,8 +65,8 @@ describe(testName, function() {
             'rtmp://phx.contribute.live-video.net/app',
         ];
         var test_url = test_urls[Math.floor(Math.random()*test_urls.length)];
-        osn.ServiceFactory.serviceContext.update({ url: test_url });
-
+        osn.ServiceFactory.serviceContext.update({ url: test_url });*/
+/*
         let currentVideo = osn.Video.videoContext;
         const newVideoContext: osn.VideoContext = {
             fpsNum: 15,
@@ -81,7 +81,7 @@ describe(testName, function() {
             scaleType: osn.EScaleType.Bicubic,
         };
         osn.Video.videoContext = newVideoContext;
-        obs.setSetting(EOBSSettingsCategories.Output, 'bitrate', 256);
+        obs.setSetting(EOBSSettingsCategories.Output, 'bitrate', 256);*/
         sleep(500);
     });
 /*
