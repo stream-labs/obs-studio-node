@@ -13,8 +13,8 @@ variables:
   SLBUILDDIRECTORY: streamlabs-build
   SLGenerator: Visual Studio 16 2019
   SLDistributeDirectory: distribute
-  SLFullDistributePath: $(SLBUILDDIRECTORY)\$(SLDistributeDirectory)
-  LibOBSVersion: 27.5.38
+  SLFullDistributePath: $(SLBuildDirectory)\$(SLDistributeDirectory)
+  LibOBSVersion: 27.6.1
 
 jobs:
 - job: 'WindowsRelease'

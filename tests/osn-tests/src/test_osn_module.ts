@@ -57,7 +57,8 @@ describe(testName, () => {
                 if (file != 'chrome_elf.dll' && 
                     file != 'libcef.dll' &&
                     file != 'libEGL.dll' &&
-                    file != 'libGLESv2.dll') {
+                    file != 'libGLESv2.dll' &&
+                    file != 'mediasoup-connector.dll') { // Doesn't build in debug mode
                     // Opening module
                     const moduleType = osn.ModuleFactory.open(path.join(modulePath, '/' + file), path.normalize(osn.DefaultDataPath));
 
