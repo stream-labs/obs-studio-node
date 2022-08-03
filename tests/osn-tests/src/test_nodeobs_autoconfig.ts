@@ -48,7 +48,7 @@ describe(testName, function() {
             hasTestFailed = true;
         }
     });
-
+/*
     it('Run autoconfig', async function() {
         let progressInfo: IConfigProgress;
 	    let settingValue: any;
@@ -156,4 +156,5 @@ describe(testName, function() {
 
 	osn.NodeObs.TerminateAutoConfig();
     });
+    */
 });
