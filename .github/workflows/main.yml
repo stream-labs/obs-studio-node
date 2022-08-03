@@ -22,7 +22,7 @@ env:
   SLGenerator: Visual Studio 17 2022
   SLDistributeDirectory: distribute
   SLFullDistributePath: "streamlabs-build/distribute"
-  LibOBSVersion: 0.0.0-test21
+  LibOBSVersion: 27.6.1
   PACKAGE_NAME: osn
 
 jobs:
