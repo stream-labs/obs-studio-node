@@ -71,7 +71,7 @@ describe(testName, function() {
         obs.setSetting(EOBSSettingsCategories.Output, 'bitrate', 256);
         sleep(500);
     });
- 
+ /*
     it('Fail test - Stream with invalid stream key', async function() {
         let signalInfo: IOBSOutputSignalInfo;
 
@@ -190,7 +190,7 @@ describe(testName, function() {
         expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stop, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
         expect(signalInfo.code).to.equal(-8, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
     });
-
+*/
     it('Reset video context', function() {
         expect(function() {
             osn.NodeObs.OBS_service_resetVideoContext();
