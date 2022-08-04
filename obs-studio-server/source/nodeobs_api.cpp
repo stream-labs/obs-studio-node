@@ -1649,11 +1649,14 @@ void OBS_API::destroyOBS_API(void)
 				obs_source_release(source);
 		}
 
-		// The destruction of the sources above is finalized in a separate thread.
-		// So, here, we have to call the function again to be sure the destruction has been finished.
-		// Otherwise, we may have a race condition between |obs_source_destroy_defer| and
-		// |obs_shutdown| which is called below.
+		// In rare cases (bugs?), some sources may not be released yet.
+		// Remove the 'destruction' callback. Otherwise, it will try to
+		// access data released by |obs_shutdown| which leads to crashes.
 		obs_wait_for_destroy_queue();
+		osn::Source::Manager::GetInstance().for_each([&sources](obs_source_t* source)
+		{
+			osn::Source::detach_source_signals(source);
+		});
 
 #ifdef WIN32
 		// Directly blame the frontend since it didn't release all objects and that could cause 
