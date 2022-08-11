@@ -315,6 +315,23 @@ Napi::Value api::RequestPermissions(const Napi::CallbackInfo& info)
 	return info.Env().Undefined();
 }
 
+Napi::Value api::OBS_API_forceCrash(const Napi::CallbackInfo& info)
+{
+	bool backendCrash;
+	ASSERT_GET_VALUE(info, info[0], backendCrash);
+
+	if (!backendCrash)
+		throw std::runtime_error("Simulated crash to test crash handling functionality");
+
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
+
+	std::vector<ipc::value> response = conn->call_synchronous_helper("API", "OBS_API_forceCrash", {});
+
+	return info.Env().Undefined();
+}
+
 void api::Init(Napi::Env env, Napi::Object exports)
 {
 	exports.Set(Napi::String::New(env, "OBS_API_initAPI"), Napi::Function::New(env, api::OBS_API_initAPI));
@@ -327,4 +344,6 @@ void api::Init(Napi::Env env, Napi::Object exports)
 	exports.Set(Napi::String::New(env, "SetUsername"), Napi::Function::New(env, api::SetUsername));
 	exports.Set(Napi::String::New(env, "GetPermissionsStatus"), Napi::Function::New(env, api::GetPermissionsStatus));
 	exports.Set(Napi::String::New(env, "RequestPermissions"), Napi::Function::New(env, api::RequestPermissions));
+	
+	exports.Set(Napi::String::New(env, "OBS_API_forceCrash"), Napi::Function::New(env, api::OBS_API_forceCrash));
 }
