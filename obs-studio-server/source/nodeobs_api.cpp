@@ -1649,6 +1649,15 @@ void OBS_API::destroyOBS_API(void)
 				obs_source_release(source);
 		}
 
+		// In rare cases (bugs?), some sources may not be released yet.
+		// Remove the 'destruction' callback. Otherwise, it will try to
+		// access data released by |obs_shutdown| which leads to crashes.
+		obs_wait_for_destroy_queue();
+		osn::Source::Manager::GetInstance().for_each([&sources](obs_source_t* source)
+		{
+			osn::Source::detach_source_signals(source);
+		});
+
 #ifdef WIN32
 		// Directly blame the frontend since it didn't release all objects and that could cause 
 		// a crash on the backend
