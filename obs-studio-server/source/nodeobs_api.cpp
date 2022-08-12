@@ -142,6 +142,8 @@ void OBS_API::Register(ipc::server& srv)
 	    ProcessHotkeyStatus));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "SetUsername", std::vector<ipc::type>{ipc::type::String}, SetUsername));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "OBS_API_forceCrash", std::vector<ipc::type>{}, OBS_API_forceCrash));
 
 	srv.register_collection(cls);
 	g_server = &srv;
@@ -1206,6 +1208,19 @@ void OBS_API::UpdateProcessPriority()
 		SetProcessPriority(priority);
 }
 
+void OBS_API::OBS_API_forceCrash(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	throw std::runtime_error("Simulated crash to test crash handling functionality");
+
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+
+	AUTO_DEBUG;
+}
+
 bool DisableAudioDucking(bool disable)
 {
 #ifdef WIN32
@@ -1648,6 +1663,15 @@ void OBS_API::destroyOBS_API(void)
 			if (source)
 				obs_source_release(source);
 		}
+
+		// In rare cases (bugs?), some sources may not be released yet.
+		// Remove the 'destruction' callback. Otherwise, it will try to
+		// access data released by |obs_shutdown| which leads to crashes.
+		obs_wait_for_destroy_queue();
+		osn::Source::Manager::GetInstance().for_each([&sources](obs_source_t* source)
+		{
+			osn::Source::detach_source_signals(source);
+		});
 
 #ifdef WIN32
 		// Directly blame the frontend since it didn't release all objects and that could cause 
