@@ -88,7 +88,7 @@ jobs:
 
       - name: Tar artifact for deployment
         if: startsWith(github.ref, 'refs/tags/')
-        run: cd ${{env.SLFullDistributePath}}/${{env.InstallPath}} && 7z a -r ../../../${{env.TARGET_ARTIFACT}}.7z *
+        run: tar -cvzf ${{env.TARGET_ARTIFACT}}.tar.gz -C ${{env.SLFullDistributePath}} ${{env.InstallPath}}
         env:
           TARGET_ARTIFACT: ${{env.PACKAGE_NAME}}-${{ steps.get_version.outputs.VERSION }}-${{env.OS_TAG}}-${{matrix.ReleaseName}}
       - name: Configure AWS credentials
@@ -100,7 +100,7 @@ jobs:
           aws-region: us-west-2
       - name: Deploy
         if: startsWith(github.ref, 'refs/tags/')
-        run: aws s3 cp ${{env.TARGET_ARTIFACT}}.7z s3://${{env.RELEASE_BUCKET}} --acl public-read
+        run: aws s3 cp ${{env.TARGET_ARTIFACT}}.tar.gz s3://${{env.RELEASE_BUCKET}} --acl public-read
         env:
           TARGET_ARTIFACT: ${{env.PACKAGE_NAME}}-${{ steps.get_version.outputs.VERSION }}-${{env.OS_TAG}}-${{matrix.ReleaseName}}
       - name: 'Upload debug files to Sentry'
