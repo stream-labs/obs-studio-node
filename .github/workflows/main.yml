@@ -108,7 +108,7 @@ jobs:
         run: 'python ./ci/sentry-osx.py'
         env:
            SENTRY_AUTH_TOKEN: ${{secrets.SENTRY_AUTH_TOKEN}}
-           BUILD_CONFIG: ${{matrix.BuildConfig}}
+           BUILDCONFIG: ${{matrix.BuildConfig}}
 
   win64:
     name: 'Windows 64-bit'
