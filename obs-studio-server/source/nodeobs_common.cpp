@@ -30,6 +30,7 @@
 #include <thread>
 
 std::map<std::string, OBS::Display*> displays;
+std::mutex                           displaysMutex;
 std::string                          sourceSelected;
 bool                                 firstDisplayCreation = true;
 
@@ -136,6 +137,8 @@ static void OnDeviceLost(void* data)
 
 static void OnDeviceRebuilt(void* device, void* data)
 {
+	std::scoped_lock lock(displaysMutex);
+
 	for (const auto& p : displays) {
 		if (auto display = p.second) {
 			// After device is rebuilt, there are can be problems with incorrect size of display
@@ -248,6 +251,8 @@ void OBS_content::OBS_content_createDisplay(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
+	std::scoped_lock lock(displaysMutex);
+
 	uint64_t windowHandle = args[0].value_union.ui64;
 	auto     found        = displays.find(args[1].value_str);
 
@@ -313,6 +318,8 @@ void OBS_content::OBS_content_destroyDisplay(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
+	std::scoped_lock lock(displaysMutex);
+
 	auto found = displays.find(args[0].value_str);
 
 	if (found == displays.end()) {
@@ -334,6 +341,8 @@ void OBS_content::OBS_content_destroyDisplay(
 
 void OBS_content::OBS_content_shutdownDisplays()
 {
+	std::scoped_lock lock(displaysMutex);
+
 	blog(LOG_DEBUG, "Displays remaining till shutdown %d", displays.size());
 	while (displays.size() > 0) {
 		auto itr = displays.begin();
@@ -348,6 +357,8 @@ void OBS_content::OBS_content_createSourcePreviewDisplay(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
+	std::scoped_lock lock(displaysMutex);
+
 	uint64_t windowHandle = args[0].value_union.ui64;
 
 	auto found = displays.find(args[2].value_str);

@@ -106,6 +106,12 @@ enum crashHandlerCommand {
 	CRASHWITHCODE = 3
 };
 
+struct NodeOBSLogParam final
+{
+	std::fstream logStream;
+	bool enableDebugLogs = false;
+};
+
 std::string g_moduleDirectory = "";
 os_cpu_usage_info_t* cpuUsageInfo      = nullptr;
 #ifdef WIN32
@@ -183,10 +189,14 @@ void OBS_API::Register(ipc::server& srv)
 	    "GetProcessPriority",
 		std::vector<ipc::type>{},
 		GetProcessPriority));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "GetProcessPriorityLegacy",
-		std::vector<ipc::type>{},
-		GetProcessPriorityLegacy));
+    cls->register_function(std::make_shared<ipc::function>(
+        "GetProcessPriorityLegacy",
+        std::vector<ipc::type>{},
+        GetProcessPriorityLegacy));
+    cls->register_function(std::make_shared<ipc::function>(
+        "OBS_API_forceCrash",
+        std::vector<ipc::type>{},
+        OBS_API_forceCrash));
 
 	srv.register_collection(cls);
 	g_server = &srv;
@@ -433,32 +443,33 @@ void outdated_driver_error::catch_error(const char* msg)
 	}
 }
 
-inline std::string nodeobs_log_formatted_message(const char* format, va_list args)
+static std::vector<char> nodeobs_log_formatted_message(const char* format, va_list args)
 {
 	if (!format)
-		return "";
+		return std::vector<char>();
 #ifdef WIN32
-	size_t            length  = _vscprintf(format, args);
+	int length = _vscprintf(format, args);
 #else
 	va_list argcopy;
 	va_copy(argcopy, args);
-	size_t            length  = vsnprintf(NULL, 0, format, argcopy);
+	int length = vsnprintf(NULL, 0, format, argcopy);
 #endif
+	if (length <= 0)
+		return std::vector<char>();
 	std::vector<char> buf     = std::vector<char>(length + 1, '\0');
-	size_t            written = vsprintf(buf.data(), format, args);
-	return std::string(buf.begin(), buf.begin() + length);
+	int written = vsprintf(buf.data(), format, args);
+	if (written <= 0)
+		return std::vector<char>();
+	buf.resize(written);
+	return buf;
 }
 
 std::chrono::high_resolution_clock             hrc;
 std::chrono::high_resolution_clock::time_point tp = std::chrono::high_resolution_clock::now();
 static void                                    node_obs_log(int log_level, const char* msg, va_list args, void* param)
 {
-	std::lock_guard<std::mutex> lock(logMutex);
-
 	if (param == nullptr)
 		return;
-	
-	outdated_driver_error::instance()->catch_error(msg);
 
 	// Calculate log time.
 	auto timeSinceStart = (std::chrono::high_resolution_clock::now() - tp);
@@ -478,7 +489,7 @@ static void                                    node_obs_log(int log_level, const
 
 	// Generate timestamp and log_level part.
 	/// Convert level int to human readable name
-	std::string levelname = "";
+	std::string_view levelname("");
 	switch (log_level) {
 	case LOG_INFO:
 		levelname = "Info";
@@ -507,13 +518,22 @@ static void                                    node_obs_log(int log_level, const
 		break;
 	}
 
-	std::vector<char> timebuf(128, '\0');
-	std::string       timeformat = "[%.3d:%.2d:%.2d:%.2d.%.3d.%.3d.%.3d][%*s]"; // "%*s";
+#ifdef WIN32
+	std::string thread_id = std::to_string(GetCurrentThreadId());
+#else
+	// Not sure it is the best way for macOS.
+	uint64_t tid;
+	pthread_threadid_np(NULL, &tid);
+	std::string thread_id = std::to_string(tid);
+#endif
+
+	std::array<char, 160> timebuf{};
+	static const std::string_view timeformat("[%.3d:%.2d:%.2d:%.2d.%.3d.%.3d.%.3d][%*s][%*s]");
 #ifdef WIN32
 	int length     = sprintf_s(
         timebuf.data(),
         timebuf.size(),
-        timeformat.c_str(),
+        timeformat.data(),
         days.count(),
         hours.count(),
         minutes.count(),
@@ -521,13 +541,15 @@ static void                                    node_obs_log(int log_level, const
         milliseconds.count(),
         microseconds.count(),
         nanoseconds.count(),
+        thread_id.length(),
+        thread_id.c_str(),
         levelname.length(),
-        levelname.c_str());
+        levelname.data());
 #else
 	int length     = snprintf(
         timebuf.data(),
         timebuf.size(),
-        timeformat.c_str(),
+        timeformat.data(),
         days.count(),
         hours.count(),
         minutes.count(),
@@ -535,28 +557,46 @@ static void                                    node_obs_log(int log_level, const
         milliseconds.count(),
         microseconds.count(),
         nanoseconds.count(),
+        thread_id.length(),
+        thread_id.c_str(),
         levelname.length(),
-        levelname.c_str());
+        levelname.data());
 #endif
 	if (length < 0)
 		return;
 
-	std::string time_and_level = std::string(timebuf.data(), length);
+	std::string_view time_and_level(timebuf.data(), length);
 
-	// Format incoming text
-	std::string text = nodeobs_log_formatted_message(msg, args);
+	// Format incoming text	
+	std::vector<char> buf = nodeobs_log_formatted_message(msg, args);
+	std::string_view text = (buf.size()) ?
+		std::string_view(buf.data(), buf.size()) : std::string_view("");
 
-	std::fstream* logStream = reinterpret_cast<std::fstream*>(param);
+	std::lock_guard<std::mutex> lock(logMutex);
+
+	outdated_driver_error::instance()->catch_error(msg);
+	NodeOBSLogParam* logParam = reinterpret_cast<NodeOBSLogParam*>(param);
 
 	// Split by \n (new-line)
 	size_t last_valid_idx = 0;
 	for (size_t idx = 0; idx <= text.length(); idx++) {
 		if ((idx == text.length()) || (text[idx] == '\n')) {
-			std::string newmsg = time_and_level + " " + std::string(&text[last_valid_idx], idx - last_valid_idx) + '\n';
+			std::string_view line = (idx > last_valid_idx) ?
+				std::string_view(&text[last_valid_idx], idx - last_valid_idx) : std::string_view("");
+
+			std::string newmsg;
+			newmsg.reserve(time_and_level.size() + line.size() + 3);
+			newmsg += time_and_level;
+			newmsg += " ";
+			newmsg += line;
+			newmsg += '\n';
+
 			last_valid_idx     = idx + 1;
 
 			// File Log
-			*logStream << newmsg << std::flush;
+			if (log_level != LOG_DEBUG || logParam->enableDebugLogs) {
+				logParam->logStream << newmsg << std::flush;
+			}
 
             // Internal Log
 			logReport.push(newmsg, log_level);
@@ -589,7 +629,9 @@ static void                                    node_obs_log(int log_level, const
 #endif
 		}
 	}
-	*logStream << std::flush;
+	if (log_level != LOG_DEBUG || logParam->enableDebugLogs) {
+		logParam->logStream << std::flush;
+	}
 
 #if defined(_WIN32) && defined(OBS_DEBUGBREAK_ON_ERROR)
 	if (log_level <= LOG_ERROR && IsDebuggerPresent())
@@ -769,6 +811,39 @@ void writeCrashHandler(std::vector<char> buffer)
 	close(file_descriptor);
 }
 #endif
+
+static bool checkIfDebugLogsEnabled(const std::string& appdata)
+{
+#if defined(_DEBUG)
+	return true;
+#else
+	if (currentVersion.find("preview") != std::string::npos) {
+		return true;
+	}
+	// When you change the environment variable and start Streamlabs Desktop
+	// via a console/terminal, you may have to restart the console/terminal.
+	// On macOS, execute "export SLOBS_PRODUCTION_DEBUG=true" before starting
+	// Streamlabs Desktop via the console/terminal.
+	// To set the environment variable globally on macOS, use the solution from the question here:
+	// https://apple.stackexchange.com/questions/289060/setting-variables-in-environment-plist
+	// Reboot is required!
+	char* envValue = getenv("SLOBS_PRODUCTION_DEBUG");
+	if (envValue != nullptr) {
+		if (astrcmpi(envValue, "true") == 0) {
+			return true;
+		}
+	}
+	// Even if the environment variable is set "off"/"no" explicitly,
+	// we ignore it and check for the file.
+	const std::string filename = appdata + "/enable-debug-logs";
+#if defined(_WIN32) && defined(UNICODE)
+	return std::fstream(converter.from_bytes(filename).data()).is_open();
+#else
+	return std::fstream(filename).is_open();
+#endif
+#endif
+}
+
 void OBS_API::OBS_API_initAPI(
     void*                          data,
     const int64_t                  id,
@@ -865,18 +940,21 @@ void OBS_API::OBS_API_initAPI(
 	DeleteOldestFile(log_path.c_str(), 3);
 	log_path.append(filename);
 
+	auto logParam = std::make_unique<NodeOBSLogParam>();	
+	logParam->enableDebugLogs = checkIfDebugLogsEnabled(appdata);
+
 #if defined(_WIN32) && defined(UNICODE)
-	std::fstream* logfile =
-	    new std::fstream(converter.from_bytes(log_path.c_str()).c_str(), std::ios_base::out | std::ios_base::trunc);
+	logParam->logStream =
+	    std::fstream(converter.from_bytes(log_path.c_str()).c_str(), std::ios_base::out | std::ios_base::trunc);
 #else
-	std::fstream* logfile = new std::fstream(log_path, std::ios_base::out | std::ios_base::trunc);
+	logParam->logStream = std::fstream(log_path, std::ios_base::out | std::ios_base::trunc);
 #endif
-	if (!logfile->is_open()) {
-		logfile = nullptr;
+	if (!logParam->logStream.is_open()) {
+		logParam.reset();
 		util::CrashManager::AddWarning("Error on log file, failed to open: " + log_path);
 		std::cerr << "Failed to open log file" << std::endl;
 	}
-	base_set_log_handler(node_obs_log, logfile);
+	base_set_log_handler(node_obs_log, (logParam) ? logParam.release() : nullptr);
 #ifndef _DEBUG
 	// Redirect the ipc log callbacks to our log handler
 	ipc::register_log_callback([](void* data, const char* fmt, va_list args) { 
@@ -1173,6 +1251,19 @@ void OBS_API::SetProcessPriorityOld(const char* priority)
 	else if (strcmp(priority, "Idle") == 0)
 		SetPriorityClass(GetCurrentProcess(), IDLE_PRIORITY_CLASS);
 #endif
+}
+
+void OBS_API::OBS_API_forceCrash(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+    throw std::runtime_error("Simulated crash to test crash handling functionality");
+
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+
+    AUTO_DEBUG;
 }
 
 bool DisableAudioDucking(bool disable)
@@ -1669,6 +1760,11 @@ void OBS_API::destroyOBS_API(void)
 		for (int i = 0; i < MAX_CHANNELS; i++)
 			obs_set_output_source(i, nullptr);
 
+		// obs_set_output_source might cause destruction of some sources.
+		// Wait for the destruction thread to destroy the sources to be sure 
+		// |for_each| below will only return actual remaining sources.
+		obs_wait_for_destroy_queue();
+
 		std::vector<obs_source_t*> sources;
 		osn::Source::Manager::GetInstance().for_each([&sources](obs_source_t* source)
 		{
@@ -1720,6 +1816,15 @@ void OBS_API::destroyOBS_API(void)
 			if (source)
 				obs_source_release(source);
 		}
+
+		// In rare cases (bugs?), some sources may not be released yet.
+		// Remove the 'destruction' callback. Otherwise, it will try to
+		// access data released by |obs_shutdown| which leads to crashes.
+		obs_wait_for_destroy_queue();
+		osn::Source::Manager::GetInstance().for_each([&sources](obs_source_t* source)
+		{
+			osn::Source::detach_source_signals(source);
+		});
 
 #ifdef WIN32
 		// Directly blame the frontend since it didn't release all objects and that could cause 
@@ -1808,7 +1913,7 @@ typedef std::basic_string<char, ci_char_traits> istring;
 * if we go a server/client route. */
 bool OBS_API::openAllModules(int& video_err)
 {
-	video_err = OBS_service::resetVideoContext();
+	video_err = OBS_service::resetVideoContext(false, true);
 	if (video_err != OBS_VIDEO_SUCCESS) {
 		blog(LOG_INFO, "Reset video failed with error: %d", video_err);
 		return false;

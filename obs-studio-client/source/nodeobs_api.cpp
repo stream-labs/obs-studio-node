@@ -439,6 +439,23 @@ Napi::Value api::GetProcessPriorityLegacy(const Napi::CallbackInfo& info)
     return Napi::String::New(info.Env(), response[1].value_str);
 }
 
+Napi::Value api::OBS_API_forceCrash(const Napi::CallbackInfo& info)
+{
+	bool backendCrash;
+	ASSERT_GET_VALUE(info, info[0], backendCrash);
+
+	if (!backendCrash)
+		throw std::runtime_error("Simulated crash to test crash handling functionality");
+
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
+
+	std::vector<ipc::value> response = conn->call_synchronous_helper("API", "OBS_API_forceCrash", {});
+
+	return info.Env().Undefined();
+}
+
 void api::Init(Napi::Env env, Napi::Object exports)
 {
     exports.Set(Napi::String::New(env, "OBS_API_initAPI"),
@@ -479,4 +496,6 @@ void api::Init(Napi::Env env, Napi::Object exports)
         Napi::Function::New(env, api::GetProcessPriorityLegacy));
     exports.Set(Napi::String::New(env, "GetProcessPriority"),
         Napi::Function::New(env, api::GetProcessPriority));
+    exports.Set(Napi::String::New(env, "OBS_API_forceCrash"),
+        Napi::Function::New(env, api::OBS_API_forceCrash));
 }
