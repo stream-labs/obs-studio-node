@@ -381,54 +381,6 @@ describe(testName, function() {
         expect(signalInfo.signal).to.equal(EOBSOutputSignal.Wrote, GetErrorMessage(ETestErrorMsg.RecordingOutput));
     });
 
-    it('Advanced mode - Start replay buffer, save replay and stop', async function() {
-        // Preparing environment
-        obs.setSetting(EOBSSettingsCategories.Output, 'Mode', 'Advanced');
-        obs.setSetting(EOBSSettingsCategories.Output, 'Encoder', 'obs_x264');
-        obs.setSetting(EOBSSettingsCategories.Output, 'RecEncoder', 'none');
-        obs.setSetting(EOBSSettingsCategories.Output, 'RecFilePath', path.join(path.normalize(__dirname), '..', 'osnData'));
-
-        let signalInfo: IOBSOutputSignalInfo;
-
-        osn.NodeObs.OBS_service_startReplayBuffer();
-
-        signalInfo = await obs.getNextSignalInfo(EOBSOutputType.ReplayBuffer, EOBSOutputSignal.Start);
-
-        if (signalInfo.signal == EOBSOutputSignal.Stop) {
-            throw Error(GetErrorMessage(ETestErrorMsg.ReplayBufferDidNotStart, signalInfo.code.toString(), signalInfo.error));
-        }
-
-        expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
-        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Start, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
-
-        await sleep(500);
-
-        osn.NodeObs.OBS_service_processReplayBufferHotkey();
-
-        signalInfo = await obs.getNextSignalInfo(EOBSOutputType.ReplayBuffer, EOBSOutputSignal.Writing);
-        expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
-        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Writing, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
-
-        signalInfo = await obs.getNextSignalInfo(EOBSOutputType.ReplayBuffer, EOBSOutputSignal.Wrote);
-        expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
-        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Wrote, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
-
-        osn.NodeObs.OBS_service_stopReplayBuffer(false);
-
-        signalInfo = await obs.getNextSignalInfo(EOBSOutputType.ReplayBuffer, EOBSOutputSignal.Stopping);
-        expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
-        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stopping, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
-
-        signalInfo = await obs.getNextSignalInfo(EOBSOutputType.ReplayBuffer, EOBSOutputSignal.Stop);
-
-        if (signalInfo.code != 0) {
-            throw Error(GetErrorMessage(ETestErrorMsg.ReplayBufferStoppedWithError, signalInfo.code.toString(), signalInfo.error));
-        }
-
-        expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
-        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stop, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
-    });
-
     it('Advanced mode - Record while streaming', async function() {
         // Preparing environment
         obs.setSetting(EOBSSettingsCategories.Output, 'Mode', 'Advanced');
@@ -851,6 +803,7 @@ describe(testName, function() {
         expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stop, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
         expect(signalInfo.code).to.equal(-8, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
     });
+
     it('Simple mode - Record and use replay buffer while streaming', async function() {
         // Preparing environment
         obs.setSetting(EOBSSettingsCategories.Output, 'Mode', 'Simple');
@@ -1065,6 +1018,54 @@ describe(testName, function() {
         expect(signalInfo.signal).to.equal(EOBSOutputSignal.Deactivate, GetErrorMessage(ETestErrorMsg.StreamOutput));
     });
 
+    it('Advanced mode - Start replay buffer, save replay and stop', async function() {
+        // Preparing environment
+        obs.setSetting(EOBSSettingsCategories.Output, 'Mode', 'Advanced');
+        obs.setSetting(EOBSSettingsCategories.Output, 'Encoder', 'obs_x264');
+        obs.setSetting(EOBSSettingsCategories.Output, 'RecEncoder', 'none');
+        obs.setSetting(EOBSSettingsCategories.Output, 'RecFilePath', path.join(path.normalize(__dirname), '..', 'osnData'));
+
+        let signalInfo: IOBSOutputSignalInfo;
+
+        osn.NodeObs.OBS_service_startReplayBuffer();
+
+        signalInfo = await obs.getNextSignalInfo(EOBSOutputType.ReplayBuffer, EOBSOutputSignal.Start);
+
+        if (signalInfo.signal == EOBSOutputSignal.Stop) {
+            throw Error(GetErrorMessage(ETestErrorMsg.ReplayBufferDidNotStart, signalInfo.code.toString(), signalInfo.error));
+        }
+
+        expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
+        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Start, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
+
+        await sleep(500);
+
+        osn.NodeObs.OBS_service_processReplayBufferHotkey();
+
+        signalInfo = await obs.getNextSignalInfo(EOBSOutputType.ReplayBuffer, EOBSOutputSignal.Writing);
+        expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
+        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Writing, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
+
+        signalInfo = await obs.getNextSignalInfo(EOBSOutputType.ReplayBuffer, EOBSOutputSignal.Wrote);
+        expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
+        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Wrote, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
+
+        osn.NodeObs.OBS_service_stopReplayBuffer(false);
+
+        signalInfo = await obs.getNextSignalInfo(EOBSOutputType.ReplayBuffer, EOBSOutputSignal.Stopping);
+        expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
+        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stopping, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
+
+        signalInfo = await obs.getNextSignalInfo(EOBSOutputType.ReplayBuffer, EOBSOutputSignal.Stop);
+
+        if (signalInfo.code != 0) {
+            throw Error(GetErrorMessage(ETestErrorMsg.ReplayBufferStoppedWithError, signalInfo.code.toString(), signalInfo.error));
+        }
+
+        expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
+        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stop, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
+    });
+    
     it('Reset video context', function() {
         expect(function() {
             osn.NodeObs.OBS_service_resetVideoContext();
