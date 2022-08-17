@@ -159,6 +159,61 @@ jobs:
           OSN_ACCESS_KEY_ID: ${{secrets.AWS_RELEASE_ACCESS_KEY_ID}}
           OSN_SECRET_ACCESS_KEY: ${{secrets.AWS_RELEASE_SECRET_ACCESS_KEY}}
           RELEASE_NAME: ${{matrix.ReleaseName}}
+      - name: Cache build
+        uses: actions/cache@v3
+        with:
+          path: ${{env.SLBUILDDIRECTORY}}
+          key: ${{ runner.os }}-build-${{ matrix.ReleaseName }}-${{ github.sha }}
+
+  win64_tests:
+    name: 'Windows 64-bit tests'
+    runs-on: windows-2019
+    needs: [win64]
+    strategy:
+      matrix:
+        ReleaseName: [release, debug]
+        include:
+        - ReleaseName: release
+          ReleaseConfig: RelWithDebInfo
+        - ReleaseName: debug
+          ReleaseConfig: Debug
+    env:
+      OS_TAG: "win64"
+    steps:
+      - name: 'Add msbuild to PATH'
+        uses: microsoft/setup-msbuild@v1
+      - name: 'Checkout'
+        uses: actions/checkout@v3
+        with:
+          submodules: 'recursive'
+      - name: Get the version
+        id: get_version
+        run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
+        shell: bash
+      - name: Install dependencies
+        run: |
+          yarn install --immutable --immutable-cache --check-cache 
+          yarn add electron@${{env.ElectronVersion}} -D
+      - name: Configure obs-studio-node
+        run: ./ci/configure-osn.cmd
+        env:
+          ReleaseName: ${{matrix.ReleaseName}}
+      - name: Get build from cache
+        id: cache-check
+        uses: actions/cache@v3
+        with:
+          path: ${{env.SLBUILDDIRECTORY}}
+          key: ${{ runner.os }}-build-${{ matrix.ReleaseName }}-${{ github.sha }}
+
+      - name: 'Run tests'
+        run: 'yarn run test'
+        env:
+          SLOBS_BE_STREAMKEY: ${{secrets.testsStreamKey}}
+          SLOBS_TEST_USER_POOL_TOKEN:  ${{secrets.testsUserPoolToken}}
+
+          OSN_ACCESS_KEY_ID: ${{secrets.AWS_RELEASE_ACCESS_KEY_ID}}
+          OSN_SECRET_ACCESS_KEY: ${{secrets.AWS_RELEASE_SECRET_ACCESS_KEY}}
+          RELEASE_NAME: ${{matrix.ReleaseName}}
       - name: Fetch symsrv-scripts
         if: startsWith(github.ref, 'refs/tags/')
         uses: actions/checkout@v3
