@@ -50,6 +50,7 @@ describe(testName, function() {
         if (this.currentTest.state == 'failed') {
             hasTestFailed = true;
         }
+        sleep(1000);
     });
 
     it('Simple mode - Start and stop streaming', async function() {
