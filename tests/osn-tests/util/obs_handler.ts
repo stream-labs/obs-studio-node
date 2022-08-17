@@ -76,7 +76,6 @@ export class OBSHandler {
     private hasUserFromPool: boolean = false;
     private osnTestName: string;
     private signals = new WaitQueue();
-    private connected: boolean = false;
     private progress = new  WaitQueue();
     inputTypes: string[];
     filterTypes: string[];
@@ -232,21 +231,15 @@ export class OBSHandler {
     }
 
     connectOutputSignals() {
-        console.log("connectOutputSignals" + this.connected);
-        if (!this.connected) {
-            this.connected = true;
         osn.NodeObs.OBS_service_connectOutputSignals((signalInfo: IOBSOutputSignalInfo) => {
-            console.log("connectOutputSignals" + signalInfo.type + signalInfo.signal);
             this.signals.push(signalInfo);
         });
-        }
     }
 
     getNextSignalInfo(output: string, signal: string): Promise<IOBSOutputSignalInfo> {
         return new Promise((resolve, reject) => {
             this.signals.shift().then(
                 function(signalInfo) {
-                    console.log("getNextSignalInfo"+signalInfo.type + signalInfo.signal);
                     resolve(signalInfo)
                   }
             );

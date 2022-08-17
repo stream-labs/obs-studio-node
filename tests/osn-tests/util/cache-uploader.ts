@@ -38,32 +38,28 @@ export class CacheUploader {
             output.on('close', () => {
                 const file = fs.createReadStream(cacheFile);
                 const keyname = this.dateStr + '-' + this.testName + '-test-cache-' + this.releaseName + '.zip';
-
+        
                 aws.config.region = 'us-west-2';
-
-                /*************** ATTENTION *********************
-                 * These credentials are intentionally public. *
-                 * Please do not report this to us.            *
-                 **********************************************/
+        
+                // This is a restricted cache upload account
                 aws.config.credentials = new aws.Credentials({
-                  accessKeyId: 'AKIAIAINC32O7I3KUJGQ',
-                  secretAccessKey: '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',
+                    accessKeyId: process.env.OSN_ACCESS_KEY_ID,
+                    secretAccessKey: process.env.OSN_SECRET_ACCESS_KEY,
                 });
         
                 const upload = new aws.S3.ManagedUpload({
-                  params: {
-                    Bucket: 'streamlabs-obs-user-cache',
+                params: {
+                    Bucket: 'obs-studio-node-tests-cache',
                     Key: keyname,
                     Body: file,
-                  },
+                },
                 });
         
                 upload.promise().then(() => {
-                  resolve(keyname);
+                    logInfo(this.testName, 'Finished uploading cache');
+                    logInfo(this.testName, keyname);
+                    resolve(keyname);
                 });
-
- 
-  
             });
 
             // Modify the stream key in service.json in a reversible way when uploading user caches
