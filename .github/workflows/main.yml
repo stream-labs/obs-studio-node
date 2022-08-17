@@ -138,6 +138,10 @@ jobs:
         run: |
           yarn install --immutable --immutable-cache --check-cache 
           yarn add electron@${{env.ElectronVersion}} -D
+      - name: Configure obs-studio-node
+        run: ./ci/configure-osn.cmd
+        env:
+          ReleaseName: ${{matrix.ReleaseName}}
 
       - name: Build obs-studio-node
         run: cmake --build ${{env.SLBUILDDIRECTORY}} --target install --config ${{matrix.ReleaseConfig}}
@@ -153,6 +157,7 @@ jobs:
           path: |
             ${{env.SLBUILDDIRECTORY}}
             /tests/osn-tests/osn/
+            
           key: ${{ runner.os }}-build-${{ matrix.ReleaseName }}-${{ github.sha }}
 
   win64_tests:
@@ -192,7 +197,6 @@ jobs:
           path: |
             ${{env.SLBUILDDIRECTORY}}
             /tests/osn-tests/osn/
-
           key: ${{ runner.os }}-build-${{ matrix.ReleaseName }}-${{ github.sha }}
 
       - name: 'Run tests'
