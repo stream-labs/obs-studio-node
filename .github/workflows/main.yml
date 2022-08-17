@@ -186,10 +186,7 @@ jobs:
         run: |
           yarn install --immutable --immutable-cache --check-cache 
           yarn add electron@${{env.ElectronVersion}} -D
-      - name: Configure obs-studio-node
-        run: ./ci/configure-osn.cmd
-        env:
-          ReleaseName: ${{matrix.ReleaseName}}
+
       - name: Get build from cache
         id: cache-check
         uses: actions/cache@v3
