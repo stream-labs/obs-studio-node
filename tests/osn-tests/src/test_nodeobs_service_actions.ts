@@ -52,8 +52,6 @@ describe(testName, function() {
             hasTestFailed = true;
         }
         sleep(1000);
-        
-        fsExtra.emptyDirSync(path.join(path.normalize(__dirname), '..', 'osnData'));
     });
 
     it('Simple mode - Start and stop streaming', async function() {
