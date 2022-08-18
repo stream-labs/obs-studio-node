@@ -167,6 +167,7 @@ download_project(
 	UPDATE_DISCONNECTED 1
 )
 
+include("${libobs_SOURCE_DIR}/cmake/w32-pthreads/w32-pthreadsConfig.cmake")
 include("${libobs_SOURCE_DIR}/cmake/LibObs/LibObsConfig.cmake")
 
 if (WIN32)
