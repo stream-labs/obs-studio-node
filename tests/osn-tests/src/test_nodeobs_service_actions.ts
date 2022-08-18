@@ -1,4 +1,5 @@
 import 'mocha';
+import * as fsExtra from "fs-extra";
 import { expect } from 'chai';
 import * as osn from '../osn';
 import { logInfo, logEmptyLine } from '../util/logger';
@@ -51,6 +52,8 @@ describe(testName, function() {
             hasTestFailed = true;
         }
         sleep(1000);
+        
+        fsExtra.emptyDirSync(path.join(path.normalize(__dirname), '..', 'osnData'));
     });
 
     it('Simple mode - Start and stop streaming', async function() {
@@ -379,7 +382,7 @@ describe(testName, function() {
         // Preparing environment
         obs.setSetting(EOBSSettingsCategories.Output, 'Mode', 'Advanced');
         obs.setSetting(EOBSSettingsCategories.Output, 'Encoder', 'obs_x264');
-        obs.setSetting(EOBSSettingsCategories.Output, 'RecEncoder', 'obs_x264');
+        obs.setSetting(EOBSSettingsCategories.Output, 'RecEncoder', 'none');
         obs.setSetting(EOBSSettingsCategories.Output, 'RecFilePath', path.join(path.normalize(__dirname), '..', 'osnData'));
 
         let signalInfo: IOBSOutputSignalInfo;
@@ -509,7 +512,6 @@ describe(testName, function() {
         expect(signalInfo.type).to.equal(EOBSOutputType.ReplayBuffer, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
         expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stop, GetErrorMessage(ETestErrorMsg.ReplayBuffer));
     });
-    
 
     it('Advanced mode - Record replay while streaming and save', async function() {
         // Preparing environment
