@@ -205,7 +205,7 @@ describe(testName, function() {
         // Preparing environment
         obs.setSetting(EOBSSettingsCategories.Output, 'Mode', 'Advanced');
         obs.setSetting(EOBSSettingsCategories.Output, 'Encoder', 'obs_x264');
-        obs.setSetting(EOBSSettingsCategories.Output, 'RecEncoder', 'none');
+        obs.setSetting(EOBSSettingsCategories.Output, 'RecEncoder', 'obs_x264');
         obs.setSetting(EOBSSettingsCategories.Output, 'RecFilePath', path.join(path.normalize(__dirname), '..', 'osnData'));
 
         let signalInfo: IOBSOutputSignalInfo;
@@ -379,7 +379,7 @@ describe(testName, function() {
         // Preparing environment
         obs.setSetting(EOBSSettingsCategories.Output, 'Mode', 'Advanced');
         obs.setSetting(EOBSSettingsCategories.Output, 'Encoder', 'obs_x264');
-        obs.setSetting(EOBSSettingsCategories.Output, 'RecEncoder', 'none');
+        obs.setSetting(EOBSSettingsCategories.Output, 'RecEncoder', 'obs_x264');
         obs.setSetting(EOBSSettingsCategories.Output, 'RecFilePath', path.join(path.normalize(__dirname), '..', 'osnData'));
 
         let signalInfo: IOBSOutputSignalInfo;
@@ -1118,6 +1118,7 @@ describe(testName, function() {
         // Preparing environment
         obs.setSetting(EOBSSettingsCategories.Output, 'Mode', 'Simple');
         obs.setSetting(EOBSSettingsCategories.Output, 'StreamEncoder', obs.os === 'win32' ? 'x264' : 'obs_x264');
+        obs.setSetting(EOBSSettingsCategories.Output, 'RecEncoder', obs.os === 'win32' ? 'x264' : 'obs_x264');
         obs.setSetting(EOBSSettingsCategories.Output, 'FilePath', path.join(path.normalize(__dirname), '..', 'osnData'));
 
         let signalInfo: IOBSOutputSignalInfo;
