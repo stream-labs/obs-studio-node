@@ -156,8 +156,7 @@ jobs:
         with:
           path: |
             ${{env.SLBUILDDIRECTORY}}
-            /tests/osn-tests/osn/
-            
+            tests/
           key: ${{ runner.os }}-build-${{ matrix.ReleaseName }}-${{ github.sha }}
 
   win64_tests:
@@ -191,12 +190,11 @@ jobs:
           yarn add electron@${{env.ElectronVersion}} -D
 
       - name: Get build from cache
-        id: cache-check
         uses: actions/cache@v3
         with:
           path: |
             ${{env.SLBUILDDIRECTORY}}
-            /tests/osn-tests/osn/
+            tests/
           key: ${{ runner.os }}-build-${{ matrix.ReleaseName }}-${{ github.sha }}
 
       - name: 'Run tests'
