@@ -789,7 +789,7 @@ inline void DrawSquareAt(OBS::Display* dp, float_t x, float_t y, matrix4& mtx)
 	gs_matrix_pop();
 }
 
-inline void DrawGuideline(OBS::Display* dp, float_t x, float_t y, matrix4& mtx)
+inline void DrawGuideline(OBS::Display* dp, bool rot45, float_t x, float_t y, matrix4& mtx)
 {
 	gs_rect rect;
 	rect.x  = dp->GetPreviewOffset().first;
@@ -812,21 +812,30 @@ inline void DrawGuideline(OBS::Display* dp, float_t x, float_t y, matrix4& mtx)
 
 	gs_matrix_translate(&pos);
 
-	vec3 up = {0, 1.0, 0};
-	vec3 dn = {0, -1.0, 0};
-	vec3 lt = {-1.0, 0, 0};
-	vec3 rt = {1.0, 0, 0};
+	vec3 up, dn, lt, rt;
 
-	if (vec3_dot(&up, &normal) > 0.5f) {
+	if (rot45) {
+		up = {-0.2, 1.0, 0};
+		dn = {0.2, -1.0, 0};
+		lt = {-1.0, -0.2, 0};
+		rt = {1.0, 0.2, 0};
+	} else {
+		up = {0, 1.0, 0};
+		dn = {0, -1.0, 0};
+		lt = {-1.0, 0, 0};
+		rt = {1.0, 0, 0};
+	}
+
+	if (vec3_dot(&up, &normal) > 0.707f) {
 		// Dominantly looking up.
 		gs_matrix_rotaa4f(0, 0, 1, RAD(-90.0f));
-	} else if (vec3_dot(&dn, &normal) > 0.5f) {
+	} else if (vec3_dot(&dn, &normal) > 0.707f) {
 		// Dominantly looking down.
 		gs_matrix_rotaa4f(0, 0, 1, RAD(90.0f));
-	} else if (vec3_dot(&lt, &normal) > 0.5f) {
+	} else if (vec3_dot(&lt, &normal) > 0.707f) {
 		// Dominantly looking left.
 		gs_matrix_rotaa4f(0, 0, 1, RAD(0.0f));
-	} else if (vec3_dot(&rt, &normal) > 0.5f) {
+	} else if (vec3_dot(&rt, &normal) > 0.707f) {
 		// Dominantly looking right.
 		gs_matrix_rotaa4f(0, 0, 1, RAD(180.0f));
 	}
@@ -888,6 +897,9 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t* scene, obs_sceneitem_t* item,
 	gs_effect_t* solid       = obs_get_base_effect(OBS_EFFECT_SOLID);
 	gs_eparam_t* solid_color = gs_effect_get_param_by_name(solid, "color");
 
+	float rot = obs_sceneitem_get_rot(item);
+	bool rot45 = (rot == 45.0f || rot == 135.0f || rot == 225.0f || rot == 315.0f);
+
 	obs_transform_info info;
 	obs_sceneitem_get_info(item, &info);
 
@@ -901,40 +913,6 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t* scene, obs_sceneitem_t* item,
 	gs_effect_set_vec4(solid_color, &color);
 	DrawOutline(dp, boxTransform, info);
 
-	gs_load_vertexbuffer(dp->m_boxTris->Update(false));
-	vec4_set(
-	    &color,
-	    (dp->m_resizeInnerColor & 0xFF) / 255.0f,
-	    ((dp->m_resizeInnerColor & 0xFF00) >> 8) / 255.0f,
-	    ((dp->m_resizeInnerColor & 0xFF0000) >> 16) / 255.0f,
-	    ((dp->m_resizeInnerColor & 0xFF000000) >> 24) / 255.0f);
-	gs_effect_set_vec4(solid_color, &color);
-	DrawSquareAt(dp, 0, 0, boxTransform);
-	DrawSquareAt(dp, 1, 0, boxTransform);
-	DrawSquareAt(dp, 0, 1, boxTransform);
-	DrawSquareAt(dp, 1, 1, boxTransform);
-	DrawSquareAt(dp, 0.5, 0, boxTransform);
-	DrawSquareAt(dp, 0.5, 1, boxTransform);
-	DrawSquareAt(dp, 0, 0.5, boxTransform);
-	DrawSquareAt(dp, 1, 0.5, boxTransform);
-
-	gs_load_vertexbuffer(dp->m_boxLine->Update(false));
-	vec4_set(
-	    &color,
-	    (dp->m_resizeOuterColor & 0xFF) / 255.0f,
-	    ((dp->m_resizeOuterColor & 0xFF00) >> 8) / 255.0f,
-	    ((dp->m_resizeOuterColor & 0xFF0000) >> 16) / 255.0f,
-	    ((dp->m_resizeOuterColor & 0xFF000000) >> 24) / 255.0f);
-	gs_effect_set_vec4(solid_color, &color);
-	DrawBoxAt(dp, 0, 0, boxTransform);
-	DrawBoxAt(dp, 1, 0, boxTransform);
-	DrawBoxAt(dp, 0, 1, boxTransform);
-	DrawBoxAt(dp, 1, 1, boxTransform);
-	DrawBoxAt(dp, 0.5, 0, boxTransform);
-	DrawBoxAt(dp, 0.5, 1, boxTransform);
-	DrawBoxAt(dp, 0, 0.5, boxTransform);
-	DrawBoxAt(dp, 1, 0.5, boxTransform);
-
 	if (dp->m_drawGuideLines) {
 		vec4_set(
 		    &color,
@@ -943,10 +921,10 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t* scene, obs_sceneitem_t* item,
 		    ((dp->m_guidelineColor & 0xFF0000) >> 16) / 255.0f,
 		    ((dp->m_guidelineColor & 0xFF000000) >> 24) / 255.0f);
 		gs_effect_set_vec4(solid_color, &color);
-		DrawGuideline(dp, 0.5, 0, boxTransform);
-		DrawGuideline(dp, 0.5, 1, boxTransform);
-		DrawGuideline(dp, 0, 0.5, boxTransform);
-		DrawGuideline(dp, 1, 0.5, boxTransform);
+		DrawGuideline(dp, rot45, 0.5, 0, boxTransform);
+		DrawGuideline(dp, rot45, 0.5, 1, boxTransform);
+		DrawGuideline(dp, rot45, 0, 0.5, boxTransform);
+		DrawGuideline(dp, rot45, 1, 0.5, boxTransform);
 
 		// TEXT RENDERING
 		// THIS DESPERATELY NEEDS TO BE REWRITTEN INTO SHADER CODE
@@ -984,14 +962,21 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t* scene, obs_sceneitem_t* item,
 			if (!isIn)
 				continue;
 
-			vec3 alignLeft = {-1, 0, 0};
-			vec3 alignTop  = {0, -1, 0};
+			vec3 alignLeft, alignTop;
+
+			if (rot45) {
+				alignLeft = {-1, -0.2, 0};
+				alignTop  = {0.2, -1, 0};
+			} else {
+				alignLeft = {-1, 0, 0};
+				alignTop  = {0, -1, 0};
+			}
 
 			vec3 temp;
 			vec3_sub(&temp, &edge[n], &center);
 			vec3_norm(&temp, &temp);
 			float left = vec3_dot(&temp, &alignLeft), top = vec3_dot(&temp, &alignTop);
-			if (left > 0.5) { // LEFT
+			if (left > 0.707f) { // LEFT
 				float_t dist = edge[n].x;
 				if (dist > (pt * 4)) {
 					size_t  len    = (size_t)snprintf(buf.data(), buf.size(), "%ld px", (uint32_t)dist);
@@ -1009,7 +994,7 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t* scene, obs_sceneitem_t* item,
 						    dp->m_guidelineColor);
 					}
 				}
-			} else if (left < -0.5) { // RIGHT
+			} else if (left < -0.707f) { // RIGHT
 				float_t dist = sceneWidth - edge[n].x;
 				if (dist > (pt * 4)) {
 					size_t  len    = (size_t)snprintf(buf.data(), buf.size(), "%ld px", (uint32_t)dist);
@@ -1027,7 +1012,7 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t* scene, obs_sceneitem_t* item,
 						    dp->m_guidelineColor);
 					}
 				}
-			} else if (top > 0.5) { // UP
+			} else if (top > 0.707f) { // UP
 				float_t dist = edge[n].y;
 				if (dist > pt) {
 					size_t  len    = (size_t)snprintf(buf.data(), buf.size(), "%ld px", (uint32_t)dist);
@@ -1037,7 +1022,7 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t* scene, obs_sceneitem_t* item,
 						char v = buf.data()[p];
 						DrawGlyph(
 						    dp->m_textVertices,
-						    edge[n].x + (p * pt),
+						    edge[n].x + (p * pt) + 15,
 						    edge[n].y - (dist / 2) - pt,
 						    pt,
 						    0,
@@ -1045,7 +1030,7 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t* scene, obs_sceneitem_t* item,
 						    dp->m_guidelineColor);
 					}
 				}
-			} else if (top < -0.5) { // DOWN
+			} else if (top < -0.707f) { // DOWN
 				float_t dist = sceneHeight - edge[n].y;
 				if (dist > (pt * 4)) {
 					size_t  len    = (size_t)snprintf(buf.data(), buf.size(), "%ld px", (uint32_t)dist);
@@ -1055,7 +1040,7 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t* scene, obs_sceneitem_t* item,
 						char v = buf.data()[p];
 						DrawGlyph(
 						    dp->m_textVertices,
-						    edge[n].x + (p * pt),
+						    edge[n].x + (p * pt) + 15,
 						    edge[n].y + (dist / 2) - pt,
 						    pt,
 						    0,
@@ -1066,6 +1051,40 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t* scene, obs_sceneitem_t* item,
 			}
 		}
 	}
+
+	gs_load_vertexbuffer(dp->m_boxTris->Update(false));
+	vec4_set(
+		&color,
+		(dp->m_resizeInnerColor & 0xFF) / 255.0f,
+		((dp->m_resizeInnerColor & 0xFF00) >> 8) / 255.0f,
+		((dp->m_resizeInnerColor & 0xFF0000) >> 16) / 255.0f,
+		((dp->m_resizeInnerColor & 0xFF000000) >> 24) / 255.0f);
+	gs_effect_set_vec4(solid_color, &color);
+	DrawSquareAt(dp, 0, 0, boxTransform);
+	DrawSquareAt(dp, 1, 0, boxTransform);
+	DrawSquareAt(dp, 0, 1, boxTransform);
+	DrawSquareAt(dp, 1, 1, boxTransform);
+	DrawSquareAt(dp, 0.5, 0, boxTransform);
+	DrawSquareAt(dp, 0.5, 1, boxTransform);
+	DrawSquareAt(dp, 0, 0.5, boxTransform);
+	DrawSquareAt(dp, 1, 0.5, boxTransform);
+
+	gs_load_vertexbuffer(dp->m_boxLine->Update(false));
+	vec4_set(
+		&color,
+		(dp->m_resizeOuterColor & 0xFF) / 255.0f,
+		((dp->m_resizeOuterColor & 0xFF00) >> 8) / 255.0f,
+		((dp->m_resizeOuterColor & 0xFF0000) >> 16) / 255.0f,
+		((dp->m_resizeOuterColor & 0xFF000000) >> 24) / 255.0f);
+	gs_effect_set_vec4(solid_color, &color);
+	DrawBoxAt(dp, 0, 0, boxTransform);
+	DrawBoxAt(dp, 1, 0, boxTransform);
+	DrawBoxAt(dp, 0, 1, boxTransform);
+	DrawBoxAt(dp, 1, 1, boxTransform);
+	DrawBoxAt(dp, 0.5, 0, boxTransform);
+	DrawBoxAt(dp, 0.5, 1, boxTransform);
+	DrawBoxAt(dp, 0, 0.5, boxTransform);
+	DrawBoxAt(dp, 1, 0.5, boxTransform);
 
 	return true;
 }
