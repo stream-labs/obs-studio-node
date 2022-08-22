@@ -148,6 +148,45 @@ describe(testName, function() {
         expect(signalInfo.signal).to.equal(EOBSOutputSignal.Wrote, GetErrorMessage(ETestErrorMsg.RecordingOutput));
     });
 
+    it('Simple mode - Pause recording and resume', async function() {
+        // Preparing environment
+        obs.setSetting(EOBSSettingsCategories.Output, 'Mode', 'Simple');
+        obs.setSetting(EOBSSettingsCategories.Output, 'StreamEncoder', obs.os === 'win32' ? 'x264' : 'obs_x264');
+        obs.setSetting(EOBSSettingsCategories.Output, 'FilePath', path.join(path.normalize(__dirname), '..', 'osnData'));
+
+        let signalInfo: IOBSOutputSignalInfo;
+
+        osn.NodeObs.OBS_service_startRecording();
+
+        signalInfo = await obs.getNextSignalInfo(EOBSOutputType.Recording, EOBSOutputSignal.Start);
+
+        if (signalInfo.signal == EOBSOutputSignal.Stop) {
+            throw Error(GetErrorMessage(ETestErrorMsg.RecordOutputDidNotStart, signalInfo.code.toString(), signalInfo.error));
+        }
+
+        expect(signalInfo.type).to.equal(EOBSOutputType.Recording, GetErrorMessage(ETestErrorMsg.RecordingOutput));
+        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Start, GetErrorMessage(ETestErrorMsg.RecordingOutput));
+
+        await sleep(500);
+
+        expect(osn.NodeObs.OBS_service_canPauseRecording()).to.equal(true)
+        expect(osn.NodeObs.OBS_service_isPausedRecording()).to.equal(false)
+
+        expect(osn.NodeObs.OBS_service_pauseRecording(true)).to.equal(true);
+        signalInfo = await obs.getNextSignalInfo(EOBSOutputType.Recording, EOBSOutputSignal.Pause);
+
+        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Pause, GetErrorMessage(ETestErrorMsg.RecordingOutput));
+        expect(osn.NodeObs.OBS_service_isPausedRecording()).to.equal(true);
+
+        expect(osn.NodeObs.OBS_service_pauseRecording(false)).to.equal(true)
+        signalInfo = await obs.getNextSignalInfo(EOBSOutputType.Recording, EOBSOutputSignal.Unpause);
+
+        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Unpause, GetErrorMessage(ETestErrorMsg.RecordingOutput));
+        expect(osn.NodeObs.OBS_service_isPausedRecording()).to.equal(false)
+
+        osn.NodeObs.OBS_service_stopRecording();
+    });
+
     it('Simple mode - Start replay buffer, save replay and stop', async function() {
         // Preparing environment
         obs.setSetting(EOBSSettingsCategories.Output, 'Mode', 'Simple');

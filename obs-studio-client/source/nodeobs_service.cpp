@@ -164,6 +164,38 @@ Napi::Value service::OBS_service_stopReplayBuffer(const Napi::CallbackInfo& info
 	return info.Env().Undefined();
 }
 
+Napi::Value service::OBS_service_canPauseRecording(const Napi::CallbackInfo& info)
+{
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
+
+	std::vector<ipc::value> response  = conn->call_synchronous_helper("NodeOBS_Service", "OBS_service_canPauseRecording", {});
+	return Napi::Boolean::New(info.Env(), (bool)response[1].value_union.i32);
+}
+
+Napi::Value service::OBS_service_pauseRecording(const Napi::CallbackInfo& info)
+{
+	bool shouldPause = info[0].ToBoolean().Value();
+
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
+
+	std::vector<ipc::value> response = conn->call_synchronous_helper("NodeOBS_Service", "OBS_service_pauseRecording", {ipc::value(shouldPause)});
+	return Napi::Boolean::New(info.Env(), (bool)response[1].value_union.i32);
+}
+
+Napi::Value service::OBS_service_isPausedRecording(const Napi::CallbackInfo& info)
+{
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
+
+	std::vector<ipc::value> response = conn->call_synchronous_helper("NodeOBS_Service", "OBS_service_isPausedRecording", {});
+	return Napi::Boolean::New(info.Env(), (bool)response[1].value_union.i32);
+}
+
 static v8::Persistent<v8::Object> serviceCallbackObject;
 
 Napi::Value service::OBS_service_connectOutputSignals(const Napi::CallbackInfo& info)
@@ -464,6 +496,15 @@ void service::Init(Napi::Env env, Napi::Object exports)
 	exports.Set(
 		Napi::String::New(env, "OBS_service_stopReplayBuffer"),
 		Napi::Function::New(env, service::OBS_service_stopReplayBuffer));
+	exports.Set(
+		Napi::String::New(env, "OBS_service_canPauseRecording"),
+		Napi::Function::New(env, service::OBS_service_canPauseRecording));
+	exports.Set(
+		Napi::String::New(env, "OBS_service_pauseRecording"),
+		Napi::Function::New(env, service::OBS_service_pauseRecording));
+	exports.Set(
+		Napi::String::New(env, "OBS_service_isPausedRecording"),
+		Napi::Function::New(env, service::OBS_service_isPausedRecording));
 	exports.Set(
 		Napi::String::New(env, "OBS_service_connectOutputSignals"),
 		Napi::Function::New(env, service::OBS_service_connectOutputSignals));

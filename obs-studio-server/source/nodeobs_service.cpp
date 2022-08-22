@@ -96,6 +96,12 @@ void OBS_service::Register(ipc::server& srv)
 	cls->register_function(std::make_shared<ipc::function>(
 	    "OBS_service_stopReplayBuffer", std::vector<ipc::type>{ipc::type::Int32}, OBS_service_stopReplayBuffer));
 	cls->register_function(std::make_shared<ipc::function>(
+		"OBS_service_canPauseRecording", std::vector<ipc::type>{}, OBS_service_canPauseRecording));
+	cls->register_function(std::make_shared<ipc::function>(
+		"OBS_service_pauseRecording", std::vector<ipc::type>{ipc::type::Int32}, OBS_service_pauseRecording));
+	cls->register_function(std::make_shared<ipc::function>(
+		"OBS_service_isPausedRecording", std::vector<ipc::type>{}, OBS_service_isPausedRecording));
+	cls->register_function(std::make_shared<ipc::function>(
 	    "OBS_service_connectOutputSignals", std::vector<ipc::type>{}, OBS_service_connectOutputSignals));
 	cls->register_function(std::make_shared<ipc::function>("Query", std::vector<ipc::type>{}, Query));
 	cls->register_function(std::make_shared<ipc::function>(
@@ -241,6 +247,42 @@ void OBS_service::OBS_service_stopReplayBuffer(
 	rpUsesRec    = false;
 	rpUsesStream = false;
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
+}
+
+void OBS_service::OBS_service_canPauseRecording(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	bool result = canPauseRecording();
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(result));
+	AUTO_DEBUG;
+}
+
+void OBS_service::OBS_service_pauseRecording(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	bool result = pauseRecording((bool)args[0].value_union.i32);
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(result));
+	AUTO_DEBUG;
+}
+
+void OBS_service::OBS_service_isPausedRecording(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	bool result = isPausedRecording();
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(result));
 	AUTO_DEBUG;
 }
 
@@ -1363,6 +1405,21 @@ void OBS_service::stopRecording(void)
 	isRecording = false;
 }
 
+bool OBS_service::canPauseRecording(void)
+{
+	return obs_output_can_pause(recordingOutput);
+}
+
+bool OBS_service::pauseRecording(bool shouldPause)
+{
+	return obs_output_pause(recordingOutput, shouldPause);
+}
+
+bool OBS_service::isPausedRecording(void)
+{
+	return obs_output_paused(recordingOutput);
+}
+
 void OBS_service::updateReplayBufferOutput(bool isSimpleMode, bool useStreamEncoder)
 {
 	const char* path;
@@ -2317,6 +2374,8 @@ void OBS_service::OBS_service_connectOutputSignals(
 	recordingSignals.push_back(SignalInfo("recording", "stop"));
 	recordingSignals.push_back(SignalInfo("recording", "stopping"));
 	recordingSignals.push_back(SignalInfo("recording", "wrote"));
+	recordingSignals.push_back(SignalInfo("recording", "pause"));
+	recordingSignals.push_back(SignalInfo("recording", "unpause"));
 
 	replayBufferSignals.push_back(SignalInfo("replay-buffer", "start"));
 	replayBufferSignals.push_back(SignalInfo("replay-buffer", "stop"));
