@@ -21,6 +21,9 @@
 #include "osn-source.hpp"
 #include "shared.hpp"
 
+#include <graphics/matrix4.h>
+#include <graphics/vec4.h>
+
 void osn::SceneItem::Register(ipc::server& srv)
 {
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("SceneItem");
@@ -365,6 +368,42 @@ void osn::SceneItem::GetRotation(
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(obs_sceneitem_get_rot(item)));
 	AUTO_DEBUG;
+}
+
+// Calculates the position which has to be set after rotation
+// to simulate roation around the item center.
+//
+// vec2 pos = CalculatePosAfterRotationAroundItemCenter(item, rot);
+// obs_sceneitem_set_rot(item, rot);
+// obs_sceneitem_set_pos(item, &pos);
+//
+static vec2 CalculatePosAfterRotationAroundItemCenter(obs_sceneitem_t* item, float rot)
+{
+	float oldRot = obs_sceneitem_get_rot(item);
+	float angle = rot - oldRot;
+
+	matrix4 boxTransform;
+	obs_sceneitem_get_box_transform(item, &boxTransform);
+
+	vec3 left = {0.0f, 0.0f, 0.0f};
+	vec3_transform(&left, &left, &boxTransform);
+
+	vec3 oldCenter = {0.5f, 0.5f, 0.0f};
+	vec3_transform(&oldCenter, &oldCenter, &boxTransform);
+
+	matrix4_translate3f(&boxTransform, &boxTransform, -left.x, -left.y, 0);
+	matrix4_rotate_aa4f(&boxTransform, &boxTransform, 0.0f, 0.0f, 1.0f, RAD(angle));
+	matrix4_translate3f(&boxTransform, &boxTransform, left.x, left.y, 0);
+
+	vec3 newCenter = {0.5f, 0.5f, 0.0f};
+	vec3_transform(&newCenter, &newCenter, &boxTransform);
+
+	vec2 pos;
+	obs_sceneitem_get_pos(item, &pos);
+	pos.x += oldCenter.x - newCenter.x;
+	pos.y += oldCenter.y - newCenter.y;
+
+	return pos;
 }
 
 void osn::SceneItem::SetRotation(
