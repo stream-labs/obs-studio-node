@@ -26,6 +26,9 @@
 #include <graphics/vec4.h>
 #include <util/platform.h>
 
+#define HANDLE_RADIUS 5.0f
+#define HANDLE_DIAMETER 10.0f
+
 std::vector<std::pair<std::string, std::pair<uint32_t, uint32_t>>> sourcesSize;
 
 extern std::string currentScene; /* defined in OBS_content.cpp */
@@ -305,6 +308,52 @@ OBS::Display::Display()
 	*v.color = 0xFFFFFFFF;
 	m_boxTris->Update();
 
+	// Rotation handle line
+	m_rotHandleLine = std::make_unique<GS::VertexBuffer>(5);
+	m_rotHandleLine->Resize(5);
+	v = m_rotHandleLine->At(0);
+	vec3_set(v.position, 0.5f - 0.34f / HANDLE_RADIUS, 0.5f, 0);
+	vec4_set(v.uv[0], 0, 0, 0, 0);
+	*v.color = 0xFFFFFFFF;
+	v = m_rotHandleLine->At(1);
+	vec3_set(v.position, 0.5f - 0.34f / HANDLE_RADIUS, -2.0f, 0);
+	vec4_set(v.uv[0], 0, 0, 0, 0);
+	*v.color = 0xFFFFFFFF;
+	v = m_rotHandleLine->At(2);
+	vec3_set(v.position, 0.5f + 0.34f / HANDLE_RADIUS, -2.0f, 0);
+	vec4_set(v.uv[0], 0, 0, 0, 0);
+	*v.color = 0xFFFFFFFF;
+	v = m_rotHandleLine->At(3);
+	vec3_set(v.position, 0.5f + 0.34f / HANDLE_RADIUS, 0.5f, 0);
+	vec4_set(v.uv[0], 0, 0, 0, 0);
+	*v.color = 0xFFFFFFFF;
+	v = m_rotHandleLine->At(4);
+	vec3_set(v.position, 0.5f - 0.34f / HANDLE_RADIUS, 0.5f, 0);
+	vec4_set(v.uv[0], 0, 0, 0, 0);
+	*v.color = 0xFFFFFFFF;
+	m_rotHandleLine->Update();
+
+	// Rotation handle circle
+	m_rotHandleCircle = std::make_unique<GS::VertexBuffer>(120);
+	m_rotHandleCircle->Resize(120);
+	float angle = 180;
+	for (int i = 0; i < 40; ++i) {
+		v = m_rotHandleCircle->At(i * 3);
+		vec3_set(v.position, sin(RAD(angle)) / 2 + 0.5f, cos(RAD(angle)) / 2 + 0.5f, 0);
+		vec4_set(v.uv[0], 0, 0, 0, 0);
+		*v.color = 0xFFFFFFFF;
+		angle += 8.75f;
+		v = m_rotHandleCircle->At((i * 3) + 1);
+		vec3_set(v.position, sin(RAD(angle)) / 2 + 0.5f, cos(RAD(angle)) / 2 + 0.5f, 0);
+		vec4_set(v.uv[0], 0, 0, 0, 0);
+		*v.color = 0xFFFFFFFF;
+		v = m_rotHandleCircle->At((i * 3) + 2);
+		vec3_set(v.position, 0.5f, 1.0f, 0);
+		vec4_set(v.uv[0], 0, 0, 0, 0);
+		*v.color = 0xFFFFFFFF;
+	}
+	m_rotHandleCircle->Update();
+
 	// Text
 	m_textVertices = new GS::VertexBuffer(65535);
 	m_textEffect   = obs_get_base_effect(OBS_EFFECT_DEFAULT);
@@ -321,6 +370,7 @@ OBS::Display::Display()
 	UpdatePreviewArea();
 
 	m_drawGuideLines = true;
+	m_drawRotationHandle = false;
 }
 
 OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode) : Display()
@@ -399,6 +449,8 @@ OBS::Display::~Display()
 
 	m_boxLine = nullptr;
 	m_boxTris = nullptr;
+	m_rotHandleLine.reset();
+	m_rotHandleCircle.reset();
 
 	if (m_display)
 		obs_display_destroy(m_display);
@@ -729,9 +781,6 @@ static void
 	*v.color = color;
 }
 
-#define HANDLE_RADIUS 5.0f
-#define HANDLE_DIAMETER 10.0f
-
 inline bool CloseFloat(float a, float b, float epsilon = 0.01)
 {
 	return abs(a - b) <= epsilon;
@@ -846,6 +895,32 @@ inline void DrawGuideline(OBS::Display* dp, bool rot45, float_t x, float_t y, ma
 
 	gs_matrix_pop();
 	gs_set_scissor_rect(nullptr);
+}
+
+void OBS::Display::DrawRotationHandle(float rot, matrix4& mtx)
+{
+	struct vec3 pos;
+	vec3_set(&pos, 0.5f, 0.0f, 0.0f);
+	vec3_transform(&pos, &pos, &mtx);
+
+	gs_load_vertexbuffer(m_rotHandleLine->Update(false));
+
+	gs_matrix_push();
+	gs_matrix_identity();
+	gs_matrix_translate(&pos);
+
+	gs_matrix_rotaa4f(0.0f, 0.0f, 1.0f, RAD(rot));
+	gs_matrix_translate3f(-HANDLE_RADIUS * 1.5, -HANDLE_RADIUS * 1.5, 0.0f);
+	gs_matrix_scale3f(HANDLE_RADIUS * 3, HANDLE_RADIUS * 3, 1.0f);
+
+	gs_draw(GS_TRISTRIP, 0, 0);
+
+	gs_matrix_translate3f(0.0f, -HANDLE_RADIUS * 0.6, 0.0f);
+
+	gs_load_vertexbuffer(m_rotHandleCircle->Update(false));
+	gs_draw(GS_TRISTRIP, 0, 0);
+
+	gs_matrix_pop();
 }
 
 bool OBS::Display::DrawSelectedSource(obs_scene_t* scene, obs_sceneitem_t* item, void* param)
@@ -1050,6 +1125,10 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t* scene, obs_sceneitem_t* item,
 				}
 			}
 		}
+	}
+
+	if (dp->m_drawRotationHandle) {
+		dp->DrawRotationHandle(rot, boxTransform);
 	}
 
 	gs_load_vertexbuffer(dp->m_boxTris->Update(false));
@@ -1354,4 +1433,14 @@ bool OBS::Display::GetDrawGuideLines(void)
 void OBS::Display::SetDrawGuideLines(bool drawGuideLines)
 {
 	m_drawGuideLines = drawGuideLines;
+}
+
+bool OBS::Display::GetDrawRotationHandle()
+{
+	return m_drawRotationHandle;
+}
+
+void OBS::Display::SetDrawRotationHandle(bool drawRotationHandle)
+{
+	m_drawRotationHandle = drawRotationHandle;
 }

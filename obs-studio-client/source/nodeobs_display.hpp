@@ -34,5 +34,6 @@ namespace display
 	Napi::Value OBS_content_setOutlineColor(const Napi::CallbackInfo& info);
 	Napi::Value OBS_content_setShouldDrawUI(const Napi::CallbackInfo& info);
 	Napi::Value OBS_content_setDrawGuideLines(const Napi::CallbackInfo& info);
+	Napi::Value OBS_content_setDrawRotationHandle(const Napi::CallbackInfo& info);
 	Napi::Value OBS_content_createIOSurface(const Napi::CallbackInfo& info);
 }
