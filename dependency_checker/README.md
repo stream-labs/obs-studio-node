@@ -17,7 +17,7 @@ When a check fails, the script will print in the console the following informati
 
 To resolve the issue, you first need to review the difference found in the list of dependencies.
 
-If the changes were not intentional or not needed then fix it by updating cmake.
+If the changes were not intentional or not needed then try to fix it by updating cmake.
 
 If changes were intentional then copy the updated list into the saved list and include this change in your PR.
 
