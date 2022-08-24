@@ -9,7 +9,7 @@ trigger:
 variables:
   RuntimeURL: https://atom.io/download/atom-shell
   RuntimeName: iojs
-  ElectronVersion: 17.4.11
+  ElectronVersion: 17.4.3
   SLBuildDirectory: streamlabs-build
   SLGenerator: Visual Studio 16 2019
   SLDistributeDirectory: distribute
