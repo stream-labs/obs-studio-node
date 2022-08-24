@@ -366,6 +366,7 @@ OBS::Display::Display()
 
 	SetOutlineColor(26, 230, 168);
 	SetGuidelineColor(26, 230, 168);
+	SetRotationHandleColor(26, 230, 168);
 
 	UpdatePreviewArea();
 
@@ -686,6 +687,11 @@ void OBS::Display::SetResizeBoxInnerColor(uint8_t r, uint8_t g, uint8_t b, uint8
 	m_resizeInnerColor = a << 24 | b << 16 | g << 8 | r;
 }
 
+void OBS::Display::SetRotationHandleColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a /*= 255u*/)
+{
+	m_rotationHandleColor = a << 24 | b << 16 | g << 8 | r;
+}
+
 static void
     DrawGlyph(GS::VertexBuffer* vb, float_t x, float_t y, float_t scale, float_t depth, char glyph, uint32_t color)
 {
@@ -923,6 +929,18 @@ void OBS::Display::DrawRotationHandle(float rot, matrix4& mtx)
 	gs_matrix_pop();
 }
 
+static void ConvertColorToEffectParam(uint32_t color, gs_eparam_t* dst)
+{
+	vec4 colorVec;
+	vec4_set(
+		&colorVec,
+		(color & 0xFF) / 255.0f,
+		((color & 0xFF00) >> 8) / 255.0f,
+		((color & 0xFF0000) >> 16) / 255.0f,
+		((color & 0xFF000000) >> 24) / 255.0f);
+	gs_effect_set_vec4(dst, &colorVec);
+}
+
 bool OBS::Display::DrawSelectedSource(obs_scene_t* scene, obs_sceneitem_t* item, void* param)
 {
 	// This is partially code from OBS Studio. See window-basic-preview.cpp in obs-studio for copyright/license.
@@ -1128,6 +1146,7 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t* scene, obs_sceneitem_t* item,
 	}
 
 	if (dp->m_drawRotationHandle) {
+		ConvertColorToEffectParam(dp->m_rotationHandleColor, solid_color);
 		dp->DrawRotationHandle(rot, boxTransform);
 	}
 

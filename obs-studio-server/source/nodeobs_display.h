@@ -84,6 +84,7 @@ namespace OBS
 		void SetGuidelineColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255u);
 		void SetResizeBoxOuterColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255u);
 		void SetResizeBoxInnerColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255u);
+		void SetRotationHandleColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255u);
 		bool GetDrawGuideLines(void);
 		void SetDrawGuideLines(bool drawGuideLines);
 		bool GetDrawRotationHandle();
@@ -134,6 +135,7 @@ namespace OBS
 		uint32_t m_guidelineColor   = 0xFF0000FF;
 		uint32_t m_resizeOuterColor = 0xFF7E7E7E;
 		uint32_t m_resizeInnerColor = 0xFFFFFFFF;
+		uint32_t m_rotationHandleColor = 0xFFFF7EFF;
 		bool     m_shouldDrawUI     = true;
 
 		enum obs_video_rendering_mode m_renderingMode = OBS_MAIN_VIDEO_RENDERING;
