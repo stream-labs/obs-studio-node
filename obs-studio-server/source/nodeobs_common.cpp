@@ -672,7 +672,7 @@ void OBS_content::OBS_content_setDrawRotationHandle(
 		rval.push_back(ipc::value("Display key is not valid!"));
 		return;
 	}
-	it->second->SetDrawRotationHandle((bool)args[1].value_union.i32);
+	it->second->SetDrawRotationHandle((bool)args[1].value_union.ui32);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }
