@@ -26,6 +26,9 @@
 #include <graphics/vec4.h>
 #include <util/platform.h>
 
+#define HANDLE_RADIUS 5.0f
+#define HANDLE_DIAMETER 10.0f
+
 std::vector<std::pair<std::string, std::pair<uint32_t, uint32_t>>> sourcesSize;
 
 extern std::string currentScene; /* defined in OBS_content.cpp */
@@ -305,6 +308,52 @@ OBS::Display::Display()
 	*v.color = 0xFFFFFFFF;
 	m_boxTris->Update();
 
+	// Rotation handle line
+	m_rotHandleLine = std::make_unique<GS::VertexBuffer>(5);
+	m_rotHandleLine->Resize(5);
+	v = m_rotHandleLine->At(0);
+	vec3_set(v.position, 0.5f - 0.34f / HANDLE_RADIUS, 0.5f, 0);
+	vec4_set(v.uv[0], 0, 0, 0, 0);
+	*v.color = 0xFFFFFFFF;
+	v = m_rotHandleLine->At(1);
+	vec3_set(v.position, 0.5f - 0.34f / HANDLE_RADIUS, -2.0f, 0);
+	vec4_set(v.uv[0], 0, 0, 0, 0);
+	*v.color = 0xFFFFFFFF;
+	v = m_rotHandleLine->At(2);
+	vec3_set(v.position, 0.5f + 0.34f / HANDLE_RADIUS, -2.0f, 0);
+	vec4_set(v.uv[0], 0, 0, 0, 0);
+	*v.color = 0xFFFFFFFF;
+	v = m_rotHandleLine->At(3);
+	vec3_set(v.position, 0.5f + 0.34f / HANDLE_RADIUS, 0.5f, 0);
+	vec4_set(v.uv[0], 0, 0, 0, 0);
+	*v.color = 0xFFFFFFFF;
+	v = m_rotHandleLine->At(4);
+	vec3_set(v.position, 0.5f - 0.34f / HANDLE_RADIUS, 0.5f, 0);
+	vec4_set(v.uv[0], 0, 0, 0, 0);
+	*v.color = 0xFFFFFFFF;
+	m_rotHandleLine->Update();
+
+	// Rotation handle circle
+	m_rotHandleCircle = std::make_unique<GS::VertexBuffer>(120);
+	m_rotHandleCircle->Resize(120);
+	float angle = 180;
+	for (int i = 0; i < 40; ++i) {
+		v = m_rotHandleCircle->At(i * 3);
+		vec3_set(v.position, sin(RAD(angle)) / 2 + 0.5f, cos(RAD(angle)) / 2 + 0.5f, 0);
+		vec4_set(v.uv[0], 0, 0, 0, 0);
+		*v.color = 0xFFFFFFFF;
+		angle += 8.75f;
+		v = m_rotHandleCircle->At((i * 3) + 1);
+		vec3_set(v.position, sin(RAD(angle)) / 2 + 0.5f, cos(RAD(angle)) / 2 + 0.5f, 0);
+		vec4_set(v.uv[0], 0, 0, 0, 0);
+		*v.color = 0xFFFFFFFF;
+		v = m_rotHandleCircle->At((i * 3) + 2);
+		vec3_set(v.position, 0.5f, 1.0f, 0);
+		vec4_set(v.uv[0], 0, 0, 0, 0);
+		*v.color = 0xFFFFFFFF;
+	}
+	m_rotHandleCircle->Update();
+
 	// Text
 	m_textVertices = new GS::VertexBuffer(65535);
 	m_textEffect   = obs_get_base_effect(OBS_EFFECT_DEFAULT);
@@ -317,10 +366,12 @@ OBS::Display::Display()
 
 	SetOutlineColor(26, 230, 168);
 	SetGuidelineColor(26, 230, 168);
+	SetRotationHandleColor(26, 230, 168);
 
 	UpdatePreviewArea();
 
 	m_drawGuideLines = true;
+	m_drawRotationHandle = false;
 }
 
 OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode) : Display()
@@ -399,6 +450,8 @@ OBS::Display::~Display()
 
 	m_boxLine = nullptr;
 	m_boxTris = nullptr;
+	m_rotHandleLine.reset();
+	m_rotHandleCircle.reset();
 
 	if (m_display)
 		obs_display_destroy(m_display);
@@ -634,6 +687,11 @@ void OBS::Display::SetResizeBoxInnerColor(uint8_t r, uint8_t g, uint8_t b, uint8
 	m_resizeInnerColor = a << 24 | b << 16 | g << 8 | r;
 }
 
+void OBS::Display::SetRotationHandleColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a /*= 255u*/)
+{
+	m_rotationHandleColor = a << 24 | b << 16 | g << 8 | r;
+}
+
 static void
     DrawGlyph(GS::VertexBuffer* vb, float_t x, float_t y, float_t scale, float_t depth, char glyph, uint32_t color)
 {
@@ -729,9 +787,6 @@ static void
 	*v.color = color;
 }
 
-#define HANDLE_RADIUS 5.0f
-#define HANDLE_DIAMETER 10.0f
-
 inline bool CloseFloat(float a, float b, float epsilon = 0.01)
 {
 	return abs(a - b) <= epsilon;
@@ -789,7 +844,7 @@ inline void DrawSquareAt(OBS::Display* dp, float_t x, float_t y, matrix4& mtx)
 	gs_matrix_pop();
 }
 
-inline void DrawGuideline(OBS::Display* dp, float_t x, float_t y, matrix4& mtx)
+inline void DrawGuideline(OBS::Display* dp, bool rot45, float_t x, float_t y, matrix4& mtx)
 {
 	gs_rect rect;
 	rect.x  = dp->GetPreviewOffset().first;
@@ -812,21 +867,30 @@ inline void DrawGuideline(OBS::Display* dp, float_t x, float_t y, matrix4& mtx)
 
 	gs_matrix_translate(&pos);
 
-	vec3 up = {0, 1.0, 0};
-	vec3 dn = {0, -1.0, 0};
-	vec3 lt = {-1.0, 0, 0};
-	vec3 rt = {1.0, 0, 0};
+	vec3 up, dn, lt, rt;
 
-	if (vec3_dot(&up, &normal) > 0.5f) {
+	if (rot45) {
+		up = {-0.2, 1.0, 0};
+		dn = {0.2, -1.0, 0};
+		lt = {-1.0, -0.2, 0};
+		rt = {1.0, 0.2, 0};
+	} else {
+		up = {0, 1.0, 0};
+		dn = {0, -1.0, 0};
+		lt = {-1.0, 0, 0};
+		rt = {1.0, 0, 0};
+	}
+
+	if (vec3_dot(&up, &normal) > 0.707f) {
 		// Dominantly looking up.
 		gs_matrix_rotaa4f(0, 0, 1, RAD(-90.0f));
-	} else if (vec3_dot(&dn, &normal) > 0.5f) {
+	} else if (vec3_dot(&dn, &normal) > 0.707f) {
 		// Dominantly looking down.
 		gs_matrix_rotaa4f(0, 0, 1, RAD(90.0f));
-	} else if (vec3_dot(&lt, &normal) > 0.5f) {
+	} else if (vec3_dot(&lt, &normal) > 0.707f) {
 		// Dominantly looking left.
 		gs_matrix_rotaa4f(0, 0, 1, RAD(0.0f));
-	} else if (vec3_dot(&rt, &normal) > 0.5f) {
+	} else if (vec3_dot(&rt, &normal) > 0.707f) {
 		// Dominantly looking right.
 		gs_matrix_rotaa4f(0, 0, 1, RAD(180.0f));
 	}
@@ -837,6 +901,44 @@ inline void DrawGuideline(OBS::Display* dp, float_t x, float_t y, matrix4& mtx)
 
 	gs_matrix_pop();
 	gs_set_scissor_rect(nullptr);
+}
+
+void OBS::Display::DrawRotationHandle(float rot, matrix4& mtx)
+{
+	struct vec3 pos;
+	vec3_set(&pos, 0.5f, 0.0f, 0.0f);
+	vec3_transform(&pos, &pos, &mtx);
+
+	gs_load_vertexbuffer(m_rotHandleLine->Update(false));
+
+	gs_matrix_push();
+	gs_matrix_identity();
+	gs_matrix_translate(&pos);
+
+	gs_matrix_rotaa4f(0.0f, 0.0f, 1.0f, RAD(rot));
+	gs_matrix_translate3f(-HANDLE_RADIUS * 1.5, -HANDLE_RADIUS * 1.5, 0.0f);
+	gs_matrix_scale3f(HANDLE_RADIUS * 3, HANDLE_RADIUS * 3, 1.0f);
+
+	gs_draw(GS_TRISTRIP, 0, 0);
+
+	gs_matrix_translate3f(0.0f, -HANDLE_RADIUS * 0.6, 0.0f);
+
+	gs_load_vertexbuffer(m_rotHandleCircle->Update(false));
+	gs_draw(GS_TRISTRIP, 0, 0);
+
+	gs_matrix_pop();
+}
+
+static void ConvertColorToEffectParam(uint32_t color, gs_eparam_t* dst)
+{
+	vec4 colorVec;
+	vec4_set(
+		&colorVec,
+		(color & 0xFF) / 255.0f,
+		((color & 0xFF00) >> 8) / 255.0f,
+		((color & 0xFF0000) >> 16) / 255.0f,
+		((color & 0xFF000000) >> 24) / 255.0f);
+	gs_effect_set_vec4(dst, &colorVec);
 }
 
 bool OBS::Display::DrawSelectedSource(obs_scene_t* scene, obs_sceneitem_t* item, void* param)
@@ -888,6 +990,9 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t* scene, obs_sceneitem_t* item,
 	gs_effect_t* solid       = obs_get_base_effect(OBS_EFFECT_SOLID);
 	gs_eparam_t* solid_color = gs_effect_get_param_by_name(solid, "color");
 
+	float rot = obs_sceneitem_get_rot(item);
+	bool rot45 = (rot == 45.0f || rot == 135.0f || rot == 225.0f || rot == 315.0f);
+
 	obs_transform_info info;
 	obs_sceneitem_get_info(item, &info);
 
@@ -901,40 +1006,6 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t* scene, obs_sceneitem_t* item,
 	gs_effect_set_vec4(solid_color, &color);
 	DrawOutline(dp, boxTransform, info);
 
-	gs_load_vertexbuffer(dp->m_boxTris->Update(false));
-	vec4_set(
-	    &color,
-	    (dp->m_resizeInnerColor & 0xFF) / 255.0f,
-	    ((dp->m_resizeInnerColor & 0xFF00) >> 8) / 255.0f,
-	    ((dp->m_resizeInnerColor & 0xFF0000) >> 16) / 255.0f,
-	    ((dp->m_resizeInnerColor & 0xFF000000) >> 24) / 255.0f);
-	gs_effect_set_vec4(solid_color, &color);
-	DrawSquareAt(dp, 0, 0, boxTransform);
-	DrawSquareAt(dp, 1, 0, boxTransform);
-	DrawSquareAt(dp, 0, 1, boxTransform);
-	DrawSquareAt(dp, 1, 1, boxTransform);
-	DrawSquareAt(dp, 0.5, 0, boxTransform);
-	DrawSquareAt(dp, 0.5, 1, boxTransform);
-	DrawSquareAt(dp, 0, 0.5, boxTransform);
-	DrawSquareAt(dp, 1, 0.5, boxTransform);
-
-	gs_load_vertexbuffer(dp->m_boxLine->Update(false));
-	vec4_set(
-	    &color,
-	    (dp->m_resizeOuterColor & 0xFF) / 255.0f,
-	    ((dp->m_resizeOuterColor & 0xFF00) >> 8) / 255.0f,
-	    ((dp->m_resizeOuterColor & 0xFF0000) >> 16) / 255.0f,
-	    ((dp->m_resizeOuterColor & 0xFF000000) >> 24) / 255.0f);
-	gs_effect_set_vec4(solid_color, &color);
-	DrawBoxAt(dp, 0, 0, boxTransform);
-	DrawBoxAt(dp, 1, 0, boxTransform);
-	DrawBoxAt(dp, 0, 1, boxTransform);
-	DrawBoxAt(dp, 1, 1, boxTransform);
-	DrawBoxAt(dp, 0.5, 0, boxTransform);
-	DrawBoxAt(dp, 0.5, 1, boxTransform);
-	DrawBoxAt(dp, 0, 0.5, boxTransform);
-	DrawBoxAt(dp, 1, 0.5, boxTransform);
-
 	if (dp->m_drawGuideLines) {
 		vec4_set(
 		    &color,
@@ -943,10 +1014,10 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t* scene, obs_sceneitem_t* item,
 		    ((dp->m_guidelineColor & 0xFF0000) >> 16) / 255.0f,
 		    ((dp->m_guidelineColor & 0xFF000000) >> 24) / 255.0f);
 		gs_effect_set_vec4(solid_color, &color);
-		DrawGuideline(dp, 0.5, 0, boxTransform);
-		DrawGuideline(dp, 0.5, 1, boxTransform);
-		DrawGuideline(dp, 0, 0.5, boxTransform);
-		DrawGuideline(dp, 1, 0.5, boxTransform);
+		DrawGuideline(dp, rot45, 0.5, 0, boxTransform);
+		DrawGuideline(dp, rot45, 0.5, 1, boxTransform);
+		DrawGuideline(dp, rot45, 0, 0.5, boxTransform);
+		DrawGuideline(dp, rot45, 1, 0.5, boxTransform);
 
 		// TEXT RENDERING
 		// THIS DESPERATELY NEEDS TO BE REWRITTEN INTO SHADER CODE
@@ -984,14 +1055,21 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t* scene, obs_sceneitem_t* item,
 			if (!isIn)
 				continue;
 
-			vec3 alignLeft = {-1, 0, 0};
-			vec3 alignTop  = {0, -1, 0};
+			vec3 alignLeft, alignTop;
+
+			if (rot45) {
+				alignLeft = {-1, -0.2, 0};
+				alignTop  = {0.2, -1, 0};
+			} else {
+				alignLeft = {-1, 0, 0};
+				alignTop  = {0, -1, 0};
+			}
 
 			vec3 temp;
 			vec3_sub(&temp, &edge[n], &center);
 			vec3_norm(&temp, &temp);
 			float left = vec3_dot(&temp, &alignLeft), top = vec3_dot(&temp, &alignTop);
-			if (left > 0.5) { // LEFT
+			if (left > 0.707f) { // LEFT
 				float_t dist = edge[n].x;
 				if (dist > (pt * 4)) {
 					size_t  len    = (size_t)snprintf(buf.data(), buf.size(), "%ld px", (uint32_t)dist);
@@ -1009,7 +1087,7 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t* scene, obs_sceneitem_t* item,
 						    dp->m_guidelineColor);
 					}
 				}
-			} else if (left < -0.5) { // RIGHT
+			} else if (left < -0.707f) { // RIGHT
 				float_t dist = sceneWidth - edge[n].x;
 				if (dist > (pt * 4)) {
 					size_t  len    = (size_t)snprintf(buf.data(), buf.size(), "%ld px", (uint32_t)dist);
@@ -1027,7 +1105,7 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t* scene, obs_sceneitem_t* item,
 						    dp->m_guidelineColor);
 					}
 				}
-			} else if (top > 0.5) { // UP
+			} else if (top > 0.707f) { // UP
 				float_t dist = edge[n].y;
 				if (dist > pt) {
 					size_t  len    = (size_t)snprintf(buf.data(), buf.size(), "%ld px", (uint32_t)dist);
@@ -1037,7 +1115,7 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t* scene, obs_sceneitem_t* item,
 						char v = buf.data()[p];
 						DrawGlyph(
 						    dp->m_textVertices,
-						    edge[n].x + (p * pt),
+						    edge[n].x + (p * pt) + 15,
 						    edge[n].y - (dist / 2) - pt,
 						    pt,
 						    0,
@@ -1045,7 +1123,7 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t* scene, obs_sceneitem_t* item,
 						    dp->m_guidelineColor);
 					}
 				}
-			} else if (top < -0.5) { // DOWN
+			} else if (top < -0.707f) { // DOWN
 				float_t dist = sceneHeight - edge[n].y;
 				if (dist > (pt * 4)) {
 					size_t  len    = (size_t)snprintf(buf.data(), buf.size(), "%ld px", (uint32_t)dist);
@@ -1055,7 +1133,7 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t* scene, obs_sceneitem_t* item,
 						char v = buf.data()[p];
 						DrawGlyph(
 						    dp->m_textVertices,
-						    edge[n].x + (p * pt),
+						    edge[n].x + (p * pt) + 15,
 						    edge[n].y + (dist / 2) - pt,
 						    pt,
 						    0,
@@ -1066,6 +1144,45 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t* scene, obs_sceneitem_t* item,
 			}
 		}
 	}
+
+	if (dp->m_drawRotationHandle) {
+		ConvertColorToEffectParam(dp->m_rotationHandleColor, solid_color);
+		dp->DrawRotationHandle(rot, boxTransform);
+	}
+
+	gs_load_vertexbuffer(dp->m_boxTris->Update(false));
+	vec4_set(
+		&color,
+		(dp->m_resizeInnerColor & 0xFF) / 255.0f,
+		((dp->m_resizeInnerColor & 0xFF00) >> 8) / 255.0f,
+		((dp->m_resizeInnerColor & 0xFF0000) >> 16) / 255.0f,
+		((dp->m_resizeInnerColor & 0xFF000000) >> 24) / 255.0f);
+	gs_effect_set_vec4(solid_color, &color);
+	DrawSquareAt(dp, 0, 0, boxTransform);
+	DrawSquareAt(dp, 1, 0, boxTransform);
+	DrawSquareAt(dp, 0, 1, boxTransform);
+	DrawSquareAt(dp, 1, 1, boxTransform);
+	DrawSquareAt(dp, 0.5, 0, boxTransform);
+	DrawSquareAt(dp, 0.5, 1, boxTransform);
+	DrawSquareAt(dp, 0, 0.5, boxTransform);
+	DrawSquareAt(dp, 1, 0.5, boxTransform);
+
+	gs_load_vertexbuffer(dp->m_boxLine->Update(false));
+	vec4_set(
+		&color,
+		(dp->m_resizeOuterColor & 0xFF) / 255.0f,
+		((dp->m_resizeOuterColor & 0xFF00) >> 8) / 255.0f,
+		((dp->m_resizeOuterColor & 0xFF0000) >> 16) / 255.0f,
+		((dp->m_resizeOuterColor & 0xFF000000) >> 24) / 255.0f);
+	gs_effect_set_vec4(solid_color, &color);
+	DrawBoxAt(dp, 0, 0, boxTransform);
+	DrawBoxAt(dp, 1, 0, boxTransform);
+	DrawBoxAt(dp, 0, 1, boxTransform);
+	DrawBoxAt(dp, 1, 1, boxTransform);
+	DrawBoxAt(dp, 0.5, 0, boxTransform);
+	DrawBoxAt(dp, 0.5, 1, boxTransform);
+	DrawBoxAt(dp, 0, 0.5, boxTransform);
+	DrawBoxAt(dp, 1, 0.5, boxTransform);
 
 	return true;
 }
@@ -1335,4 +1452,14 @@ bool OBS::Display::GetDrawGuideLines(void)
 void OBS::Display::SetDrawGuideLines(bool drawGuideLines)
 {
 	m_drawGuideLines = drawGuideLines;
+}
+
+bool OBS::Display::GetDrawRotationHandle()
+{
+	return m_drawRotationHandle;
+}
+
+void OBS::Display::SetDrawRotationHandle(bool drawRotationHandle)
+{
+	m_drawRotationHandle = drawRotationHandle;
 }

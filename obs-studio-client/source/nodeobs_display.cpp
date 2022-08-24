@@ -264,6 +264,19 @@ Napi::Value display::OBS_content_setDrawGuideLines(const Napi::CallbackInfo& inf
 	return info.Env().Undefined();
 }
 
+Napi::Value display::OBS_content_setDrawRotationHandle(const Napi::CallbackInfo& info)
+{
+	std::string key = info[0].ToString().Utf8Value();
+	bool drawRotationHandle = info[1].ToBoolean().Value();
+
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
+
+	conn->call("Display", "OBS_content_setDrawRotationHandle", {ipc::value(key), ipc::value(drawRotationHandle)});
+	return info.Env().Undefined();
+}
+
 Napi::Value display::OBS_content_createIOSurface(const Napi::CallbackInfo& info)
 {
 	std::string key = info[0].ToString().Utf8Value();
@@ -316,6 +329,9 @@ void display::Init(Napi::Env env, Napi::Object exports)
 	exports.Set(
 		Napi::String::New(env, "OBS_content_setDrawGuideLines"),
 		Napi::Function::New(env, display::OBS_content_setDrawGuideLines));
+	exports.Set(
+		Napi::String::New(env, "OBS_content_setDrawRotationHandle"),
+		Napi::Function::New(env, display::OBS_content_setDrawRotationHandle));
 	exports.Set(
 		Napi::String::New(env, "OBS_content_createIOSurface"),
 		Napi::Function::New(env, display::OBS_content_createIOSurface));
