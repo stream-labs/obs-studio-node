@@ -8,8 +8,7 @@ trigger:
 
 variables:
   RuntimeURL: https://nodejs.org/dist
-  RuntimeName: node
-  NodejsVersion: 16.13.2
+  RuntimeName: iojs
   ElectronVersion: 17.4.11
   SLBuildDirectory: streamlabs-build
   SLGenerator: Visual Studio 16 2019

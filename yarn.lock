@@ -601,10 +601,10 @@ electron-window@^0.8.0:
   dependencies:
     is-electron-renderer "^2.0.0"
 
-electron@15.5.5:
-  version "15.5.5"
-  resolved "https://registry.yarnpkg.com/electron/-/electron-15.5.5.tgz#796b7822bfb2b045b504e40657674f2869361681"
-  integrity sha512-cGS1ueek14WLvLJlJbId3fmqJLvkr7VuBI0hHt6gpKaj8m2iv/NMteRg0deLgwlxjEF6ZGGNerUJW6a96rNq/Q==
+electron@17.4.11:
+  version "17.4.11"
+  resolved "https://registry.yarnpkg.com/electron/-/electron-17.4.11.tgz#82899a44336bf8f1af15c6312c7f51ae3f4a519b"
+  integrity sha512-mdSWM2iY/Bh5bKzd5drYS3mf8JWyR9P9UXZA2uLEZ+1fhgLEVkY9qu501QHoMsKlNwgn96EreQC+dfdQ75VTcA==
   dependencies:
     "@electron/get" "^1.13.0"
     "@types/node" "^14.6.2"
