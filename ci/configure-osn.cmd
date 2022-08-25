@@ -7,7 +7,7 @@ if "%ReleaseName%"=="debug" (
           -DSTREAMLABS_BUILD=OFF ^
           -DNODEJS_NAME=%RuntimeName% ^
           -DNODEJS_URL=%RuntimeURL% ^
-          -DNODEJS_VERSION="v%ElectronVersion%" ^
+          -DNODEJS_VERSION="v%ELECTRONVERSION%" ^
           -DLIBOBS_BUILD_TYPE="debug"
 ) else (
     cmake -H. ^
@@ -18,5 +18,5 @@ if "%ReleaseName%"=="debug" (
           -DSTREAMLABS_BUILD=OFF ^
           -DNODEJS_NAME=%RuntimeName% ^
           -DNODEJS_URL=%RuntimeURL% ^
-          -DNODEJS_VERSION="v%ElectronVersion%"
+          -DNODEJS_VERSION="v%ELECTRONVERSION%"
 )
