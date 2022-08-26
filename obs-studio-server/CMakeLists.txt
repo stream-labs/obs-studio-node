@@ -166,25 +166,20 @@ download_project(
 	URL ${OSN_LIBOBS_URL}
 	UPDATE_DISCONNECTED 1
 )
-if(WIN32)
-	# LibObsTarget.cmake in widnows builds now contains a check for w32-pthreads 
-	# so we have to explicitly add it before libobs.
-	include("${libobs_SOURCE_DIR}/cmake/w32-pthreads/w32-pthreadsConfig.cmake")
-endif()
 
-include("${libobs_SOURCE_DIR}/cmake/LibObs/LibObsConfig.cmake")
+include("${libobs_SOURCE_DIR}/cmake/LibObsConfig.cmake")
 
 if (WIN32)
 	set(PROJECT_LIBRARIES
 		lib-streamlabs-ipc
-		${LIBOBS_LIBRARIES}
+		OBS::libobs
 		dwmapi.lib
 	)
 	set(PROJECT_INCLUDE_PATHS
 		"${CMAKE_SOURCE_DIR}/source"
 		"${PROJECT_SOURCE_DIR}/source"
 		"${lib-streamlabs-ipc_SOURCE_DIR}/include"
-		${LIBOBS_INCLUDE_DIRS}
+		"${libobs_SOURCE_DIR}/include"
 		"${stackwalker_SOURCE_DIR}/Main/StackWalker"
 		"${nlohmannjson_SOURCE_DIR}/single_include"
 		"${source_dir}/include/third_party/mini_chromium/mini_chromium"
