@@ -249,7 +249,7 @@ OBS::Display::Display()
 	m_gsInitData.adapter         = 0;
 	m_gsInitData.cx              = 0;
 	m_gsInitData.cy              = 0;
-	m_gsInitData.format          = GS_RGBA;
+	m_gsInitData.format          = GS_BGRA;
 	m_gsInitData.zsformat        = GS_ZS_NONE;
 	m_gsInitData.num_backbuffers = 1;
 	m_display                    = nullptr;
