@@ -1698,8 +1698,15 @@ void OBS_service::updateVideoStreamingEncoder(bool isSimpleMode)
 		video_t*          video  = obs_get_video();
 		enum video_format format = video_output_get_format(video);
 
-		if (format != VIDEO_FORMAT_NV12 && format != VIDEO_FORMAT_I420)
+		switch (format) {
+		case VIDEO_FORMAT_I420:
+		case VIDEO_FORMAT_NV12:
+		case VIDEO_FORMAT_I010:
+		case VIDEO_FORMAT_P010:
+			break;
+		default:
 			obs_encoder_set_preferred_video_format(videoStreamingEncoder, VIDEO_FORMAT_NV12);
+		}
 
 		if (strcmp(encoder, APPLE_SOFTWARE_VIDEO_ENCODER) == 0 ||
 			strcmp(encoder, APPLE_HARDWARE_VIDEO_ENCODER) == 0 ||
