@@ -105,6 +105,11 @@ class OBS_content
 	    const int64_t                  id,
 	    const std::vector<ipc::value>& args,
 	    std::vector<ipc::value>&       rval);
+	static void OBS_content_setCropOutlineColor(
+	    void*                          data,
+	    const int64_t                  id,
+	    const std::vector<ipc::value>& args,
+	    std::vector<ipc::value>&       rval);
 	static void OBS_content_setShouldDrawUI(
 	    void*                          data,
 	    const int64_t                  id,

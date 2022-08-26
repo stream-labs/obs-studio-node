@@ -81,6 +81,7 @@ namespace OBS
 		void SetPaddingColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255u);
 		void SetBackgroundColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255u);
 		void SetOutlineColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255u);
+		void SetCropOutlineColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255u);
 		void SetGuidelineColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255u);
 		void SetResizeBoxOuterColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255u);
 		void SetResizeBoxInnerColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255u);
@@ -94,6 +95,8 @@ namespace OBS
 		private:
 		static void DisplayCallback(void* displayPtr, uint32_t cx, uint32_t cy);
 		static bool DrawSelectedSource(obs_scene_t* scene, obs_sceneitem_t* item, void* param);
+		void        DrawOutline(const matrix4& mtx, const obs_sceneitem_crop& crop,
+		            	const vec2& boxScale, gs_eparam_t* color);
 		void        DrawRotationHandle(float rot, matrix4& mtx);
 		void        setSizeCall(int step);
 
@@ -122,6 +125,11 @@ namespace OBS
 
 		GS::VertexBuffer* m_textVertices;
 
+		std::unique_ptr<GS::VertexBuffer> m_leftSolidOutline;
+		std::unique_ptr<GS::VertexBuffer> m_topSolidOutline;
+		std::unique_ptr<GS::VertexBuffer> m_rightSolidOutline;
+		std::unique_ptr<GS::VertexBuffer> m_bottomSolidOutline;
+
 		std::unique_ptr<GS::VertexBuffer> m_boxLine, m_boxTris;
 		std::unique_ptr<GS::VertexBuffer> m_rotHandleLine, m_rotHandleCircle;
 
@@ -132,6 +140,7 @@ namespace OBS
 		/// Other
 		uint32_t m_backgroundColor  = 0xFF000000;
 		uint32_t m_outlineColor     = 0xFFFF7EFF;
+		uint32_t m_cropOutlineColor = 0xFFFF7EFF;
 		uint32_t m_guidelineColor   = 0xFF0000FF;
 		uint32_t m_resizeOuterColor = 0xFF7E7E7E;
 		uint32_t m_resizeInnerColor = 0xFFFFFFFF;

@@ -264,6 +264,58 @@ OBS::Display::Display()
 	m_gsSolidEffect = obs_get_base_effect(OBS_EFFECT_SOLID);
 	GS::Vertex v(nullptr, nullptr, nullptr, nullptr, nullptr);
 
+	// Left solid outline
+	m_leftSolidOutline = std::make_unique<GS::VertexBuffer>(2);
+	m_leftSolidOutline->Resize(2);
+	v = m_leftSolidOutline->At(0);
+	vec3_set(v.position, 0.0f, 0.0f, 0);
+	vec4_set(v.uv[0], 0, 0, 0, 0);
+	*v.color = 0xFFFFFFFF;
+	v = m_leftSolidOutline->At(1);
+	vec3_set(v.position, 0.0f, 1.0f, 0);
+	vec4_set(v.uv[0], 0, 0, 0, 0);
+	*v.color = 0xFFFFFFFF;
+	m_leftSolidOutline->Update();
+
+	// Top solid outline
+	m_topSolidOutline = std::make_unique<GS::VertexBuffer>(2);
+	m_topSolidOutline->Resize(2);
+	v = m_topSolidOutline->At(0);
+	vec3_set(v.position, 0.0f, 0.0f, 0);
+	vec4_set(v.uv[0], 0, 0, 0, 0);
+	*v.color = 0xFFFFFFFF;
+	v = m_topSolidOutline->At(1);
+	vec3_set(v.position, 1.0f, 0.0f, 0);
+	vec4_set(v.uv[0], 0, 0, 0, 0);
+	*v.color = 0xFFFFFFFF;
+	m_topSolidOutline->Update();
+
+	// Right solid outline
+	m_rightSolidOutline = std::make_unique<GS::VertexBuffer>(2);
+	m_rightSolidOutline->Resize(2);
+	v = m_rightSolidOutline->At(0);
+	vec3_set(v.position, 1.0f, 0.0f, 0);
+	vec4_set(v.uv[0], 0, 0, 0, 0);
+	*v.color = 0xFFFFFFFF;
+	v = m_rightSolidOutline->At(1);
+	vec3_set(v.position, 1.0f, 1.0f, 0);
+	vec4_set(v.uv[0], 0, 0, 0, 0);
+	*v.color = 0xFFFFFFFF;
+	m_rightSolidOutline->Update();
+
+	// Bottom solid outline
+	m_bottomSolidOutline = std::make_unique<GS::VertexBuffer>(2);
+	m_bottomSolidOutline->Resize(2);
+	v = m_bottomSolidOutline->At(0);
+	vec3_set(v.position, 0.0f, 1.0f, 0);
+	vec4_set(v.uv[0], 0, 0, 0, 0);
+	*v.color = 0xFFFFFFFF;
+	v = m_bottomSolidOutline->At(1);
+	vec3_set(v.position, 1.0f, 1.0f, 0);
+	vec4_set(v.uv[0], 0, 0, 0, 0);
+	*v.color = 0xFFFFFFFF;
+	m_bottomSolidOutline->Update();	
+
 	m_boxLine = std::make_unique<GS::VertexBuffer>(6);
 	m_boxLine->Resize(6);
 	v = m_boxLine->At(0);
@@ -365,6 +417,7 @@ OBS::Display::Display()
 	obs_leave_graphics();
 
 	SetOutlineColor(26, 230, 168);
+	SetCropOutlineColor(26, 230, 168);
 	SetGuidelineColor(26, 230, 168);
 	SetRotationHandleColor(26, 230, 168);
 
@@ -448,6 +501,10 @@ OBS::Display::~Display()
 		obs_leave_graphics();
 	}
 
+	m_leftSolidOutline.reset();
+	m_topSolidOutline.reset();
+	m_rightSolidOutline.reset();
+	m_bottomSolidOutline.reset();
 	m_boxLine = nullptr;
 	m_boxTris = nullptr;
 	m_rotHandleLine.reset();
@@ -672,6 +729,11 @@ void OBS::Display::SetOutlineColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a /*
 	m_outlineColor = a << 24 | b << 16 | g << 8 | r;
 }
 
+void OBS::Display::SetCropOutlineColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a /*= 255u*/)
+{
+	m_cropOutlineColor = a << 24 | b << 16 | g << 8 | r;
+}
+
 void OBS::Display::SetGuidelineColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a /*= 255u*/)
 {
 	m_guidelineColor = a << 24 | b << 16 | g << 8 | r;
@@ -792,12 +854,56 @@ inline bool CloseFloat(float a, float b, float epsilon = 0.01)
 	return abs(a - b) <= epsilon;
 }
 
-inline void DrawOutline(OBS::Display* dp, matrix4& mtx, obs_transform_info& info)
+static void DrawCropOutline(float x1, float y1, float x2, float y2, vec2 scale)
 {
-	gs_matrix_push();
-	gs_matrix_set(&mtx);
-	gs_draw(GS_LINESTRIP, 0, 0);
-	gs_matrix_pop();
+	// This is partially code from OBS Studio. See window-basic-preview.cpp in obs-studio for copyright/license.
+
+	float ySide = (y1 == y2) ? (y1 < 0.5f ? 1.0f : -1.0f) : 0.0f;
+	float xSide = (x1 == x2) ? (x1 < 0.5f ? 1.0f : -1.0f) : 0.0f;
+
+	float dist =
+		sqrt(pow((x1 - x2) * scale.x, 2) + pow((y1 - y2) * scale.y, 2));
+	float offX = (x2 - x1) / dist;
+	float offY = (y2 - y1) / dist;
+
+	for (int i = 0, l = ceil(dist / 15); i < l; i++) {
+		gs_render_start(true);
+
+		float xx1 = x1 + i * 15 * offX;
+		float yy1 = y1 + i * 15 * offY;
+
+		float dx;
+		float dy;
+
+		if (x1 < x2) {
+			dx = std::min(xx1 + 7.5f * offX, x2);
+		} else {
+			dx = std::max(xx1 + 7.5f * offX, x2);
+		}
+
+		if (y1 < y2) {
+			dy = std::min(yy1 + 7.5f * offY, y2);
+		} else {
+			dy = std::max(yy1 + 7.5f * offY, y2);
+		}
+
+		gs_vertex2f(xx1, yy1);
+		gs_vertex2f(xx1 + (xSide * (4 / scale.x)), yy1 + (ySide * (4 / scale.y)));
+		gs_vertex2f(dx, dy);
+		gs_vertex2f(dx + (xSide * (4 / scale.x)), dy + (ySide * (4 / scale.y)));
+
+		gs_vertbuffer_t *line = gs_render_save();
+
+		gs_load_vertexbuffer(line);
+		gs_draw(GS_TRISTRIP, 0, 0);
+		gs_vertexbuffer_destroy(line);
+	}
+}
+
+static void DrawSolidOutline(GS::VertexBuffer* vertexBuffer)
+{
+	gs_load_vertexbuffer(vertexBuffer->Update(false));
+	gs_draw(GS_LINES, 0, 0);
 }
 
 inline void DrawBoxAt(OBS::Display* dp, float_t x, float_t y, matrix4& mtx)
@@ -941,6 +1047,44 @@ static void ConvertColorToEffectParam(uint32_t color, gs_eparam_t* dst)
 	gs_effect_set_vec4(dst, &colorVec);
 }
 
+void OBS::Display::DrawOutline(const matrix4& mtx, const obs_sceneitem_crop& crop,
+	const vec2& boxScale, gs_eparam_t* color)
+{
+	gs_matrix_push();
+	gs_matrix_mul(&mtx);
+
+	if (crop.left) {
+		ConvertColorToEffectParam(m_cropOutlineColor, color);
+		DrawCropOutline(0.0f, 0.0f, 0.0f, 1.0f, boxScale);
+	} else {
+		ConvertColorToEffectParam(m_rotationHandleColor, color);
+		DrawSolidOutline(m_leftSolidOutline.get());
+	}
+	if (crop.top) {
+		ConvertColorToEffectParam(m_cropOutlineColor, color);
+		DrawCropOutline(0.0f, 0.0f, 1.0f, 0.0f, boxScale);
+	} else {
+		ConvertColorToEffectParam(m_rotationHandleColor, color);
+		DrawSolidOutline(m_topSolidOutline.get());
+	}
+	if (crop.right) {
+		ConvertColorToEffectParam(m_cropOutlineColor, color);
+		DrawCropOutline(1.0f, 0.0f, 1.0f, 1.0f, boxScale);
+	} else {
+		ConvertColorToEffectParam(m_rotationHandleColor, color);
+		DrawSolidOutline(m_rightSolidOutline.get());
+	}
+	if (crop.bottom) {
+		ConvertColorToEffectParam(m_cropOutlineColor, color);
+		DrawCropOutline(0.0f, 1.0f, 1.0f, 1.0f, boxScale);
+	} else {
+		ConvertColorToEffectParam(m_rotationHandleColor, color);
+		DrawSolidOutline(m_bottomSolidOutline.get());
+	}
+
+	gs_matrix_pop();
+}
+
 bool OBS::Display::DrawSelectedSource(obs_scene_t* scene, obs_sceneitem_t* item, void* param)
 {
 	// This is partially code from OBS Studio. See window-basic-preview.cpp in obs-studio for copyright/license.
@@ -993,20 +1137,23 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t* scene, obs_sceneitem_t* item,
 	float rot = obs_sceneitem_get_rot(item);
 	bool rot45 = (rot == 45.0f || rot == 135.0f || rot == 225.0f || rot == 315.0f);
 
-	obs_transform_info info;
-	obs_sceneitem_get_info(item, &info);
+	// Prepare data for outline
+	matrix4 curTransform;	
+	gs_matrix_get(&curTransform);
 
-	gs_load_vertexbuffer(dp->m_boxLine->Update(false));
-	vec4_set(
-	    &color,
-	    (dp->m_outlineColor & 0xFF) / 255.0f,
-	    ((dp->m_outlineColor & 0xFF00) >> 8) / 255.0f,
-	    ((dp->m_outlineColor & 0xFF0000) >> 16) / 255.0f,
-	    ((dp->m_outlineColor & 0xFF000000) >> 24) / 255.0f);
-	gs_effect_set_vec4(solid_color, &color);
-	DrawOutline(dp, boxTransform, info);
+	vec2 boxScale;
+	obs_sceneitem_get_box_scale(item, &boxScale);
+
+	boxScale.x *= curTransform.x.x;
+	boxScale.y *= curTransform.y.y;
+
+	obs_sceneitem_crop crop;
+	obs_sceneitem_get_crop(item, &crop);
+	
+	dp->DrawOutline(boxTransform, crop, boxScale, solid_color);
 
 	if (dp->m_drawGuideLines) {
+		gs_load_vertexbuffer(dp->m_boxLine->Update(false));
 		vec4_set(
 		    &color,
 		    (dp->m_guidelineColor & 0xFF) / 255.0f,

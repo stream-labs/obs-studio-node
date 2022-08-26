@@ -32,6 +32,7 @@ namespace display
 	Napi::Value OBS_content_setPaddingSize(const Napi::CallbackInfo& info);
 	Napi::Value OBS_content_setPaddingColor(const Napi::CallbackInfo& info);
 	Napi::Value OBS_content_setOutlineColor(const Napi::CallbackInfo& info);
+	Napi::Value OBS_content_setCropOutlineColor(const Napi::CallbackInfo& info);
 	Napi::Value OBS_content_setShouldDrawUI(const Napi::CallbackInfo& info);
 	Napi::Value OBS_content_setDrawGuideLines(const Napi::CallbackInfo& info);
 	Napi::Value OBS_content_setDrawRotationHandle(const Napi::CallbackInfo& info);

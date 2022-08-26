@@ -238,6 +238,26 @@ Napi::Value display::OBS_content_setOutlineColor(const Napi::CallbackInfo& info)
 	return info.Env().Undefined();
 }
 
+Napi::Value display::OBS_content_setCropOutlineColor(const Napi::CallbackInfo& info)
+{
+	std::string key = info[0].ToString().Utf8Value();
+	uint32_t r = info[1].ToNumber().Uint32Value();
+	uint32_t g = info[2].ToNumber().Uint32Value();
+	uint32_t b = info[3].ToNumber().Uint32Value();
+	uint32_t a = 255;
+
+	if (info.Length() > 4)
+		a = info[4].ToNumber().Uint32Value();
+
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
+
+	conn->call("Display", "OBS_content_setCropOutlineColor",
+	    {ipc::value(key), ipc::value(r), ipc::value(g), ipc::value(b), ipc::value(a)});
+	return info.Env().Undefined();
+}
+
 Napi::Value display::OBS_content_setShouldDrawUI(const Napi::CallbackInfo& info)
 {
 	std::string key = info[0].ToString().Utf8Value();
@@ -323,6 +343,9 @@ void display::Init(Napi::Env env, Napi::Object exports)
 	exports.Set(
 		Napi::String::New(env, "OBS_content_setPaddingColor"),
 		Napi::Function::New(env, display::OBS_content_setPaddingColor));
+	exports.Set(
+		Napi::String::New(env, "OBS_content_setCropOutlineColor"),
+		Napi::Function::New(env, display::OBS_content_setCropOutlineColor));
 	exports.Set(
 		Napi::String::New(env, "OBS_content_setShouldDrawUI"),
 		Napi::Function::New(env, display::OBS_content_setShouldDrawUI));
