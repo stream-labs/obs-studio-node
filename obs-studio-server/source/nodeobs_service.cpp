@@ -1213,7 +1213,13 @@ void OBS_service::updateVideoRecordingEncoder(bool isSimpleMode)
 			}
 		}
 	}
-	obs_encoder_set_video(videoRecordingEncoder, obs_get_video());
+	if (obs_get_multiple_rendering()) {
+		obs_encoder_set_video_mix(videoStreamingEncoder, OBS_RECORDING_VIDEO_RENDERING);
+		obs_encoder_set_video(videoRecordingEncoder, obs_get_record_video());
+	} else {
+		obs_encoder_set_video_mix(videoStreamingEncoder, OBS_MAIN_VIDEO_RENDERING);
+		obs_encoder_set_video(videoRecordingEncoder, obs_get_video());
+	}
 }
 
 bool OBS_service::updateRecordingEncoders(bool isSimpleMode)
@@ -1250,11 +1256,13 @@ bool OBS_service::updateRecordingEncoders(bool isSimpleMode)
 			updateVideoStreamingEncoder(isSimpleMode);
 
 		if (!obs_get_multiple_rendering()) {
+			obs_encoder_set_video_mix(videoRecordingEncoder, OBS_MAIN_VIDEO_RENDERING);
 			obs_encoder_set_video(videoStreamingEncoder, obs_get_video());
 			useStreamEncoder = true;
 		} else {
 			duplicate_encoder(&videoRecordingEncoder, videoStreamingEncoder);
-			obs_encoder_set_video(videoRecordingEncoder, obs_get_video());
+			obs_encoder_set_video_mix(videoRecordingEncoder, OBS_RECORDING_VIDEO_RENDERING);
+			obs_encoder_set_video(videoRecordingEncoder, obs_get_record_video());
 			useStreamEncoder = false;
 		}
 	} else {
@@ -1739,7 +1747,14 @@ void OBS_service::updateVideoStreamingEncoder(bool isSimpleMode)
 			}
 		}
 	}
-	obs_encoder_set_video(videoStreamingEncoder, obs_get_video());
+	if (obs_get_multiple_rendering()) {
+		obs_encoder_set_video_mix(videoStreamingEncoder, OBS_STREAMING_VIDEO_RENDERING);
+		obs_encoder_set_video(videoStreamingEncoder, obs_get_stream_video());
+	}
+	else {
+		obs_encoder_set_video_mix(videoStreamingEncoder, OBS_MAIN_VIDEO_RENDERING);
+		obs_encoder_set_video(videoStreamingEncoder, obs_get_video());
+	}
 }
 
 std::string OBS_service::GetDefaultVideoSavePath(void)
