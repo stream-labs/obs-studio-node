@@ -232,8 +232,11 @@ void initBasicDefault(config_t* config)
 	config_set_default_uint(config, "Video", "FPSDen", 1);
 	config_set_default_string(config, "Video", "ScaleType", "bicubic");
 	config_set_default_string(config, "Video", "ColorFormat", "NV12");
-	config_set_default_string(config, "Video", "ColorSpace", "601");
+	config_set_default_string(config, "Video", "ColorSpace", "709");
 	config_set_default_string(config, "Video", "ColorRange", "Partial");
+	config_set_default_uint(config, "Video", "SdrWhiteLevel", 300);
+	config_set_default_uint(config, "Video", "HdrNominalPeakLevel",
+				1000);
 	config_set_default_bool(config, "Video", "ForceGPUAsRenderDevice", true);
 
 	config_set_default_string(config, "Audio", "MonitoringDeviceId", "default");

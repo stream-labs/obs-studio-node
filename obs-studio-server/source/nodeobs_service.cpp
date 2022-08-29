@@ -288,26 +288,26 @@ static const char *basicConfigGetString(const char *section, const char *name, b
 
 static inline enum video_format GetVideoFormatFromName(const char* name)
 {
-	if (name != NULL) {
-		if (astrcmpi(name, "I420") == 0)
-			return VIDEO_FORMAT_I420;
-		else if (astrcmpi(name, "NV12") == 0)
-			return VIDEO_FORMAT_NV12;
-		else if (astrcmpi(name, "I444") == 0)
-			return VIDEO_FORMAT_I444;
-#if 0 //currently unsupported
-        else if (astrcmpi(name, "YVYU") == 0)
-            return VIDEO_FORMAT_YVYU;
-        else if (astrcmpi(name, "YUY2") == 0)
-            return VIDEO_FORMAT_YUY2;
-        else if (astrcmpi(name, "UYVY") == 0)
-            return VIDEO_FORMAT_UYVY;
-#endif
-		else
-			return VIDEO_FORMAT_RGBA;
-	} else {
+	if (astrcmpi(name, "I420") == 0)
 		return VIDEO_FORMAT_I420;
-	}
+	else if (astrcmpi(name, "NV12") == 0)
+		return VIDEO_FORMAT_NV12;
+	else if (astrcmpi(name, "I444") == 0)
+		return VIDEO_FORMAT_I444;
+	else if (astrcmpi(name, "I010") == 0)
+		return VIDEO_FORMAT_I010;
+	else if (astrcmpi(name, "P010") == 0)
+		return VIDEO_FORMAT_P010;
+#if 0 //currently unsupported
+	else if (astrcmpi(name, "YVYU") == 0)
+		return VIDEO_FORMAT_YVYU;
+	else if (astrcmpi(name, "YUY2") == 0)
+		return VIDEO_FORMAT_YUY2;
+	else if (astrcmpi(name, "UYVY") == 0)
+		return VIDEO_FORMAT_UYVY;
+#endif
+	else
+		return VIDEO_FORMAT_RGBA;
 }
 
 static inline enum obs_scale_type GetScaleType(const char* scaleTypeStr)
@@ -472,6 +472,15 @@ int OBS_service::resetVideoContext(bool reload, bool retryWithDefaultConf)
 		}
 	}
 
+	if (errorcode == OBS_VIDEO_SUCCESS) {
+		const float sdr_white_level = (float)config_get_uint(
+			ConfigManager::getInstance().getBasic(), "Video", "SdrWhiteLevel");
+		const float hdr_nominal_peak_level = (float)config_get_uint(
+			ConfigManager::getInstance().getBasic(), "Video", "HdrNominalPeakLevel");
+		obs_set_video_levels(sdr_white_level, hdr_nominal_peak_level);
+	}
+
+
 	return errorcode;
 }
 
@@ -488,6 +497,21 @@ int OBS_service::doResetVideoContext(const obs_video_info& ovi)
 		blog(LOG_ERROR, error);
 		return OBS_VIDEO_FAIL;
 	}
+}
+
+static inline enum video_colorspace GetVideoColorSpaceFromName(const char *name)
+{
+	enum video_colorspace colorspace = VIDEO_CS_SRGB;
+	if (strcmp(name, "601") == 0)
+		colorspace = VIDEO_CS_601;
+	else if (strcmp(name, "709") == 0)
+		colorspace = VIDEO_CS_709;
+	else if (strcmp(name, "2100PQ") == 0)
+		colorspace = VIDEO_CS_2100_PQ;
+	else if (strcmp(name, "2100HLG") == 0)
+		colorspace = VIDEO_CS_2100_HLG;
+
+	return colorspace;
 }
 
 obs_video_info OBS_service::prepareOBSVideoInfo(bool reload, bool defaultConf)
@@ -580,7 +604,7 @@ obs_video_info OBS_service::prepareOBSVideoInfo(bool reload, bool defaultConf)
 	ovi.adapter        = 0;
 	ovi.gpu_conversion = true;
 
-	ovi.colorspace = astrcmpi(colorSpace, "601") == 0 ? VIDEO_CS_601 : VIDEO_CS_709;
+	ovi.colorspace = GetVideoColorSpaceFromName(colorSpace);
 	ovi.range      = astrcmpi(colorRange, "Full") == 0 ? VIDEO_RANGE_FULL : VIDEO_RANGE_PARTIAL;
 
 	const char* scaleTypeStr = basicConfigGetString("Video", "ScaleType", defaultConf);

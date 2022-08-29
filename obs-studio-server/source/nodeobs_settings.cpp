@@ -3625,10 +3625,12 @@ std::vector<SubCategory> OBS_settings::getAdvancedSettings()
 	colorFormat.push_back(std::make_pair("minVal", ipc::value((double)0)));
 	colorFormat.push_back(std::make_pair("maxVal", ipc::value((double)0)));
 	colorFormat.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	colorFormat.push_back(std::make_pair("NV12", ipc::value("NV12")));
-	colorFormat.push_back(std::make_pair("I420", ipc::value("I420")));
-	colorFormat.push_back(std::make_pair("I444", ipc::value("I444")));
-	colorFormat.push_back(std::make_pair("RGB", ipc::value("RGB")));
+	colorFormat.push_back(std::make_pair("NV12 (8-bit, 4:2:0, 2 planes)", ipc::value("NV12")));
+	colorFormat.push_back(std::make_pair("I420 (8-bit, 4:2:0, 3 planes)", ipc::value("I420")));
+	colorFormat.push_back(std::make_pair("I444 (8-bit, 4:4:4, 3 planes)", ipc::value("I444")));
+	colorFormat.push_back(std::make_pair("P010 (10-bit, 4:2:0, 2 planes)", ipc::value("P010")));
+	colorFormat.push_back(std::make_pair("I010 (10-bit, 4:2:0, 3 planes)", ipc::value("I010")));
+	colorFormat.push_back(std::make_pair("RGB (8-bit)", ipc::value("RGB")));
 	entries.push_back(colorFormat);
 
 	//YUV Color Space
@@ -3653,7 +3655,7 @@ std::vector<SubCategory> OBS_settings::getAdvancedSettings()
 	colorRange.push_back(std::make_pair("minVal", ipc::value((double)0)));
 	colorRange.push_back(std::make_pair("maxVal", ipc::value((double)0)));
 	colorRange.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	colorRange.push_back(std::make_pair("Partial", ipc::value("Partial")));
+	colorRange.push_back(std::make_pair("Limited", ipc::value("Partial")));
 	colorRange.push_back(std::make_pair("Full", ipc::value("Full")));
 	entries.push_back(colorRange);
 
@@ -3667,6 +3669,28 @@ std::vector<SubCategory> OBS_settings::getAdvancedSettings()
 	forceGPUAsRenderDevice.push_back(std::make_pair("maxVal", ipc::value((double)0)));
 	forceGPUAsRenderDevice.push_back(std::make_pair("stepVal", ipc::value((double)0)));
 	entries.push_back(forceGPUAsRenderDevice);
+
+	//SDR White Level
+	std::vector<std::pair<std::string, ipc::value>> sdrWhiteLevel;
+	sdrWhiteLevel.push_back(std::make_pair("name", ipc::value("SdrWhiteLevel")));
+	sdrWhiteLevel.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_INT")));
+	sdrWhiteLevel.push_back(std::make_pair("description", ipc::value("SDR White Level")));
+	sdrWhiteLevel.push_back(std::make_pair("subType", ipc::value("")));
+	sdrWhiteLevel.push_back(std::make_pair("minVal", ipc::value((double)80)));
+	sdrWhiteLevel.push_back(std::make_pair("maxVal", ipc::value((double)480)));
+	sdrWhiteLevel.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+	entries.push_back(sdrWhiteLevel);
+
+	//HDR Nominal Peak Level
+	std::vector<std::pair<std::string, ipc::value>> hdrNominalPeakLevel;
+	hdrNominalPeakLevel.push_back(std::make_pair("name", ipc::value("HdrNominalPeakLevel")));
+	hdrNominalPeakLevel.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_INT")));
+	hdrNominalPeakLevel.push_back(std::make_pair("description", ipc::value("HDR Nominal Peak Level")));
+	hdrNominalPeakLevel.push_back(std::make_pair("subType", ipc::value("")));
+	hdrNominalPeakLevel.push_back(std::make_pair("minVal", ipc::value((double)400)));
+	hdrNominalPeakLevel.push_back(std::make_pair("maxVal", ipc::value((double)10000)));
+	hdrNominalPeakLevel.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+	entries.push_back(hdrNominalPeakLevel);
 
 	advancedSettings.push_back(serializeSettingsData(
 	    "Video",
