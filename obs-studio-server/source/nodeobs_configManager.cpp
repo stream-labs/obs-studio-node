@@ -202,8 +202,8 @@ void initBasicDefault(config_t* config)
 	config_set_default_bool(config, "Output", "DelayPreserve", true);
 
 	config_set_default_bool(config, "Output", "Reconnect", true);
-	config_set_default_uint(config, "Output", "RetryDelay", 10);
-	config_set_default_uint(config, "Output", "MaxRetries", 20);
+	config_set_default_uint(config, "Output", "RetryDelay", 2);
+	config_set_default_uint(config, "Output", "MaxRetries", 25);
 
 	config_set_default_string(config, "Output", "BindIP", "default");
 	config_set_default_bool(config, "Output", "DynamicBitrate", false);
