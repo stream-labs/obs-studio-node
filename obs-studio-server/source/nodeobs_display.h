@@ -58,6 +58,8 @@ namespace OBS
 		Display();
 
 		public:
+		static void SetDayTheme(bool dayTheme);
+
 		Display(uint64_t windowHandle,
 		    enum obs_video_rendering_mode mode);       // Create a Main Preview one
 		Display(uint64_t windowHandle,
@@ -95,6 +97,8 @@ namespace OBS
 		private:
 		static void DisplayCallback(void* displayPtr, uint32_t cx, uint32_t cy);
 		static bool DrawSelectedSource(obs_scene_t* scene, obs_sceneitem_t* item, void* param);
+		static bool DrawSelectedOverflow(obs_scene_t *scene, obs_sceneitem_t *item, void *param);
+		obs_source_t* GetSourceForUIEffects();
 		void        DrawOutline(const matrix4& mtx, const obs_sceneitem_crop& crop,
 		            	const vec2& boxScale, gs_eparam_t* color);
 		void        DrawRotationHandle(float rot, matrix4& mtx);
@@ -118,9 +122,12 @@ namespace OBS
 		std::pair<uint32_t, uint32_t> m_previewSize;
 
 		private:
+		static bool m_dayTheme;
 		// OBS Graphics API
 		gs_effect_t * m_gsSolidEffect, *m_textEffect;
 		gs_texture_t* m_textTexture;
+		gs_texture_t* m_overflowNightTexture;
+		gs_texture_t* m_overflowDayTexture;
 		static std::mutex m_displayMtx;
 
 		GS::VertexBuffer* m_textVertices;

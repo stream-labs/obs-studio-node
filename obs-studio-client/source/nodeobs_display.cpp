@@ -56,6 +56,18 @@ static void FixChromeD3DIssue(HWND chromeWindow)
 }
 #endif
 
+Napi::Value display::OBS_content_setDayTheme(const Napi::CallbackInfo& info)
+{
+	bool dayTheme = info[0].ToBoolean().Value();
+
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
+
+	conn->call("Display", "OBS_content_setDayTheme", {ipc::value(dayTheme)});
+	return info.Env().Undefined();
+}
+
 Napi::Value display::OBS_content_createDisplay(const Napi::CallbackInfo& info)
 {
 	Napi::Buffer<void *> bufferData = info[0].As<Napi::Buffer<void*>>();
@@ -316,6 +328,9 @@ Napi::Value display::OBS_content_createIOSurface(const Napi::CallbackInfo& info)
 
 void display::Init(Napi::Env env, Napi::Object exports)
 {
+	exports.Set(
+		Napi::String::New(env, "OBS_content_setDayTheme"),
+		Napi::Function::New(env, display::OBS_content_setDayTheme));
 	exports.Set(
 		Napi::String::New(env, "OBS_content_createDisplay"),
 		Napi::Function::New(env, display::OBS_content_createDisplay));

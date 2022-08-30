@@ -156,6 +156,11 @@ void OBS_content::Register(ipc::server& srv)
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Display");
 
 	cls->register_function(std::make_shared<ipc::function>(
+	    "OBS_content_setDayTheme",
+	    std::vector<ipc::type>{ipc::type::UInt32},
+	    OBS_content_setDayTheme));
+
+	cls->register_function(std::make_shared<ipc::function>(
 	    "OBS_content_createDisplay",
 	    std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String, ipc::type::Int32},
 	    OBS_content_createDisplay));
@@ -254,6 +259,18 @@ void popupAeroDisabledWindow(void)
 	    TEXT("Aero is disabled"),
 	    MB_OK);
 #endif
+}
+
+void OBS_content::OBS_content_setDayTheme(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	OBS::Display::SetDayTheme((bool)args[0].value_union.ui32);
+
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
 }
 
 void OBS_content::OBS_content_createDisplay(

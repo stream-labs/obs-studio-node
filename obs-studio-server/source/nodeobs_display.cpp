@@ -35,6 +35,7 @@ extern std::string currentScene; /* defined in OBS_content.cpp */
 
 static const uint32_t grayPaddingArea = 10ul;
 std::mutex OBS::Display::m_displayMtx;
+bool OBS::Display::m_dayTheme = false;
 
 static void RecalculateApectRatioConstrainedSize(
     uint32_t  origW,
@@ -250,6 +251,11 @@ static vec4 ConvertColorToVec4(uint32_t color)
 	return colorVec4;
 }
 
+void OBS::Display::SetDayTheme(bool dayTheme)
+{
+	m_dayTheme = dayTheme;
+}
+
 OBS::Display::Display()
 {
 #if defined(_WIN32)
@@ -426,6 +432,18 @@ OBS::Display::Display()
 		throw std::runtime_error("couldn't load roboto font");
 	}
 
+	// Overflow
+	m_overflowNightTexture = gs_texture_create_from_file(
+		(g_moduleDirectory + "/resources/overflow-night-mode.png").c_str());
+	if (!m_overflowNightTexture) {
+		throw std::runtime_error("couldn't load the night pattern overflow texture");
+	}
+	m_overflowDayTexture = gs_texture_create_from_file(
+		(g_moduleDirectory + "/resources/overflow-day-mode.png").c_str());
+	if (!m_overflowDayTexture) {
+		throw std::runtime_error("couldn't load the day pattern overflow texture");
+	}
+
 	obs_leave_graphics();
 
 	m_paddingColorVec4 = ConvertColorToVec4(m_paddingColor);
@@ -511,6 +529,18 @@ OBS::Display::~Display()
 	if (m_textTexture) {
 		obs_enter_graphics();
 		gs_texture_destroy(m_textTexture);
+		obs_leave_graphics();
+	}
+
+	if (m_overflowNightTexture) {
+		obs_enter_graphics();
+		gs_texture_destroy(m_overflowNightTexture);
+		obs_leave_graphics();
+	}
+
+	if (m_overflowDayTexture) {
+		obs_enter_graphics();
+		gs_texture_destroy(m_overflowDayTexture);
 		obs_leave_graphics();
 	}
 
@@ -1325,6 +1355,78 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t* scene, obs_sceneitem_t* item,
 	return true;
 }
 
+bool OBS::Display::DrawSelectedOverflow(obs_scene_t *scene, obs_sceneitem_t *item, void *param)
+{
+	if (obs_sceneitem_locked(item))
+		return true;
+
+	obs_source_t* itemSource  = obs_sceneitem_get_source(item);
+	uint32_t      flags       = obs_source_get_output_flags(itemSource);
+	bool          isOnlyAudio = (flags & OBS_SOURCE_VIDEO) == 0;
+
+	obs_source_t* sceneSource = obs_scene_get_source(scene);
+
+	uint32_t sceneWidth  = obs_source_get_width(sceneSource);
+	uint32_t sceneHeight = obs_source_get_height(sceneSource);
+	uint32_t itemWidth   = obs_source_get_width(itemSource);
+	uint32_t itemHeight  = obs_source_get_height(itemSource);
+
+	if (!obs_sceneitem_selected(item) || isOnlyAudio || ((itemWidth <= 0) && (itemHeight <= 0)))
+		return true;
+
+	OBS::Display* dp = reinterpret_cast<OBS::Display*>(param);
+
+	matrix4 boxTransform;
+	matrix4 invBoxTransform;
+	obs_sceneitem_get_box_transform(item, &boxTransform);
+	matrix4_inv(&invBoxTransform, &boxTransform);
+
+	vec3 bounds[] = {
+		{{{0.f, 0.f, 0.f}}},
+		{{{1.f, 0.f, 0.f}}},
+		{{{0.f, 1.f, 0.f}}},
+		{{{1.f, 1.f, 0.f}}},
+	};
+
+	bool visible = std::all_of(
+		std::begin(bounds), std::end(bounds), [&](const vec3 &b) {
+			vec3 pos;
+			vec3_transform(&pos, &b, &boxTransform);
+			vec3_transform(&pos, &pos, &invBoxTransform);
+			return CloseFloat(pos.x, b.x) && CloseFloat(pos.y, b.y);
+		});
+
+	if (!visible)
+		return true;
+
+	gs_effect_t* repeat = obs_get_base_effect(OBS_EFFECT_REPEAT);
+	gs_eparam_t* image = gs_effect_get_param_by_name(repeat, "image");
+	gs_eparam_t* scale = gs_effect_get_param_by_name(repeat, "scale");
+
+	vec2 s;
+	vec2_set(&s, boxTransform.x.x / 96, boxTransform.y.y / 96);
+
+	gs_effect_set_vec2(scale, &s);
+
+	gs_texture_t* texture = (dp->m_dayTheme) ?
+		dp->m_overflowDayTexture : dp->m_overflowNightTexture;
+	gs_effect_set_texture(image, texture);
+
+	gs_matrix_push();
+	gs_matrix_mul(&boxTransform);
+
+	obs_sceneitem_crop crop;
+	obs_sceneitem_get_crop(item, &crop);
+
+	while (gs_effect_loop(repeat, "Draw")) {
+		gs_draw_sprite(texture, 0, 1, 1);
+	}
+	
+	gs_matrix_pop();
+
+	return true;
+}
+
 void OBS::Display::DisplayCallback(void* displayPtr, uint32_t cx, uint32_t cy)
 {
 	Display*        dp          = static_cast<Display*>(displayPtr);
@@ -1356,8 +1458,40 @@ void OBS::Display::DisplayCallback(void* displayPtr, uint32_t cx, uint32_t cy)
 			sourceH = 1;
 	}
 
+	// Get a source and its scene for the UI effects
+	obs_source_t* source = dp->GetSourceForUIEffects();
+
+	/* This should work for both individual sources 
+	 * that are actually scenes and our main transition scene */
+	obs_scene_t* scene = (source) ? obs_scene_from_source(source) : nullptr;
+
 	gs_viewport_push();
 	gs_projection_push();
+
+	//------------------------------------------------------------------------------
+
+	// Padding
+	gs_clear(GS_CLEAR_COLOR | GS_CLEAR_DEPTH | GS_CLEAR_STENCIL, &dp->m_paddingColorVec4, 100, 0);
+
+	//------------------------------------------------------------------------------
+
+	// Overflow effect
+	if (scene && dp->m_shouldDrawUI) {
+
+		uint32_t width, height;
+		obs_display_size(dp->m_display, &width, &height);
+		float right = float(width) - dp->m_previewOffset.first;
+		float bottom = float(height) - dp->m_previewOffset.second;
+
+		gs_ortho(-float(dp->m_previewOffset.first), right, -float(dp->m_previewOffset.second), bottom, -100.0f, 100.0f);
+
+		gs_matrix_push();
+		gs_matrix_scale3f(dp->m_worldToPreviewScale.x, dp->m_worldToPreviewScale.y, 1.0f);
+		obs_scene_enum_items(scene, DrawSelectedOverflow, dp);
+		gs_matrix_pop();
+	}
+
+	//------------------------------------------------------------------------------
 
 	gs_ortho(0.0f, float(sourceW), 0.0f, float(sourceH), -100.0f, 100.0f);
 
@@ -1366,9 +1500,6 @@ void OBS::Display::DisplayCallback(void* displayPtr, uint32_t cx, uint32_t cy)
 		dp->m_previewOffset.second,
 		dp->m_previewSize.first,
 		dp->m_previewSize.second);
-
-	// Padding
-	gs_clear(GS_CLEAR_COLOR | GS_CLEAR_DEPTH | GS_CLEAR_STENCIL, &dp->m_paddingColorVec4, 100, 0);
 
 	// Background
 	if (dp->m_boxTris) {
@@ -1390,27 +1521,18 @@ void OBS::Display::DisplayCallback(void* displayPtr, uint32_t cx, uint32_t cy)
 		gs_technique_end(solid_tech);
 	}
 
+	//------------------------------------------------------------------------------
+
 	// Source Rendering
-	obs_source_t* source = NULL;
 	if (dp->m_source) {
-		/* If the the source is a transition it means this display 
+		/* If the source is a transition it means this display 
 		 * is for Studio Mode and that the scene it contains is a 
 		 * duplicate of the current scene, apply selective recording
 		 * layer rendering if it is enabled */
 		if (obs_get_multiple_rendering() &&
 			obs_source_get_type(dp->m_source) == OBS_SOURCE_TYPE_TRANSITION)
 				obs_set_video_rendering_mode(dp->m_renderingMode);
-
 		obs_source_video_render(dp->m_source);
-		/* If we want to draw guidelines, we need a scene,
-		 * not a transition. This may not be a scene which
-		 * we'll check later. */
-		if (obs_source_get_type(dp->m_source) == OBS_SOURCE_TYPE_TRANSITION) {
-			source = obs_transition_get_active_source(dp->m_source);
-		} else {
-			source = dp->m_source;
-			obs_source_addref(source);
-		}
 	} else {
 		switch (dp->m_renderingMode) {
 		case OBS_MAIN_VIDEO_RENDERING:
@@ -1423,16 +1545,13 @@ void OBS::Display::DisplayCallback(void* displayPtr, uint32_t cx, uint32_t cy)
 			obs_render_recording_texture();
 			break;
 		}
-		
-		/* Here we assume that channel 0 holds the primary transition.
-		* We also assume that the active source within that transition is
-		* the scene that we need */
-		obs_source_t* transition = obs_get_output_source(0);
-		source                   = obs_transition_get_active_source(transition);
-		obs_source_release(transition);
 	}
 
-	if (dp->m_shouldDrawUI == true) {
+	//------------------------------------------------------------------------------
+
+	// The other UI effects
+	if (scene && dp->m_shouldDrawUI) {
+
 		// Display-Aligned Drawing
 		vec2 tlCorner = {(float)-dp->m_previewOffset.first, (float)-dp->m_previewOffset.second};
 		vec2 brCorner = {(float)(cx - dp->m_previewOffset.first), (float)(cy - dp->m_previewOffset.second)};
@@ -1442,31 +1561,24 @@ void OBS::Display::DisplayCallback(void* displayPtr, uint32_t cx, uint32_t cy)
 		gs_ortho(tlCorner.x, brCorner.x, tlCorner.y, brCorner.y, -100.0f, 100.0f);
 		gs_reset_viewport();
 
-		obs_scene_t* scene = obs_scene_from_source(source);
+		dp->m_textVertices->Resize(0);
 
-		/* This should work for both individual sources 
-		 * that are actually scenes and our main transition scene */
+		gs_technique_begin(solid_tech);
+		gs_technique_begin_pass(solid_tech, 0);
 
-		if (scene) {
-			dp->m_textVertices->Resize(0);
+		obs_scene_enum_items(scene, DrawSelectedSource, dp);
 
-			gs_technique_begin(solid_tech);
-			gs_technique_begin_pass(solid_tech, 0);
+		gs_technique_end_pass(solid_tech);
+		gs_technique_end(solid_tech);
 
-			obs_scene_enum_items(scene, DrawSelectedSource, dp);
-
-			gs_technique_end_pass(solid_tech);
-			gs_technique_end(solid_tech);
-
-			// Text Rendering
-			if (dp->m_textVertices->Size() > 0) {
-				gs_vertbuffer_t* vb = dp->m_textVertices->Update();
-				while (gs_effect_loop(dp->m_textEffect, "Draw")) {
-					gs_effect_set_texture(gs_effect_get_param_by_name(dp->m_textEffect, "image"), dp->m_textTexture);
-					gs_load_vertexbuffer(vb);
-					gs_load_indexbuffer(nullptr);
-					gs_draw(GS_TRIS, 0, (uint32_t)dp->m_textVertices->Size());
-				}
+		// Text Rendering
+		if (dp->m_textVertices->Size() > 0) {
+			gs_vertbuffer_t* vb = dp->m_textVertices->Update();
+			while (gs_effect_loop(dp->m_textEffect, "Draw")) {
+				gs_effect_set_texture(gs_effect_get_param_by_name(dp->m_textEffect, "image"), dp->m_textTexture);
+				gs_load_vertexbuffer(vb);
+				gs_load_indexbuffer(nullptr);
+				gs_draw(GS_TRIS, 0, (uint32_t)dp->m_textVertices->Size());
 			}
 		}
 	}
@@ -1474,6 +1586,30 @@ void OBS::Display::DisplayCallback(void* displayPtr, uint32_t cx, uint32_t cy)
 	obs_source_release(source);
 	gs_projection_pop();
 	gs_viewport_pop();
+}
+
+obs_source_t* OBS::Display::GetSourceForUIEffects()
+{
+	obs_source_t* source = nullptr;
+	if (m_source) {
+		/* If we want to draw UI effects, we need a scene,
+		 * not a transition. This may not be a scene which
+		 * we'll check later. */
+		if (obs_source_get_type(m_source) == OBS_SOURCE_TYPE_TRANSITION) {
+			source = obs_transition_get_active_source(m_source);
+		} else {
+			source = m_source;
+			obs_source_addref(source);
+		}
+	} else {
+		/* Here we assume that channel 0 holds the primary transition.
+		* We also assume that the active source within that transition is
+		* the scene that we need */
+		obs_source_t* transition = obs_get_output_source(0);
+		source = obs_transition_get_active_source(transition);
+		obs_source_release(transition);
+	}
+	return source;
 }
 
 void OBS::Display::UpdatePreviewArea()

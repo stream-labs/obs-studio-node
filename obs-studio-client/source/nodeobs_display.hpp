@@ -22,6 +22,7 @@ namespace display
 {
 	void Init(Napi::Env env, Napi::Object exports);
 
+	Napi::Value OBS_content_setDayTheme(const Napi::CallbackInfo& info);
 	Napi::Value OBS_content_createDisplay(const Napi::CallbackInfo& info);
 	Napi::Value OBS_content_destroyDisplay(const Napi::CallbackInfo& info);
 	Napi::Value OBS_content_getDisplayPreviewOffset(const Napi::CallbackInfo& info);
