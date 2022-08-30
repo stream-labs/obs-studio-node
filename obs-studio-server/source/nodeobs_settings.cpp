@@ -2353,6 +2353,129 @@ void OBS_settings::getStandardRecordingSettings(
 
 	subCategoryParameters->params.push_back(recMuxerCustom);
 
+	// Automatic File Splitting
+	Parameter recSplitFile;
+	recSplitFile.name        = "RecSplitFile";
+	recSplitFile.type        = "OBS_PROPERTY_BOOL";
+	recSplitFile.description = "Automatic File Splitting";
+
+	bool recSplitFileVal = config_get_bool(config, "AdvOut", "RecSplitFile");
+
+	recSplitFile.currentValue.resize(sizeof(recSplitFileVal));
+	memcpy(recSplitFile.currentValue.data(), &recSplitFileVal, sizeof(recSplitFileVal));
+	recSplitFile.sizeOfCurrentValue = sizeof(recSplitFileVal);
+
+	recRescale.visible = true;
+	recRescale.enabled = isCategoryEnabled;
+	recRescale.masked  = false;
+
+	subCategoryParameters->params.push_back(recSplitFile);
+
+	// Automatic File Splitting
+	Parameter recSplitFileType;
+	recSplitFileType.name        = "RecSplitFileType";
+	recSplitFileType.type        = "OBS_PROPERTY_LIST";
+	recSplitFileType.description = "";
+	recSplitFileType.subType     = "OBS_COMBO_FORMAT_STRING";
+
+	const char* recSplitFileTypeVal = config_get_string(config, "AdvOut", "RecSplitFileType");
+	if (recSplitFileTypeVal == NULL)
+		recSplitFileTypeVal = "Time";
+
+	recSplitFileType.currentValue.resize(strlen(recSplitFileTypeVal));
+	memcpy(recSplitFileType.currentValue.data(), recSplitFileTypeVal, strlen(recSplitFileTypeVal));
+	recSplitFileType.sizeOfCurrentValue = strlen(recSplitFileTypeVal);
+
+	std::vector<std::pair<std::string, std::string>> recSplitFileTypeValues;
+	recSplitFileTypeValues.push_back(std::make_pair("Split by Time", "Time"));
+	recSplitFileTypeValues.push_back(std::make_pair("Split by Size", "Size"));
+	recSplitFileTypeValues.push_back(std::make_pair("Only split manually", "Manual"));
+
+	for (int i = 0; i < recSplitFileTypeValues.size(); i++) {
+		std::string name = recSplitFileTypeValues.at(i).first;
+
+		uint64_t          sizeName = name.length();
+		std::vector<char> sizeNameBuffer;
+		sizeNameBuffer.resize(sizeof(sizeName));
+		memcpy(sizeNameBuffer.data(), &sizeName, sizeof(sizeName));
+
+		recSplitFileType.values.insert(recSplitFileType.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
+		recSplitFileType.values.insert(recSplitFileType.values.end(), name.begin(), name.end());
+
+		std::string value = recSplitFileTypeValues.at(i).second;
+
+		uint64_t          sizeValue = value.length();
+		std::vector<char> sizeValueBuffer;
+		sizeValueBuffer.resize(sizeof(sizeValue));
+		memcpy(sizeValueBuffer.data(), &sizeValue, sizeof(sizeValue));
+
+		recSplitFileType.values.insert(recSplitFileType.values.end(), sizeValueBuffer.begin(), sizeValueBuffer.end());
+		recSplitFileType.values.insert(recSplitFileType.values.end(), value.begin(), value.end());
+	}
+
+	recSplitFileType.sizeOfValues = recSplitFileType.values.size();
+	recSplitFileType.countValues  = recSplitFileTypeValues.size();
+	recSplitFileType.visible = recSplitFileVal;
+
+	subCategoryParameters->params.push_back(recSplitFileType);
+
+	if (strcmp(recSplitFileTypeVal, "Time") == 0) {
+		Parameter recSplitFileTime;
+		recSplitFileTime.name        = "RecSplitFileTime";
+		recSplitFileTime.type        = "OBS_PROPERTY_UINT";
+		recSplitFileTime.description = "Split Time (MB)";
+
+		uint64_t recSplitFileTimeVal = config_get_uint(config, "AdvOut", "RecSplitFileTime");
+
+		recSplitFileTime.currentValue.resize(sizeof(recSplitFileTimeVal));
+		memcpy(recSplitFileTime.currentValue.data(), &recSplitFileTimeVal, sizeof(recSplitFileTimeVal));
+		recSplitFileTime.sizeOfCurrentValue = sizeof(recSplitFileTimeVal);
+
+		recSplitFileTime.visible = recSplitFileVal;
+		recSplitFileTime.enabled = isCategoryEnabled;
+		recSplitFileTime.masked  = false;
+		recSplitFileTime.minVal = 1;
+		recSplitFileTime.maxVal = 525600;
+
+		subCategoryParameters->params.push_back(recSplitFileTime);
+	} else if (strcmp(recSplitFileTypeVal, "Size") == 0) {
+		Parameter recSplitFileSize;
+		recSplitFileSize.name        = "RecSplitFileSize";
+		recSplitFileSize.type        = "OBS_PROPERTY_UINT";
+		recSplitFileSize.description = "Split Time (min)";
+
+		uint64_t recSplitFileSizeVal = config_get_uint(config, "AdvOut", "RecSplitFileSize");
+
+		recSplitFileSize.currentValue.resize(sizeof(recSplitFileSizeVal));
+		memcpy(recSplitFileSize.currentValue.data(), &recSplitFileSizeVal, sizeof(recSplitFileSizeVal));
+		recSplitFileSize.sizeOfCurrentValue = sizeof(recSplitFileSizeVal);
+
+		recSplitFileSize.visible = recSplitFileVal;
+		recSplitFileSize.enabled = isCategoryEnabled;
+		recSplitFileSize.masked  = false;
+		recSplitFileSize.minVal = 20;
+		recSplitFileSize.maxVal = 1073741824;
+
+		subCategoryParameters->params.push_back(recSplitFileSize);
+	}
+
+	Parameter recSplitFileResetTimestamps;
+	recSplitFileResetTimestamps.name        = "RecSplitFileResetTimestamps";
+	recSplitFileResetTimestamps.type        = "OBS_PROPERTY_BOOL";
+	recSplitFileResetTimestamps.description = "Reset timestamps at the beginning of each split file";
+
+	bool recSplitFileResetTimestampsVal = config_get_bool(config, "AdvOut", "RecSplitFileResetTimestamps");
+
+	recSplitFileResetTimestamps.currentValue.resize(sizeof(recSplitFileResetTimestampsVal));
+	memcpy(recSplitFileResetTimestamps.currentValue.data(), &recSplitFileResetTimestampsVal, sizeof(recSplitFileResetTimestampsVal));
+	recSplitFileResetTimestamps.sizeOfCurrentValue = sizeof(recSplitFileResetTimestampsVal);
+
+	recSplitFileResetTimestamps.visible = recSplitFileVal;
+	recSplitFileResetTimestamps.enabled = isCategoryEnabled;
+	recSplitFileResetTimestamps.masked  = false;
+
+	subCategoryParameters->params.push_back(recSplitFileResetTimestamps);
+
 	// Encoder settings
 	struct stat buffer;
 
@@ -2454,13 +2577,6 @@ SubCategory OBS_settings::getAdvancedOutputRecordingSettings(config_t* config, b
 	recType.masked  = false;
 
 	recordingSettings.params.push_back(recType);
-
-	const char* currentRecType = config_get_string(config, "AdvOut", "RecType");
-
-	if (currentRecType == NULL) {
-		currentRecType = "Standard";
-		config_set_string(config, "AdvOut", "RecType", currentRecType);
-	}
 
 	getStandardRecordingSettings(&recordingSettings, config, isCategoryEnabled);
 
@@ -2922,7 +3038,17 @@ void OBS_settings::saveAdvancedOutputRecordingSettings(std::vector<SubCategory> 
 	obs_encoder_t* encoder         = OBS_service::getRecordingEncoder();
 	obs_data_t*    encoderSettings = obs_encoder_get_settings(encoder);
 
-	size_t indexEncoderSettings = 8;
+	bool recSplitFileVal =
+		config_get_bool(ConfigManager::getInstance().getBasic(), "AdvOut", "RecSplitFile");
+	const char* recSplitFileTypeVal =
+		config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "RecSplitFileType");
+	size_t indexEncoderSettings = 9;
+
+	if (recSplitFileVal) {
+		indexEncoderSettings += 4;
+		if (strcmp(recSplitFileTypeVal, "Manual") == 0)
+			indexEncoderSettings --;
+	}
 
 	bool newEncoderType = false;
 	std::string currentFormat;
