@@ -1089,25 +1089,33 @@ void OBS_settings::getSimpleAvailableEncoders(std::vector<std::pair<std::string,
 		    "Software (x264 low CPU usage preset, increases file size)", ipc::value(SIMPLE_ENCODER_X264_LOWCPU)));
 
 	if (EncoderAvailable("obs_qsv11"))
-		encoders->push_back(std::make_pair("Hardware (QSV)", ipc::value(SIMPLE_ENCODER_QSV)));
-
-	if (EncoderAvailable("ffmpeg_nvenc"))
-		encoders->push_back(std::make_pair("Hardware (NVENC)", ipc::value(SIMPLE_ENCODER_NVENC)));
+		encoders->push_back(std::make_pair("Hardware (QSV, H.264)", ipc::value(SIMPLE_ENCODER_QSV)));
 
 	if (EncoderAvailable("amd_amf_h264"))
-		encoders->push_back(std::make_pair("Hardware (AMD)", ipc::value(SIMPLE_ENCODER_AMD)));
+		encoders->push_back(std::make_pair("Hardware (AMD, H.264)", ipc::value(SIMPLE_ENCODER_AMD)));
+
+	if (recording) {
+		if (EncoderAvailable(SIMPLE_ENCODER_AMD_HEVC))
+			encoders->push_back(std::make_pair("Hardware (AMD, HEVC)", ipc::value(SIMPLE_ENCODER_AMD_HEVC)));
+	}
 
 	if (EncoderAvailable("jim_nvenc"))
-		encoders->push_back(std::make_pair("Hardware (NVENC) (new)", ipc::value(ENCODER_NEW_NVENC)));
+		encoders->push_back(std::make_pair("Hardware (NVENC, H.264)", ipc::value(SIMPLE_ENCODER_NVENC)));
+
+	if (recording) {
+		if (EncoderAvailable("jim_hevc_nvenc") ? "jim_hevc_nvenc"
+							  : "ffmpeg_hevc_nvenc")
+			encoders->push_back(std::make_pair("Hardware (NVENC, HEVC)", ipc::value(SIMPLE_ENCODER_NVENC_HEVC)));
+	}
 
 	if (EncoderAvailable(APPLE_SOFTWARE_VIDEO_ENCODER))
-		encoders->push_back(std::make_pair("Apple VT H264 Software Encoder", ipc::value(APPLE_SOFTWARE_VIDEO_ENCODER)));
+		encoders->push_back(std::make_pair("Software (Apple, H.264)", ipc::value(APPLE_SOFTWARE_VIDEO_ENCODER)));
 
 	if (EncoderAvailable(APPLE_HARDWARE_VIDEO_ENCODER))
-		encoders->push_back(std::make_pair("Apple VT H264 Hardware Encoder", ipc::value(APPLE_HARDWARE_VIDEO_ENCODER)));
+		encoders->push_back(std::make_pair("Hardware (Apple, H.264)", ipc::value(APPLE_HARDWARE_VIDEO_ENCODER)));
 
 	if (EncoderAvailable(APPLE_HARDWARE_VIDEO_ENCODER_M1))
-		encoders->push_back(std::make_pair("Apple VT H264 Hardware Encoder", ipc::value(APPLE_HARDWARE_VIDEO_ENCODER_M1)));
+		encoders->push_back(std::make_pair("Hardware (Apple, H.264)", ipc::value(APPLE_HARDWARE_VIDEO_ENCODER_M1)));
 }
 
 void OBS_settings::getAdvancedAvailableEncoders(std::vector<std::pair<std::string, ipc::value>>* streamEncoder)

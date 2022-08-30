@@ -1198,6 +1198,57 @@ void OBS_service::updateAudioRecordingEncoder(bool isSimpleMode)
 	}
 }
 
+// Code taken from obs upstream in window-basic-main-outputs
+// to preserve the same settings in order to facilitate importing
+bool EncoderAvailable(const char *encoder)
+{
+	const char *val;
+	int i = 0;
+
+	while (obs_enum_encoder_types(i++, &val))
+		if (strcmp(val, encoder) == 0)
+			return true;
+
+	return false;
+}
+
+void LoadRecordingPreset_Lossy(const char *encoderId)
+{
+	if (videoRecordingEncoder != NULL)
+		obs_encoder_release(videoRecordingEncoder);
+
+	videoRecordingEncoder = obs_video_encoder_create(
+		encoderId, "simple_video_recording", nullptr, nullptr);
+	if (!videoRecordingEncoder)
+		throw "Failed to create video recording encoder (simple output)";
+}
+
+const char *get_simple_output_encoder(const char *encoder)
+{
+	if (strcmp(encoder, SIMPLE_ENCODER_X264) == 0) {
+		return "obs_x264";
+	} else if (strcmp(encoder, SIMPLE_ENCODER_X264_LOWCPU) == 0) {
+		return "obs_x264";
+	} else if (strcmp(encoder, SIMPLE_ENCODER_QSV) == 0) {
+		return "obs_qsv11";
+	} else if (strcmp(encoder, SIMPLE_ENCODER_AMD) == 0) {
+		return "h264_texture_amf";
+	} else if (strcmp(encoder, SIMPLE_ENCODER_AMD_HEVC) == 0) {
+		return "h265_texture_amf";
+	} else if (strcmp(encoder, SIMPLE_ENCODER_NVENC) == 0 ||
+		strcmp(encoder, "jim_nvenc") == 0) {
+		return EncoderAvailable("jim_nvenc") ? "jim_nvenc"
+						     : "ffmpeg_nvenc";
+	} else if (strcmp(encoder, SIMPLE_ENCODER_NVENC_HEVC) == 0) {
+		return EncoderAvailable("jim_hevc_nvenc") ? "jim_hevc_nvenc"
+							  : "ffmpeg_hevc_nvenc";
+	} else if (strcmp(encoder, APPLE_HARDWARE_VIDEO_ENCODER_M1) == 0) {
+		return APPLE_HARDWARE_VIDEO_ENCODER_M1;
+	}
+
+	return "obs_x264";
+}
+
 void OBS_service::updateVideoRecordingEncoder(bool isSimpleMode)
 {
 	if (isRecording && rpUsesRec)
@@ -1212,20 +1263,9 @@ void OBS_service::updateVideoRecordingEncoder(bool isSimpleMode)
 
 	if (isSimpleMode) {
 		lowCPUx264 = false;
-		if (strcmp(encoder, SIMPLE_ENCODER_X264) == 0 || strcmp(encoder, ADVANCED_ENCODER_X264) == 0) {
-			LoadRecordingPreset_h264("obs_x264");
-		} else if (strcmp(encoder, SIMPLE_ENCODER_X264_LOWCPU) == 0) {
-			LoadRecordingPreset_h264("obs_x264");
+		if (strcmp(encoder, SIMPLE_ENCODER_X264_LOWCPU) == 0)
 			lowCPUx264 = true;
-		} else if (strcmp(encoder, SIMPLE_ENCODER_QSV) == 0 || strcmp(encoder, ADVANCED_ENCODER_QSV) == 0) {
-			LoadRecordingPreset_h264("obs_qsv11");
-		} else if (strcmp(encoder, SIMPLE_ENCODER_AMD) == 0 || strcmp(encoder, ADVANCED_ENCODER_AMD) == 0) {
-			LoadRecordingPreset_h264("amd_amf_h264");
-		} else if (strcmp(encoder, SIMPLE_ENCODER_NVENC) == 0 || strcmp(encoder, ADVANCED_ENCODER_NVENC) == 0) {
-			LoadRecordingPreset_h264("ffmpeg_nvenc");
-		} else if (strcmp(encoder, ENCODER_NEW_NVENC) == 0) {
-			LoadRecordingPreset_h264("jim_nvenc");
-		}
+		LoadRecordingPreset_Lossy(get_simple_output_encoder(encoder));
 		usingRecordingPreset = true;
 		updateVideoRecordingEncoderSettings();
 	} else {
@@ -1247,10 +1287,10 @@ void OBS_service::updateVideoRecordingEncoder(bool isSimpleMode)
 		}
 	}
 	if (obs_get_multiple_rendering()) {
-		obs_encoder_set_video_mix(videoStreamingEncoder, OBS_RECORDING_VIDEO_RENDERING);
+		obs_encoder_set_video_mix(videoRecordingEncoder, OBS_RECORDING_VIDEO_RENDERING);
 		obs_encoder_set_video(videoRecordingEncoder, obs_get_record_video());
 	} else {
-		obs_encoder_set_video_mix(videoStreamingEncoder, OBS_MAIN_VIDEO_RENDERING);
+		obs_encoder_set_video_mix(videoRecordingEncoder, OBS_MAIN_VIDEO_RENDERING);
 		obs_encoder_set_video(videoRecordingEncoder, obs_get_video());
 	}
 }
@@ -1289,7 +1329,7 @@ bool OBS_service::updateRecordingEncoders(bool isSimpleMode)
 			updateVideoStreamingEncoder(isSimpleMode);
 
 		if (!obs_get_multiple_rendering()) {
-			obs_encoder_set_video_mix(videoRecordingEncoder, OBS_MAIN_VIDEO_RENDERING);
+			obs_encoder_set_video_mix(videoStreamingEncoder, OBS_MAIN_VIDEO_RENDERING);
 			obs_encoder_set_video(videoStreamingEncoder, obs_get_video());
 			useStreamEncoder = true;
 		} else {
@@ -2122,6 +2162,27 @@ void OBS_service::UpdateRecordingSettings_nvenc(int cqp)
 	obs_data_release(settings);
 }
 
+void UpdateRecordingSettings_nvenc_hevc(int cqp)
+{
+	OBSDataAutoRelease settings = obs_data_create();
+	obs_data_set_string(settings, "rate_control", "CQP");
+	obs_data_set_string(settings, "profile", "main");
+	obs_data_set_string(settings, "preset", "hq");
+	obs_data_set_int(settings, "cqp", cqp);
+
+	obs_encoder_update(videoRecordingEncoder, settings);
+}
+
+void UpdateRecordingSettings_apple(int quality)
+{
+	OBSDataAutoRelease settings = obs_data_create();
+	obs_data_set_string(settings, "rate_control", "CRF");
+	obs_data_set_string(settings, "profile", "high");
+	obs_data_set_int(settings, "quality", quality);
+
+	obs_encoder_update(videoRecordingEncoder, settings);
+}
+
 void OBS_service::UpdateStreamingSettings_amd(obs_data_t* settings, int bitrate)
 {
 	// Static Properties
@@ -2210,13 +2271,22 @@ void OBS_service::updateVideoRecordingEncoderSettings()
 	} else if (videoEncoder.compare(SIMPLE_ENCODER_QSV) == 0 || videoEncoder.compare(ADVANCED_ENCODER_QSV) == 0) {
 		UpdateRecordingSettings_qsv11(crf);
 
-	} else if (videoEncoder.compare(SIMPLE_ENCODER_AMD) == 0 || videoEncoder.compare(ADVANCED_ENCODER_AMD) == 0) {
+	} else if (videoEncoder.compare(SIMPLE_ENCODER_AMD) == 0 ||
+		videoEncoder.compare(SIMPLE_ENCODER_AMD_HEVC) == 0 ||
+		videoEncoder.compare(ADVANCED_ENCODER_AMD) == 0) {
 		UpdateRecordingSettings_amd_cqp(crf);
 
 	} else if (videoEncoder.compare(SIMPLE_ENCODER_NVENC) == 0 || videoEncoder.compare(ADVANCED_ENCODER_NVENC) == 0) {
 		UpdateRecordingSettings_nvenc(crf);
 	} else if (videoEncoder.compare(ENCODER_NEW_NVENC) == 0) {
 		UpdateRecordingSettings_nvenc(crf);
+	} else if (videoEncoder.compare(SIMPLE_ENCODER_NVENC_HEVC) == 0) {
+		UpdateRecordingSettings_nvenc_hevc(crf);
+	} else if (videoEncoder.compare(APPLE_SOFTWARE_VIDEO_ENCODER) == 0 ||
+		videoEncoder.compare(APPLE_HARDWARE_VIDEO_ENCODER) == 0 ||
+		videoEncoder.compare(APPLE_HARDWARE_VIDEO_ENCODER_M1) == 0) {
+		/* These are magic numbers. 0 - 100, more is better. */
+		UpdateRecordingSettings_apple(ultra_hq ? 70 : 50);
 	}
 }
 
