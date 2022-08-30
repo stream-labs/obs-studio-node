@@ -221,6 +221,15 @@ Napi::Value service::OBS_service_getLastRecording(const Napi::CallbackInfo& info
 	return Napi::String::New(info.Env(), response.at(1).value_str);
 }
 
+void service::OBS_service_splitFile(const Napi::CallbackInfo& info)
+{
+	auto conn = GetConnection(info);
+	if (!conn)
+		return;
+
+	conn->call("NodeOBS_Service", "OBS_service_splitFile", {});
+}
+
 void service::worker()
 {
 	const static int maximum_signals_in_queue = 100;
@@ -479,6 +488,9 @@ void service::Init(Napi::Env env, Napi::Object exports)
 	exports.Set(
 		Napi::String::New(env, "OBS_service_getLastRecording"),
 		Napi::Function::New(env, service::OBS_service_getLastRecording));
+	exports.Set(
+		Napi::String::New(env, "OBS_service_splitFile"),
+		Napi::Function::New(env, service::OBS_service_splitFile));
 	exports.Set(
 		Napi::String::New(env, "OBS_service_createVirtualWebcam"),
 		Napi::Function::New(env, service::OBS_service_createVirtualWebcam));

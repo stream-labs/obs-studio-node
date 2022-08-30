@@ -101,6 +101,8 @@ void OBS_service::Register(ipc::server& srv)
 	cls->register_function(std::make_shared<ipc::function>(
 	    "OBS_service_processReplayBufferHotkey", std::vector<ipc::type>{}, OBS_service_processReplayBufferHotkey));
 	cls->register_function(std::make_shared<ipc::function>(
+	    "OBS_service_splitFile", std::vector<ipc::type>{}, OBS_service_splitFile));
+	cls->register_function(std::make_shared<ipc::function>(
 	    "OBS_service_getLastReplay", std::vector<ipc::type>{}, OBS_service_getLastReplay));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "OBS_service_getLastRecording", std::vector<ipc::type>{}, OBS_service_getLastRecording));
@@ -2582,6 +2584,24 @@ void OBS_service::OBS_service_getLastRecording(
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(path));
+}
+
+void OBS_service::OBS_service_splitFile(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	if (!recordingOutput) {
+		PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Invalid recording ouput.");
+	}
+
+	calldata_t cd = {0};
+
+	proc_handler_t* ph = obs_output_get_proc_handler(recordingOutput);
+	proc_handler_call(ph, "split_file", &cd);
+
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 }
 
 bool OBS_service::useRecordingPreset()
