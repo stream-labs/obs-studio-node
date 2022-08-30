@@ -248,7 +248,7 @@ void OBS_service::OBS_service_stopReplayBuffer(
 
 bool OBS_service::resetAudioContext(bool reload)
 {
-	struct obs_audio_info ai;
+	struct obs_audio_info2 ai = {};
 
 	if (reload)
 		ConfigManager::getInstance().reloadConfig();
@@ -271,7 +271,14 @@ bool OBS_service::resetAudioContext(bool reload)
 	else
 		ai.speakers = SPEAKERS_STEREO;
 
-	return obs_reset_audio(&ai);
+	bool lowLatencyAudioBuffering = config_get_bool(
+		ConfigManager::getInstance().getGlobal(), "Audio", "LowLatencyAudioBuffering");
+	if (lowLatencyAudioBuffering) {
+		ai.max_buffering_ms = 20;
+		ai.fixed_buffering = true;
+	}
+
+	return obs_reset_audio2(&ai);
 }
 
 static uint64_t basicConfigGetUInt(const char *section, const char *name, bool defaultConf)

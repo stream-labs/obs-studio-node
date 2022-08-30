@@ -3872,6 +3872,20 @@ std::vector<SubCategory> OBS_settings::getAdvancedSettings()
 	    serializeSettingsData("Audio", entries, ConfigManager::getInstance().getBasic(), "Audio", true, true));
 	entries.clear();
 
+	std::vector<std::pair<std::string, ipc::value>> lowLatencyAudioBuffering;
+	lowLatencyAudioBuffering.push_back(std::make_pair("name", ipc::value("LowLatencyAudioBuffering")));
+	lowLatencyAudioBuffering.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
+	lowLatencyAudioBuffering.push_back(std::make_pair("description", ipc::value("Low Latency Audio Buffering Mode (For Decklink/NDI outputs), requires a restart")));
+	lowLatencyAudioBuffering.push_back(std::make_pair("subType", ipc::value("")));
+	lowLatencyAudioBuffering.push_back(std::make_pair("minVal", ipc::value((double)0)));
+	lowLatencyAudioBuffering.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+	lowLatencyAudioBuffering.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+	entries.push_back(lowLatencyAudioBuffering);
+
+	advancedSettings.push_back(
+	    serializeSettingsData("Audio", entries, ConfigManager::getInstance().getGlobal(), "Audio", true, true));
+	entries.clear();
+
 	//Recording
 
 	//Filename Formatting
@@ -4128,6 +4142,9 @@ void OBS_settings::saveAdvancedSettings(std::vector<SubCategory> advancedSetting
 
 	audioAdvancedSettings.push_back(advancedSettings.at(index++));
 	saveGenericSettings(audioAdvancedSettings, "Audio", ConfigManager::getInstance().getBasic());
+	audioAdvancedSettings.clear();
+	audioAdvancedSettings.push_back(advancedSettings.at(index++));
+	saveGenericSettings(audioAdvancedSettings, "Audio", ConfigManager::getInstance().getGlobal());
 
 	//Recording
 	std::vector<SubCategory> recordingAdvancedSettings;

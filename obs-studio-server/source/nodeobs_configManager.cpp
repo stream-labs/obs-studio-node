@@ -249,6 +249,7 @@ void initBasicDefault(config_t* config)
 
 	config_set_default_string(config, "Audio", "MonitoringDeviceId", "default");
 	config_set_default_string(config, "Audio", "MonitoringDeviceName", "Default");
+	config_set_default_bool(config, "Audio", "LowLatencyAudioBuffering", false);
 	
 	if (config_get_uint(config, "Audio", "SampleRate") == 0 ) {
 		config_set_uint(config, "Audio", "SampleRate", 44100);
