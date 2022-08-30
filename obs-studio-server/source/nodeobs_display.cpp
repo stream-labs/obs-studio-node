@@ -238,6 +238,18 @@ void OBS::Display::SystemWorker()
 }
 #endif
 
+static vec4 ConvertColorToVec4(uint32_t color)
+{
+	vec4 colorVec4;
+	vec4_set(
+		&colorVec4,
+		static_cast<float>(color & 0xFF) / 255.0f,
+		static_cast<float>((color & 0xFF00) >> 8) / 255.0f,
+		static_cast<float>((color & 0xFF0000) >> 16) / 255.0f,
+		static_cast<float>((color & 0xFF000000) >> 24) / 255.0f);
+	return colorVec4;
+}
+
 OBS::Display::Display()
 {
 #if defined(_WIN32)
@@ -416,15 +428,16 @@ OBS::Display::Display()
 
 	obs_leave_graphics();
 
-	SetOutlineColor(26, 230, 168);
-	SetCropOutlineColor(26, 230, 168);
-	SetGuidelineColor(26, 230, 168);
-	SetRotationHandleColor(26, 230, 168);
+	m_paddingColorVec4 = ConvertColorToVec4(m_paddingColor);
+	m_backgroundColorVec4 = ConvertColorToVec4(m_backgroundColor);
+	m_outlineColorVec4 = ConvertColorToVec4(m_outlineColor);
+	m_cropOutlineColorVec4 = ConvertColorToVec4(m_cropOutlineColor);
+	m_guidelineColorVec4 = ConvertColorToVec4(m_guidelineColor);
+	m_resizeOuterColorVec4 = ConvertColorToVec4(m_resizeOuterColor);
+	m_resizeInnerColorVec4 = ConvertColorToVec4(m_resizeInnerColor);
+	m_rotationHandleColorVec4 = ConvertColorToVec4(m_rotationHandleColor);
 
 	UpdatePreviewArea();
-
-	m_drawGuideLines = true;
-	m_drawRotationHandle = false;
 }
 
 OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode) : Display()
@@ -705,12 +718,20 @@ bool OBS::Display::GetDrawUI()
 	return m_shouldDrawUI;
 }
 
+static void PrepareColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a, uint32_t* color, vec4* colorVec4)
+{
+	*color = a << 24 | b << 16 | g << 8 | r;
+	vec4_set(
+		colorVec4,
+		static_cast<float>(r) / 255.0f,
+		static_cast<float>(g) / 255.0f,
+		static_cast<float>(b) / 255.0f,
+		static_cast<float>(a) / 255.0f);
+}
+
 void OBS::Display::SetPaddingColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a /*= 255u*/)
 {
-	m_paddingColor[0] = float_t(r) / 255.0f;
-	m_paddingColor[1] = float_t(g) / 255.0f;
-	m_paddingColor[2] = float_t(b) / 255.0f;
-	m_paddingColor[3] = float_t(a) / 255.0f;
+	PrepareColor(r, g, b, a, &m_paddingColor, &m_paddingColorVec4);
 }
 
 void OBS::Display::SetPaddingSize(uint32_t pixels)
@@ -721,37 +742,37 @@ void OBS::Display::SetPaddingSize(uint32_t pixels)
 
 void OBS::Display::SetBackgroundColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a /*= 255u*/)
 {
-	m_backgroundColor = a << 24 | b << 16 | g << 8 | r;
+	PrepareColor(r, g, b, a, &m_backgroundColor, &m_backgroundColorVec4);
 }
 
 void OBS::Display::SetOutlineColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a /*= 255u*/)
 {
-	m_outlineColor = a << 24 | b << 16 | g << 8 | r;
+	PrepareColor(r, g, b, a, &m_outlineColor, &m_outlineColorVec4);
 }
 
 void OBS::Display::SetCropOutlineColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a /*= 255u*/)
 {
-	m_cropOutlineColor = a << 24 | b << 16 | g << 8 | r;
+	PrepareColor(r, g, b, a, &m_cropOutlineColor, &m_cropOutlineColorVec4);
 }
 
 void OBS::Display::SetGuidelineColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a /*= 255u*/)
 {
-	m_guidelineColor = a << 24 | b << 16 | g << 8 | r;
+	PrepareColor(r, g, b, a, &m_guidelineColor, &m_guidelineColorVec4);
 }
 
 void OBS::Display::SetResizeBoxOuterColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a /*= 255u*/)
 {
-	m_resizeOuterColor = a << 24 | b << 16 | g << 8 | r;
+	PrepareColor(r, g, b, a, &m_resizeOuterColor, &m_resizeOuterColorVec4);
 }
 
 void OBS::Display::SetResizeBoxInnerColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a /*= 255u*/)
 {
-	m_resizeInnerColor = a << 24 | b << 16 | g << 8 | r;
+	PrepareColor(r, g, b, a, &m_resizeInnerColor, &m_resizeInnerColorVec4);
 }
 
 void OBS::Display::SetRotationHandleColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a /*= 255u*/)
 {
-	m_rotationHandleColor = a << 24 | b << 16 | g << 8 | r;
+	PrepareColor(r, g, b, a, &m_rotationHandleColor, &m_rotationHandleColorVec4);
 }
 
 static void
@@ -1035,18 +1056,6 @@ void OBS::Display::DrawRotationHandle(float rot, matrix4& mtx)
 	gs_matrix_pop();
 }
 
-static void ConvertColorToEffectParam(uint32_t color, gs_eparam_t* dst)
-{
-	vec4 colorVec;
-	vec4_set(
-		&colorVec,
-		(color & 0xFF) / 255.0f,
-		((color & 0xFF00) >> 8) / 255.0f,
-		((color & 0xFF0000) >> 16) / 255.0f,
-		((color & 0xFF000000) >> 24) / 255.0f);
-	gs_effect_set_vec4(dst, &colorVec);
-}
-
 void OBS::Display::DrawOutline(const matrix4& mtx, const obs_sceneitem_crop& crop,
 	const vec2& boxScale, gs_eparam_t* color)
 {
@@ -1054,31 +1063,31 @@ void OBS::Display::DrawOutline(const matrix4& mtx, const obs_sceneitem_crop& cro
 	gs_matrix_mul(&mtx);
 
 	if (crop.left) {
-		ConvertColorToEffectParam(m_cropOutlineColor, color);
+		gs_effect_set_vec4(color, &m_cropOutlineColorVec4);
 		DrawCropOutline(0.0f, 0.0f, 0.0f, 1.0f, boxScale);
 	} else {
-		ConvertColorToEffectParam(m_rotationHandleColor, color);
+		gs_effect_set_vec4(color, &m_outlineColorVec4);
 		DrawSolidOutline(m_leftSolidOutline.get());
 	}
 	if (crop.top) {
-		ConvertColorToEffectParam(m_cropOutlineColor, color);
+		gs_effect_set_vec4(color, &m_cropOutlineColorVec4);
 		DrawCropOutline(0.0f, 0.0f, 1.0f, 0.0f, boxScale);
 	} else {
-		ConvertColorToEffectParam(m_rotationHandleColor, color);
+		gs_effect_set_vec4(color, &m_outlineColorVec4);
 		DrawSolidOutline(m_topSolidOutline.get());
 	}
 	if (crop.right) {
-		ConvertColorToEffectParam(m_cropOutlineColor, color);
+		gs_effect_set_vec4(color, &m_cropOutlineColorVec4);
 		DrawCropOutline(1.0f, 0.0f, 1.0f, 1.0f, boxScale);
 	} else {
-		ConvertColorToEffectParam(m_rotationHandleColor, color);
+		gs_effect_set_vec4(color, &m_outlineColorVec4);
 		DrawSolidOutline(m_rightSolidOutline.get());
 	}
 	if (crop.bottom) {
-		ConvertColorToEffectParam(m_cropOutlineColor, color);
+		gs_effect_set_vec4(color, &m_cropOutlineColorVec4);
 		DrawCropOutline(0.0f, 1.0f, 1.0f, 1.0f, boxScale);
 	} else {
-		ConvertColorToEffectParam(m_rotationHandleColor, color);
+		gs_effect_set_vec4(color, &m_outlineColorVec4);
 		DrawSolidOutline(m_bottomSolidOutline.get());
 	}
 
@@ -1154,13 +1163,7 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t* scene, obs_sceneitem_t* item,
 
 	if (dp->m_drawGuideLines) {
 		gs_load_vertexbuffer(dp->m_boxLine->Update(false));
-		vec4_set(
-		    &color,
-		    (dp->m_guidelineColor & 0xFF) / 255.0f,
-		    ((dp->m_guidelineColor & 0xFF00) >> 8) / 255.0f,
-		    ((dp->m_guidelineColor & 0xFF0000) >> 16) / 255.0f,
-		    ((dp->m_guidelineColor & 0xFF000000) >> 24) / 255.0f);
-		gs_effect_set_vec4(solid_color, &color);
+		gs_effect_set_vec4(solid_color, &dp->m_guidelineColorVec4);
 		DrawGuideline(dp, rot45, 0.5, 0, boxTransform);
 		DrawGuideline(dp, rot45, 0.5, 1, boxTransform);
 		DrawGuideline(dp, rot45, 0, 0.5, boxTransform);
@@ -1293,18 +1296,12 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t* scene, obs_sceneitem_t* item,
 	}
 
 	if (dp->m_drawRotationHandle) {
-		ConvertColorToEffectParam(dp->m_rotationHandleColor, solid_color);
+		gs_effect_set_vec4(solid_color, &dp->m_rotationHandleColorVec4);
 		dp->DrawRotationHandle(rot, boxTransform);
 	}
 
 	gs_load_vertexbuffer(dp->m_boxTris->Update(false));
-	vec4_set(
-		&color,
-		(dp->m_resizeInnerColor & 0xFF) / 255.0f,
-		((dp->m_resizeInnerColor & 0xFF00) >> 8) / 255.0f,
-		((dp->m_resizeInnerColor & 0xFF0000) >> 16) / 255.0f,
-		((dp->m_resizeInnerColor & 0xFF000000) >> 24) / 255.0f);
-	gs_effect_set_vec4(solid_color, &color);
+	gs_effect_set_vec4(solid_color, &dp->m_resizeInnerColorVec4);
 	DrawSquareAt(dp, 0, 0, boxTransform);
 	DrawSquareAt(dp, 1, 0, boxTransform);
 	DrawSquareAt(dp, 0, 1, boxTransform);
@@ -1315,13 +1312,7 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t* scene, obs_sceneitem_t* item,
 	DrawSquareAt(dp, 1, 0.5, boxTransform);
 
 	gs_load_vertexbuffer(dp->m_boxLine->Update(false));
-	vec4_set(
-		&color,
-		(dp->m_resizeOuterColor & 0xFF) / 255.0f,
-		((dp->m_resizeOuterColor & 0xFF00) >> 8) / 255.0f,
-		((dp->m_resizeOuterColor & 0xFF0000) >> 16) / 255.0f,
-		((dp->m_resizeOuterColor & 0xFF000000) >> 24) / 255.0f);
-	gs_effect_set_vec4(solid_color, &color);
+	gs_effect_set_vec4(solid_color, &dp->m_resizeOuterColorVec4);
 	DrawBoxAt(dp, 0, 0, boxTransform);
 	DrawBoxAt(dp, 1, 0, boxTransform);
 	DrawBoxAt(dp, 0, 1, boxTransform);
@@ -1377,18 +1368,11 @@ void OBS::Display::DisplayCallback(void* displayPtr, uint32_t cx, uint32_t cy)
 		dp->m_previewSize.second);
 
 	// Padding
-	vec4_set(&color, dp->m_paddingColor[0], dp->m_paddingColor[1], dp->m_paddingColor[2], dp->m_paddingColor[3]);
-	gs_clear(GS_CLEAR_COLOR | GS_CLEAR_DEPTH | GS_CLEAR_STENCIL, &color, 100, 0);
+	gs_clear(GS_CLEAR_COLOR | GS_CLEAR_DEPTH | GS_CLEAR_STENCIL, &dp->m_paddingColorVec4, 100, 0);
 
 	// Background
 	if (dp->m_boxTris) {
-		vec4_set(
-		    &color,
-		    ((dp->m_backgroundColor & 0xFF)) / 255.0f,
-		    ((dp->m_backgroundColor & 0xFF00) >> 8) / 255.0f,
-		    ((dp->m_backgroundColor & 0xFF0000) >> 16) / 255.0f,
-		    ((dp->m_backgroundColor & 0xFF000000) >> 24) / 255.0f);
-		gs_effect_set_vec4(solid_color, &color);
+		gs_effect_set_vec4(solid_color, &dp->m_backgroundColorVec4);
 
 		gs_technique_begin(solid_tech);
 		gs_technique_begin_pass(solid_tech, 0);
