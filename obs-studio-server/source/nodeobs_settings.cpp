@@ -1091,11 +1091,11 @@ void OBS_settings::getSimpleAvailableEncoders(std::vector<std::pair<std::string,
 	if (EncoderAvailable("obs_qsv11"))
 		encoders->push_back(std::make_pair("Hardware (QSV, H.264)", ipc::value(SIMPLE_ENCODER_QSV)));
 
-	if (EncoderAvailable("amd_amf_h264"))
+	if (EncoderAvailable("h264_texture_amf"))
 		encoders->push_back(std::make_pair("Hardware (AMD, H.264)", ipc::value(SIMPLE_ENCODER_AMD)));
 
 	if (recording) {
-		if (EncoderAvailable(SIMPLE_ENCODER_AMD_HEVC))
+		if (EncoderAvailable("h265_texture_amf"))
 			encoders->push_back(std::make_pair("Hardware (AMD, HEVC)", ipc::value(SIMPLE_ENCODER_AMD_HEVC)));
 	}
 
@@ -1118,30 +1118,47 @@ void OBS_settings::getSimpleAvailableEncoders(std::vector<std::pair<std::string,
 		encoders->push_back(std::make_pair("Hardware (Apple, H.264)", ipc::value(APPLE_HARDWARE_VIDEO_ENCODER_M1)));
 }
 
-void OBS_settings::getAdvancedAvailableEncoders(std::vector<std::pair<std::string, ipc::value>>* streamEncoder)
+void OBS_settings::getAdvancedAvailableEncoders(std::vector<std::pair<std::string, ipc::value>>* encoder, bool recording)
 {
-	streamEncoder->push_back(std::make_pair("Software (x264)", ipc::value(ADVANCED_ENCODER_X264)));
+	encoder->push_back(std::make_pair("Software (x264)", ipc::value(ADVANCED_ENCODER_X264)));
 
-	if (EncoderAvailable("obs_qsv11"))
-		streamEncoder->push_back(std::make_pair("Hardware (QSV)", ipc::value(ADVANCED_ENCODER_QSV)));
+	if (EncoderAvailable(ADVANCED_ENCODER_QSV))
+		encoder->push_back(std::make_pair("QuickSync H.264", ipc::value(ADVANCED_ENCODER_QSV)));
 
-	if (EncoderAvailable("ffmpeg_nvenc"))
-		streamEncoder->push_back(std::make_pair("Hardware (NVENC)", ipc::value(ADVANCED_ENCODER_NVENC)));
+	if (EncoderAvailable(ADVANCED_ENCODER_AMD))
+		encoder->push_back(std::make_pair("AMD HW H.264", ipc::value(ADVANCED_ENCODER_AMD)));
 
-	if (EncoderAvailable("amd_amf_h264"))
-		streamEncoder->push_back(std::make_pair("AMD", ipc::value(ADVANCED_ENCODER_AMD)));
+	if (recording) {
+		if (EncoderAvailable(ADVANCED_ENCODER_AMD_HEVC))
+			encoder->push_back(std::make_pair("AMD HW H.265 (HEVC)", ipc::value(ADVANCED_ENCODER_AMD_HEVC)));
+	}
 
-	if (EncoderAvailable("jim_nvenc"))
-		streamEncoder->push_back(std::make_pair("Hardware (NVENC) (new)", ipc::value(ENCODER_NEW_NVENC)));
+	if (EncoderAvailable(ADVANCED_ENCODER_NVENC))
+		encoder->push_back(std::make_pair("NVIDIA NVENC H.264", ipc::value(ADVANCED_ENCODER_NVENC)));
+
+	if (EncoderAvailable(ENCODER_NEW_NVENC))
+		encoder->push_back(std::make_pair("NVIDIA NVENC H.264 (new)", ipc::value(ENCODER_NEW_NVENC)));
+
+	if (recording) {
+		if (EncoderAvailable(ENCODER_NEW_HEVC_NVENC))
+			encoder->push_back(std::make_pair("NVIDIA NVENC HEVC (new)", ipc::value(ENCODER_NEW_HEVC_NVENC)));
+	}
 
 	if (EncoderAvailable(APPLE_SOFTWARE_VIDEO_ENCODER))
-		streamEncoder->push_back(std::make_pair("Apple VT H264 Software Encoder", ipc::value(APPLE_SOFTWARE_VIDEO_ENCODER)));
+		encoder->push_back(std::make_pair("Apple VT H264 Software Encoder", ipc::value(APPLE_SOFTWARE_VIDEO_ENCODER)));
 
 	if (EncoderAvailable(APPLE_HARDWARE_VIDEO_ENCODER))
-		streamEncoder->push_back(std::make_pair("Apple VT H264 Hardware Encoder", ipc::value(APPLE_HARDWARE_VIDEO_ENCODER)));
+		encoder->push_back(std::make_pair("Apple VT H264 Hardware Encoder", ipc::value(APPLE_HARDWARE_VIDEO_ENCODER)));
 
 	if (EncoderAvailable(APPLE_HARDWARE_VIDEO_ENCODER_M1))
-		streamEncoder->push_back(std::make_pair("Apple VT H264 Hardware Encoder", ipc::value(APPLE_HARDWARE_VIDEO_ENCODER_M1)));
+		encoder->push_back(std::make_pair("Apple VT H264 Hardware Encoder", ipc::value(APPLE_HARDWARE_VIDEO_ENCODER_M1)));
+
+	if (recording) {
+		if (EncoderAvailable("ffmpeg_svt_av1"))
+			encoder->push_back(std::make_pair("SVT-AV1", ipc::value("ffmpeg_svt_av1")));
+		if (EncoderAvailable("ffmpeg_aom_av1"))
+			encoder->push_back(std::make_pair("AOM AV1", ipc::value("ffmpeg_aom_av1")));
+	}
 }
 
 #ifdef __APPLE__
@@ -1905,7 +1922,7 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 	videoEncoders.sizeOfCurrentValue = strlen(encoderCurrentValue);
 
 	std::vector<std::pair<std::string, ipc::value>> encoderValues;
-	getAdvancedAvailableEncoders(&encoderValues);
+	getAdvancedAvailableEncoders(&encoderValues, false);
 
 	for (int i = 0; i < encoderValues.size(); i++) {
 		std::string name = encoderValues.at(i).first;
@@ -2233,7 +2250,7 @@ void OBS_settings::getStandardRecordingSettings(
 
 	std::vector<std::pair<std::string, ipc::value>> Encoder;
 	Encoder.push_back(std::make_pair("Use stream encoder", ipc::value("none")));
-	getAdvancedAvailableEncoders(&Encoder);
+	getAdvancedAvailableEncoders(&Encoder, true);
 
 	uint32_t indexDataRecEncoder = 0;
 

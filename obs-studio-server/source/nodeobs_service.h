@@ -59,9 +59,11 @@
 #define ADVANCED_ENCODER_X264 "obs_x264"
 #define ADVANCED_ENCODER_QSV "obs_qsv11"
 #define ADVANCED_ENCODER_NVENC "ffmpeg_nvenc"
-#define ADVANCED_ENCODER_AMD "amd_amf_h264"
+#define ADVANCED_ENCODER_AMD "h264_texture_amf"
+#define ADVANCED_ENCODER_AMD_HEVC "h265_texture_amf"
 
 #define ENCODER_NEW_NVENC "jim_nvenc"
+#define ENCODER_NEW_HEVC_NVENC "jim_hevc_nvenc"
 
 #define APPLE_SOFTWARE_VIDEO_ENCODER "com.apple.videotoolbox.videoencoder.h264"
 #define APPLE_HARDWARE_VIDEO_ENCODER "com.apple.videotoolbox.videoencoder.h264.gva"
