@@ -334,6 +334,10 @@ OBS::Display::Display()
 	*v.color = 0xFFFFFFFF;
 	m_bottomSolidOutline->Update();	
 
+	// Crop effect outline
+	m_cropOutline = std::make_unique<GS::VertexBuffer>(4);
+	m_cropOutline->Resize(4);
+
 	m_boxLine = std::make_unique<GS::VertexBuffer>(6);
 	m_boxLine->Resize(6);
 	v = m_boxLine->At(0);
@@ -548,6 +552,7 @@ OBS::Display::~Display()
 	m_topSolidOutline.reset();
 	m_rightSolidOutline.reset();
 	m_bottomSolidOutline.reset();
+	m_cropOutline.reset();
 	m_boxLine = nullptr;
 	m_boxTris = nullptr;
 	m_rotHandleLine.reset();
@@ -905,7 +910,7 @@ inline bool CloseFloat(float a, float b, float epsilon = 0.01)
 	return abs(a - b) <= epsilon;
 }
 
-static void DrawCropOutline(float x1, float y1, float x2, float y2, vec2 scale)
+void OBS::Display::DrawCropOutline(float x1, float y1, float x2, float y2, vec2 scale)
 {
 	// This is partially code from OBS Studio. See window-basic-preview.cpp in obs-studio for copyright/license.
 
@@ -917,9 +922,8 @@ static void DrawCropOutline(float x1, float y1, float x2, float y2, vec2 scale)
 	float offX = (x2 - x1) / dist;
 	float offY = (y2 - y1) / dist;
 
-	for (int i = 0, l = ceil(dist / 15); i < l; i++) {
-		gs_render_start(true);
-
+	int l = static_cast<int>(ceil(dist / 15));
+	for (int i = 0; i < l; ++i) {
 		float xx1 = x1 + i * 15 * offX;
 		float yy1 = y1 + i * 15 * offY;
 
@@ -938,16 +942,30 @@ static void DrawCropOutline(float x1, float y1, float x2, float y2, vec2 scale)
 			dy = std::max(yy1 + 7.5f * offY, y2);
 		}
 
-		gs_vertex2f(xx1, yy1);
-		gs_vertex2f(xx1 + (xSide * (4 / scale.x)), yy1 + (ySide * (4 / scale.y)));
-		gs_vertex2f(dx, dy);
-		gs_vertex2f(dx + (xSide * (4 / scale.x)), dy + (ySide * (4 / scale.y)));
+		GS::Vertex v(nullptr, nullptr, nullptr, nullptr, nullptr);
 
-		gs_vertbuffer_t *line = gs_render_save();
+		v = m_cropOutline->At(0);
+		vec3_set(v.position, xx1, yy1, 0);
+		vec4_set(v.uv[0], 0, 0, 0, 0);
+		*v.color = 0xFFFFFFFF;
 
-		gs_load_vertexbuffer(line);
+		v = m_cropOutline->At(1);
+		vec3_set(v.position, xx1 + (xSide * (5 / scale.x)), yy1 + (ySide * (5 / scale.y)), 0);
+		vec4_set(v.uv[0], 0, 0, 0, 0);
+		*v.color = 0xFFFFFFFF;
+
+		v = m_cropOutline->At(2);
+		vec3_set(v.position, dx, dy, 0);
+		vec4_set(v.uv[0], 0, 0, 0, 0);
+		*v.color = 0xFFFFFFFF;
+
+		v = m_cropOutline->At(3);
+		vec3_set(v.position, dx + (xSide * (5 / scale.x)), dy + (ySide * (5 / scale.y)), 0);
+		vec4_set(v.uv[0], 0, 0, 0, 0);
+		*v.color = 0xFFFFFFFF;
+
+		gs_load_vertexbuffer(m_cropOutline->Update());
 		gs_draw(GS_TRISTRIP, 0, 0);
-		gs_vertexbuffer_destroy(line);
 	}
 }
 

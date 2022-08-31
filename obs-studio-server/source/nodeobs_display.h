@@ -99,6 +99,7 @@ namespace OBS
 		static bool DrawSelectedSource(obs_scene_t* scene, obs_sceneitem_t* item, void* param);
 		static bool DrawSelectedOverflow(obs_scene_t *scene, obs_sceneitem_t *item, void *param);
 		obs_source_t* GetSourceForUIEffects();
+		void        DrawCropOutline(float x1, float y1, float x2, float y2, vec2 scale);
 		void        DrawOutline(const matrix4& mtx, const obs_sceneitem_crop& crop,
 		            	const vec2& boxScale, gs_eparam_t* color);
 		void        DrawRotationHandle(float rot, matrix4& mtx);
@@ -136,6 +137,7 @@ namespace OBS
 		std::unique_ptr<GS::VertexBuffer> m_topSolidOutline;
 		std::unique_ptr<GS::VertexBuffer> m_rightSolidOutline;
 		std::unique_ptr<GS::VertexBuffer> m_bottomSolidOutline;
+		std::unique_ptr<GS::VertexBuffer> m_cropOutline;
 
 		std::unique_ptr<GS::VertexBuffer> m_boxLine, m_boxTris;
 		std::unique_ptr<GS::VertexBuffer> m_rotHandleLine, m_rotHandleCircle;
