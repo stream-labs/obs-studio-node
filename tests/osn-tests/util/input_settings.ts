@@ -136,6 +136,7 @@ let gameCapture: ISettings = {
     hook_rate: 1,
     limit_framerate: false,
     priority: 2,
+    rgb10a2_space: 'srgb',
     scale_res: '0x0',
     sli_compatibility: false,
     user_placeholder_image: '',
