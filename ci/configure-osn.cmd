@@ -9,7 +9,7 @@ if "%ReleaseName%"=="debug" (
           -DNODEJS_URL=%RuntimeURL% ^
           -DNODEJS_VERSION="v%ElectronVersion%" ^
           -DLIBOBS_BUILD_TYPE="debug" ^
-          -DCMAKE_PREFIX_PATH="%SLBuildDirectory%/libobs-src/cmake/"
+          -DCMAKE_PREFIX_PATH="%CD%/%SLBuildDirectory%/libobs-src/cmake/"
 ) else (
     cmake -H. ^
           -B"%SLBuildDirectory%" ^
@@ -20,5 +20,5 @@ if "%ReleaseName%"=="debug" (
           -DNODEJS_NAME=%RuntimeName% ^
           -DNODEJS_URL=%RuntimeURL% ^
           -DNODEJS_VERSION="v%ElectronVersion%" ^
-          -DCMAKE_PREFIX_PATH="%SLBuildDirectory%/libobs-src/cmake/"
+          -DCMAKE_PREFIX_PATH="%CD%/%SLBuildDirectory%/libobs-src/cmake/"
 )
