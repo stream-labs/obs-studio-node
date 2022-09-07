@@ -79,6 +79,21 @@ export const enum EDeinterlaceMode {
     Yadif2X
 }
 
+export const enum EBlendingMethod {
+    Default,
+    SrgbOff
+}
+
+export const enum EBlendingMode {
+    Normal,
+    Additive,
+    Subtract,
+    Screen,
+    Multiply,
+    Lighten,
+    Darken
+}
+
 export const enum EFontStyle {
   Bold = (1<<0),
   Italic = (1<<1),
@@ -1049,6 +1064,12 @@ export interface ISceneItem {
 
     /** Allow updating of the item after calling {@link deferUpdateBegin} */
     deferUpdateEnd(): void;
+
+    /** Set the item blending method */
+    blendingMethod: EBlendingMethod;
+
+    /** Set the item blending mode */
+    blendingMode: EBlendingMode;
 }
 
 export interface ITransitionFactory extends IFactoryTypes {

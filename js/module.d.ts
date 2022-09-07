@@ -50,6 +50,19 @@ export declare const enum EDeinterlaceMode {
     Yadif = 7,
     Yadif2X = 8
 }
+export declare const enum EBlendingMethod {
+    Default = 0,
+    SrgbOff = 1
+}
+export declare const enum EBlendingMode {
+    Normal = 0,
+    Additive = 1,
+    Subtract = 2,
+    Screen = 3,
+    Multiply = 4,
+    Lighten = 5,
+    Darken = 6
+}
 export declare const enum EFontStyle {
     Bold = 1,
     Italic = 2,
@@ -510,6 +523,8 @@ export interface ISceneItem {
     remove(): void;
     deferUpdateBegin(): void;
     deferUpdateEnd(): void;
+    blendingMethod: EBlendingMethod;
+    blendingMode: EBlendingMode;
 }
 export interface ITransitionFactory extends IFactoryTypes {
     create(id: string, name: string, settings?: ISettings, hotkeys?: ISettings): ITransition;

@@ -75,5 +75,9 @@ namespace osn
 		Napi::Value Move(const Napi::CallbackInfo& info);
 		Napi::Value DeferUpdateBegin(const Napi::CallbackInfo& info);
 		Napi::Value DeferUpdateEnd(const Napi::CallbackInfo& info);
+		Napi::Value GetBlendingMethod(const Napi::CallbackInfo& info);
+		void SetBlendingMethod(const Napi::CallbackInfo& info, const Napi::Value &value);
+		Napi::Value GetBlendingMode(const Napi::CallbackInfo& info);
+		void SetBlendingMode(const Napi::CallbackInfo& info, const Napi::Value &value);
 	};
 }

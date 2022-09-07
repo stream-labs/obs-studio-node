@@ -54,6 +54,8 @@ Napi::Object osn::SceneItem::Init(Napi::Env env, Napi::Object exports) {
 			InstanceAccessor("crop", &osn::SceneItem::GetCrop, &osn::SceneItem::SetCrop),
 			InstanceAccessor("scaleFilter", &osn::SceneItem::GetScaleFilter, &osn::SceneItem::SetScaleFilter),
 			InstanceAccessor("id", &osn::SceneItem::GetId, nullptr),
+			InstanceAccessor("blendingMethod", &osn::SceneItem::GetBlendingMethod, &osn::SceneItem::SetBlendingMethod),
+			InstanceAccessor("blendingMode", &osn::SceneItem::GetBlendingMode, &osn::SceneItem::SetBlendingMode),
 
 			InstanceMethod("moveUp", &osn::SceneItem::MoveUp),
 			InstanceMethod("moveDown", &osn::SceneItem::MoveDown),
@@ -875,4 +877,58 @@ Napi::Value osn::SceneItem::DeferUpdateEnd(const Napi::CallbackInfo& info)
 
 	conn->call("SceneItem", "DeferUpdateEnd", std::vector<ipc::value>{ipc::value(this->itemId)});
 	return info.Env().Undefined();
+}
+
+Napi::Value osn::SceneItem::GetBlendingMethod(const Napi::CallbackInfo& info)
+{
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
+
+	std::vector<ipc::value> response =
+	    conn->call_synchronous_helper("SceneItem", "GetBlendingMethod", std::vector<ipc::value>{ipc::value(this->itemId)});
+
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
+	uint32_t mode = !!response[1].value_union.ui32;
+
+	return Napi::Number::New(info.Env(), mode);
+}
+
+void osn::SceneItem::SetBlendingMethod(const Napi::CallbackInfo& info, const Napi::Value &value)
+{
+	uint32_t mode = value.ToNumber().Uint32Value();
+
+	auto conn = GetConnection(info);
+	if (!conn)
+		return;
+
+	conn->call("SceneItem", "SetBlendingMethod", std::vector<ipc::value>{ipc::value(this->itemId), ipc::value(mode)});
+}
+
+Napi::Value osn::SceneItem::GetBlendingMode(const Napi::CallbackInfo& info)
+{
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
+
+	std::vector<ipc::value> response =
+	    conn->call_synchronous_helper("SceneItem", "GetBlendingMode", std::vector<ipc::value>{ipc::value(this->itemId)});
+
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
+	uint32_t mode = !!response[1].value_union.ui32;
+
+	return Napi::Number::New(info.Env(), mode);
+}
+
+void osn::SceneItem::SetBlendingMode(const Napi::CallbackInfo& info, const Napi::Value &value)
+{
+	uint32_t mode = value.ToNumber().Uint32Value();
+
+	auto conn = GetConnection(info);
+	if (!conn)
+		return;
+
+	conn->call("SceneItem", "SetBlendingMode", std::vector<ipc::value>{ipc::value(this->itemId), ipc::value(mode)});
 }
