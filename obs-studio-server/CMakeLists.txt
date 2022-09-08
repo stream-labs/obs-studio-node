@@ -393,6 +393,12 @@ if (WIN32)
 	install(TARGETS obs-studio-server RUNTIME DESTINATION "./" PERMISSIONS ${PROGRAM_PERMISSIONS_DEFAULT} COMPONENT Runtime)
 ELSE()
 	install(TARGETS obs-studio-server RUNTIME DESTINATION "./bin" PERMISSIONS ${PROGRAM_PERMISSIONS_DEFAULT} COMPONENT Runtime)
+	set(_COMMAND
+	"${CMAKE_INSTALL_NAME_TOOL} \\
+	-change @rpath/libobs.framework/Versions/A/libobs @executable_path/../Frameworks/libobs.framework/Versions/A/libobs \\
+	\\\"\${CMAKE_INSTALL_PREFIX}/bin/obs64\\\""
+	)
+	install(CODE "execute_process(COMMAND /bin/sh -c \"${_COMMAND}\")")
 ENDIF()
 
 IF(WIN32 AND NOT CLANG_ANALYZE_CONFIG)
