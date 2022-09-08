@@ -791,6 +791,22 @@ static bool checkIfDebugLogsEnabled(const std::string& appdata)
 #endif
 }
 
+void addModulePaths()
+{
+#if defined(_WIN32)
+	obs_add_module_path(
+		std::string(g_moduleDirectory + "/obs-plugins/64bit").c_str(),
+		std::string(g_moduleDirectory + "/data/obs-plugins/%module%").c_str());
+	obs_add_module_path(
+		std::string(slobs_plugin + "/obs-plugins/64bit").c_str(),
+		std::string(slobs_plugin + "/data/obs-plugins/%module%").c_str());
+#elif defined(__APPLE__)
+
+#else
+
+#endif
+}
+
 void OBS_API::OBS_API_initAPI(
     void*                          data,
     const int64_t                  id,
@@ -925,17 +941,28 @@ void OBS_API::OBS_API_initAPI(
 	obs_apply_private_data(private_settings);
 	obs_data_release(private_settings);
 
-	int videoError;
-	if (!openAllModules(videoError)) {
+	int videoError = OBS_service::resetVideoContext(false, true);
+	if (videoError != OBS_VIDEO_SUCCESS) {
 #ifdef WIN32
 		util::CrashManager::GetMetricsProvider()->BlameUser();
 
-		blog(LOG_INFO, "Error returning now");
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
 		rval.push_back(ipc::value(videoError));
 		AUTO_DEBUG;
 		return;
 #endif
+	}
+
+	addModulePaths();
+	struct obs_module_failure_info mfi;
+	obs_load_all_modules2(&mfi);
+
+	if (mfi.count) {
+		char **plugin = mfi.failed_modules;
+		while (*plugin) {
+			blog(LOG_ERROR, "Failed to load plugin: %s", *plugin);
+			plugin++;
+		}
 	}
 
 	OBS_service::createService();
@@ -1753,116 +1780,6 @@ struct ci_char_traits : public std::char_traits<char>
 		return s;
 	}
 };
-
-typedef std::basic_string<char, ci_char_traits> istring;
-
-/* This should be reusable outside of node-obs, especially
-* if we go a server/client route. */
-bool OBS_API::openAllModules(int& video_err)
-{
-	video_err = OBS_service::resetVideoContext(false, true);
-	if (video_err != OBS_VIDEO_SUCCESS) {
-		blog(LOG_INFO, "Reset video failed with error: %d", video_err);
-		return false;
-	}
-	std::string plugins_paths[] = {g_moduleDirectory + "/obs-plugins/64bit",
-	                               g_moduleDirectory + "/obs-plugins",
-	                               slobs_plugin + "/obs-plugins/64bit"};
-
-	std::string plugins_data_paths[] = {
-	    g_moduleDirectory + "/data/obs-plugins", plugins_data_paths[0], slobs_plugin + "/data/obs-plugins"};
-
-	size_t num_paths = sizeof(plugins_paths) / sizeof(plugins_paths[0]);
-
-	for (int i = 0; i < num_paths; ++i) {
-		std::string& plugins_path      = plugins_paths[i];
-		std::string& plugins_data_path = plugins_data_paths[i];
-
-		/* FIXME Plugins could be in individual folders, maybe
-		* with some metainfo so we don't attempt just any
-		* shared library. */
-		if (!os_file_exists(plugins_path.c_str())) {
-			blog(LOG_ERROR, "Plugin Path provided is invalid: %s", plugins_path.c_str());
-			std::cerr << "Plugin Path provided is invalid: " << plugins_path << std::endl;
-			continue;
-		}
-
-		os_dir_t* plugin_dir = os_opendir(plugins_path.c_str());
-		if (!plugin_dir) {
-			blog(LOG_ERROR, "Failed to open plugin diretory: %s", plugins_path.c_str());
-			std::cerr << "Failed to open plugin diretory: " << plugins_path << std::endl;
-			continue;
-		}
-
-		for (os_dirent* ent = os_readdir(plugin_dir); ent != nullptr; ent = os_readdir(plugin_dir)) {
-			std::string fullname = ent->d_name;
-			std::string basename = fullname.substr(0, fullname.find_last_of('.'));
-
-			std::string plugin_path      = plugins_path + "/" + fullname;
-			std::string plugin_data_path = plugins_data_path + "/" + basename;
-			if (ent->directory) {
-				continue;
-			}
-
-#ifdef _WIN32
-			if (fullname.substr(fullname.find_last_of(".") + 1) != "dll") {
-				continue;
-			}
-#endif
-
-			obs_module_t* module = nullptr;
-			int           result = MODULE_ERROR;
-
-			try {
-				result = obs_open_module(&module, plugin_path.c_str(), plugin_data_path.c_str());
-			} catch (std::string errorMsg) {
-				blog(LOG_ERROR, "Failed to load module: %s - %s", basename.c_str(), errorMsg.c_str());
-				continue;
-			} catch (...) {
-				blog(LOG_ERROR, "Failed to load module: %s", basename.c_str());
-				continue;
-			}
-
-			switch (result) {
-			case MODULE_SUCCESS:
-				obsModules.push_back(std::make_pair(fullname, module));
-				break;
-			case MODULE_FILE_NOT_FOUND:
-				std::cerr << "Unable to load '" << plugin_path << "', could not find file." << std::endl;
-				continue;
-			case MODULE_MISSING_EXPORTS:
-				std::cerr << "Unable to load '" << plugin_path << "', missing exports." << std::endl;
-				continue;
-			case MODULE_INCOMPATIBLE_VER:
-				std::cerr << "Unable to load '" << plugin_path << "', incompatible version." << std::endl;
-				continue;
-			case MODULE_ERROR:
-				std::cerr << "Unable to load '" << plugin_path << "', generic error." << std::endl;
-				continue;
-			default:
-				continue;
-			}
-
-			try {
-				bool success = obs_init_module(module);
-				if (!success) {
-					std::cerr << "Failed to initialize module " << plugin_path << std::endl;
-					/* Just continue to next one */
-				}
-			} catch (std::string errorMsg) {
-				blog(LOG_ERROR, "Failed to initialize module: %s - %s", basename.c_str(), errorMsg.c_str());
-				continue;
-			} catch (...) {
-				blog(LOG_ERROR, "Failed to initialize module: %s", basename.c_str());
-				continue;
-			}
-		}
-
-		os_closedir(plugin_dir);
-	}
-
-	return true;
-}
 
 double OBS_API::getCPU_Percentage(void)
 {
