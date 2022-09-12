@@ -71,7 +71,7 @@ describe(testName, () => {
                     }).to.not.throw();
 
                     // Adding to moduleArrays to use in check later
-                    moduleTypes.push(file);
+                    moduleTypes.push(path.join(modulePath, '/' + file));
                 }   
             }
         });
