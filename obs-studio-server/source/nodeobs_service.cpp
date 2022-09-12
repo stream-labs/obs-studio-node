@@ -2753,7 +2753,7 @@ void OBS_service::OBS_service_createVirtualWebcam(
 	obs_data_set_int(settings, "height", ovi.output_height);
 	obs_data_set_double(settings, "fps", ovi.fps_num);
 
-	virtualWebcamOutput = obs_output_create("virtual_output", "Virtual Webcam", settings, NULL);
+	virtualWebcamOutput = obs_output_create("virtualcam_output", "Virtual Webcam", settings, NULL);
 	obs_data_release(settings);
 }
 
