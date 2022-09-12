@@ -152,7 +152,7 @@ set(
 string(
 	CONCAT OSN_DEFAULT_LIBOBS_URL
 	"https://obsstudios3.streamlabs.com/"
-	"libobs-${LIBOBS_PLATFORM}-${LIBOBS_BUILD_TYPE}-${LIBOBS_VERSION}.7z"
+	"libobs-${LIBOBS_PLATFORM}-${LIBOBS_BUILD_TYPE}-${LIBOBS_VERSION}-x86_64.7z"
 )
 
 set(
@@ -167,7 +167,7 @@ download_project(
 	UPDATE_DISCONNECTED 1
 )
 
-include("${libobs_SOURCE_DIR}/cmake/LibObsConfig.cmake")
+include("${libobs_SOURCE_DIR}/Frameworks/libobs.Framework/Resources/cmake/LibobsConfig.cmake")
 
 if (WIN32)
 	set(PROJECT_LIBRARIES
@@ -188,13 +188,13 @@ if (WIN32)
 else ()
 	set(PROJECT_LIBRARIES
 		lib-streamlabs-ipc
-		${LIBOBS_LIBRARIES}
+		OBS::libobs
 	)
 	set(PROJECT_INCLUDE_PATHS
 		"${CMAKE_SOURCE_DIR}/source"
 		"${PROJECT_SOURCE_DIR}/source"
 		"${lib-streamlabs-ipc_SOURCE_DIR}/include"
-		${LIBOBS_INCLUDE_DIRS}
+		"${libobs_SOURCE_DIR}/Frameworks/libobs.framework/Headers"
 		"${nlohmannjson_SOURCE_DIR}/single_include"
 		"${source_dir}/include/third_party/mini_chromium/mini_chromium"
 		"${source_dir}/include"
@@ -389,16 +389,28 @@ set(PROGRAM_PERMISSIONS_DEFAULT
     GROUP_READ GROUP_EXECUTE
     WORLD_READ WORLD_EXECUTE)
 
-install(TARGETS obs-studio-server RUNTIME DESTINATION "./" PERMISSIONS ${PROGRAM_PERMISSIONS_DEFAULT} COMPONENT Runtime)
+if (WIN32)
+	install(TARGETS obs-studio-server RUNTIME DESTINATION "./" PERMISSIONS ${PROGRAM_PERMISSIONS_DEFAULT} COMPONENT Runtime)
+ELSE()
+	install(TARGETS obs-studio-server RUNTIME DESTINATION "./bin" PERMISSIONS ${PROGRAM_PERMISSIONS_DEFAULT} COMPONENT Runtime)
+	set(_COMMAND
+	"${CMAKE_INSTALL_NAME_TOOL} \\
+	-change @rpath/libobs.framework/Versions/A/libobs @executable_path/../Frameworks/libobs.framework/Versions/A/libobs \\
+	\\\"\${CMAKE_INSTALL_PREFIX}/bin/obs64\\\""
+	)
+	install(CODE "execute_process(COMMAND /bin/sh -c \"${_COMMAND}\")")
+ENDIF()
+
 IF(WIN32 AND NOT CLANG_ANALYZE_CONFIG)
 	install(FILES $<TARGET_PDB_FILE:obs-studio-server> DESTINATION "./" OPTIONAL)
 ENDIF()
 install(DIRECTORY ${PROJECT_DATA} DESTINATION "./" OPTIONAL USE_SOURCE_PERMISSIONS)
 install(DIRECTORY ${crashpad_SOURCE_DIR}/bin/ DESTINATION "./" USE_SOURCE_PERMISSIONS)
-install(DIRECTORY "${libobs_SOURCE_DIR}/data/" DESTINATION "./data" USE_SOURCE_PERMISSIONS)
 
-if (APPLE)
-	install(DIRECTORY "${libobs_SOURCE_DIR}/Frameworks/" DESTINATION "./Frameworks" USE_SOURCE_PERMISSIONS)
+IF(WIN32)
+	install(DIRECTORY "${libobs_SOURCE_DIR}/data/" DESTINATION "./data" USE_SOURCE_PERMISSIONS)
+else ()
+	install(DIRECTORY "${libobs_SOURCE_DIR}/Frameworks/libobs.framework/Versions/A/Resources/" DESTINATION "./data/libobs" FILES_MATCHING PATTERN "*.effect" PATTERN "cmake" EXCLUDE)
 endif()
 
 if (WIN32)
@@ -408,8 +420,9 @@ if (WIN32)
 	)
 else ()
 	install(
-		DIRECTORY "${libobs_SOURCE_DIR}/bin/"
-		DESTINATION "./" USE_SOURCE_PERMISSIONS PATTERN "*.lib" EXCLUDE
+		DIRECTORY "${libobs_SOURCE_DIR}/OBS.app/Contents/Frameworks"
+		DESTINATION "./" USE_SOURCE_PERMISSIONS PATTERN "Qt*" EXCLUDE
+		PATTERN "Sparkle*" EXCLUDE
 	)
 endif ()
 
@@ -420,8 +433,7 @@ install(
 )
 else ()
 install(
-	DIRECTORY "${libobs_SOURCE_DIR}/obs-plugins/"
-	DESTINATION "./obs-plugins"
-	USE_SOURCE_PERMISSIONS
+	DIRECTORY "${libobs_SOURCE_DIR}/OBS.app/Contents/PlugIns"
+	DESTINATION "./" USE_SOURCE_PERMISSIONS PATTERN "frontend*" EXCLUDE
 )
 endif()

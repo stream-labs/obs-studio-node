@@ -343,7 +343,7 @@ static inline const char* GetRenderModule(config_t* config)
 #ifdef _WIN32
 	DL_OPENGL = "libobs-opengl.dll";
 #else
-	DL_OPENGL = "libobs-opengl.so";
+	DL_OPENGL = "libobs-opengl.dylib";
 #endif
 
 	if (renderer != NULL) {
@@ -529,7 +529,7 @@ obs_video_info OBS_service::prepareOBSVideoInfo(bool reload, bool defaultConf)
 #ifdef _WIN32
 	ovi.graphics_module = "libobs-d3d11.dll";
 #else
-	ovi.graphics_module = "libobs-opengl";
+	ovi.graphics_module = "libobs-opengl.dylib";
 #endif
 
 	if (reload)
