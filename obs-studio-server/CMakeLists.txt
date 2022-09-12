@@ -152,7 +152,7 @@ set(
 string(
 	CONCAT OSN_DEFAULT_LIBOBS_URL
 	"https://obsstudios3.streamlabs.com/"
-	"libobs-${LIBOBS_PLATFORM}-${LIBOBS_BUILD_TYPE}-${LIBOBS_VERSION}-x86_64.7z"
+	"libobs-${LIBOBS_PLATFORM}-${LIBOBS_BUILD_TYPE}-${LIBOBS_VERSION}.7z"
 )
 
 set(
@@ -167,7 +167,11 @@ download_project(
 	UPDATE_DISCONNECTED 1
 )
 
-include("${libobs_SOURCE_DIR}/Frameworks/libobs.Framework/Resources/cmake/LibobsConfig.cmake")
+if (WIN32)
+	include("${libobs_SOURCE_DIR}/cmake/LibObsConfig.cmake")
+elseif(APPLE)
+	include("${libobs_SOURCE_DIR}/Frameworks/libobs.Framework/Resources/cmake/LibobsConfig.cmake")
+endif()
 
 if (WIN32)
 	set(PROJECT_LIBRARIES
