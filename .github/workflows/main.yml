@@ -16,7 +16,7 @@ env:
   InstallPath: "obs-studio-node"
   SLBUILDDIRECTORY: "streamlabs-build"
   RELEASE_BUCKET: "obsstudionodes3.streamlabs.com"
-  RuntimeURL: https://atom.io/download/atom-shell
+  RuntimeURL: https://electronjs.org/headers
   RuntimeName: iojs
   ElectronVersion: 13.4.0
   SLGenerator: Visual Studio 17 2022
