@@ -84,13 +84,17 @@ namespace OBS
 		void SetGuidelineColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255u);
 		void SetResizeBoxOuterColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255u);
 		void SetResizeBoxInnerColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255u);
+		void SetRotationHandleColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255u);
 		bool GetDrawGuideLines(void);
 		void SetDrawGuideLines(bool drawGuideLines);
+		bool GetDrawRotationHandle();
+		void SetDrawRotationHandle(bool drawRotationHandle);
 		void UpdatePreviewArea();
 
 		private:
 		static void DisplayCallback(void* displayPtr, uint32_t cx, uint32_t cy);
 		static bool DrawSelectedSource(obs_scene_t* scene, obs_sceneitem_t* item, void* param);
+		void        DrawRotationHandle(float rot, matrix4& mtx);
 		void        setSizeCall(int step);
 
 		public: // Rendering code needs it.
@@ -100,6 +104,7 @@ namespace OBS
 		obs_display_t* m_display;
 		obs_source_t*  m_source;
 		bool           m_drawGuideLines;
+		bool           m_drawRotationHandle;
 
 		// Preview
 		/// Window Position
@@ -118,6 +123,7 @@ namespace OBS
 		GS::VertexBuffer* m_textVertices;
 
 		std::unique_ptr<GS::VertexBuffer> m_boxLine, m_boxTris;
+		std::unique_ptr<GS::VertexBuffer> m_rotHandleLine, m_rotHandleCircle;
 
 		// Theme/Style
 		/// Padding
@@ -129,6 +135,7 @@ namespace OBS
 		uint32_t m_guidelineColor   = 0xFF0000FF;
 		uint32_t m_resizeOuterColor = 0xFF7E7E7E;
 		uint32_t m_resizeInnerColor = 0xFFFFFFFF;
+		uint32_t m_rotationHandleColor = 0xFFFF7EFF;
 		bool     m_shouldDrawUI     = true;
 
 		enum obs_video_rendering_mode m_renderingMode = OBS_MAIN_VIDEO_RENDERING;
