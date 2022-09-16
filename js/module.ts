@@ -1455,7 +1455,9 @@ export interface SourceInfo {
     settings: ISettings,
     type: string,
     volume: number,
-    syncOffset: SyncOffset
+    syncOffset: SyncOffset,
+    deinterlaceMode: EDeinterlaceMode,
+    deinterlaceFieldOrder: EDeinterlaceFieldOrder
 }
 export function createSources(sources: SourceInfo[]): IInput[] {
     const items: IInput[] = [];
@@ -1468,6 +1470,8 @@ export function createSources(sources: SourceInfo[]): IInput[] {
                 newSource.syncOffset =
                 (source.syncOffset != null) ? source.syncOffset : {sec: 0, nsec: 0};
             }
+            newSource.deinterlaceMode = source.deinterlaceMode;
+            newSource.deinterlaceFieldOrder = source.deinterlaceFieldOrder;
             items.push(newSource);
             const filters = source.filters;
             if (Array.isArray(filters)) {

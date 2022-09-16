@@ -660,6 +660,8 @@ export interface SourceInfo {
     type: string;
     volume: number;
     syncOffset: SyncOffset;
+    deinterlaceMode: EDeinterlaceMode;
+    deinterlaceFieldOrder: EDeinterlaceFieldOrder;
 }
 export declare function createSources(sources: SourceInfo[]): IInput[];
 export interface ISourceSize {

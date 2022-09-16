@@ -50,6 +50,8 @@ function createSources(sources) {
                 newSource.syncOffset =
                     (source.syncOffset != null) ? source.syncOffset : { sec: 0, nsec: 0 };
             }
+            newSource.deinterlaceMode = source.deinterlaceMode;
+            newSource.deinterlaceFieldOrder = source.deinterlaceFieldOrder;
             items.push(newSource);
             const filters = source.filters;
             if (Array.isArray(filters)) {

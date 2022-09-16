@@ -47,6 +47,12 @@ struct SourceDataInfo
 
 	std::vector<uint64_t>* filters             = new std::vector<uint64_t>();
 	bool                   filtersOrderChanged = true;
+
+	uint32_t deinterlaceMode = 0;
+	bool    deinterlaceModeChanged = true;
+
+	uint32_t deinterlaceFieldOrder = 0;
+	bool    deinterlaceFieldOrderChanged = true;
 };
 
 struct SceneItemData
