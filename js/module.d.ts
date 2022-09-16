@@ -57,7 +57,7 @@ export declare const enum EBlendingMethod {
 export declare const enum EBlendingMode {
     Normal = 0,
     Additive = 1,
-    Subtract = 2,
+    Substract = 2,
     Screen = 3,
     Multiply = 4,
     Lighten = 5,
@@ -180,7 +180,7 @@ export declare const enum EColorFormat {
     DXT5 = 17
 }
 export declare const enum EScaleType {
-    Default = 0,
+    Disable = 0,
     Point = 1,
     Bicubic = 2,
     Bilinear = 3,
@@ -452,6 +452,10 @@ export interface ISceneItemInfo {
     x: number;
     y: number;
     rotation: number;
+    streamVisible: boolean;
+    recordingVisible: boolean;
+    scaleFilter: EScaleType;
+    blendingMode: EBlendingMode;
 }
 export interface IInput extends ISource {
     volume: number;
