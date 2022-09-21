@@ -267,6 +267,11 @@ export declare const enum EIPCError {
     MISSING_DEPENDENCY = 254,
     NORMAL_EXIT = 0
 }
+export declare const enum EVcamInstalledStatus {
+    NotInstalled = 0,
+    LegacyInstalled = 1,
+    Installed = 2
+}
 export declare const Global: IGlobal;
 export declare const Video: IVideo;
 export declare const InputFactory: IInputFactory;

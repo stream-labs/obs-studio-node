@@ -341,6 +341,12 @@ export const enum EIPCError {
     NORMAL_EXIT = 0,
 }
 
+export const enum EVcamInstalledStatus {
+	NotInstalled = 0,
+	LegacyInstalled = 1,
+	Installed = 2
+}
+
 export const Global: IGlobal = obs.Global;
 export const Video: IVideo = obs.Video;
 export const InputFactory: IInputFactory = obs.Input;
