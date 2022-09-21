@@ -909,7 +909,7 @@ std::vector<SubCategory> OBS_settings::getStreamSettings()
 		obs_property_next(&property);
 	}
 
-	serviceConfiguration.name        = "Untitled";
+	serviceConfiguration.name        = "StreamCFG";
 	serviceConfiguration.paramsCount = serviceConfiguration.params.size();
 	streamSettings.push_back(serviceConfiguration);
 
@@ -2353,6 +2353,198 @@ void OBS_settings::getStandardRecordingSettings(
 
 	subCategoryParameters->params.push_back(recMuxerCustom);
 
+
+   // FFmpeg settings by REACTOO
+	const char* RecTypeCurrentValue = config_get_string(config, "AdvOut", "RecType");
+    bool doCustomFFmpeg = strcmp(RecTypeCurrentValue, "FFmpeg") == 0;
+
+	if (doCustomFFmpeg) {
+// FFmpeg settings: FFURL
+		Parameter FFURL;
+		FFURL.name        = "FFURL";
+		FFURL.type        = "OBS_PROPERTY_EDIT_TEXT";
+		FFURL.description = "FFmpeg custom URL";
+
+		const char* FFmpegURLCurrentValue = config_get_string(config, "AdvOut", "FFURL");
+		if (FFmpegURLCurrentValue == NULL)
+			FFmpegURLCurrentValue = "";
+		FFURL.currentValue.resize(strlen(FFmpegURLCurrentValue));
+		memcpy(FFURL.currentValue.data(), FFmpegURLCurrentValue, strlen(FFmpegURLCurrentValue));
+		FFURL.sizeOfCurrentValue = strlen(FFmpegURLCurrentValue);
+		FFURL.visible = true;
+		FFURL.enabled = isCategoryEnabled;
+		FFURL.masked  = false;	
+		subCategoryParameters->params.push_back(FFURL);
+
+// FFmpeg settings: FFOutputToFile
+		Parameter FFOutputToFile;
+		FFOutputToFile.name        = "FFOutputToFile";
+		FFOutputToFile.type        = "OBS_PROPERTY_BOOL";
+		FFOutputToFile.description = "FFmpeg OutputToFile";
+
+		bool FFOutputToFileCurrentValue = config_get_bool(config, "AdvOut", "FFOutputToFile");
+
+	    FFOutputToFile.currentValue.resize(sizeof(FFOutputToFileCurrentValue));
+	    memcpy(FFOutputToFile.currentValue.data(), &FFOutputToFileCurrentValue, sizeof(FFOutputToFileCurrentValue));
+	    FFOutputToFile.sizeOfCurrentValue = sizeof(FFOutputToFileCurrentValue);
+
+		FFOutputToFile.visible = true;
+		FFOutputToFile.enabled = isCategoryEnabled;
+		FFOutputToFile.masked  = false;	
+		subCategoryParameters->params.push_back(FFOutputToFile);
+
+// FFmpeg settings: FFFormat
+		Parameter FFFormat;
+		FFFormat.name        = "FFFormat";
+		FFFormat.type        = "OBS_PROPERTY_EDIT_TEXT";
+		FFFormat.description = "FFmpeg container format";
+
+		const char* FFFormatCurrentValue = config_get_string(config, "AdvOut", "FFFormat");
+		if (FFFormatCurrentValue == NULL)
+			FFFormatCurrentValue = "flv";
+		FFFormat.currentValue.resize(strlen(FFFormatCurrentValue));
+		memcpy(FFFormat.currentValue.data(), FFFormatCurrentValue, strlen(FFFormatCurrentValue));
+		FFFormat.sizeOfCurrentValue = strlen(FFFormatCurrentValue);
+		FFFormat.visible = true;
+		FFFormat.enabled = isCategoryEnabled;
+		FFFormat.masked  = false;	
+		subCategoryParameters->params.push_back(FFFormat);			
+// FFmpeg settings:FFFormatMimeType
+// FFmpeg settings:FFMCustom
+		Parameter FFMCustom;
+		FFMCustom.name        = "FFMCustom";
+		FFMCustom.type        = "OBS_PROPERTY_EDIT_TEXT";
+		FFMCustom.description = "FFmpeg Muxer Custom";
+
+		const char* FFMCustomCurrentValue = config_get_string(config, "AdvOut", "FFMCustom");
+		if (FFMCustomCurrentValue == NULL)
+			FFMCustomCurrentValue = "";
+		FFMCustom.currentValue.resize(strlen(FFMCustomCurrentValue));
+		memcpy(FFMCustom.currentValue.data(), FFMCustomCurrentValue, strlen(FFMCustomCurrentValue));
+		FFMCustom.sizeOfCurrentValue = strlen(FFMCustomCurrentValue);
+		FFMCustom.visible = true;
+		FFMCustom.enabled = isCategoryEnabled;
+		FFMCustom.masked  = false;	
+		subCategoryParameters->params.push_back(FFMCustom);
+// FFmpeg settings:FFVEncoder = flv
+		Parameter FFVEncoder;
+		FFVEncoder.name        = "FFVEncoder";
+		FFVEncoder.type        = "OBS_PROPERTY_EDIT_TEXT";
+		FFVEncoder.description = "FFmpeg Video encoder";
+
+		const char* FFVEncoderCurrentValue = config_get_string(config, "AdvOut", "FFVEncoder");
+		if (FFVEncoderCurrentValue == NULL)
+			FFVEncoderCurrentValue = "";
+		FFVEncoder.currentValue.resize(strlen(FFVEncoderCurrentValue));
+		memcpy(FFVEncoder.currentValue.data(), FFVEncoderCurrentValue, strlen(FFVEncoderCurrentValue));
+		FFVEncoder.sizeOfCurrentValue = strlen(FFVEncoderCurrentValue);
+		FFVEncoder.visible = true;
+		FFVEncoder.enabled = isCategoryEnabled;
+		FFVEncoder.masked  = false;	
+		subCategoryParameters->params.push_back(FFVEncoder);
+// FFmpeg settings:FFVBitrate :i = 2500
+		Parameter FFVBitrate;
+		FFVBitrate.name        = "FFVBitrate";
+		FFVBitrate.type        = "OBS_PROPERTY_EDIT_TEXT";
+		FFVBitrate.description = "FFmpeg Video bitrate";
+
+		const char* FFVBitrateCurrentValue = config_get_string(config, "AdvOut", "FFVBitrate");
+		if (FFVBitrateCurrentValue == NULL)
+			FFVBitrateCurrentValue = "2500";
+		FFVBitrate.currentValue.resize(strlen(FFVBitrateCurrentValue));
+		memcpy(FFVBitrate.currentValue.data(), FFVBitrateCurrentValue, strlen(FFVBitrateCurrentValue));
+		FFVBitrate.sizeOfCurrentValue = strlen(FFVBitrateCurrentValue);
+		FFVBitrate.visible = true;
+		FFVBitrate.enabled = isCategoryEnabled;
+		FFVBitrate.masked  = false;	
+		subCategoryParameters->params.push_back(FFVBitrate);
+// FFmpeg settings:FFVEncoderId : i 
+// FFmpeg settings:FFVCustom
+		Parameter FFVCustom;
+		FFVCustom.name        = "FFVCustom";
+		FFVCustom.type        = "OBS_PROPERTY_EDIT_TEXT";
+		FFVCustom.description = "FFmpeg Video encoder settings";
+
+		const char* FFVCustomCurrentValue = config_get_string(config, "AdvOut", "FFVCustom");
+		if (FFVCustomCurrentValue == NULL)
+			FFVCustomCurrentValue = "";
+		FFVCustom.currentValue.resize(strlen(FFVCustomCurrentValue));
+		memcpy(FFVCustom.currentValue.data(), FFVCustomCurrentValue, strlen(FFVCustomCurrentValue));
+		FFVCustom.sizeOfCurrentValue = strlen(FFVCustomCurrentValue);
+		FFVCustom.visible = true;
+		FFVCustom.enabled = isCategoryEnabled;
+		FFVCustom.masked  = false;	
+		subCategoryParameters->params.push_back(FFVCustom);
+// FFmpeg settings:FFABitrate : i = 160
+		Parameter FFABitrate;
+		FFABitrate.name        = "FFABitrate";
+		FFABitrate.type        = "OBS_PROPERTY_EDIT_TEXT";
+		FFABitrate.description = "FFmpeg Audio bitrate";
+
+		const char* FFABitrateCurrentValue = config_get_string(config, "AdvOut", "FFABitrate");
+		if (FFABitrateCurrentValue == NULL)
+			FFABitrateCurrentValue = "160";
+		FFABitrate.currentValue.resize(strlen(FFABitrateCurrentValue));
+		memcpy(FFABitrate.currentValue.data(), FFABitrateCurrentValue, strlen(FFABitrateCurrentValue));
+		FFABitrate.sizeOfCurrentValue = strlen(FFABitrateCurrentValue);
+		FFABitrate.visible = true;
+		FFABitrate.enabled = isCategoryEnabled;
+		FFABitrate.masked  = false;	
+		subCategoryParameters->params.push_back(FFABitrate);
+// FFmpeg settings:FFAudioMixes : i = 1
+		Parameter FFAudioMixes;
+		FFAudioMixes.name        = "FFAudioMixes";
+		FFAudioMixes.type        = "OBS_PROPERTY_EDIT_TEXT";
+		FFAudioMixes.description = "FFmpeg Audio bitrate";
+
+		const char* FFAudioMixesCurrentValue = config_get_string(config, "AdvOut", "FFAudioMixes");
+		if (FFAudioMixesCurrentValue == NULL)
+			FFAudioMixesCurrentValue = "1";
+		FFAudioMixes.currentValue.resize(strlen(FFAudioMixesCurrentValue));
+		memcpy(FFAudioMixes.currentValue.data(), FFAudioMixesCurrentValue, strlen(FFAudioMixesCurrentValue));
+		FFAudioMixes.sizeOfCurrentValue = strlen(FFAudioMixesCurrentValue);
+		FFAudioMixes.visible = true;
+		FFAudioMixes.enabled = isCategoryEnabled;
+		FFAudioMixes.masked  = false;	
+		subCategoryParameters->params.push_back(FFAudioMixes);
+// FFmpeg settings:FFAEncoder = aac
+		Parameter FFAEncoder;
+		FFAEncoder.name        = "FFAEncoder";
+		FFAEncoder.type        = "OBS_PROPERTY_EDIT_TEXT";
+		FFAEncoder.description = "FFmpeg Audio encoder";
+
+		const char* FFAEncoderCurrentValue = config_get_string(config, "AdvOut", "FFAEncoder");
+		if (FFAEncoderCurrentValue == NULL)
+			FFAEncoderCurrentValue = "aac";
+		FFAEncoder.currentValue.resize(strlen(FFAEncoderCurrentValue));
+		memcpy(FFAEncoder.currentValue.data(), FFAEncoderCurrentValue, strlen(FFAEncoderCurrentValue));
+		FFAEncoder.sizeOfCurrentValue = strlen(FFAEncoderCurrentValue);
+		FFAEncoder.visible = true;
+		FFAEncoder.enabled = isCategoryEnabled;
+		FFAEncoder.masked  = false;	
+		subCategoryParameters->params.push_back(FFAEncoder);
+// FFmpeg settings:FFAEncoderId: i = 86018
+// FFmpeg settings:FFACustom
+		Parameter FFACustom;
+		FFACustom.name        = "FFACustom";
+		FFACustom.type        = "OBS_PROPERTY_EDIT_TEXT";
+		FFACustom.description = "FFmpeg Audio encoder settings";
+
+		const char* FFACustomCurrentValue = config_get_string(config, "AdvOut", "FFACustom");
+		if (FFACustomCurrentValue == NULL)
+			FFACustomCurrentValue = "";
+		FFACustom.currentValue.resize(strlen(FFACustomCurrentValue));
+		memcpy(FFACustom.currentValue.data(), FFACustomCurrentValue, strlen(FFACustomCurrentValue));
+		FFACustom.sizeOfCurrentValue = strlen(FFACustomCurrentValue);
+		FFACustom.visible = true;
+		FFACustom.enabled = isCategoryEnabled;
+		FFACustom.masked  = false;	
+		subCategoryParameters->params.push_back(FFACustom);
+// FFmpeg settings:FFRescale=boolean
+// FFmpeg settings:FFRescaleRes=1280x720
+
+	}
+
 	// Encoder settings
 	struct stat buffer;
 
@@ -2413,6 +2605,7 @@ SubCategory OBS_settings::getAdvancedOutputRecordingSettings(config_t* config, b
 
 	std::vector<std::pair<std::string, std::string>> recTypeValues;
 	recTypeValues.push_back(std::make_pair("Standard", "Standard"));
+	recTypeValues.push_back(std::make_pair("FFmpeg", "FFmpeg"));
 
 	uint32_t indexDataRecType = 0;
 
@@ -2941,7 +3134,7 @@ void OBS_settings::saveAdvancedOutputRecordingSettings(std::vector<SubCategory> 
 
 		if (name.compare("RecType") == 0) {
 			std::string value(param.currentValue.data(), param.currentValue.size());
-			if (value.compare("Custom Output (FFmpeg)") == 0) {
+			if (value.compare("FFmpeg") == 0) {
 				indexEncoderSettings = settings.at(indexRecordingCategory).params.size();
 			}
 		}

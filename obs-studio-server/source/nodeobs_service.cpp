@@ -1777,6 +1777,7 @@ void OBS_service::updateFfmpegOutput(bool isSimpleMode, obs_output_t* output)
 	bool        noSpace;
 	const char* fileNameFormat;
 	bool        overwriteIfExists;
+	const char* RecType;
 
 	if (isSimpleMode) {
 		path    = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "FilePath");
@@ -1790,8 +1791,13 @@ void OBS_service::updateFfmpegOutput(bool isSimpleMode, obs_output_t* output)
 		format            = config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "RecFormat");
 		fileNameFormat    = config_get_string(ConfigManager::getInstance().getBasic(), "Output", "FilenameFormatting");
 		overwriteIfExists = config_get_bool(ConfigManager::getInstance().getBasic(), "Output", "OverwriteIfExists");
-		noSpace  = config_get_bool(ConfigManager::getInstance().getBasic(), "AdvOut", "RecFileNameWithoutSpace");
+		noSpace           = config_get_bool(ConfigManager::getInstance().getBasic(), "AdvOut", "RecFileNameWithoutSpace");
+	    RecType           = config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "RecType");		
 	}
+
+    if (!isSimpleMode &&  strcmp(RecType, "FFmpeg") == 0 ) {
+		UpdateFFmpegCustomOutput();
+	} else {
 
 	std::string initialPath;
 	if (path != nullptr) {
@@ -1820,6 +1826,7 @@ void OBS_service::updateFfmpegOutput(bool isSimpleMode, obs_output_t* output)
 		obs_data_set_string(settings, ffmpegOutput ? "url" : "path", strPath.c_str());
 		obs_output_update(output, settings);
 		obs_data_release(settings);
+	}
 	}
 }
 
@@ -1931,7 +1938,7 @@ void OBS_service::UpdateFFmpegCustomOutput(void)
 	if (recordingOutput != NULL) {
 		obs_output_release(recordingOutput);
 	}
-	recordingOutput = obs_output_create("ffmpeg_output", "simple_ffmpeg_output", nullptr, nullptr);
+	recordingOutput = obs_output_create("ffmpeg_output", "adv_ffmpeg_output", nullptr, nullptr);
 	connectOutputSignals();
 
 	const char* url        = config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "FFURL");
