@@ -284,7 +284,9 @@ std::shared_ptr<ipc::client> Controller::host(const std::string& uri)
 #ifdef WIN32
 	// Test for existing process.
 	std::string pid_path(get_temp_directory());
-	pid_path.append("server.pid");
+	pid_path.append("server-");
+	pid_path.append(uri);
+	pid_path.append(".pid");
 
 	check_pid_file(pid_path);
 
