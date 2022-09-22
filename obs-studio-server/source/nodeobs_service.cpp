@@ -33,6 +33,7 @@
 
 obs_output_t* streamingOutput    = nullptr;
 obs_output_t* recordingOutput    = nullptr;
+obs_output_t* recordingOutput2    = nullptr;
 obs_output_t* replayBufferOutput = nullptr;
 
 obs_output_t* virtualWebcamOutput = nullptr;
@@ -42,6 +43,7 @@ obs_encoder_t* audioSimpleRecordingEncoder   = nullptr;
 obs_encoder_t* audioAdvancedStreamingEncoder = nullptr;
 obs_encoder_t* videoStreamingEncoder         = nullptr;
 obs_encoder_t* videoRecordingEncoder         = nullptr;
+obs_encoder_t* videoRecordingEncoder2         = nullptr;
 obs_service_t* service                       = nullptr;
 obs_encoder_t* streamArchiveEncVod           = nullptr;
 
@@ -535,8 +537,8 @@ obs_video_info OBS_service::prepareOBSVideoInfo(bool reload, bool defaultConf)
 	if (reload)
 		ConfigManager::getInstance().reloadConfig();
 
-	ovi.base_width  = (uint32_t)basicConfigGetUInt("Video", "BaseCX", defaultConf);
-	ovi.base_height = (uint32_t)basicConfigGetUInt("Video", "BaseCY", defaultConf);
+	ovi.canvases[0].base_width = (uint32_t)basicConfigGetUInt("Video", "BaseCX", defaultConf);
+	ovi.canvases[0].base_height = (uint32_t)basicConfigGetUInt("Video", "BaseCY", defaultConf);
 
 	// Do we really need it?
 #if 0
@@ -547,35 +549,36 @@ obs_video_info OBS_service::prepareOBSVideoInfo(bool reload, bool defaultConf)
 	}
 #endif
 
-	ovi.output_width  = (uint32_t)basicConfigGetUInt("Video", "OutputCX", defaultConf);
-	ovi.output_height = (uint32_t)basicConfigGetUInt("Video", "OutputCY", defaultConf);
+	ovi.canvases[0].output_width = (uint32_t)basicConfigGetUInt("Video", "OutputCX", defaultConf);
+	ovi.canvases[0].output_height = (uint32_t)basicConfigGetUInt("Video", "OutputCY", defaultConf);
 
 	std::vector<std::pair<uint32_t, uint32_t>> resolutions = OBS_API::availableResolutions();
 	uint32_t limit_cx = 1920;
 	uint32_t limit_cy = 1080;
 
-	if (ovi.base_width == 0 || ovi.base_height == 0) {
+	if (ovi.canvases[0].base_width == 0 || ovi.canvases[0].base_height == 0) {
 		for (int i = 0; i < resolutions.size(); i++) {
 			uint32_t nbPixels = resolutions.at(i).first * resolutions.at(i).second;
-			if (int(ovi.base_width * ovi.base_height) < nbPixels &&
+			if (int(ovi.canvases[0].base_width * ovi.canvases[0].base_height) < nbPixels
+			    &&
 					nbPixels <= limit_cx * limit_cy) {
-				ovi.base_width  = resolutions.at(i).first;
-				ovi.base_height = resolutions.at(i).second;
+				ovi.canvases[0].base_width = resolutions.at(i).first;
+				ovi.canvases[0].base_height = resolutions.at(i).second;
 			}
 		}
-		if (ovi.base_width == 0 || ovi.base_height == 0) {
-			ovi.base_width = 1920;
-			ovi.base_height = 1080;
+		if (ovi.canvases[0].base_width == 0 || ovi.canvases[0].base_height == 0) {
+			ovi.canvases[0].base_width = 1920;
+			ovi.canvases[0].base_height = 1080;
 		}
 	}
 
 	if (!defaultConf) {
-		config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "BaseCX", ovi.base_width);
-		config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "BaseCY", ovi.base_height);
+		config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "BaseCX", ovi.canvases[0].base_width);
+		config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "BaseCY", ovi.canvases[0].base_height);
 	}
 
-	if (ovi.output_width == 0 || ovi.output_height == 0) {
-		if (ovi.base_width > 1280 && ovi.base_height > 720) {
+	if (ovi.canvases[0].output_width == 0 || ovi.canvases[0].output_height == 0) {
+		if (ovi.canvases[0].base_width > 1280 && ovi.canvases[0].base_height > 720) {
 			int idx = 0;
 			do {
 				double use_val = 1.0;
@@ -584,21 +587,22 @@ obs_video_info OBS_service::prepareOBSVideoInfo(bool reload, bool defaultConf)
 				} else {
 					use_val = vals[numVals - 1] + double(numVals - idx + 1) / 2.0;
 				}
-				ovi.output_width  = uint32_t(double(ovi.base_width) / use_val);
-				ovi.output_height = uint32_t(double(ovi.base_height) / use_val);
+				ovi.canvases[0].output_width  = uint32_t(double(ovi.canvases[0].base_width) / use_val);
+				ovi.canvases[0].output_height = uint32_t(double(ovi.canvases[0].base_height) / use_val);
 				idx++;
-			} while (ovi.output_width > 1280 && ovi.output_height > 720);
+			} while (ovi.canvases[0].output_width > 1280 && ovi.canvases[0].output_height > 720);
 		} else {
-			ovi.output_width  = ovi.base_width;
-			ovi.output_height = ovi.base_height;
+			ovi.canvases[0].output_width  = ovi.canvases[0].base_width;
+			ovi.canvases[0].output_height = ovi.canvases[0].base_height;
 		}
 
-		ovi.output_width  = 1280;
-		ovi.output_height = 720;
+		ovi.canvases[0].output_width = 1280;
+		ovi.canvases[0].output_height = 720;
 
 		if (!defaultConf) {
-			config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "OutputCX", ovi.output_width);
-			config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "OutputCY", ovi.output_height);
+			config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "OutputCX", ovi.canvases[0].output_width);
+			config_set_uint(
+			    ConfigManager::getInstance().getBasic(), "Video", "OutputCY", ovi.canvases[0].output_height);
 		}
 	}
 
@@ -620,11 +624,20 @@ obs_video_info OBS_service::prepareOBSVideoInfo(bool reload, bool defaultConf)
 
 	ovi.scale_type = GetScaleType(scaleTypeStr);
 
+	ovi.canvases[1].base_width    = 1024;
+	ovi.canvases[1].base_height   = 1024;
+	ovi.canvases[1].output_width  = 1024;
+	ovi.canvases[1].output_height = 1024;
+	ovi.canvases[2].base_width    = 0;
+	ovi.canvases[2].base_height   = 0;
+	ovi.canvases[2].output_width  = 0;
+	ovi.canvases[2].output_height = 0;
+
 	blog(LOG_DEBUG, "Prepared obs_video_info:");
-	blog(LOG_DEBUG, "  base_width: %u", ovi.base_width);
-	blog(LOG_DEBUG, "  base_height: %u", ovi.base_height);
-	blog(LOG_DEBUG, "  output_width: %u", ovi.output_width);
-	blog(LOG_DEBUG, "  output_height: %u", ovi.output_height);
+	blog(LOG_DEBUG, "  base_width: %u", ovi.canvases[0].base_width);
+	blog(LOG_DEBUG, "  base_height: %u", ovi.canvases[0].base_height);
+	blog(LOG_DEBUG, "  output_width: %u", ovi.canvases[0].output_width);
+	blog(LOG_DEBUG, "  output_height: %u", ovi.canvases[0].output_height);
 	blog(LOG_DEBUG, "  fps_num: %u", ovi.fps_num);
 	blog(LOG_DEBUG, "  fps_den: %u", ovi.fps_den);
 	blog(LOG_DEBUG, "  output_format: %u", static_cast<uint32_t>(ovi.output_format));
@@ -656,10 +669,10 @@ void OBS_service::keepFallbackVideoConfig(const obs_video_info& ovi)
 	// Some values come from config_get_default_uint/config_get_default_string.
 	// The other values come from |ovi| because the default configuration
 	// does not have some of the actual values.
-	config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "BaseCX", ovi.base_width);
-	config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "BaseCY", ovi.base_height);
-	config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "OutputCX", ovi.output_width);
-	config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "OutputCY", ovi.output_height);
+	config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "BaseCX", ovi.canvases[0].base_width);
+	config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "BaseCY", ovi.canvases[0].base_height);
+	config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "OutputCX", ovi.canvases[0].output_width);
+	config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "OutputCY", ovi.canvases[0].output_height);
 
 	// Currently, there is no "FPSNS" in the default configuration,
 	// So we do not copy it here.
@@ -842,6 +855,10 @@ char* os_generate_formatted_filename(const char* extension, bool space, const ch
 
 	if (!space)
 		dstr_replace(&sf, " ", "_");
+ 
+	
+	dstr_cat_ch(&sf, (char)(rand()%9+0x30));
+	dstr_cat_ch(&sf, (char)(rand()%9+0x30));
 
 	dstr_cat_ch(&sf, '.');
 	dstr_cat(&sf, extension);
@@ -861,9 +878,8 @@ std::string GenerateSpecifiedFilename(const char* extension, bool noSpace, const
 	}
 
 	std::string result(filename);
-
+	result = result;
 	bfree(filename);
-
 	return result;
 }
 
@@ -915,8 +931,15 @@ bool OBS_service::createVideoRecordingEncoder()
 	if (videoRecordingEncoder != NULL) {
 		obs_encoder_release(videoRecordingEncoder);
 	}
+	if (videoRecordingEncoder2 != NULL) {
+		obs_encoder_release(videoRecordingEncoder2);
+	}	
 	videoRecordingEncoder = obs_video_encoder_create("obs_x264", "simple_h264_recording", nullptr, nullptr);
 	if (videoRecordingEncoder == nullptr) {
+		return false;
+	}
+	videoRecordingEncoder2 = obs_video_encoder_create("obs_x264", "simple_h264_recording_vert", nullptr, nullptr);
+	if (videoRecordingEncoder2 == nullptr) {
 		return false;
 	}
 
@@ -1022,6 +1045,11 @@ bool OBS_service::createRecordingOutput(void)
 {
 	recordingOutput = obs_output_create("ffmpeg_muxer", "simple_file_output", nullptr, nullptr);
 	if (recordingOutput == nullptr) {
+		return false;
+	}
+
+	recordingOutput2 = obs_output_create("ffmpeg_muxer", "simple_file_output", nullptr, nullptr);
+	if (recordingOutput2 == nullptr) {
 		return false;
 	}
 
@@ -1216,10 +1244,17 @@ void LoadRecordingPreset_Lossy(const char *encoderId)
 {
 	if (videoRecordingEncoder != NULL)
 		obs_encoder_release(videoRecordingEncoder);
+	if (videoRecordingEncoder2 != NULL)
+		obs_encoder_release(videoRecordingEncoder2);
 
 	videoRecordingEncoder = obs_video_encoder_create(
 		encoderId, "simple_video_recording", nullptr, nullptr);
 	if (!videoRecordingEncoder)
+		throw "Failed to create video recording encoder (simple output)";
+
+	videoRecordingEncoder2 = obs_video_encoder_create(
+		encoderId, "simple_video_recording_vert", nullptr, nullptr);
+	if (!videoRecordingEncoder2)
 		throw "Failed to create video recording encoder (simple output)";
 }
 
@@ -1283,15 +1318,16 @@ void OBS_service::updateVideoRecordingEncoder(bool isSimpleMode)
 					cy = 0;
 				}
 				obs_encoder_set_scaled_size(videoRecordingEncoder, cx, cy);
+				obs_encoder_set_scaled_size(videoRecordingEncoder2, cx, cy);
 			}
 		}
 	}
 	if (obs_get_multiple_rendering()) {
-		obs_encoder_set_video_mix(videoRecordingEncoder, OBS_RECORDING_VIDEO_RENDERING);
-		obs_encoder_set_video(videoRecordingEncoder, obs_get_record_video());
+		obs_encoder_set_video_mix(videoRecordingEncoder, obs_video_mix_get(0, OBS_RECORDING_VIDEO_RENDERING));
+		obs_encoder_set_video_mix(videoRecordingEncoder2, obs_video_mix_get(1, OBS_RECORDING_VIDEO_RENDERING));
 	} else {
-		obs_encoder_set_video_mix(videoRecordingEncoder, OBS_MAIN_VIDEO_RENDERING);
-		obs_encoder_set_video(videoRecordingEncoder, obs_get_video());
+		obs_encoder_set_video_mix(videoRecordingEncoder, obs_video_mix_get(0, OBS_RECORDING_VIDEO_RENDERING));
+		obs_encoder_set_video_mix(videoRecordingEncoder2, obs_video_mix_get(1, OBS_RECORDING_VIDEO_RENDERING));
 	}
 }
 
@@ -1329,13 +1365,13 @@ bool OBS_service::updateRecordingEncoders(bool isSimpleMode)
 			updateVideoStreamingEncoder(isSimpleMode);
 
 		if (!obs_get_multiple_rendering()) {
-			obs_encoder_set_video_mix(videoStreamingEncoder, OBS_MAIN_VIDEO_RENDERING);
-			obs_encoder_set_video(videoStreamingEncoder, obs_get_video());
+			obs_encoder_set_video_mix(videoStreamingEncoder, obs_video_mix_get(0, OBS_MAIN_VIDEO_RENDERING));
 			useStreamEncoder = true;
 		} else {
 			duplicate_encoder(&videoRecordingEncoder, videoStreamingEncoder);
-			obs_encoder_set_video_mix(videoRecordingEncoder, OBS_RECORDING_VIDEO_RENDERING);
-			obs_encoder_set_video(videoRecordingEncoder, obs_get_record_video());
+			obs_encoder_set_video_mix(videoRecordingEncoder, obs_video_mix_get(0, OBS_RECORDING_VIDEO_RENDERING));
+			duplicate_encoder(&videoRecordingEncoder2, videoStreamingEncoder);
+			obs_encoder_set_video_mix(videoRecordingEncoder2, obs_video_mix_get(1, OBS_RECORDING_VIDEO_RENDERING));
 			useStreamEncoder = false;
 		}
 	} else {
@@ -1352,8 +1388,15 @@ bool OBS_service::startRecording(void)
 	if (recordingOutput)
 		obs_output_release(recordingOutput);
 
+	if (recordingOutput2)
+		obs_output_release(recordingOutput2);
+
 	recordingOutput = obs_output_create("ffmpeg_muxer", "simple_file_output", nullptr, nullptr);
 	if (!recordingOutput)
+		return false;
+
+	recordingOutput2 = obs_output_create("ffmpeg_muxer", "simple_file_output", nullptr, nullptr);
+	if (!recordingOutput2)
 		return false;
 
 	connectOutputSignals();
@@ -1377,10 +1420,16 @@ bool OBS_service::startRecording(void)
 		}
 	}
 	updateFfmpegOutput(isSimpleMode, recordingOutput);
+	updateFfmpegOutput(isSimpleMode, recordingOutput2);
 
 	obs_output_set_video_encoder(recordingOutput, useStreamEncoder ? videoStreamingEncoder : videoRecordingEncoder);
+	obs_output_set_video_encoder(recordingOutput2, useStreamEncoder ? videoStreamingEncoder : videoRecordingEncoder2);
 	if (isSimpleMode) {
 		obs_output_set_audio_encoder(recordingOutput,
+			                         useStreamEncoder
+			                         ? audioSimpleStreamingEncoder
+			                         : audioSimpleRecordingEncoder, 0);
+		obs_output_set_audio_encoder(recordingOutput2,
 			                         useStreamEncoder
 			                         ? audioSimpleStreamingEncoder
 			                         : audioSimpleRecordingEncoder, 0);
@@ -1390,6 +1439,7 @@ bool OBS_service::startRecording(void)
 		for (int i = 0; i < MAX_AUDIO_MIXES; i++) {
 			if ((tracks & (1 << i)) != 0) {
 				obs_output_set_audio_encoder(recordingOutput, aacTracks[i], idx);
+				obs_output_set_audio_encoder(recordingOutput2, aacTracks[i], idx);
 				idx++;
 			}
 		}
@@ -1399,6 +1449,7 @@ bool OBS_service::startRecording(void)
 	isRecording = obs_output_start(recordingOutput);
 	outdated_driver_error::instance()->set_active(false);
 	if (!isRecording) {
+		blog(LOG_INFO, "Recording start failed recording error");
 		SignalInfo signal = SignalInfo("recording", "stop");
 		std::string outdated_driver_error = outdated_driver_error::instance()->get_error();
 		if (outdated_driver_error.size() != 0) {
@@ -1414,6 +1465,28 @@ bool OBS_service::startRecording(void)
 		}
 		std::unique_lock<std::mutex> ulock(signalMutex);
 		outputSignal.push(signal);
+	} else {
+		outdated_driver_error::instance()->set_active(true);
+		isRecording = obs_output_start(recordingOutput2);
+		outdated_driver_error::instance()->set_active(false);
+		if (!isRecording) {
+			blog(LOG_INFO, "Recording2 start failed recording error");
+			SignalInfo signal = SignalInfo("recording", "stop");
+			std::string outdated_driver_error = outdated_driver_error::instance()->get_error();
+			if (outdated_driver_error.size() != 0) {
+				signal.setErrorMessage(outdated_driver_error);
+				signal.setCode(OBS_OUTPUT_OUTDATED_DRIVER);
+			} else {
+				const char* error = obs_output_get_last_error(recordingOutput2);
+				if (error) {
+					signal.setErrorMessage(error);
+					blog(LOG_INFO, "Last recording error: %s", error);
+				}
+				signal.setCode(OBS_OUTPUT_ERROR);
+			}
+			std::unique_lock<std::mutex> ulock(signalMutex);
+			outputSignal.push(signal);
+		}
 	}
 	return isRecording;
 }
@@ -1441,6 +1514,7 @@ void OBS_service::stopStreaming(bool forceStop)
 void OBS_service::stopRecording(void)
 {
 	obs_output_stop(recordingOutput);
+	obs_output_stop(recordingOutput2);
 	isRecording = false;
 }
 
@@ -1821,12 +1895,10 @@ void OBS_service::updateVideoStreamingEncoder(bool isSimpleMode)
 		}
 	}
 	if (obs_get_multiple_rendering()) {
-		obs_encoder_set_video_mix(videoStreamingEncoder, OBS_STREAMING_VIDEO_RENDERING);
-		obs_encoder_set_video(videoStreamingEncoder, obs_get_stream_video());
+		obs_encoder_set_video_mix(videoStreamingEncoder, obs_video_mix_get(0, OBS_STREAMING_VIDEO_RENDERING));
 	}
 	else {
-		obs_encoder_set_video_mix(videoStreamingEncoder, OBS_MAIN_VIDEO_RENDERING);
-		obs_encoder_set_video(videoStreamingEncoder, obs_get_video());
+		obs_encoder_set_video_mix(videoStreamingEncoder, obs_video_mix_get(0, OBS_MAIN_VIDEO_RENDERING));
 	}
 }
 
@@ -1980,9 +2052,14 @@ void OBS_service::LoadRecordingPreset_Lossless()
 	if (recordingOutput != NULL) {
 		obs_output_release(recordingOutput);
 	}
+	if (recordingOutput2 != NULL) {
+		obs_output_release(recordingOutput2);
+	}
 	recordingOutput = obs_output_create("ffmpeg_output", "simple_ffmpeg_output", nullptr, nullptr);
+	recordingOutput2 = obs_output_create("ffmpeg_output", "simple_ffmpeg_output", nullptr, nullptr);
+
 	connectOutputSignals();
-	if (!recordingOutput)
+	if (!recordingOutput || !recordingOutput2)
 		throw "Failed to create recording FFmpeg output "
 		      "(simple output)";
 
@@ -1993,6 +2070,9 @@ void OBS_service::LoadRecordingPreset_Lossless()
 
 	obs_output_set_mixers(recordingOutput, 1);
 	obs_output_update(recordingOutput, settings);
+
+	obs_output_set_mixers(recordingOutput2, 1);
+	obs_output_update(recordingOutput2, settings);
 	obs_data_release(settings);
 }
 
@@ -2001,9 +2081,15 @@ void OBS_service::LoadRecordingPreset_h264(const char* encoderId)
 	if (videoRecordingEncoder != NULL) {
 		obs_encoder_release(videoRecordingEncoder);
 	}
+	if (videoRecordingEncoder2 != NULL) {
+		obs_encoder_release(videoRecordingEncoder2);
+	}
 	videoRecordingEncoder = obs_video_encoder_create(encoderId, "simple_h264_recording", nullptr, nullptr);
 	if (!videoRecordingEncoder)
 		throw "Failed to create h264 recording encoder (simple output)";
+	videoRecordingEncoder2 = obs_video_encoder_create(encoderId, "simple_h264_recording_vert", nullptr, nullptr);
+	if (!videoRecordingEncoder2)
+		throw "Failed to create h264 recording encoder (simple output vert)";
 	// obs_encoder_release(videoRecordingEncoder);
 }
 
@@ -2052,8 +2138,10 @@ void OBS_service::UpdateFFmpegCustomOutput(void)
 
 	if (recordingOutput != NULL) {
 		obs_output_release(recordingOutput);
+		obs_output_release(recordingOutput2);
 	}
 	recordingOutput = obs_output_create("ffmpeg_output", "simple_ffmpeg_output", nullptr, nullptr);
+	recordingOutput2 = obs_output_create("ffmpeg_output", "simple_ffmpeg_output", nullptr, nullptr);
 	connectOutputSignals();
 
 	const char* url        = config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "FFURL");
@@ -2101,9 +2189,13 @@ void OBS_service::UpdateFFmpegCustomOutput(void)
 	}
 
 	obs_output_set_mixer(recordingOutput, aTrack - 1);
-	obs_output_set_media(recordingOutput, obs_get_video(), obs_get_audio());
+	obs_output_set_media(recordingOutput, obs_video_mix_get(0, OBS_RECORDING_VIDEO_RENDERING), obs_get_audio());
 	obs_output_update(recordingOutput, settings);
-
+	
+	obs_output_set_mixer(recordingOutput2, aTrack - 1);
+	obs_output_set_media(recordingOutput2, obs_video_mix_get(1, OBS_RECORDING_VIDEO_RENDERING), obs_get_audio());
+	obs_output_update(recordingOutput2, settings);
+	
 	obs_data_release(settings);
 }
 
@@ -2144,6 +2236,7 @@ void OBS_service::UpdateRecordingSettings_qsv11(int crf)
 	}
 
 	obs_encoder_update(videoRecordingEncoder, settings);
+	obs_encoder_update(videoRecordingEncoder2, settings);
 
 	obs_data_release(settings);
 }
@@ -2158,6 +2251,7 @@ void OBS_service::UpdateRecordingSettings_nvenc(int cqp)
 	obs_data_set_int(settings, "bitrate", 0);
 
 	obs_encoder_update(videoRecordingEncoder, settings);
+	obs_encoder_update(videoRecordingEncoder2, settings);
 
 	obs_data_release(settings);
 }
@@ -2171,6 +2265,7 @@ void UpdateRecordingSettings_nvenc_hevc(int cqp)
 	obs_data_set_int(settings, "cqp", cqp);
 
 	obs_encoder_update(videoRecordingEncoder, settings);
+	obs_encoder_update(videoRecordingEncoder2, settings);
 }
 
 void UpdateRecordingSettings_apple(int quality)
@@ -2181,6 +2276,7 @@ void UpdateRecordingSettings_apple(int quality)
 	obs_data_set_int(settings, "quality", quality);
 
 	obs_encoder_update(videoRecordingEncoder, settings);
+	obs_encoder_update(videoRecordingEncoder2, settings);
 }
 
 void OBS_service::UpdateStreamingSettings_amd(obs_data_t* settings, int bitrate)
@@ -2223,6 +2319,7 @@ void OBS_service::UpdateRecordingSettings_amd_cqp(int cqp)
 
 	// Update and release
 	obs_encoder_update(videoRecordingEncoder, settings);
+	obs_encoder_update(videoRecordingEncoder2, settings);
 	obs_data_release(settings);
 }
 
@@ -2236,6 +2333,7 @@ void OBS_service::UpdateRecordingSettings_x264_crf(int crf)
 	obs_data_set_string(settings, "preset", lowCPUx264 ? "ultrafast" : "veryfast");
 
 	obs_encoder_update(videoRecordingEncoder, settings);
+	obs_encoder_update(videoRecordingEncoder2, settings);
 
 	obs_data_release(settings);
 }
@@ -2744,13 +2842,12 @@ void OBS_service::OBS_service_createVirtualWebcam(
 		return;
 
 	struct obs_video_info ovi;
-	if (!obs_get_video_info(&ovi))
-		return;
+	obs_get_video_info(&ovi);
 
 	obs_data_t *settings = obs_data_create();
 	obs_data_set_string(settings, "name", name.c_str());
-	obs_data_set_int(settings, "width", ovi.output_width);
-	obs_data_set_int(settings, "height", ovi.output_height);
+	obs_data_set_int(settings, "width", ovi.canvases[0].output_width);
+	obs_data_set_int(settings, "height", ovi.canvases[0].output_height);
 	obs_data_set_double(settings, "fps", ovi.fps_num);
 
 	virtualWebcamOutput = obs_output_create("virtualcam_output", "Virtual Webcam", settings, NULL);

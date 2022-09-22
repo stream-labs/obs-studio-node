@@ -212,8 +212,8 @@ class TestMode
 	{
 		obs_video_info newOVI = ovi;
 
-		newOVI.output_width  = (uint32_t)cx;
-		newOVI.output_height = (uint32_t)cy;
+		newOVI.canvases[0].output_width  = (uint32_t)cx;
+		newOVI.canvases[0].output_height = (uint32_t)cy;
 		newOVI.fps_num       = (uint32_t)fps_num;
 		newOVI.fps_den       = (uint32_t)fps_den;
 
@@ -643,8 +643,8 @@ void autoConfig::TestBandwidthThread(void)
 	obs_video_info ovi;
 	obs_get_video_info(&ovi);
 
-	ovi.output_width  = 128;
-	ovi.output_height = 128;
+	ovi.canvases[0].output_width  = 128;
+	ovi.canvases[0].output_height = 128;
 	ovi.fps_num       = 60;
 	ovi.fps_den       = 1;
 
@@ -782,7 +782,7 @@ void autoConfig::TestBandwidthThread(void)
 	/* -----------------------------------*/
 	/* connect encoders/services/outputs  */
 
-	obs_encoder_set_video(vencoder, obs_get_video());
+	obs_encoder_set_video_mix(vencoder, obs_video_mix_get(0, OBS_MAIN_VIDEO_RENDERING));
 	obs_encoder_set_audio(aencoder, obs_get_audio());
 
 	obs_output_set_video_encoder(output, vencoder);
@@ -1150,18 +1150,18 @@ bool autoConfig::TestSoftwareEncoding()
 		obs_video_info ovi;
 		obs_get_video_info(&ovi);
 
-		ovi.output_width  = (uint32_t)cx;
-		ovi.output_height = (uint32_t)cy;
+		ovi.canvases[0].output_width = (uint32_t)cx;
+		ovi.canvases[0].output_height = (uint32_t)cy;
 		ovi.fps_num       = fps_num;
 		ovi.fps_den       = fps_den;
 
 		obs_reset_video(&ovi);
 
-		obs_encoder_set_video(vencoder, obs_get_video());
+		obs_encoder_set_video_mix(vencoder, obs_video_mix_get(0, OBS_MAIN_VIDEO_RENDERING));
 		obs_encoder_set_audio(aencoder, obs_get_audio());
 		obs_encoder_update(vencoder, vencoder_settings);
 
-		obs_output_set_media(output, obs_get_video(), obs_get_audio());
+		obs_output_set_media(output, obs_video_mix_get(0, OBS_MAIN_VIDEO_RENDERING), obs_get_audio());
 
 		std::unique_lock<std::mutex> ul(m);
 		if (cancel)
@@ -1420,8 +1420,8 @@ bool autoConfig::CheckSettings(void)
 	obs_video_info ovi;
 	obs_get_video_info(&ovi);
 
-	ovi.output_width  = (uint32_t)idealResolutionCX;
-	ovi.output_height = (uint32_t)idealResolutionCY;
+	ovi.canvases[0].output_width = (uint32_t)idealResolutionCX;
+	ovi.canvases[0].output_height = (uint32_t)idealResolutionCY;
 	ovi.fps_num       = idealFPSNum;
 	ovi.fps_den       = 1;
 
@@ -1459,7 +1459,7 @@ bool autoConfig::CheckSettings(void)
 	/* -----------------------------------*/
 	/* connect encoders/services/outputs  */
 
-	obs_encoder_set_video(vencoder, obs_get_video());
+	obs_encoder_set_video_mix(vencoder, obs_video_mix_get(0, OBS_MAIN_VIDEO_RENDERING));
 	obs_encoder_set_audio(aencoder, obs_get_audio());
 
 	obs_output_set_video_encoder(output, vencoder);

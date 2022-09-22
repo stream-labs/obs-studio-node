@@ -97,7 +97,7 @@ static bool CenterAlignSelectedItems(obs_scene_t* scene, obs_sceneitem_t* item, 
 	itemInfo.alignment = OBS_ALIGN_LEFT | OBS_ALIGN_TOP;
 	itemInfo.rot       = 0.0f;
 
-	vec2_set(&itemInfo.bounds, float(ovi.base_width), float(ovi.base_height));
+	vec2_set(&itemInfo.bounds, float(ovi.canvases[0].base_width), float(ovi.canvases[0].base_height));
 	itemInfo.bounds_type      = boundsType;
 	itemInfo.bounds_alignment = OBS_ALIGN_CENTER;
 

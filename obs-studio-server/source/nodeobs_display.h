@@ -96,6 +96,7 @@ namespace OBS
 		static bool DrawSelectedSource(obs_scene_t* scene, obs_sceneitem_t* item, void* param);
 		void        DrawRotationHandle(float rot, matrix4& mtx);
 		void        setSizeCall(int step);
+		struct canvas_info GetCanvas();
 
 		public: // Rendering code needs it.
 		vec2 m_worldToPreviewScale, m_previewToWorldScale;

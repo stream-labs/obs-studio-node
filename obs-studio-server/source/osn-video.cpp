@@ -24,6 +24,7 @@
 
 // DELETE ME WHEN REMOVING NODEOBS
 #include "nodeobs_configManager.hpp"
+#include "nodeobs_api.h"
 
 void osn::Video::Register(ipc::server& srv)
 {
@@ -81,10 +82,10 @@ void osn::Video::GetVideoContext(
 
     rval.push_back(ipc::value(video.fps_num));
     rval.push_back(ipc::value(video.fps_den));
-    rval.push_back(ipc::value(video.base_width));
-    rval.push_back(ipc::value(video.base_height));
-    rval.push_back(ipc::value(video.output_width));
-    rval.push_back(ipc::value(video.output_height));
+    rval.push_back(ipc::value(video.canvases[0].base_width));
+	rval.push_back(ipc::value(video.canvases[0].base_height));
+	rval.push_back(ipc::value(video.canvases[0].output_width));
+	rval.push_back(ipc::value(video.canvases[0].output_height));
     rval.push_back(ipc::value(video.output_format));
     rval.push_back(ipc::value(video.colorspace));
     rval.push_back(ipc::value(video.range));
@@ -184,13 +185,13 @@ static inline void SaveVideoSettings(obs_video_info video)
     config_set_uint(
         ConfigManager::getInstance().getBasic(), "Video", "FPSDen", video.fps_den);
     config_set_uint(
-        ConfigManager::getInstance().getBasic(), "Video", "BaseCX", video.base_width);
+        ConfigManager::getInstance().getBasic(), "Video", "BaseCX", video.canvases[0].base_width);
     config_set_uint(
-        ConfigManager::getInstance().getBasic(), "Video", "BaseCY", video.base_height);
+        ConfigManager::getInstance().getBasic(), "Video", "BaseCY", video.canvases[0].base_height);
     config_set_uint(
-        ConfigManager::getInstance().getBasic(), "Video", "OutputCX", video.output_width);
+        ConfigManager::getInstance().getBasic(), "Video", "OutputCX", video.canvases[0].output_width);
     config_set_uint(
-        ConfigManager::getInstance().getBasic(), "Video", "OutputCY", video.output_height);
+        ConfigManager::getInstance().getBasic(), "Video", "OutputCY", video.canvases[0].output_height);
     config_set_string(
         ConfigManager::getInstance().getBasic(),
         "Video", "ScaleType", GetScaleType(video.scale_type));
@@ -237,10 +238,18 @@ void osn::Video::SetVideoContext(
 #endif
     video.fps_num = fpsNum;
     video.fps_den = fpsDen;
-    video.base_width = baseWidth;
-    video.base_height = baseHeight;
-    video.output_width = outputWidth;
-    video.output_height = outputHeight;
+	video.canvases[0].base_width = baseWidth;
+	video.canvases[0].base_height = baseHeight;
+	video.canvases[0].output_width = outputWidth;
+	video.canvases[0].output_height = outputHeight;
+	video.canvases[1].base_width    = baseHeight;
+	video.canvases[1].base_height = baseWidth;
+	video.canvases[1].output_width  = outputHeight;
+	video.canvases[1].output_height = outputWidth;
+	video.canvases[2].base_width    = 0;
+	video.canvases[2].base_height   = 0;
+	video.canvases[2].output_width  = 0;
+	video.canvases[2].output_height = 0;
     video.output_format = (video_format)outputFormat;
     video.colorspace = (video_colorspace)colorspace;
     video.range = (video_range_type)range;

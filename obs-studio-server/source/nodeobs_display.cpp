@@ -368,8 +368,6 @@ OBS::Display::Display()
 	SetGuidelineColor(26, 230, 168);
 	SetRotationHandleColor(26, 230, 168);
 
-	UpdatePreviewArea();
-
 	m_drawGuideLines = true;
 	m_drawRotationHandle = false;
 }
@@ -419,6 +417,8 @@ OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode)
 
 	obs_display_add_draw_callback(m_display, DisplayCallback, this);
 	m_displayMtx.unlock();
+	
+	UpdatePreviewArea();
 }
 
 OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode, std::string sourceName)
@@ -1207,11 +1207,11 @@ void OBS::Display::DisplayCallback(void* displayPtr, uint32_t cx, uint32_t cy)
 		if (sourceH == 0)
 			sourceH = 1;
 	} else {
-		obs_video_info ovi;
-		obs_get_video_info(&ovi);
+		struct canvas_info canvas;
+		canvas  = dp->GetCanvas();
+		sourceW = canvas.base_width;
+		sourceH = canvas.base_height;
 
-		sourceW = ovi.base_width;
-		sourceH = ovi.base_height;
 		if (sourceW == 0)
 			sourceW = 1;
 		if (sourceH == 0)
@@ -1281,18 +1281,8 @@ void OBS::Display::DisplayCallback(void* displayPtr, uint32_t cx, uint32_t cy)
 			obs_source_addref(source);
 		}
 	} else {
-		switch (dp->m_renderingMode) {
-		case OBS_MAIN_VIDEO_RENDERING:
-			obs_render_main_texture();
-			break;
-		case OBS_STREAMING_VIDEO_RENDERING:
-			obs_render_streaming_texture();
-			break;
-		case OBS_RECORDING_VIDEO_RENDERING:
-			obs_render_recording_texture();
-			break;
-		}
-		
+		obs_render_texture(0, dp->m_renderingMode);
+
 		/* Here we assume that channel 0 holds the primary transition.
 		* We also assume that the active source within that transition is
 		* the scene that we need */
@@ -1353,11 +1343,9 @@ void OBS::Display::UpdatePreviewArea()
 		sourceW = obs_source_get_width(m_source);
 		sourceH = obs_source_get_height(m_source);
 	} else {
-		obs_video_info ovi;
-		obs_get_video_info(&ovi);
-
-		sourceW = ovi.base_width;
-		sourceH = ovi.base_height;
+		struct canvas_info canvas = GetCanvas();
+		sourceW = canvas.base_width;
+		sourceH = canvas.base_height;
 	}
 
 	if (sourceW == 0)
@@ -1462,4 +1450,24 @@ bool OBS::Display::GetDrawRotationHandle()
 void OBS::Display::SetDrawRotationHandle(bool drawRotationHandle)
 {
 	m_drawRotationHandle = drawRotationHandle;
+}
+
+struct canvas_info OBS::Display::GetCanvas()
+{
+	struct canvas_info canvas;
+	int                canvas_id=0;
+	switch (m_renderingMode) {
+		case OBS_MAIN_VIDEO_RENDERING:
+		canvas_id = 0;
+		break;
+	    case OBS_STREAMING_VIDEO_RENDERING:
+		canvas_id = 1; 
+		break;
+	    case OBS_RECORDING_VIDEO_RENDERING:
+		canvas_id = 2;
+	    break;
+	}
+		
+	obs_get_canvas_info(canvas_id, &canvas);
+	return canvas;
 }

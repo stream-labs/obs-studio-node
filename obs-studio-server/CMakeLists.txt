@@ -168,6 +168,8 @@ download_project(
 )
 
 if (WIN32)
+	set(w32-pthreads_DIR "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
+	include("${libobs_SOURCE_DIR}/cmake/w32-pthreadsConfig.cmake")
 	include("${libobs_SOURCE_DIR}/cmake/LibObsConfig.cmake")
 elseif(APPLE)
 	include("${libobs_SOURCE_DIR}/Frameworks/libobs.Framework/Resources/cmake/LibobsConfig.cmake")
