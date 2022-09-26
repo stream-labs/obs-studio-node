@@ -624,10 +624,10 @@ obs_video_info OBS_service::prepareOBSVideoInfo(bool reload, bool defaultConf)
 
 	ovi.scale_type = GetScaleType(scaleTypeStr);
 
-	ovi.canvases[1].base_width    = 1024;
-	ovi.canvases[1].base_height   = 1024;
-	ovi.canvases[1].output_width  = 1024;
-	ovi.canvases[1].output_height = 1024;
+	ovi.canvases[1].base_width    = ovi.canvases[0].base_height;
+	ovi.canvases[1].base_height   = ovi.canvases[0].base_width;
+	ovi.canvases[1].output_width  = ovi.canvases[0].output_height;
+	ovi.canvases[1].output_height = ovi.canvases[0].output_width;
 	ovi.canvases[2].base_width    = 0;
 	ovi.canvases[2].base_height   = 0;
 	ovi.canvases[2].output_width  = 0;

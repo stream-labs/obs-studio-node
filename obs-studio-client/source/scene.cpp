@@ -288,7 +288,10 @@ Napi::Value osn::Scene::AddSource(const Napi::CallbackInfo& info)
 		params.push_back(ipc::value(transform.Get("streamVisible").ToBoolean().Value()));
 		params.push_back(ipc::value(transform.Get("recordingVisible").ToBoolean().Value()));
 	}
-
+	if(info.Length() >= 3) {
+		osn::Video* video = Napi::ObjectWrap<osn::Video>::Unwrap(info[2].ToObject());
+		params.push_back(ipc::value(video->canvasId));
+	}
 	auto conn = GetConnection(info);
 	if (!conn)
 		return info.Env().Undefined();

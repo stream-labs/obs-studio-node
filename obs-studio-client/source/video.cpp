@@ -32,10 +32,13 @@ Napi::Object osn::Video::Init(Napi::Env env, Napi::Object exports) {
 		DefineClass(env,
 		"Video",
 		{
-			StaticAccessor("skippedFrames", &osn::Video::skippedFrames, nullptr),
-			StaticAccessor("encodedFrames", &osn::Video::encodedFrames, nullptr),
-			
-			StaticAccessor("videoContext", &osn::Video::get, &osn::Video::set)
+			StaticMethod("create", &osn::Video::Create),
+			StaticMethod("destroy", &osn::Video::Destroy),
+
+			InstanceAccessor("video", &osn::Video::get, &osn::Video::set),
+
+			InstanceAccessor("skippedFrames", &osn::Video::skippedFrames, nullptr),
+			InstanceAccessor("encodedFrames", &osn::Video::encodedFrames, nullptr),
 		});
 	exports.Set("Video", func);
 	osn::Video::constructor = Napi::Persistent(func);
@@ -79,6 +82,44 @@ Napi::Value osn::Video::encodedFrames(const Napi::CallbackInfo& info)
 	return Napi::Number::New(info.Env(), response[1].value_union.ui32);
 }
 
+Napi::Value osn::Video::Create(const Napi::CallbackInfo& info)
+{
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
+
+	std::vector<ipc::value> response =
+		conn->call_synchronous_helper("Video", "AddVideoContext", {});
+
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
+
+    auto instance =
+        osn::Video::constructor.New({
+            Napi::Number::New(info.Env(), response[1].value_union.ui64)
+        });
+
+	return instance;
+}
+
+void osn::Video::Destroy(const Napi::CallbackInfo& info)
+{
+	auto conn = GetConnection(info);
+	if (!conn)
+		return;
+
+    auto video =
+        Napi::ObjectWrap<osn::Video>::Unwrap(info[0].ToObject());
+
+	std::vector<ipc::value> response =
+		conn->call_synchronous_helper("Video", "RemoveVideoContext", {ipc::value((uint64_t)video->canvasId)});
+
+	if (!ValidateResponse(info, response))
+		return;
+
+	return;
+}
+
 Napi::Value osn::Video::get(const Napi::CallbackInfo& info)
 {
 	auto conn = GetConnection(info);
@@ -86,7 +127,7 @@ Napi::Value osn::Video::get(const Napi::CallbackInfo& info)
 		return info.Env().Undefined();
 
 	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("Video", "GetVideoContext", {});
+		conn->call_synchronous_helper("Video", "GetVideoContext", {ipc::value((uint64_t)this->canvasId)});
 
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
@@ -134,9 +175,14 @@ void osn::Video::set(const Napi::CallbackInfo& info, const Napi::Value &value)
 	if (!conn)
 		return;
 
-	conn->call("Video", "SetVideoContext", {
+	std::vector<ipc::value> response =
+		conn->call_synchronous_helper("Video", "SetVideoContext", {
 		ipc::value(fpsNum), ipc::value(fpsDen), ipc::value(baseWidth), ipc::value(baseHeight),
 		ipc::value(outputWidth), ipc::value(outputHeight), ipc::value(outputFormat),
-		ipc::value(colorspace), ipc::value(range), ipc::value(scaleType)
+		ipc::value(colorspace), ipc::value(range), ipc::value(scaleType), ipc::value(this->canvasId)
 	});
+	
+	if (!ValidateResponse(info, response))
+		return;
+
 }

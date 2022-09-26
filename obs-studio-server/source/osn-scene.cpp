@@ -43,12 +43,12 @@ void osn::Scene::Register(ipc::server& srv)
 	    "Duplicate", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String, ipc::type::Int32}, Duplicate));
 
 	cls->register_function(std::make_shared<ipc::function>(
-	    "AddSource", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64}, AddSource));
+	    "AddSource", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64, ipc::type::UInt64}, AddSource));
 
 	cls->register_function(std::make_shared<ipc::function>(
         "AddSourceWithTransform", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64,
         ipc::type::Double,ipc::type::Double, ipc::type::Int32, ipc::type::Double, ipc::type::Double, ipc::type::Double,
-        ipc::type::Int64, ipc::type::Int64, ipc::type::Int64, ipc::type::Int64, ipc::type::Int32, ipc::type::Int32}, AddSource));
+        ipc::type::Int64, ipc::type::Int64, ipc::type::Int64, ipc::type::Int64, ipc::type::Int32, ipc::type::Int32, ipc::type::UInt64}, AddSource));
 
 	cls->register_function(std::make_shared<ipc::function>(
 	    "FindItemByName", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String}, FindItemByName));
@@ -305,6 +305,8 @@ void osn::Scene::AddSource(
 	}
 
 	if (args.size() > 2) {
+		obs_sceneitem_set_canvas_id(item, 0);
+
 		vec2 scale;
 		scale.x = args[2].value_union.fp64;
 		scale.y = args[3].value_union.fp64;
@@ -336,6 +338,48 @@ void osn::Scene::AddSource(
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value((uint64_t)uid));
 	rval.push_back(ipc::value(obs_sceneitem_get_id(item)));
+
+	{
+		obs_sceneitem_t* mock_item = obs_scene_add(scene, added_source);
+
+		utility::unique_id::id_t mock_uid = osn::SceneItem::Manager::GetInstance().allocate(mock_item);
+		if (mock_uid == UINT64_MAX) {
+			PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Index list is full.");
+		}
+
+		if (args.size() > 2) {
+			obs_sceneitem_set_canvas_id(mock_item, 1);
+
+			vec2 scale;
+			scale.y = args[2].value_union.fp64;
+			scale.x = args[3].value_union.fp64;
+			obs_sceneitem_set_scale(mock_item, &scale);
+
+			obs_sceneitem_set_visible(mock_item, !!args[4].value_union.i32);
+
+			vec2 pos;
+			pos.y = args[5].value_union.fp64;
+			pos.x = args[6].value_union.fp64;
+			obs_sceneitem_set_pos(mock_item, &pos);
+
+			obs_sceneitem_set_rot(mock_item, args[7].value_union.fp64);
+
+			obs_sceneitem_crop crop;
+			crop.left   = args[8].value_union.i64;
+			crop.top    = args[9].value_union.i64;
+			crop.right  = args[10].value_union.i64;
+			crop.bottom = args[11].value_union.i64;
+
+			obs_sceneitem_set_crop(mock_item, &crop);
+
+			obs_sceneitem_set_stream_visible(mock_item , !!args[12].value_union.i32);
+			obs_sceneitem_set_recording_visible(mock_item , !!args[13].value_union.i32);
+		}
+
+		obs_sceneitem_addref(mock_item);
+
+	}
+
 	AUTO_DEBUG;
 }
 

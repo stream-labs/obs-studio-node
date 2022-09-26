@@ -35,7 +35,11 @@ void osn::Video::Register(ipc::server& srv)
         std::make_shared<ipc::function>("GetTotalFrames", std::vector<ipc::type>{}, GetTotalFrames));
 
     cls->register_function(
-        std::make_shared<ipc::function>("GetVideoContext", std::vector<ipc::type>{}, GetVideoContext));
+        std::make_shared<ipc::function>("AddVideoContext", std::vector<ipc::type>{ipc::type::UInt32}, AddVideoContext));
+    cls->register_function(
+        std::make_shared<ipc::function>("RemoveVideoContext", std::vector<ipc::type>{ipc::type::UInt32}, RemoveVideoContext));
+    cls->register_function(
+        std::make_shared<ipc::function>("GetVideoContext", std::vector<ipc::type>{ipc::type::UInt32}, GetVideoContext));
     cls->register_function(
         std::make_shared<ipc::function>("SetVideoContext", std::vector<ipc::type>{
             ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32,
@@ -192,6 +196,25 @@ static inline void SaveVideoSettings(obs_video_info video)
         ConfigManager::getInstance().getBasic(), "Video", "OutputCX", video.canvases[0].output_width);
     config_set_uint(
         ConfigManager::getInstance().getBasic(), "Video", "OutputCY", video.canvases[0].output_height);
+
+    config_set_uint(
+        ConfigManager::getInstance().getBasic(), "Video1", "BaseCX", video.canvases[0].base_width);
+    config_set_uint(
+        ConfigManager::getInstance().getBasic(), "Video1", "BaseCY", video.canvases[0].base_height);
+    config_set_uint(
+        ConfigManager::getInstance().getBasic(), "Video1", "OutputCX", video.canvases[0].output_width);
+    config_set_uint(
+        ConfigManager::getInstance().getBasic(), "Video1", "OutputCY", video.canvases[0].output_height);
+
+    config_set_uint(
+        ConfigManager::getInstance().getBasic(), "Video2", "BaseCX", video.canvases[0].base_width);
+    config_set_uint(
+        ConfigManager::getInstance().getBasic(), "Video2", "BaseCY", video.canvases[0].base_height);
+    config_set_uint(
+        ConfigManager::getInstance().getBasic(), "Video2", "OutputCX", video.canvases[0].output_width);
+    config_set_uint(
+        ConfigManager::getInstance().getBasic(), "Video2", "OutputCY", video.canvases[0].output_height);
+
     config_set_string(
         ConfigManager::getInstance().getBasic(),
         "Video", "ScaleType", GetScaleType(video.scale_type));
@@ -214,7 +237,7 @@ void osn::Video::SetVideoContext(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-    if (args.size() != 10) {
+    if (args.size() != 11) {
         PRETTY_ERROR_RETURN(ErrorCode::Error,
             "Invalid number of arguments to set the video context.");
     }
@@ -229,8 +252,12 @@ void osn::Video::SetVideoContext(
     uint32_t colorspace = args[7].value_union.ui32;
     uint32_t range = args[8].value_union.ui32;
     uint32_t scaleType = args[9].value_union.ui32;
+    
+    uint32_t canvas_id = args[10].value_union.ui32;
 
     obs_video_info video;
+    obs_get_video_info(&video);
+
 #ifdef _WIN32
     video.graphics_module = "libobs-d3d11.dll";
 #else
@@ -238,18 +265,14 @@ void osn::Video::SetVideoContext(
 #endif
     video.fps_num = fpsNum;
     video.fps_den = fpsDen;
-	video.canvases[0].base_width = baseWidth;
-	video.canvases[0].base_height = baseHeight;
-	video.canvases[0].output_width = outputWidth;
-	video.canvases[0].output_height = outputHeight;
-	video.canvases[1].base_width    = baseHeight;
-	video.canvases[1].base_height = baseWidth;
-	video.canvases[1].output_width  = outputHeight;
-	video.canvases[1].output_height = outputWidth;
-	video.canvases[2].base_width    = 0;
-	video.canvases[2].base_height   = 0;
-	video.canvases[2].output_width  = 0;
-	video.canvases[2].output_height = 0;
+
+	video.canvases[canvas_id].base_width = baseWidth;
+	video.canvases[canvas_id].base_height = baseHeight;
+	video.canvases[canvas_id].output_width = outputWidth;
+	video.canvases[canvas_id].output_height = outputHeight;
+    video.canvases[canvas_id].ready = true;
+    video.canvases[canvas_id].used = true;
+
     video.output_format = (video_format)outputFormat;
     video.colorspace = (video_colorspace)colorspace;
     video.range = (video_range_type)range;
@@ -267,5 +290,59 @@ void osn::Video::SetVideoContext(
     }
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+    AUTO_DEBUG;
+}
+
+void osn::Video::AddVideoContext(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+    if (args.size() != 10) {
+        PRETTY_ERROR_RETURN(ErrorCode::Error,
+            "Invalid number of arguments to set the video context.");
+    }
+
+    int availableCanvas = obs_video_info_allocate_canvas();
+    if(availableCanvas == -1) 
+        PRETTY_ERROR_RETURN(ErrorCode::OutOfBounds, "Cannot add more canvases.");
+ 
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+    rval.push_back(ipc::value((uint64_t)availableCanvas));
+    AUTO_DEBUG;
+}
+void osn::Video::RemoveVideoContext(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+    if (args.size() != 1) {
+        PRETTY_ERROR_RETURN(ErrorCode::Error,
+            "Invalid number of arguments to remove the video context.");
+    }
+
+    int cavas_id = args[0].value_union.ui64;
+
+    obs_video_info video;
+    if(!obs_get_video_info(&video)) {
+        PRETTY_ERROR_RETURN(ErrorCode::Error, "No video context is currently set.");
+    }
+
+    video.canvases[cavas_id].used = false;
+    video.canvases[cavas_id].ready = false;
+
+    try {
+        obs_reset_video(&video);
+
+        // DELETE ME WHEN REMOVING NODEOBS
+        SaveVideoSettings(video);
+    } catch (const char* error) {
+        blog(LOG_ERROR, error);
+    }
+
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+
     AUTO_DEBUG;
 }
