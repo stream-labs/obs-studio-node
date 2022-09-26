@@ -24,6 +24,9 @@ export const DefaultPluginPath: string =
 export const DefaultPluginDataPath: string =
     path.resolve(__dirname, `data/obs-plugins/%module%`);
 
+export const DefaultPluginPathMac: string =
+    path.resolve(__dirname, `PlugIns`);
+
 /**
  * To be passed to Input.flags
  */

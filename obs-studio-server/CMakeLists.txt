@@ -149,11 +149,19 @@ set(
 	CACHE STRING "Build type of libobs artifact"
 )
 
-string(
-	CONCAT OSN_DEFAULT_LIBOBS_URL
-	"https://obsstudios3.streamlabs.com/"
-	"libobs-${LIBOBS_PLATFORM}-${LIBOBS_BUILD_TYPE}-${LIBOBS_VERSION}.7z"
-)
+if(WIN32)
+	string(
+		CONCAT OSN_DEFAULT_LIBOBS_URL
+		"https://obsstudios3.streamlabs.com/"
+		"libobs-${LIBOBS_PLATFORM}-${LIBOBS_BUILD_TYPE}-${LIBOBS_VERSION}.7z"
+	)
+else()
+	string(
+		CONCAT OSN_DEFAULT_LIBOBS_URL
+		"https://obsstudios3.streamlabs.com/"
+		"libobs-${LIBOBS_PLATFORM}-${LIBOBS_BUILD_TYPE}-${LIBOBS_VERSION}-x86_64.7z"
+	)
+endif()
 
 set(
 	OSN_LIBOBS_URL
@@ -427,6 +435,10 @@ else ()
 		DIRECTORY "${libobs_SOURCE_DIR}/OBS.app/Contents/Frameworks"
 		DESTINATION "./" USE_SOURCE_PERMISSIONS PATTERN "Qt*" EXCLUDE
 		PATTERN "Sparkle*" EXCLUDE
+	)
+	install(
+		DIRECTORY "${libobs_SOURCE_DIR}/OBS.app/Contents/MacOS/"
+		DESTINATION "./bin" USE_SOURCE_PERMISSIONS PATTERN "OBS" EXCLUDE
 	)
 endif ()
 
