@@ -451,11 +451,12 @@ static const size_t numVals = sizeof(vals) / sizeof(double);
 int OBS_service::resetVideoContext(bool reload, bool retryWithDefaultConf)
 {
 	obs_video_info ovi = prepareOBSVideoInfo(reload, false);
-
+	int errorcode = OBS_VIDEO_NOT_SUPPORTED;
+#ifndef REPLACED_BY_MULTI_CANVAS 
 	config_save_safe(ConfigManager::getInstance().getBasic(), "tmp", nullptr);
 
 	blog(LOG_INFO, "About to reset the video context with the user configuration");
-	int errorcode = doResetVideoContext(ovi);
+	errorcode = doResetVideoContext(ovi);
 
 	// OBS_VIDEO_NOT_SUPPORTED: any of the following functions fails:
 	//   gl_init_extensions,
@@ -491,7 +492,7 @@ int OBS_service::resetVideoContext(bool reload, bool retryWithDefaultConf)
 		obs_set_video_levels(sdr_white_level, hdr_nominal_peak_level);
 	}
 
-
+#endif //REPLACED_BY_MULTI_CANVAS
 	return errorcode;
 }
 
@@ -528,6 +529,7 @@ static inline enum video_colorspace GetVideoColorSpaceFromName(const char *name)
 obs_video_info OBS_service::prepareOBSVideoInfo(bool reload, bool defaultConf)
 {
 	obs_video_info ovi = {};
+#ifdef REPLACED_BY_MULTI_CANVAS
 #ifdef _WIN32
 	ovi.graphics_module = "libobs-d3d11.dll";
 #else
@@ -644,7 +646,7 @@ obs_video_info OBS_service::prepareOBSVideoInfo(bool reload, bool defaultConf)
 	blog(LOG_DEBUG, "  colorspace: %u", static_cast<uint32_t>(ovi.colorspace));
 	blog(LOG_DEBUG, "  range: %u", static_cast<uint32_t>(ovi.range));
 	blog(LOG_DEBUG, "  scale_type: %u", static_cast<uint32_t>(ovi.scale_type));
-
+#endif //REPLACED_BY_MULTI_CANVAS
 	return ovi;
 }
 

@@ -181,32 +181,44 @@ static inline const char* GetColorRange(enum video_range_type colorRange)
 
 static inline void SaveVideoSettings()
 {
+	size_t         canvases = obs_get_video_info_count();
 	obs_video_info video;
-    config_set_uint(
-        ConfigManager::getInstance().getBasic(), "Video", "FPSNum", video.fps_num);
-    config_set_uint(
-        ConfigManager::getInstance().getBasic(), "Video", "FPSDen", video.fps_den);
-    config_set_uint(
-        ConfigManager::getInstance().getBasic(), "Video", "BaseCX", video.base_width);
-    config_set_uint(
-        ConfigManager::getInstance().getBasic(), "Video", "BaseCY", video.base_height);
-    config_set_uint(
-        ConfigManager::getInstance().getBasic(), "Video", "OutputCX", video.output_width);
-    config_set_uint(
-        ConfigManager::getInstance().getBasic(), "Video", "OutputCY", video.output_height);
+	
+    config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "Canvases", canvases);
 
-    config_set_string(
-        ConfigManager::getInstance().getBasic(),
-        "Video", "ScaleType", GetScaleType(video.scale_type));
-    config_set_string(
-        ConfigManager::getInstance().getBasic(),
-        "Video", "ColorFormat", GetOutputFormat(video.output_format));
-    config_set_string(
-        ConfigManager::getInstance().getBasic(),
-        "Video", "ColorSpace", GetColorSpace(video.colorspace));
-    config_set_string(
-        ConfigManager::getInstance().getBasic(),
-        "Video", "ColorRange", GetColorRange(video.range));
+    for (size_t i = 0; i < canvases; i++) {
+		if (!obs_get_video_info_by_index(i, &video))
+			continue;
+		std::string config_part = "Video";
+		if (i != 0)
+			config_part = config_part + "_" + std::to_string(i);
+		
+        config_set_uint(
+            ConfigManager::getInstance().getBasic(), config_part.c_str(), "FPSNum", video.fps_num);
+        config_set_uint(
+            ConfigManager::getInstance().getBasic(), config_part.c_str(), "FPSDen", video.fps_den);
+        config_set_uint(
+            ConfigManager::getInstance().getBasic(), config_part.c_str(), "BaseCX", video.base_width);
+        config_set_uint(
+            ConfigManager::getInstance().getBasic(), config_part.c_str(), "BaseCY", video.base_height);
+        config_set_uint(
+            ConfigManager::getInstance().getBasic(), config_part.c_str(), "OutputCX", video.output_width);
+        config_set_uint(
+            ConfigManager::getInstance().getBasic(), config_part.c_str(), "OutputCY", video.output_height);
+
+        config_set_string(
+            ConfigManager::getInstance().getBasic(),
+            config_part.c_str(), "ScaleType", GetScaleType(video.scale_type));
+        config_set_string(
+            ConfigManager::getInstance().getBasic(),
+            config_part.c_str(), "ColorFormat", GetOutputFormat(video.output_format));
+        config_set_string(
+            ConfigManager::getInstance().getBasic(),
+            config_part.c_str(), "ColorSpace", GetColorSpace(video.colorspace));
+        config_set_string(
+            ConfigManager::getInstance().getBasic(),
+            config_part.c_str(), "ColorRange", GetColorRange(video.range));
+	}
 
     config_save_safe(ConfigManager::getInstance().getBasic(), "tmp", nullptr);
 }

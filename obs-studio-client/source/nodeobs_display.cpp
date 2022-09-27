@@ -27,6 +27,7 @@
 #include "shared.hpp"
 #include "utility.hpp"
 #include "callback-manager.hpp"
+#include "video.hpp"
 
 #ifdef WIN32
 static BOOL CALLBACK EnumChromeWindowsProc(HWND hwnd, LPARAM lParam)
@@ -67,12 +68,13 @@ Napi::Value display::OBS_content_createDisplay(const Napi::CallbackInfo& info)
 
 	std::string key = info[1].ToString().Utf8Value();
 	int32_t mode = info[2].ToNumber().Int32Value();
+	osn::Video* video = Napi::ObjectWrap<osn::Video>::Unwrap(info[3].ToObject());
 
 	auto conn = GetConnection(info);
 	if (!conn)
 		return info.Env().Undefined();
  
-	conn->call("Display", "OBS_content_createDisplay", {ipc::value((uint64_t)windowHandle), ipc::value(key), ipc::value(mode)});
+	conn->call("Display", "OBS_content_createDisplay", {ipc::value((uint64_t)windowHandle), ipc::value(key), ipc::value(mode), ipc::value(video->canvas)});
 
 	return info.Env().Undefined();
 }

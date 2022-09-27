@@ -3380,7 +3380,7 @@ std::vector<std::pair<uint64_t, uint64_t>> OBS_settings::getOutputResolutions(ui
 std::vector<SubCategory> OBS_settings::getVideoSettings()
 {
 	std::vector<SubCategory> videoSettings;
-
+#ifndef REPLACED_BY_MULTI_CANVAS
 	bool isCategoryEnabled = !OBS_service::isStreamingOutputActive() && !OBS_service::isRecordingOutputActive()
 	                         && !OBS_service::isReplayBufferOutputActive();
 
@@ -3572,7 +3572,7 @@ std::vector<SubCategory> OBS_settings::getVideoSettings()
 	videoSettings.push_back(serializeSettingsData(
 	    "Untitled", entries, ConfigManager::getInstance().getBasic(), "Video", true, isCategoryEnabled));
 	entries.clear();
-
+#endif //REPLACED_BY_MULTI_CANVAS
 	return videoSettings;
 }
 
@@ -3643,6 +3643,7 @@ static bool ConvertResText(const char* res, uint32_t& cx, uint32_t& cy)
 
 void OBS_settings::saveVideoSettings(std::vector<SubCategory> videoSettings)
 {
+#ifndef REPLACED_BY_MULTI_CANVAS
 	SubCategory sc = videoSettings.at(0);
 
 	//Base resolution
@@ -3718,6 +3719,7 @@ void OBS_settings::saveVideoSettings(std::vector<SubCategory> videoSettings)
 	}
 
 	config_save_safe(ConfigManager::getInstance().getBasic(), "tmp", nullptr);
+#endif //REPLACED_BY_MULTI_CANVAS
 }
 
 std::vector<SubCategory> OBS_settings::getAdvancedSettings()

@@ -294,7 +294,7 @@ void OBS_content::OBS_content_createDisplay(
 		}
 	}
 #else
-	OBS::Display *display = new OBS::Display(windowHandle, mode);
+	OBS::Display *display = new OBS::Display(windowHandle, mode, canvas);
 	displays.insert_or_assign(args[1].value_str, display);
 #endif
 

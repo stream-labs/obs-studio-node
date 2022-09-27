@@ -1602,6 +1602,7 @@ void autoConfig::SaveSettings()
 	config_set_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecQuality", quality);
 	config_set_int(ConfigManager::getInstance().getBasic(), "Video", "OutputCX", idealResolutionCX);
 	config_set_int(ConfigManager::getInstance().getBasic(), "Video", "OutputCY", idealResolutionCY);
+	config_set_int(ConfigManager::getInstance().getBasic(), "Video", "Canvases", 1);
 
 	config_set_bool(ConfigManager::getInstance().getBasic(), "Output", "DynamicBitrate", false);
 
