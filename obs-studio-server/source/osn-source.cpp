@@ -321,8 +321,14 @@ void osn::Source::CallHandler(
 
 	auto procHandler = obs_source_get_proc_handler(src);
 
+	if (procHandler == nullptr)
+	{
+		rval.push_back(ipc::value((uint64_t)ErrorCode::NotFound));
+		rval.push_back(ipc::value("obs_source_get_proc_handler returned null"));
+	}
+
 	// Call function by name
-	if (proc_handler_call(procHandler, function_name.c_str(), &cd))
+	else if (proc_handler_call(procHandler, function_name.c_str(), &cd))
 	{
 		std::string result;
 
@@ -335,6 +341,7 @@ void osn::Source::CallHandler(
 	else
 	{
 		rval.push_back(ipc::value((uint64_t)ErrorCode::NotFound));
+		rval.push_back(ipc::value("proc_handler_call failed, function_name: " + function_name + ", function_input: " + function_input));
 	}
 
 	calldata_free(&cd);
