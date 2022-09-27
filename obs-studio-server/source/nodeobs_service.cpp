@@ -43,7 +43,7 @@ obs_encoder_t* audioSimpleRecordingEncoder   = nullptr;
 obs_encoder_t* audioAdvancedStreamingEncoder = nullptr;
 obs_encoder_t* videoStreamingEncoder         = nullptr;
 obs_encoder_t* videoRecordingEncoder         = nullptr;
-obs_encoder_t* videoRecordingEncoder2         = nullptr;
+obs_encoder_t* videoRecordingEncoder2        = nullptr;
 obs_service_t* service                       = nullptr;
 obs_encoder_t* streamArchiveEncVod           = nullptr;
 
@@ -503,7 +503,7 @@ int OBS_service::doResetVideoContext(const obs_video_info& ovi)
 		// ovi->output_height &= 0xFFFFFFFE;
 		// So just make a temporary copy and then forget about it.
 		obs_video_info tmp = ovi;
-		return obs_reset_video(&tmp);
+		//return obs_set_video_info(ovi, ovi);
 	} catch (const char* error) {
 		blog(LOG_ERROR, error);
 		return OBS_VIDEO_FAIL;
@@ -537,8 +537,8 @@ obs_video_info OBS_service::prepareOBSVideoInfo(bool reload, bool defaultConf)
 	if (reload)
 		ConfigManager::getInstance().reloadConfig();
 
-	ovi.canvases[0].base_width = (uint32_t)basicConfigGetUInt("Video", "BaseCX", defaultConf);
-	ovi.canvases[0].base_height = (uint32_t)basicConfigGetUInt("Video", "BaseCY", defaultConf);
+	ovi.base_width = (uint32_t)basicConfigGetUInt("Video", "BaseCX", defaultConf);
+	ovi.base_height = (uint32_t)basicConfigGetUInt("Video", "BaseCY", defaultConf);
 
 	// Do we really need it?
 #if 0
@@ -549,36 +549,36 @@ obs_video_info OBS_service::prepareOBSVideoInfo(bool reload, bool defaultConf)
 	}
 #endif
 
-	ovi.canvases[0].output_width = (uint32_t)basicConfigGetUInt("Video", "OutputCX", defaultConf);
-	ovi.canvases[0].output_height = (uint32_t)basicConfigGetUInt("Video", "OutputCY", defaultConf);
+	ovi.output_width = (uint32_t)basicConfigGetUInt("Video", "OutputCX", defaultConf);
+	ovi.output_height = (uint32_t)basicConfigGetUInt("Video", "OutputCY", defaultConf);
 
 	std::vector<std::pair<uint32_t, uint32_t>> resolutions = OBS_API::availableResolutions();
 	uint32_t limit_cx = 1920;
 	uint32_t limit_cy = 1080;
 
-	if (ovi.canvases[0].base_width == 0 || ovi.canvases[0].base_height == 0) {
+	if (ovi.base_width == 0 || ovi.base_height == 0) {
 		for (int i = 0; i < resolutions.size(); i++) {
 			uint32_t nbPixels = resolutions.at(i).first * resolutions.at(i).second;
-			if (int(ovi.canvases[0].base_width * ovi.canvases[0].base_height) < nbPixels
+			if (int(ovi.base_width * ovi.base_height) < nbPixels
 			    &&
 					nbPixels <= limit_cx * limit_cy) {
-				ovi.canvases[0].base_width = resolutions.at(i).first;
-				ovi.canvases[0].base_height = resolutions.at(i).second;
+				ovi.base_width = resolutions.at(i).first;
+				ovi.base_height = resolutions.at(i).second;
 			}
 		}
-		if (ovi.canvases[0].base_width == 0 || ovi.canvases[0].base_height == 0) {
-			ovi.canvases[0].base_width = 1920;
-			ovi.canvases[0].base_height = 1080;
+		if (ovi.base_width == 0 || ovi.base_height == 0) {
+			ovi.base_width = 1920;
+			ovi.base_height = 1080;
 		}
 	}
 
 	if (!defaultConf) {
-		config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "BaseCX", ovi.canvases[0].base_width);
-		config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "BaseCY", ovi.canvases[0].base_height);
+		config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "BaseCX", ovi.base_width);
+		config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "BaseCY", ovi.base_height);
 	}
 
-	if (ovi.canvases[0].output_width == 0 || ovi.canvases[0].output_height == 0) {
-		if (ovi.canvases[0].base_width > 1280 && ovi.canvases[0].base_height > 720) {
+	if (ovi.output_width == 0 || ovi.output_height == 0) {
+		if (ovi.base_width > 1280 && ovi.base_height > 720) {
 			int idx = 0;
 			do {
 				double use_val = 1.0;
@@ -587,22 +587,22 @@ obs_video_info OBS_service::prepareOBSVideoInfo(bool reload, bool defaultConf)
 				} else {
 					use_val = vals[numVals - 1] + double(numVals - idx + 1) / 2.0;
 				}
-				ovi.canvases[0].output_width  = uint32_t(double(ovi.canvases[0].base_width) / use_val);
-				ovi.canvases[0].output_height = uint32_t(double(ovi.canvases[0].base_height) / use_val);
+				ovi.output_width  = uint32_t(double(ovi.base_width) / use_val);
+				ovi.output_height = uint32_t(double(ovi.base_height) / use_val);
 				idx++;
-			} while (ovi.canvases[0].output_width > 1280 && ovi.canvases[0].output_height > 720);
+			} while (ovi.output_width > 1280 && ovi.output_height > 720);
 		} else {
-			ovi.canvases[0].output_width  = ovi.canvases[0].base_width;
-			ovi.canvases[0].output_height = ovi.canvases[0].base_height;
+			ovi.output_width  = ovi.base_width;
+			ovi.output_height = ovi.base_height;
 		}
 
-		ovi.canvases[0].output_width = 1280;
-		ovi.canvases[0].output_height = 720;
+		ovi.output_width = 1280;
+		ovi.output_height = 720;
 
 		if (!defaultConf) {
-			config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "OutputCX", ovi.canvases[0].output_width);
+			config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "OutputCX", ovi.output_width);
 			config_set_uint(
-			    ConfigManager::getInstance().getBasic(), "Video", "OutputCY", ovi.canvases[0].output_height);
+			    ConfigManager::getInstance().getBasic(), "Video", "OutputCY", ovi.output_height);
 		}
 	}
 
@@ -624,20 +624,20 @@ obs_video_info OBS_service::prepareOBSVideoInfo(bool reload, bool defaultConf)
 
 	ovi.scale_type = GetScaleType(scaleTypeStr);
 
-	ovi.canvases[1].base_width    = ovi.canvases[0].base_height;
-	ovi.canvases[1].base_height   = ovi.canvases[0].base_width;
-	ovi.canvases[1].output_width  = ovi.canvases[0].output_height;
-	ovi.canvases[1].output_height = ovi.canvases[0].output_width;
-	ovi.canvases[2].base_width    = 0;
-	ovi.canvases[2].base_height   = 0;
-	ovi.canvases[2].output_width  = 0;
-	ovi.canvases[2].output_height = 0;
+	ovi.base_width    = ovi.base_height;
+	ovi.base_height   = ovi.base_width;
+	ovi.output_width  = ovi.output_height;
+	ovi.output_height = ovi.output_width;
+	ovi.base_width    = 0;
+	ovi.base_height   = 0;
+	ovi.output_width  = 0;
+	ovi.output_height = 0;
 
 	blog(LOG_DEBUG, "Prepared obs_video_info:");
-	blog(LOG_DEBUG, "  base_width: %u", ovi.canvases[0].base_width);
-	blog(LOG_DEBUG, "  base_height: %u", ovi.canvases[0].base_height);
-	blog(LOG_DEBUG, "  output_width: %u", ovi.canvases[0].output_width);
-	blog(LOG_DEBUG, "  output_height: %u", ovi.canvases[0].output_height);
+	blog(LOG_DEBUG, "  base_width: %u", ovi.base_width);
+	blog(LOG_DEBUG, "  base_height: %u", ovi.base_height);
+	blog(LOG_DEBUG, "  output_width: %u", ovi.output_width);
+	blog(LOG_DEBUG, "  output_height: %u", ovi.output_height);
 	blog(LOG_DEBUG, "  fps_num: %u", ovi.fps_num);
 	blog(LOG_DEBUG, "  fps_den: %u", ovi.fps_den);
 	blog(LOG_DEBUG, "  output_format: %u", static_cast<uint32_t>(ovi.output_format));
@@ -669,10 +669,10 @@ void OBS_service::keepFallbackVideoConfig(const obs_video_info& ovi)
 	// Some values come from config_get_default_uint/config_get_default_string.
 	// The other values come from |ovi| because the default configuration
 	// does not have some of the actual values.
-	config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "BaseCX", ovi.canvases[0].base_width);
-	config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "BaseCY", ovi.canvases[0].base_height);
-	config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "OutputCX", ovi.canvases[0].output_width);
-	config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "OutputCY", ovi.canvases[0].output_height);
+	config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "BaseCX", ovi.base_width);
+	config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "BaseCY", ovi.base_height);
+	config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "OutputCX", ovi.output_width);
+	config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "OutputCY", ovi.output_height);
 
 	// Currently, there is no "FPSNS" in the default configuration,
 	// So we do not copy it here.
@@ -2846,8 +2846,8 @@ void OBS_service::OBS_service_createVirtualWebcam(
 
 	obs_data_t *settings = obs_data_create();
 	obs_data_set_string(settings, "name", name.c_str());
-	obs_data_set_int(settings, "width", ovi.canvases[0].output_width);
-	obs_data_set_int(settings, "height", ovi.canvases[0].output_height);
+	obs_data_set_int(settings, "width", ovi.output_width);
+	obs_data_set_int(settings, "height", ovi.output_height);
 	obs_data_set_double(settings, "fps", ovi.fps_num);
 
 	virtualWebcamOutput = obs_output_create("virtualcam_output", "Virtual Webcam", settings, NULL);

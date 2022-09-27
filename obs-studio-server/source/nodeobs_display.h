@@ -59,10 +59,11 @@ namespace OBS
 
 		public:
 		Display(uint64_t windowHandle,
-		    enum obs_video_rendering_mode mode);       // Create a Main Preview one
+		    enum obs_video_rendering_mode mode, obs_video_info *canvas);       // Create a Main Preview one
 		Display(uint64_t windowHandle,
 		    enum obs_video_rendering_mode mode,
-		    std::string                   sourceName); // Create a Source-Specific one
+		    std::string                   sourceName,
+		    obs_video_info*               canvas); // Create a Source-Specific one
 		~Display();
 
 		void                          SetPosition(uint32_t x, uint32_t y);
@@ -96,7 +97,6 @@ namespace OBS
 		static bool DrawSelectedSource(obs_scene_t* scene, obs_sceneitem_t* item, void* param);
 		void        DrawRotationHandle(float rot, matrix4& mtx);
 		void        setSizeCall(int step);
-		struct canvas_info GetCanvas();
 
 		public: // Rendering code needs it.
 		vec2 m_worldToPreviewScale, m_previewToWorldScale;
@@ -140,6 +140,7 @@ namespace OBS
 		bool     m_shouldDrawUI     = true;
 
 		enum obs_video_rendering_mode m_renderingMode = OBS_MAIN_VIDEO_RENDERING;
+		struct obs_video_info *canvas;
 
 #if defined(_WIN32)
 		HWND              m_ourWindow;

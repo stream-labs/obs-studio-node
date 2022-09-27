@@ -26,6 +26,24 @@ namespace osn
 	class Video
 	{
 		public:
+		class Manager : public utility::unique_object_manager<struct obs_video_info>
+		{
+			friend class std::shared_ptr<Manager>;
+
+			protected:
+			Manager() {}
+			~Manager() {}
+
+			public:
+			Manager(Manager const&)           = delete;
+			Manager operator=(Manager const&) = delete;
+
+			public:
+			static Manager& GetInstance();
+		};
+
+
+		public:
 		static void Register(ipc::server&);
 
 		static void GetSkippedFrames(

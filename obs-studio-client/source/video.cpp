@@ -112,7 +112,7 @@ void osn::Video::Destroy(const Napi::CallbackInfo& info)
         Napi::ObjectWrap<osn::Video>::Unwrap(info[0].ToObject());
 
 	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("Video", "RemoveVideoContext", {ipc::value((uint64_t)video->canvasId)});
+		conn->call_synchronous_helper("Video", "RemoveVideoContext", {ipc::value((uint64_t)video->canvas)});
 
 	if (!ValidateResponse(info, response))
 		return;
@@ -127,7 +127,7 @@ Napi::Value osn::Video::get(const Napi::CallbackInfo& info)
 		return info.Env().Undefined();
 
 	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("Video", "GetVideoContext", {ipc::value((uint64_t)this->canvasId)});
+		conn->call_synchronous_helper("Video", "GetVideoContext", {ipc::value((uint64_t)this->canvas)});
 
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
@@ -179,7 +179,7 @@ void osn::Video::set(const Napi::CallbackInfo& info, const Napi::Value &value)
 		conn->call_synchronous_helper("Video", "SetVideoContext", {
 		ipc::value(fpsNum), ipc::value(fpsDen), ipc::value(baseWidth), ipc::value(baseHeight),
 		ipc::value(outputWidth), ipc::value(outputHeight), ipc::value(outputFormat),
-		ipc::value(colorspace), ipc::value(range), ipc::value(scaleType), ipc::value(this->canvasId)
+		ipc::value(colorspace), ipc::value(range), ipc::value(scaleType), ipc::value(this->canvas)
 	});
 	
 	if (!ValidateResponse(info, response))

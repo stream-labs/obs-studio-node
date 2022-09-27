@@ -25,7 +25,7 @@ namespace osn
 	class Video : public Napi::ObjectWrap<osn::Video>
 	{
 		public:
-		uint64_t canvasId;
+		uint64_t canvas;
 
 		static Napi::FunctionReference constructor;
 		static Napi::Object Init(Napi::Env env, Napi::Object exports);

@@ -26,6 +26,7 @@
 
 #include "error.hpp"
 #include "shared.hpp"
+#include "osn-video.hpp"
 
 #include <thread>
 
@@ -97,7 +98,7 @@ static bool CenterAlignSelectedItems(obs_scene_t* scene, obs_sceneitem_t* item, 
 	itemInfo.alignment = OBS_ALIGN_LEFT | OBS_ALIGN_TOP;
 	itemInfo.rot       = 0.0f;
 
-	vec2_set(&itemInfo.bounds, float(ovi.canvases[0].base_width), float(ovi.canvases[0].base_height));
+	vec2_set(&itemInfo.bounds, float(ovi.base_width), float(ovi.base_height));
 	itemInfo.bounds_type      = boundsType;
 	itemInfo.bounds_alignment = OBS_ALIGN_CENTER;
 
@@ -282,9 +283,9 @@ void OBS_content::OBS_content_createDisplay(
 		mode = OBS_RECORDING_VIDEO_RENDERING;
 		break;
 	}
-
+	obs_video_info* canvas = osn::Video::Manager::GetInstance().find(args[3].value_union.ui64);
 #ifdef WIN32
-	displays.insert_or_assign(args[1].value_str, new OBS::Display(windowHandle, mode));
+	displays.insert_or_assign(args[1].value_str, new OBS::Display(windowHandle, mode, canvas));
 	if (!IsWindows8OrGreater()) {
 		BOOL enabled = FALSE;
 		DwmIsCompositionEnabled(&enabled);
@@ -376,7 +377,7 @@ void OBS_content::OBS_content_createSourcePreviewDisplay(
 		return;
 	}
 
-	OBS::Display *display = new OBS::Display(windowHandle, OBS_MAIN_VIDEO_RENDERING, args[1].value_str);
+	OBS::Display *display = new OBS::Display(windowHandle, OBS_MAIN_VIDEO_RENDERING, args[1].value_str, nullptr);
 	displays.insert_or_assign(
 	    args[2].value_str, display);
 

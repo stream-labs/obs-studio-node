@@ -164,7 +164,7 @@ struct ServerInfo
 
 class TestMode
 {
-	obs_video_info ovi;
+	obs_video_info * ovi;
 	OBSSource      source[6];
 
 	static void render_rand(void*, uint32_t cx, uint32_t cy)
@@ -189,7 +189,7 @@ class TestMode
 	public:
 	inline TestMode()
 	{
-		obs_get_video_info(&ovi);
+		ovi = obs_create_video_info();
 		obs_add_main_render_callback(render_rand, this);
 
 		for (uint32_t i = 0; i < 6; i++) {
@@ -205,19 +205,21 @@ class TestMode
 			obs_set_output_source(i, source[i]);
 
 		obs_remove_main_render_callback(render_rand, this);
-		obs_reset_video(&ovi);
+
+		obs_remove_video_info(ovi);
+		obs_reset_video();
 	}
 
 	inline void SetVideo(int cx, int cy, int fps_num, int fps_den)
 	{
-		obs_video_info newOVI = ovi;
+		
 
-		newOVI.canvases[0].output_width  = (uint32_t)cx;
-		newOVI.canvases[0].output_height = (uint32_t)cy;
-		newOVI.fps_num       = (uint32_t)fps_num;
-		newOVI.fps_den       = (uint32_t)fps_den;
-
-		obs_reset_video(&newOVI);
+		ovi->output_width  = (uint32_t)cx;
+		ovi->output_height   = (uint32_t)cy;
+		ovi->fps_num       = (uint32_t)fps_num;
+		ovi->fps_den         = (uint32_t)fps_den;
+		ovi->initialized     = true;
+		obs_reset_video();
 	}
 };
 
@@ -640,15 +642,14 @@ void autoConfig::TestBandwidthThread(void)
 	bool errorOnStop = false;
 	bool gotError    = false;
 
-	obs_video_info ovi;
-	obs_get_video_info(&ovi);
+	obs_video_info* ovi = obs_create_video_info();
 
-	ovi.canvases[0].output_width  = 128;
-	ovi.canvases[0].output_height = 128;
-	ovi.fps_num       = 60;
-	ovi.fps_den       = 1;
-
-	obs_reset_video(&ovi);
+	ovi->output_width  = 128;
+	ovi->output_height = 128;
+	ovi->fps_num       = 60;
+	ovi->fps_den       = 1;
+	ovi->initialized   = true;
+	obs_reset_video();
 
 	const char* serverType = "rtmp_common";
 
@@ -1147,15 +1148,14 @@ bool autoConfig::TestSoftwareEncoding()
 		if (!force && rate > maxDataRate)
 			return true;
 
-		obs_video_info ovi;
-		obs_get_video_info(&ovi);
+		obs_video_info * ovi = obs_create_video_info();
 
-		ovi.canvases[0].output_width = (uint32_t)cx;
-		ovi.canvases[0].output_height = (uint32_t)cy;
-		ovi.fps_num       = fps_num;
-		ovi.fps_den       = fps_den;
-
-		obs_reset_video(&ovi);
+		ovi->output_width = (uint32_t)cx;
+		ovi->output_height = (uint32_t)cy;
+		ovi->fps_num       = fps_num;
+		ovi->fps_den       = fps_den;
+		ovi->initialized   = true;
+		obs_reset_video();
 
 		obs_encoder_set_video_mix(vencoder, obs_video_mix_get(0, OBS_MAIN_VIDEO_RENDERING));
 		obs_encoder_set_audio(aencoder, obs_get_audio());
@@ -1417,15 +1417,14 @@ bool autoConfig::CheckSettings(void)
 		return false;
 	}
 
-	obs_video_info ovi;
-	obs_get_video_info(&ovi);
-
-	ovi.canvases[0].output_width = (uint32_t)idealResolutionCX;
-	ovi.canvases[0].output_height = (uint32_t)idealResolutionCY;
-	ovi.fps_num       = idealFPSNum;
-	ovi.fps_den       = 1;
-
-	obs_reset_video(&ovi);
+	obs_video_info* ovi = obs_create_video_info();
+	
+	ovi->output_width = (uint32_t)idealResolutionCX;
+	ovi->output_height = (uint32_t)idealResolutionCY;
+	ovi->fps_num       = idealFPSNum;
+	ovi->fps_den       = 1;
+	ovi->initialized  = true;
+	obs_reset_video();
 
 	OBSEncoder vencoder = obs_video_encoder_create(GetEncoderId(streamingEncoder), "test_encoder", nullptr, nullptr);
 	OBSEncoder aencoder = obs_audio_encoder_create("ffmpeg_aac", "test_aac", nullptr, 0, nullptr);

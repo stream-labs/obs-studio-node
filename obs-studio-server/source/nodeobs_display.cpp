@@ -372,7 +372,7 @@ OBS::Display::Display()
 	m_drawRotationHandle = false;
 }
 
-OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode) : Display()
+OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode, obs_video_info* canvas) : Display()
 {
 #ifdef _WIN32
 	CreateWindowMessageQuestion question;
@@ -414,6 +414,7 @@ OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode)
 	}
 
 	m_renderingMode = mode;
+	this->canvas    = canvas;
 
 	obs_display_add_draw_callback(m_display, DisplayCallback, this);
 	m_displayMtx.unlock();
@@ -421,8 +422,12 @@ OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode)
 	UpdatePreviewArea();
 }
 
-OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode, std::string sourceName)
-    : Display(windowHandle, mode)
+OBS::Display::Display(
+    uint64_t                      windowHandle,
+    enum obs_video_rendering_mode mode,
+    std::string                   sourceName,
+    obs_video_info*               canvas)
+    : Display(windowHandle, mode, canvas)
 {
 	m_source = obs_get_source_by_name(sourceName.c_str());
 	obs_source_inc_showing(m_source);
@@ -1207,10 +1212,8 @@ void OBS::Display::DisplayCallback(void* displayPtr, uint32_t cx, uint32_t cy)
 		if (sourceH == 0)
 			sourceH = 1;
 	} else {
-		struct canvas_info canvas;
-		canvas  = dp->GetCanvas();
-		sourceW = canvas.base_width;
-		sourceH = canvas.base_height;
+		sourceW = dp->canvas->base_width;
+		sourceH = dp->canvas->base_height;
 
 		if (sourceW == 0)
 			sourceW = 1;
@@ -1343,9 +1346,8 @@ void OBS::Display::UpdatePreviewArea()
 		sourceW = obs_source_get_width(m_source);
 		sourceH = obs_source_get_height(m_source);
 	} else {
-		struct canvas_info canvas = GetCanvas();
-		sourceW = canvas.base_width;
-		sourceH = canvas.base_height;
+		sourceW = canvas->base_width;
+		sourceH = canvas->base_height;
 	}
 
 	if (sourceW == 0)
@@ -1450,24 +1452,4 @@ bool OBS::Display::GetDrawRotationHandle()
 void OBS::Display::SetDrawRotationHandle(bool drawRotationHandle)
 {
 	m_drawRotationHandle = drawRotationHandle;
-}
-
-struct canvas_info OBS::Display::GetCanvas()
-{
-	struct canvas_info canvas;
-	int                canvas_id=0;
-	switch (m_renderingMode) {
-		case OBS_MAIN_VIDEO_RENDERING:
-		canvas_id = 0;
-		break;
-	    case OBS_STREAMING_VIDEO_RENDERING:
-		canvas_id = 1; 
-		break;
-	    case OBS_RECORDING_VIDEO_RENDERING:
-		canvas_id = 2;
-	    break;
-	}
-		
-	obs_get_canvas_info(canvas_id, &canvas);
-	return canvas;
 }

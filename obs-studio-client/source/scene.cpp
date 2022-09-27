@@ -23,6 +23,7 @@
 #include "controller.hpp"
 #include "error.hpp"
 #include "input.hpp"
+#include "video.hpp"
 #include "ipc-value.hpp"
 #include "sceneitem.hpp"
 #include "shared.hpp"
@@ -290,7 +291,7 @@ Napi::Value osn::Scene::AddSource(const Napi::CallbackInfo& info)
 	}
 	if(info.Length() >= 3) {
 		osn::Video* video = Napi::ObjectWrap<osn::Video>::Unwrap(info[2].ToObject());
-		params.push_back(ipc::value(video->canvasId));
+		params.push_back(ipc::value(video->canvas));
 	}
 	auto conn = GetConnection(info);
 	if (!conn)
