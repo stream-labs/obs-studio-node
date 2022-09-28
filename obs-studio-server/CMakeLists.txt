@@ -150,18 +150,16 @@ set(
 )
 
 if(WIN32)
-	string(
-		CONCAT OSN_DEFAULT_LIBOBS_URL
-		"https://obsstudios3.streamlabs.com/"
-		"libobs-${LIBOBS_PLATFORM}-${LIBOBS_BUILD_TYPE}-${LIBOBS_VERSION}.7z"
-	)
-else()
-	string(
-		CONCAT OSN_DEFAULT_LIBOBS_URL
-		"https://obsstudios3.streamlabs.com/"
-		"libobs-${LIBOBS_PLATFORM}-${LIBOBS_BUILD_TYPE}-${LIBOBS_VERSION}-x86_64.7z"
-	)
+	set (OBS_URL_EXTENSION "")
+elseif(APPLE)
+	set (OBS_URL_EXTENSION "-x86_64")
 endif()
+
+string(
+	CONCAT OSN_DEFAULT_LIBOBS_URL
+	"https://obsstudios3.streamlabs.com/"
+	"libobs-${LIBOBS_PLATFORM}-${LIBOBS_BUILD_TYPE}-${LIBOBS_VERSION}${OBS_URL_EXTENSION}.7z"
+)
 
 set(
 	OSN_LIBOBS_URL
@@ -408,9 +406,9 @@ if (WIN32)
 ELSE()
 	install(TARGETS obs-studio-server RUNTIME DESTINATION "./bin" PERMISSIONS ${PROGRAM_PERMISSIONS_DEFAULT} COMPONENT Runtime)
 	set(_COMMAND
-	"${CMAKE_INSTALL_NAME_TOOL} \\
-	-change @rpath/libobs.framework/Versions/A/libobs @executable_path/../Frameworks/libobs.framework/Versions/A/libobs \\
-	\\\"\${CMAKE_INSTALL_PREFIX}/bin/obs64\\\""
+		"${CMAKE_INSTALL_NAME_TOOL} \\
+		-change @rpath/libobs.framework/Versions/A/libobs @executable_path/../Frameworks/libobs.framework/Versions/A/libobs \\
+		\\\"\${CMAKE_INSTALL_PREFIX}/bin/obs64\\\""
 	)
 	install(CODE "execute_process(COMMAND /bin/sh -c \"${_COMMAND}\")")
 ENDIF()

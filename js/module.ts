@@ -345,9 +345,9 @@ export const enum EIPCError {
 }
 
 export const enum EVcamInstalledStatus {
-	NotInstalled = 0,
-	LegacyInstalled = 1,
-	Installed = 2
+    NotInstalled = 0,
+    LegacyInstalled = 1,
+    Installed = 2
 }
 
 export const Global: IGlobal = obs.Global;

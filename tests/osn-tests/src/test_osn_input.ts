@@ -143,8 +143,6 @@ describe(testName, () => {
                         settings = inputSettings.win32WindowCapture;
                         settings['compatibility'] = true;
                         settings['client_area'] = true;
-                        settings['method'] = 0;
-                        settings['window'] = '';
                     } else if (obs.os == 'darwin') {
                         settings = inputSettings.macWindowCapture;
                         settings['show_empty_names'] = true;
