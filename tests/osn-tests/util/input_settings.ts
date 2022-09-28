@@ -112,7 +112,11 @@ export {monitorCapture};
 
 let win32WindowCapture: ISettings = {
     compatibility: false,
-    cursor: true
+    cursor: true,
+    method: 0,
+    client_area: true,
+    window: '',
+    force_sdr: false
 };
 export {win32WindowCapture};
 
