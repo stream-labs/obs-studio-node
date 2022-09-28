@@ -169,9 +169,11 @@ describe(testName, () => {
                     settings['use_device_timing'] = true;
                     break;
                 }
-                case 'av_capture_input': {
+                case 'av_capture_input':
+                case 'av_capture_input_v2': {
                     settings = inputSettings.avCaptureInput;
                     settings['color_space'] = 2;
+                    settings['use_preset'] = false;
                     break;
                 }
                 case 'coreaudio_input_capture':

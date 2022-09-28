@@ -5,6 +5,7 @@ export declare const DefaultBinPath: string;
 export declare const DefaultDataPath: string;
 export declare const DefaultPluginPath: string;
 export declare const DefaultPluginDataPath: string;
+export declare const DefaultPluginPathMac: string;
 export declare const enum ESourceFlags {
     Unbuffered = 1,
     ForceMono = 2
@@ -57,7 +58,7 @@ export declare const enum EBlendingMethod {
 export declare const enum EBlendingMode {
     Normal = 0,
     Additive = 1,
-    Subtract = 2,
+    Substract = 2,
     Screen = 3,
     Multiply = 4,
     Lighten = 5,
@@ -180,7 +181,7 @@ export declare const enum EColorFormat {
     DXT5 = 17
 }
 export declare const enum EScaleType {
-    Default = 0,
+    Disable = 0,
     Point = 1,
     Bicubic = 2,
     Bilinear = 3,
@@ -266,6 +267,11 @@ export declare const enum EIPCError {
     OTHER_ERROR = 253,
     MISSING_DEPENDENCY = 254,
     NORMAL_EXIT = 0
+}
+export declare const enum EVcamInstalledStatus {
+    NotInstalled = 0,
+    LegacyInstalled = 1,
+    Installed = 2
 }
 export declare const Global: IGlobal;
 export declare const Video: IVideo;
@@ -452,6 +458,10 @@ export interface ISceneItemInfo {
     x: number;
     y: number;
     rotation: number;
+    streamVisible: boolean;
+    recordingVisible: boolean;
+    scaleFilter: EScaleType;
+    blendingMode: EBlendingMode;
 }
 export interface IInput extends ISource {
     volume: number;
@@ -656,6 +666,8 @@ export interface SourceInfo {
     type: string;
     volume: number;
     syncOffset: SyncOffset;
+    deinterlaceMode: EDeinterlaceMode;
+    deinterlaceFieldOrder: EDeinterlaceFieldOrder;
 }
 export declare function createSources(sources: SourceInfo[]): IInput[];
 export interface ISourceSize {

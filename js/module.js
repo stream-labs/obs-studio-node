@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.NodeObs = exports.getSourcesSize = exports.createSources = exports.addItems = exports.ServiceFactory = exports.IPC = exports.ModuleFactory = exports.FaderFactory = exports.VolmeterFactory = exports.DisplayFactory = exports.TransitionFactory = exports.FilterFactory = exports.SceneFactory = exports.InputFactory = exports.Video = exports.Global = exports.DefaultPluginDataPath = exports.DefaultPluginPath = exports.DefaultDataPath = exports.DefaultBinPath = exports.DefaultDrawPluginPath = exports.DefaultOpenGLPath = exports.DefaultD3D11Path = void 0;
+exports.NodeObs = exports.getSourcesSize = exports.createSources = exports.addItems = exports.ServiceFactory = exports.IPC = exports.ModuleFactory = exports.FaderFactory = exports.VolmeterFactory = exports.DisplayFactory = exports.TransitionFactory = exports.FilterFactory = exports.SceneFactory = exports.InputFactory = exports.Video = exports.Global = exports.DefaultPluginPathMac = exports.DefaultPluginDataPath = exports.DefaultPluginPath = exports.DefaultDataPath = exports.DefaultBinPath = exports.DefaultDrawPluginPath = exports.DefaultOpenGLPath = exports.DefaultD3D11Path = void 0;
 const obs = require('./obs_studio_client.node');
 const path = require("path");
 const fs = require("fs");
@@ -11,6 +11,7 @@ exports.DefaultBinPath = path.resolve(__dirname);
 exports.DefaultDataPath = path.resolve(__dirname, `data`);
 exports.DefaultPluginPath = path.resolve(__dirname, `obs-plugins`);
 exports.DefaultPluginDataPath = path.resolve(__dirname, `data/obs-plugins/%module%`);
+exports.DefaultPluginPathMac = path.resolve(__dirname, `PlugIns`);
 exports.Global = obs.Global;
 exports.Video = obs.Video;
 exports.InputFactory = obs.Input;
@@ -50,6 +51,8 @@ function createSources(sources) {
                 newSource.syncOffset =
                     (source.syncOffset != null) ? source.syncOffset : { sec: 0, nsec: 0 };
             }
+            newSource.deinterlaceMode = source.deinterlaceMode;
+            newSource.deinterlaceFieldOrder = source.deinterlaceFieldOrder;
             items.push(newSource);
             const filters = source.filters;
             if (Array.isArray(filters)) {

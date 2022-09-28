@@ -55,6 +55,7 @@ export {ffmpegSource};
 let ndiSource: ISettings = {
     latency: 0,
     ndi_bw_mode: 0,
+    ndi_audio: true,
     ndi_fix_alpha_blending: false,
     ndi_sync: 1,
     yuv_colorspace: 2,
@@ -174,8 +175,9 @@ export {wasapi};
 
 let avCaptureInput: ISettings = {
     color_space: -1,
+    enable_audio: true,
     input_format: 4294967295,
-    preset: 'AVCaptureSessionPreset1280x720',
+    preset: 'AVCaptureSessionPresetHigh',
     uid: '',
     use_preset: true,
     video_range: -1

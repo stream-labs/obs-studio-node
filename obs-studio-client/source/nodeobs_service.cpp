@@ -28,7 +28,17 @@
 #include "utility.hpp"
 
 #ifdef WIN32
+
 #include <shellapi.h>
+
+#define TOTALBYTES 8192
+
+enum VcamInstalledStatus: uint8_t {
+	NotInstalled = 0,
+	LegacyInstalled = 1,
+	Installed = 2
+};
+
 #endif
 
 bool service::isWorkerRunning = false;
@@ -383,7 +393,7 @@ Napi::Value service::OBS_service_installVirtualCamPlugin(const Napi::CallbackInf
 Napi::Value service::OBS_service_uninstallVirtualCamPlugin(const Napi::CallbackInfo& info) {
 #ifdef WIN32
 	std::wstring pathToRegFile = L"/u \"" + utfWorkingDir;
-	pathToRegFile += L"\\obs-virtualsource.dll\"";
+	pathToRegFile += L"\\data\\obs-plugins\\win-dshow\\obs-virtualcam-module64.dll\"";
 	SHELLEXECUTEINFO ShExecInfo = {0};
 	ShExecInfo.cbSize = sizeof(SHELLEXECUTEINFO);
 	ShExecInfo.fMask = SEE_MASK_NOCLOSEPROCESS;
@@ -397,22 +407,6 @@ Napi::Value service::OBS_service_uninstallVirtualCamPlugin(const Napi::CallbackI
 	ShellExecuteEx(&ShExecInfo);
 	WaitForSingleObject(ShExecInfo.hProcess, INFINITE);
 	CloseHandle(ShExecInfo.hProcess);
-
-	std::wstring pathToRegFile32 = L"/u \"" + utfWorkingDir;
-	pathToRegFile32 += L"\\data\\obs-plugins\\obs-virtualoutput\\obs-virtualsource_32bit\\obs-virtualsource.dll\"";
-	SHELLEXECUTEINFO ShExecInfob = {0};
-	ShExecInfob.cbSize = sizeof(SHELLEXECUTEINFO);
-	ShExecInfob.fMask = SEE_MASK_NOCLOSEPROCESS;
-	ShExecInfob.hwnd = NULL;
-	ShExecInfob.lpVerb = L"runas";
-	ShExecInfob.lpFile = L"regsvr32.exe";
-	ShExecInfob.lpParameters = pathToRegFile32.c_str();
-	ShExecInfob.lpDirectory = NULL;
-	ShExecInfob.nShow = SW_HIDE;
-	ShExecInfob.hInstApp = NULL;
-	ShellExecuteEx(&ShExecInfob);
-	WaitForSingleObject(ShExecInfob.hProcess, INFINITE);
-	CloseHandle(ShExecInfob.hProcess);
 #elif __APPLE__
 	g_util_osx->uninstallPlugin();
 #endif
@@ -422,9 +416,28 @@ Napi::Value service::OBS_service_uninstallVirtualCamPlugin(const Napi::CallbackI
 Napi::Value service::OBS_service_isVirtualCamPluginInstalled(const Napi::CallbackInfo& info) {
 #ifdef WIN32
 	HKEY OpenResult;
-	LONG err = RegOpenKeyEx(HKEY_CLASSES_ROOT, L"CLSID\\{27B05C2D-93DC-474A-A5DA-9BBA34CB2A9C}", 0, KEY_READ|KEY_WOW64_64KEY, &OpenResult);
+	LONG error = RegOpenKeyEx(HKEY_CLASSES_ROOT, L"CLSID\\{27B05C2D-93DC-474A-A5DA-9BBA34CB2A9C}", 0, KEY_READ|KEY_WOW64_64KEY, &OpenResult);
 
-	return Napi::Boolean::New(info.Env(), err == 0);
+	DWORD dwRet = 0;
+	DWORD cbData;
+	TCHAR buf[TOTALBYTES]   = {0};
+	DWORD dwBufSize = sizeof(buf);
+	if (error == ERROR_SUCCESS) {
+		error = RegOpenKeyEx(HKEY_CLASSES_ROOT, L"CLSID\\{27B05C2D-93DC-474A-A5DA-9BBA34CB2A9C}\\InprocServer32", 0, KEY_READ | KEY_QUERY_VALUE, &OpenResult);
+		if (error == ERROR_SUCCESS && OpenResult) {
+			dwRet = RegQueryValueExW(OpenResult, TEXT(""), NULL, NULL, (LPBYTE)buf, &dwBufSize);
+			if (dwRet == ERROR_SUCCESS && buf) {
+				std::wstring fileName = std::wstring(buf);
+				fileName = fileName.substr(fileName.find_last_of(L"/\\") + 1);
+				if (fileName.compare(L"obs-virtualsource.dll") == 0)
+					return Napi::Number::New(info.Env(), VcamInstalledStatus::LegacyInstalled);
+				else
+					return Napi::Number::New(info.Env(), VcamInstalledStatus::Installed);
+			}
+		}
+	}
+
+	return Napi::Number::New(info.Env(), VcamInstalledStatus::NotInstalled);
 #elif __APPLE__
 	// Not implemented
 	return info.Env().Undefined();

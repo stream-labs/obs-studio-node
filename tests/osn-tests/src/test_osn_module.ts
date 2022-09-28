@@ -49,7 +49,7 @@ describe(testName, () => {
         if (obs.os == 'win32') {
             modulePath = path.join(path.normalize(osn.DefaultPluginPath), '64bit');
         } else if (obs.os == 'darwin') {
-            modulePath = path.normalize(osn.DefaultPluginPath);
+            modulePath = path.normalize(osn.DefaultPluginPathMac);
         }
 
         fs.readdirSync(modulePath).forEach(file => {
