@@ -930,7 +930,7 @@ void osn::SceneItem::SetBlendingMethod(const Napi::CallbackInfo& info, const Nap
 	if (!conn)
 		return;
 
-	conn->call("SceneItem", "SetBlendingMethod", std::vector<ipc::value>{ipc::value(this->itemId), ipc::value(mode)});
+	conn->call("SceneItem", "SetBlendingMethod", std::vector<ipc::value>{ipc::value(this->itemId), ipc::value(method)});
 
 	sid->blendingMethod = method;
 	sid->blendingMethodChanged = false;
