@@ -152,13 +152,13 @@ set(
 if(WIN32)
 	set (OBS_URL_EXTENSION "")
 elseif(APPLE)
-	set (OBS_URL_EXTENSION "x86_64")
+	set (OBS_URL_EXTENSION "-x86_64")
 endif()
 
 string(
 	CONCAT OSN_DEFAULT_LIBOBS_URL
 	"https://obsstudios3.streamlabs.com/"
-	"libobs-${LIBOBS_PLATFORM}-${LIBOBS_BUILD_TYPE}-${LIBOBS_VERSION}-${OBS_URL_EXTENSION}.7z"
+	"libobs-${LIBOBS_PLATFORM}-${LIBOBS_BUILD_TYPE}-${LIBOBS_VERSION}${OBS_URL_EXTENSION}.7z"
 )
 
 set(
