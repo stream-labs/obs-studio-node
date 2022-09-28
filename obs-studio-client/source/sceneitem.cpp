@@ -518,12 +518,12 @@ Napi::Value osn::SceneItem::GetScaleFilter(const Napi::CallbackInfo& info)
 
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
-	bool filter = !!response[1].value_union.ui32;
+	uint32_t filter = response[1].value_union.ui32;
 
 	sid->scaleFilter = filter;
 	sid->scaleFilterChanged = false;
 
-	return Napi::Boolean::New(info.Env(), filter);
+	return Napi::Number::New(info.Env(), filter);
 }
 
 void osn::SceneItem::SetScaleFilter(const Napi::CallbackInfo& info, const Napi::Value &value)
@@ -910,20 +910,20 @@ Napi::Value osn::SceneItem::GetBlendingMethod(const Napi::CallbackInfo& info)
 
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
-	uint32_t mode = !!response[1].value_union.ui32;
+	uint32_t method = response[1].value_union.ui32;
 
-	sid->blendingMethod = mode;
+	sid->blendingMethod = method;
 	sid->blendingMethodChanged = false;
 
-	return Napi::Number::New(info.Env(), mode);
+	return Napi::Number::New(info.Env(), method);
 }
 
 void osn::SceneItem::SetBlendingMethod(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
-	uint32_t mode = value.ToNumber().Uint32Value();
+	uint32_t method = value.ToNumber().Uint32Value();
 
 	SceneItemData* sid = CacheManager<SceneItemData*>::getInstance().Retrieve(this->itemId);
-	if (sid && sid->blendingMethod == mode)
+	if (sid && sid->blendingMethod == method)
 		return;
 
 	auto conn = GetConnection(info);
@@ -932,7 +932,7 @@ void osn::SceneItem::SetBlendingMethod(const Napi::CallbackInfo& info, const Nap
 
 	conn->call("SceneItem", "SetBlendingMethod", std::vector<ipc::value>{ipc::value(this->itemId), ipc::value(mode)});
 
-	sid->blendingMethod = mode;
+	sid->blendingMethod = method;
 	sid->blendingMethodChanged = false;
 }
 
@@ -952,7 +952,7 @@ Napi::Value osn::SceneItem::GetBlendingMode(const Napi::CallbackInfo& info)
 
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
-	uint32_t mode = !!response[1].value_union.ui32;
+	uint32_t mode = response[1].value_union.ui32;
 
 	sid->blendingMode = mode;
 	sid->blendingModeChanged = false;
