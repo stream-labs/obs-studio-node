@@ -30,6 +30,17 @@
 #include "util-crashmanager.h"
 #include "util-metricsprovider.h"
 
+#include "osn-streaming.hpp"
+#include "osn-recording.hpp"
+#include "osn-video-encoder.hpp"
+#include "osn-audio-encoder.hpp"
+#include "osn-service.hpp"
+#include "osn-delay.hpp"
+#include "osn-reconnect.hpp"
+#include "osn-network.hpp"
+#include "osn-audio-track.hpp"
+#include "memory-manager.h"
+
 #include <sys/types.h>
 
 #ifdef __APPLE
@@ -76,7 +87,7 @@
 #include <fcntl.h>
 #endif
 
-#include "error.hpp"
+#include "osn-error.hpp"
 #include "shared.hpp"
 
 #include <fstream>
@@ -119,6 +130,10 @@ std::chrono::high_resolution_clock::time_point         start_wait_acknowledge;
 
 ipc::server* g_server = nullptr;
 
+static bool browserAccel = true;
+static bool mediaFileCaching = true;
+static std::string processPriority = "Normal";
+
 void OBS_API::Register(ipc::server& srv)
 {
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("API");
@@ -143,7 +158,45 @@ void OBS_API::Register(ipc::server& srv)
 	cls->register_function(std::make_shared<ipc::function>(
 	    "SetUsername", std::vector<ipc::type>{ipc::type::String}, SetUsername));
 	cls->register_function(std::make_shared<ipc::function>(
-	    "OBS_API_forceCrash", std::vector<ipc::type>{}, OBS_API_forceCrash));
+	    "SetBrowserAcceleration",
+		std::vector<ipc::type>{ipc::type::UInt32},
+		SetBrowserAcceleration));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "GetBrowserAcceleration",
+		std::vector<ipc::type>{},
+		GetBrowserAcceleration));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "GetBrowserAccelerationLegacy",
+		std::vector<ipc::type>{},
+		GetBrowserAccelerationLegacy));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "SetMediaFileCaching",
+		std::vector<ipc::type>{ipc::type::UInt32},
+		SetMediaFileCaching));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "GetMediaFileCaching",
+		std::vector<ipc::type>{},
+		GetMediaFileCaching));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "GetMediaFileCachingLegacy",
+		std::vector<ipc::type>{},
+		GetMediaFileCachingLegacy));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "SetProcessPriority",
+		std::vector<ipc::type>{ipc::type::String},
+		SetProcessPriority));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "GetProcessPriority",
+		std::vector<ipc::type>{},
+		GetProcessPriority));
+    cls->register_function(std::make_shared<ipc::function>(
+        "GetProcessPriorityLegacy",
+        std::vector<ipc::type>{},
+        GetProcessPriorityLegacy));
+    cls->register_function(std::make_shared<ipc::function>(
+        "OBS_API_forceCrash",
+        std::vector<ipc::type>{},
+        OBS_API_forceCrash));
 
 	srv.register_collection(cls);
 	g_server = &srv;
@@ -935,9 +988,8 @@ void OBS_API::OBS_API_initAPI(
 	ConfigManager::getInstance().setAppdataPath(appdata);
 
 	/* Set global private settings for whomever it concerns */
-	bool        browserHWAccel   = config_get_bool(ConfigManager::getInstance().getGlobal(), "General", "BrowserHWAccel");
 	obs_data_t* private_settings = obs_data_create();
-	obs_data_set_bool(private_settings, "BrowserHWAccel", browserHWAccel);
+	obs_data_set_bool(private_settings, "BrowserHWAccel", browserAccel);
 	obs_apply_private_data(private_settings);
 	obs_data_release(private_settings);
 
@@ -1210,7 +1262,7 @@ void OBS_API::SetUsername(
 	AUTO_DEBUG;
 }
 
-void OBS_API::SetProcessPriority(const char* priority)
+void OBS_API::SetProcessPriorityOld(const char* priority)
 {
 	if (!priority)
 		return;
@@ -1228,24 +1280,17 @@ void OBS_API::SetProcessPriority(const char* priority)
 #endif
 }
 
-void OBS_API::UpdateProcessPriority()
-{
-	const char* priority = config_get_string(ConfigManager::getInstance().getGlobal(), "General", "ProcessPriority");
-	if (priority && strcmp(priority, "Normal") != 0)
-		SetProcessPriority(priority);
-}
-
 void OBS_API::OBS_API_forceCrash(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	throw std::runtime_error("Simulated crash to test crash handling functionality");
+    throw std::runtime_error("Simulated crash to test crash handling functionality");
 
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 
-	AUTO_DEBUG;
+    AUTO_DEBUG;
 }
 
 bool DisableAudioDucking(bool disable)
@@ -1571,36 +1616,52 @@ void OBS_API::destroyOBS_API(void)
 	OBS_service::waitReleaseWorker();
 
 	obs_encoder_t* streamingEncoder = OBS_service::getStreamingEncoder();
-	if (streamingEncoder != NULL)
+	if (streamingEncoder != NULL) {
 		obs_encoder_release(streamingEncoder);
+		streamingEncoder = nullptr;
+    }
 
 	obs_encoder_t* recordingEncoder = OBS_service::getRecordingEncoder();
-	if (recordingEncoder != NULL && (OBS_service::useRecordingPreset() || obs_get_multiple_rendering()))
+	if (recordingEncoder != NULL && (OBS_service::useRecordingPreset() || obs_get_multiple_rendering())) {
 		obs_encoder_release(recordingEncoder);
+		recordingEncoder = nullptr;
+    }
 
 	obs_encoder_t* audioStreamingEncoder = OBS_service::getAudioSimpleStreamingEncoder();
-	if (audioStreamingEncoder != NULL)
+	if (audioStreamingEncoder != NULL) {
 		obs_encoder_release(audioStreamingEncoder);
+		audioStreamingEncoder = nullptr;
+    }
 
 	obs_encoder_t* audioRecordingEncoder = OBS_service::getAudioSimpleRecordingEncoder();
-	if (audioRecordingEncoder != NULL && (OBS_service::useRecordingPreset() || obs_get_multiple_rendering()))
+	if (audioRecordingEncoder != NULL && (OBS_service::useRecordingPreset() || obs_get_multiple_rendering())) {
 		obs_encoder_release(audioRecordingEncoder);
+		audioRecordingEncoder = nullptr;
+    }
 
 	obs_encoder_t* archiveEncoder = OBS_service::getArchiveEncoder();
-	if (archiveEncoder != NULL)
+	if (archiveEncoder != NULL) {
 		obs_encoder_release(archiveEncoder);
+		archiveEncoder = nullptr;
+    }
 
 	obs_output_t* streamingOutput = OBS_service::getStreamingOutput();
-	if (streamingOutput != NULL)
+	if (streamingOutput != NULL) {
 		obs_output_release(streamingOutput);
+		streamingEncoder = nullptr;
+    }
 
 	obs_output_t* recordingOutput = OBS_service::getRecordingOutput();
-	if (recordingOutput != NULL)
+	if (recordingOutput != NULL) {
 		obs_output_release(recordingOutput);
+		recordingOutput = nullptr;
+    }
 
 	obs_output_t* replayBufferOutput = OBS_service::getReplayBufferOutput();
-	if (replayBufferOutput != NULL)
+	if (replayBufferOutput != NULL) {
 		obs_output_release(replayBufferOutput);
+		replayBufferOutput = nullptr;
+    }
 
 	obs_output* virtualWebcamOutput = OBS_service::getVirtualWebcamOutput();
 	if (virtualWebcamOutput != NULL) {
@@ -1608,17 +1669,109 @@ void OBS_API::destroyOBS_API(void)
 			obs_output_stop(virtualWebcamOutput);
 
 		obs_output_release(virtualWebcamOutput);
+		virtualWebcamOutput = nullptr;
 	}
 
 	obs_service_t* service = OBS_service::getService();
-	if (service != NULL)
+	if (service != NULL) {
 		obs_service_release(service);
+		service = nullptr;
+    }
 
     OBS_service::clearAudioEncoder();
     osn::Volmeter::ClearVolmeters();
     osn::Fader::ClearFaders();
 
 	obs_wait_for_destroy_queue();
+
+	// Release all video encoders
+	std::vector<obs_encoder_t*> videoEncoders;
+	osn::VideoEncoder::Manager::GetInstance().
+		for_each([&videoEncoders](obs_encoder_t* videoEncoder)
+	{
+		if (videoEncoder) {
+			obs_encoder_release(videoEncoder);
+			videoEncoder = nullptr;
+		}
+	});
+
+	// Release all audio encoders
+	std::vector<obs_encoder_t*> audioEncoders;
+	osn::AudioEncoder::Manager::GetInstance().
+		for_each([&audioEncoders](obs_encoder_t* audioEncoder)
+	{
+		if (audioEncoder) {
+			obs_encoder_release(audioEncoder);
+			audioEncoder = nullptr;
+		}
+	});
+
+	// Release all audio track encoders
+	std::vector<osn::AudioTrack*> audioTrackEncoders;
+	// osn::IAudioTrack::Manager::GetInstance().
+	// 	for_each([&audioTrackEncoders](osn::AudioTrack* audioTrackEncoder)
+	for (auto const& audioTrack: osn::IAudioTrack::audioTracks)	{
+		if(audioTrack && audioTrack->audioEnc) {
+			obs_encoder_release(audioTrack->audioEnc);
+			audioTrack->audioEnc = nullptr;
+		}
+	};
+
+	// Release all services
+	std::vector<obs_encoder_t*> services;
+	osn::Service::Manager::GetInstance().
+		for_each([&services](obs_service_t* service)
+	{
+		if (service) {
+			obs_service_release(service);
+			service = nullptr;
+		}
+	});
+
+	// Release all delays
+	std::vector<osn::Delay*> delays;
+	osn::IDelay::Manager::GetInstance().
+		for_each([&delays](osn::Delay* delay)
+	{
+		if (delay)
+			delete delay;
+	});
+
+	// Release all reconnects
+	std::vector<osn::Reconnect*> reconnects;
+	osn::IReconnect::Manager::GetInstance().
+		for_each([&reconnects](osn::Reconnect* reconnect)
+	{
+		if (reconnect)
+			delete reconnect;
+	});
+
+	// Release all networks
+	std::vector<osn::Network*> networks;
+	osn::INetwork::Manager::GetInstance().
+		for_each([&networks](osn::Network* network)
+	{
+		if (network)
+			delete network;
+	});
+
+	// Release all streaming ouputs
+	std::vector<osn::Streaming*> streamingOutputs;
+	osn::IStreaming::Manager::GetInstance().
+		for_each([&streamingOutputs](osn::Streaming* streamingOutput)
+	{
+		if (streamingOutput)
+			delete streamingOutput;
+	});
+
+	// Release all recording ouputs
+	std::vector<osn::FileOutput*> fileOutputs;
+	osn::IFileOutput::Manager::GetInstance().
+		for_each([&fileOutputs](osn::FileOutput* fileOutput)
+	{
+		if (fileOutput)
+			delete fileOutput;
+	});
 
 	// Check if the frontend was able to shutdown correctly:
 	// If there are some sources here it's because it ended unexpectedly, this represents a 
@@ -1961,4 +2114,146 @@ std::vector<std::pair<uint32_t, uint32_t>> OBS_API::availableResolutions(void)
 	resolutions = g_util_osx->getAvailableScreenResolutions();
 #endif
 	return resolutions;
+}
+
+void OBS_API::SetBrowserAcceleration(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	browserAccel = args[0].value_union.ui32;
+    config_set_bool(
+        ConfigManager::getInstance().getGlobal(),
+        "General", "BrowserHWAccel", browserAccel);
+    config_save_safe(ConfigManager::getInstance().getGlobal(), "tmp", nullptr);
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
+}
+
+void OBS_API::SetMediaFileCaching(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	mediaFileCaching = args[0].value_union.ui32;
+    config_set_bool(
+        ConfigManager::getInstance().getGlobal(),
+        "General", "fileCaching", mediaFileCaching);
+    config_save_safe(ConfigManager::getInstance().getGlobal(), "tmp", nullptr);
+	MemoryManager::GetInstance().updateSourcesCache();
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
+}
+
+void OBS_API::SetProcessPriority(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	processPriority = args[0].value_str;
+    config_set_string(
+        ConfigManager::getInstance().getGlobal(),
+        "General", "ProcessPriority", processPriority.c_str());
+    config_save_safe(ConfigManager::getInstance().getGlobal(), "tmp", nullptr);
+
+#ifdef WIN32
+	if (processPriority.compare("High") == 0)
+		SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
+	else if (processPriority.compare("AboveNormal") == 0)
+		SetPriorityClass(GetCurrentProcess(), ABOVE_NORMAL_PRIORITY_CLASS);
+	else if (processPriority.compare("Normal") == 0)
+		SetPriorityClass(GetCurrentProcess(), NORMAL_PRIORITY_CLASS);
+	else if (processPriority.compare("BelowNormal") == 0)
+		SetPriorityClass(GetCurrentProcess(), BELOW_NORMAL_PRIORITY_CLASS);
+	else if (processPriority.compare("Idle") == 0)
+		SetPriorityClass(GetCurrentProcess(), IDLE_PRIORITY_CLASS);
+#endif
+
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
+}
+
+bool OBS_API::getBrowserAcceleration()
+{
+	return browserAccel;
+}
+
+bool OBS_API::getMediaFileCaching()
+{
+	return mediaFileCaching;
+}
+
+void OBS_API::GetBrowserAcceleration(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value((uint32_t)browserAccel));
+	AUTO_DEBUG;
+}
+
+void OBS_API::GetMediaFileCaching(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value((uint32_t)mediaFileCaching));
+	AUTO_DEBUG;
+}
+
+void OBS_API::GetProcessPriority(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(processPriority));
+	AUTO_DEBUG;
+}
+
+void OBS_API::GetBrowserAccelerationLegacy(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value((uint32_t)
+        config_get_bool(ConfigManager::getInstance().getGlobal(),
+        "General", "BrowserHWAccel")));
+	AUTO_DEBUG;
+}
+
+void OBS_API::GetMediaFileCachingLegacy(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value((uint32_t)
+        config_get_bool(ConfigManager::getInstance().getGlobal(),
+        "General", "fileCaching")));
+	AUTO_DEBUG;
+}
+
+void OBS_API::GetProcessPriorityLegacy(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(
+        config_get_string(ConfigManager::getInstance().getGlobal(),
+        "General", "ProcessPriority")));
+	AUTO_DEBUG;
 }

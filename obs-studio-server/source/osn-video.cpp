@@ -19,7 +19,7 @@
 #include "osn-video.hpp"
 #include <ipc-server.hpp>
 #include <obs.h>
-#include "error.hpp"
+#include "osn-error.hpp"
 #include "shared.hpp"
 
 // DELETE ME WHEN REMOVING NODEOBS
@@ -44,8 +44,17 @@ void osn::Video::Register(ipc::server& srv)
         std::make_shared<ipc::function>("SetVideoContext", std::vector<ipc::type>{
             ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32,
             ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32,
-            ipc::type::UInt32, ipc::type::UInt32,
+            ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32
         }, SetVideoContext));
+    cls->register_function(
+        std::make_shared<ipc::function>("GetLegacySettings",
+        std::vector<ipc::type>{}, GetLegacySettings));
+    cls->register_function(
+        std::make_shared<ipc::function>("SetLegacySettings", std::vector<ipc::type>{
+            ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32,
+            ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32,
+            ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32
+        }, SetLegacySettings));
     srv.register_collection(cls);
 }
 
@@ -91,11 +100,12 @@ void osn::Video::GetVideoContext(
     rval.push_back(ipc::value(video->colorspace));
     rval.push_back(ipc::value(video->range));
     rval.push_back(ipc::value(video->scale_type));
+    // ??? FPSType
 
     AUTO_DEBUG;
 }
 
-static inline const char* GetScaleType(enum obs_scale_type scaleType)
+static inline const char* GetScaleType(const enum obs_scale_type& scaleType)
 {
     switch (scaleType) {
         case OBS_SCALE_BILINEAR:
@@ -109,7 +119,19 @@ static inline const char* GetScaleType(enum obs_scale_type scaleType)
     }
 }
 
-static inline const char* GetOutputFormat(enum video_format outputFormat)
+static inline enum obs_scale_type ScaleTypeFromStr(const std::string& value)
+{
+    if (value.compare("bilinear") == 0)
+        return OBS_SCALE_BILINEAR;
+    else if (value.compare("bicubic") == 0)
+        return OBS_SCALE_BICUBIC;
+    else if (value.compare("lanczos") == 0)
+        return OBS_SCALE_LANCZOS;
+
+    return OBS_SCALE_BILINEAR;
+}
+
+static inline const char* GetOutputFormat(const enum video_format& outputFormat)
 {
     switch (outputFormat) {
         case VIDEO_FORMAT_I420:
@@ -149,7 +171,45 @@ static inline const char* GetOutputFormat(enum video_format outputFormat)
     }
 }
 
-static inline const char* GetColorSpace(enum video_colorspace colorSpace)
+static inline enum video_format OutputFormFromStr(const std::string& value)
+{
+    if (value.compare("I420") == 0)
+        return VIDEO_FORMAT_I420;
+    else if (value.compare("NV12") == 0)
+        return VIDEO_FORMAT_NV12;
+    else if (value.compare("YVYU") == 0)
+        return VIDEO_FORMAT_YVYU;
+    else if (value.compare("YUY2") == 0)
+        return VIDEO_FORMAT_YUY2;
+    else if (value.compare("UYVY") == 0)
+        return VIDEO_FORMAT_UYVY;
+    else if (value.compare("RGBA") == 0)
+        return VIDEO_FORMAT_RGBA;
+    else if (value.compare("BGRA") == 0)
+        return VIDEO_FORMAT_BGRA;
+    else if (value.compare("BGRX") == 0)
+        return VIDEO_FORMAT_BGRX;
+    else if (value.compare("Y800") == 0)
+        return VIDEO_FORMAT_Y800;
+    else if (value.compare("I444") == 0)
+        return VIDEO_FORMAT_I444;
+    else if (value.compare("BGR3") == 0)
+        return VIDEO_FORMAT_BGR3;
+    else if (value.compare("I422") == 0)
+        return VIDEO_FORMAT_I422;
+    else if (value.compare("I40A") == 0)
+        return VIDEO_FORMAT_I40A;
+    else if (value.compare("I42A") == 0)
+        return VIDEO_FORMAT_I42A;
+    else if (value.compare("YUVA") == 0)
+        return VIDEO_FORMAT_YUVA;
+    else if (value.compare("AYUV") == 0)
+        return VIDEO_FORMAT_AYUV;
+
+    return VIDEO_FORMAT_I420;
+}
+
+static inline const char* GetColorSpace(const enum video_colorspace& colorSpace)
 {
     switch (colorSpace) {
         case VIDEO_CS_DEFAULT:
@@ -165,7 +225,19 @@ static inline const char* GetColorSpace(enum video_colorspace colorSpace)
     }
 }
 
-static inline const char* GetColorRange(enum video_range_type colorRange)
+static inline enum video_colorspace ColorSpaceFromStr(const std::string& value)
+{
+    if (value.compare("709") == 0)
+        return VIDEO_CS_709;
+    else if (value.compare("601") == 0)
+        return VIDEO_CS_601;
+    else if (value.compare("sRGB") == 0)
+        return VIDEO_CS_SRGB;
+
+    return VIDEO_CS_DEFAULT;
+}
+
+static inline const char* GetColorRange(const enum video_range_type& colorRange)
 {
     switch (colorRange) {
         case VIDEO_RANGE_DEFAULT:
@@ -179,48 +251,44 @@ static inline const char* GetColorRange(enum video_range_type colorRange)
     }
 }
 
+static inline enum video_range_type ColoRangeFromStr(const std::string& value)
+{
+    if (value.compare("Partial") == 0)
+        return VIDEO_RANGE_PARTIAL;
+    else if (value.compare("Full") == 0)
+        return VIDEO_RANGE_PARTIAL;
+
+    return VIDEO_RANGE_DEFAULT;
+}
+
 static inline void SaveVideoSettings()
 {
-	size_t         canvases = obs_get_video_info_count();
-	obs_video_info video;
-	
-    config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "Canvases", canvases);
+    config_set_uint(
+        ConfigManager::getInstance().getBasic(), "Video", "FPSNum", video.fps_num);
+    config_set_uint(
+        ConfigManager::getInstance().getBasic(), "Video", "FPSDen", video.fps_den);
+    config_set_uint(
+        ConfigManager::getInstance().getBasic(), "Video", "BaseCX", video.base_width);
+    config_set_uint(
+        ConfigManager::getInstance().getBasic(), "Video", "BaseCY", video.base_height);
+    config_set_uint(
+        ConfigManager::getInstance().getBasic(), "Video", "OutputCX", video.output_width);
+    config_set_uint(
+        ConfigManager::getInstance().getBasic(), "Video", "OutputCY", video.output_height);
+    config_set_string(
+        ConfigManager::getInstance().getBasic(),
+        "Video", "ScaleType", GetScaleType(video.scale_type));
+    config_set_string(
+        ConfigManager::getInstance().getBasic(),
+        "Video", "ColorFormat", GetOutputFormat(video.output_format));
+    config_set_string(
+        ConfigManager::getInstance().getBasic(),
+        "Video", "ColorSpace", GetColorSpace(video.colorspace));
+    config_set_string(
+        ConfigManager::getInstance().getBasic(),
+        "Video", "ColorRange", GetColorRange(video.range));
 
-    for (size_t i = 0; i < canvases; i++) {
-		if (!obs_get_video_info_by_index(i, &video))
-			continue;
-		std::string config_part = "Video";
-		if (i != 0)
-			config_part = config_part + "_" + std::to_string(i);
-		
-        config_set_uint(
-            ConfigManager::getInstance().getBasic(), config_part.c_str(), "FPSNum", video.fps_num);
-        config_set_uint(
-            ConfigManager::getInstance().getBasic(), config_part.c_str(), "FPSDen", video.fps_den);
-        config_set_uint(
-            ConfigManager::getInstance().getBasic(), config_part.c_str(), "BaseCX", video.base_width);
-        config_set_uint(
-            ConfigManager::getInstance().getBasic(), config_part.c_str(), "BaseCY", video.base_height);
-        config_set_uint(
-            ConfigManager::getInstance().getBasic(), config_part.c_str(), "OutputCX", video.output_width);
-        config_set_uint(
-            ConfigManager::getInstance().getBasic(), config_part.c_str(), "OutputCY", video.output_height);
-
-        config_set_string(
-            ConfigManager::getInstance().getBasic(),
-            config_part.c_str(), "ScaleType", GetScaleType(video.scale_type));
-        config_set_string(
-            ConfigManager::getInstance().getBasic(),
-            config_part.c_str(), "ColorFormat", GetOutputFormat(video.output_format));
-        config_set_string(
-            ConfigManager::getInstance().getBasic(),
-            config_part.c_str(), "ColorSpace", GetColorSpace(video.colorspace));
-        config_set_string(
-            ConfigManager::getInstance().getBasic(),
-            config_part.c_str(), "ColorRange", GetColorRange(video.range));
-	}
-
-    config_save_safe(ConfigManager::getInstance().getBasic(), "tmp", nullptr);
+    return VIDEO_RANGE_DEFAULT;
 }
 
 void osn::Video::SetVideoContext(
@@ -244,6 +312,7 @@ void osn::Video::SetVideoContext(
     uint32_t colorspace = args[7].value_union.ui32;
     uint32_t range = args[8].value_union.ui32;
     uint32_t scaleType = args[9].value_union.ui32;
+    uint32_t fpsType = args[9].value_union.ui32;
     
  	obs_video_info* canvas = osn::Video::Manager::GetInstance().find(args[10].value_union.ui64);
 	obs_video_info  video;
@@ -266,6 +335,12 @@ void osn::Video::SetVideoContext(
     video.scale_type = (obs_scale_type)scaleType;
     video.adapter = 0;
     video.gpu_conversion = true;
+
+    config_set_uint(
+        ConfigManager::getInstance().getBasic(),
+        "Video", "FPSType", fpsType);
+    config_save_safe(
+        ConfigManager::getInstance().getBasic(), "tmp", nullptr);
 
     try {
 		obs_set_video_info(canvas, &video);
@@ -337,4 +412,166 @@ osn::Video::Manager& osn::Video::Manager::GetInstance()
 {
 	static osn::Video::Manager _inst;
 	return _inst;
+}
+
+
+void osn::Video::GetLegacySettings(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+
+    uint32_t fpsType =
+         config_get_uint(
+             ConfigManager::getInstance().getBasic(),
+             "Video", "FPSType");
+    switch (fpsType)
+    {
+    case 0: {
+        std::string fpsCommon =
+            config_get_string(
+                ConfigManager::getInstance().getBasic(),
+                "Video", "FPSCommon");
+        if (fpsCommon.compare("10") == 0) {
+            rval.push_back(ipc::value((uint32_t)10));
+            rval.push_back(ipc::value((uint32_t)1));
+        } else if (fpsCommon.compare("20") == 0) {
+            rval.push_back(ipc::value((uint32_t)20));
+            rval.push_back(ipc::value((uint32_t)1));
+        } else if (fpsCommon.compare("24 NTSC") == 0) {
+            rval.push_back(ipc::value((uint32_t)24000));
+            rval.push_back(ipc::value((uint32_t)1001));
+        } else if (fpsCommon.compare("25") == 0) {
+            rval.push_back(ipc::value((uint32_t)25));
+            rval.push_back(ipc::value((uint32_t)1));
+        } else if (fpsCommon.compare("29.97") == 0) {
+            rval.push_back(ipc::value((uint32_t)30000));
+            rval.push_back(ipc::value((uint32_t)1001));
+        } else if (fpsCommon.compare("48") == 0) {
+            rval.push_back(ipc::value((uint32_t)48));
+            rval.push_back(ipc::value((uint32_t)1));
+        } else if (fpsCommon.compare("59.94") == 0) {
+            rval.push_back(ipc::value((uint32_t)60000));
+            rval.push_back(ipc::value((uint32_t)1001));
+        } else if (fpsCommon.compare("60") == 0) {
+            rval.push_back(ipc::value((uint32_t)60));
+            rval.push_back(ipc::value((uint32_t)1));
+        } else {
+            rval.push_back(ipc::value((uint32_t)30));
+            rval.push_back(ipc::value((uint32_t)1));
+        }
+        break;
+    }
+    case 1: {
+        rval.push_back(ipc::value((uint32_t)
+            config_get_uint(
+                ConfigManager::getInstance().getBasic(),
+                "Video", "FPSInt")));
+        rval.push_back(ipc::value((uint32_t)1));
+        break;
+    }
+    case 2: {
+        rval.push_back(ipc::value((uint32_t)
+            config_get_uint(
+                ConfigManager::getInstance().getBasic(),
+                "Video", "FPSNum")));
+        rval.push_back(ipc::value((uint32_t)
+            config_get_uint(
+                ConfigManager::getInstance().getBasic(),
+                "Video", "FPSDen")));
+        break;
+    }
+    default: {
+        rval.push_back(ipc::value((uint32_t)30));
+        rval.push_back(ipc::value((uint32_t)1));
+        break;
+    }
+    }
+
+    rval.push_back(
+        ipc::value(config_get_uint(
+            ConfigManager::getInstance().getBasic(),
+            "Video", "BaseCX")));
+    rval.push_back(
+        ipc::value(config_get_uint(
+            ConfigManager::getInstance().getBasic(),
+            "Video", "BaseCY")));
+    rval.push_back(
+        ipc::value(config_get_uint(
+            ConfigManager::getInstance().getBasic(),
+            "Video", "OutputCX")));
+    rval.push_back(
+        ipc::value(config_get_uint(
+            ConfigManager::getInstance().getBasic(),
+            "Video", "OutputCY")));
+    rval.push_back(ipc::value(
+        OutputFormFromStr(config_get_string(
+            ConfigManager::getInstance().getBasic(),
+            "Video", "ColorFormat"))));
+    rval.push_back(ipc::value(
+        ColorSpaceFromStr(config_get_string(
+            ConfigManager::getInstance().getBasic(),
+            "Video", "ColorSpace"))));
+    rval.push_back(ipc::value(
+        ColoRangeFromStr(config_get_string(
+            ConfigManager::getInstance().getBasic(),
+            "Video", "ColorRange"))));
+    rval.push_back(ipc::value(
+        ScaleTypeFromStr(config_get_string(
+            ConfigManager::getInstance().getBasic(),
+            "Video", "ScaleType"))));
+    rval.push_back(ipc::value(
+        config_get_uint(
+             ConfigManager::getInstance().getBasic(),
+             "Video", "FPSType")));
+
+    AUTO_DEBUG;
+}
+
+void osn::Video::SetLegacySettings(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+    uint32_t fpsNum = args[0].value_union.ui32;
+    uint32_t fpsDen = args[1].value_union.ui32;
+    uint32_t baseWidth = args[2].value_union.ui32;
+    uint32_t baseHeight = args[3].value_union.ui32;
+    uint32_t outputWidth = args[4].value_union.ui32;
+    uint32_t outputHeight = args[5].value_union.ui32;
+    uint32_t outputFormat = args[6].value_union.ui32;
+    uint32_t colorspace = args[7].value_union.ui32;
+    uint32_t range = args[8].value_union.ui32;
+    uint32_t scaleType = args[9].value_union.ui32;
+
+    config_set_uint(
+        ConfigManager::getInstance().getBasic(),
+        "Video", "FPSNum", fpsNum);
+    config_set_uint(
+        ConfigManager::getInstance().getBasic(), "Video", "FPSDen", fpsDen);
+    config_set_uint(
+        ConfigManager::getInstance().getBasic(), "Video", "BaseCX", baseWidth);
+    config_set_uint(
+        ConfigManager::getInstance().getBasic(), "Video", "BaseCY", baseHeight);
+    config_set_uint(
+        ConfigManager::getInstance().getBasic(), "Video", "OutputCX", outputWidth);
+    config_set_uint(
+        ConfigManager::getInstance().getBasic(), "Video", "OutputCY", outputHeight);
+    config_set_string(
+        ConfigManager::getInstance().getBasic(),
+        "Video", "ScaleType", GetScaleType((obs_scale_type)scaleType));
+    config_set_string(
+        ConfigManager::getInstance().getBasic(),
+        "Video", "ColorFormat", GetOutputFormat((video_format)outputFormat));
+    config_set_string(
+        ConfigManager::getInstance().getBasic(),
+        "Video", "ColorSpace", GetColorSpace((video_colorspace)colorspace));
+    config_set_string(
+        ConfigManager::getInstance().getBasic(),
+        "Video", "ColorRange", GetColorRange((video_range_type)range));
+
+    config_save_safe(ConfigManager::getInstance().getBasic(), "tmp", nullptr);
 }

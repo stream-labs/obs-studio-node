@@ -75,7 +75,7 @@ export class OBSHandler {
     private cacheUploader: CacheUploader;
     private hasUserFromPool: boolean = false;
     private osnTestName: string;
-    private signals = new WaitQueue();
+    signals = new WaitQueue();
     private progress = new  WaitQueue();
     inputTypes: string[];
     filterTypes: string[];
@@ -175,12 +175,15 @@ export class OBSHandler {
     };
 
     setStreamKey(value: string) {
-        osn.ServiceFactory.serviceContext.update({ key: value });
+        const service = osn.ServiceFactory.legacySettings;
+        service.update({ key: value });
+        osn.ServiceFactory.legacySettings = service;
+        this.setSetting(EOBSSettingsCategories.Stream, 'key', value);
     }
 
     getStreamKey(): string {
-        const settings = osn.ServiceFactory.serviceContext.settings;
-        return settings.key;
+        const service = osn.ServiceFactory.legacySettings;
+        return service.settings.key;
     }
 
     setSetting(category: string, parameter: string, value: any) {

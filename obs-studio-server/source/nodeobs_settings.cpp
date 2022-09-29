@@ -17,7 +17,7 @@
 ******************************************************************************/
 
 #include "nodeobs_settings.h"
-#include "error.hpp"
+#include "osn-error.hpp"
 #include "nodeobs_api.h"
 #include "shared.hpp"
 #include "memory-manager.h"
@@ -3755,7 +3755,7 @@ std::vector<SubCategory> OBS_settings::getAdvancedSettings()
 		    ConfigManager::getInstance().getGlobal(), "General", "ProcessPriority", processPriorityCurrentValue);
 	}
 
-	OBS_API::SetProcessPriority(processPriorityCurrentValue);
+	OBS_API::SetProcessPriorityOld(processPriorityCurrentValue);
 
 	entries.push_back(processPriority);
 

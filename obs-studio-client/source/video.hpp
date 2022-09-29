@@ -25,19 +25,20 @@ namespace osn
 	class Video : public Napi::ObjectWrap<osn::Video>
 	{
 		public:
-		uint64_t canvas;
-
 		static Napi::FunctionReference constructor;
 		static Napi::Object Init(Napi::Env env, Napi::Object exports);
 		Video(const Napi::CallbackInfo& info);
 
-		Napi::Value skippedFrames(const Napi::CallbackInfo& info);
-		Napi::Value encodedFrames(const Napi::CallbackInfo& info);
+        static Napi::Value GetSkippedFrames(const Napi::CallbackInfo& info);
+        static Napi::Value GetEncodedFrames(const Napi::CallbackInfo& info);
 
 		static Napi::Value Create(const Napi::CallbackInfo& info);
 		static void Destroy(const Napi::CallbackInfo& info);
 
 		Napi::Value get(const Napi::CallbackInfo& info);
 		void set(const Napi::CallbackInfo& info, const Napi::Value &value);
-	};
+
+        Napi::Value GetLegacySettings(const Napi::CallbackInfo& info);
+        void SetLegacySettings(const Napi::CallbackInfo& info, const Napi::Value &value);
+    };
 }

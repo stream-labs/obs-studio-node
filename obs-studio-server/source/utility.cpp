@@ -393,3 +393,7 @@ void utility::ProcessProperties(
 		}
 	}
 }
+
+const char* utility::GetSafeString(const char* str) {
+    return str ? str : "";
+}

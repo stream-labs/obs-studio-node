@@ -159,4 +159,28 @@ describe(testName, function() {
             osn.NodeObs.InitShutdownSequence();
         }).to.not.throw();
     });
+
+    it('Get and set the browser source acceleration', function() {
+        expect(osn.NodeObs.GetBrowserAcceleration()).
+            to.equal(true, 'Invalid browser source acceleration default value');
+        osn.NodeObs.SetBrowserAcceleration(false);
+        expect(osn.NodeObs.GetBrowserAcceleration()).
+            to.equal(false, 'Invalid browser source acceleration value');
+    });
+
+    it('Get and set media file caching', function() {
+        expect(osn.NodeObs.GetMediaFileCaching()).
+            to.equal(true, 'Invalid media file caching default value');
+        osn.NodeObs.SetMediaFileCaching(false);
+        expect(osn.NodeObs.GetMediaFileCaching()).
+            to.equal(false, 'Invalid media file caching value');
+    });
+
+    it('Get and set process priority', function() {
+        expect(osn.NodeObs.GetProcessPriority()).
+            to.equal('Normal', 'Invalid process priority default value');
+        osn.NodeObs.SetProcessPriority('High');
+        expect(osn.NodeObs.GetProcessPriority()).
+            to.equal('High', 'Invalid process priority value');
+    });
 });

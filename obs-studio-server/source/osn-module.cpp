@@ -17,7 +17,7 @@
 ******************************************************************************/
 
 #include "osn-module.hpp"
-#include "error.hpp"
+#include "osn-error.hpp"
 #include "shared.hpp"
 
 void osn::Module::Register(ipc::server& srv)

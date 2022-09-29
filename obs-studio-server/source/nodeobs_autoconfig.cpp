@@ -19,7 +19,7 @@
 #include "nodeobs_autoconfig.h"
 #include <array>
 #include <future>
-#include "error.hpp"
+#include "osn-error.hpp"
 #include "shared.hpp"
 
 enum class Type

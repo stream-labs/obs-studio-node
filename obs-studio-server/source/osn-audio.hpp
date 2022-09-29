@@ -1,5 +1,5 @@
 /******************************************************************************
-    Copyright (C) 2016-2019 by Streamlabs (General Workings Inc)
+    Copyright (C) 2016-2022 by Streamlabs (General Workings Inc)
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -17,10 +17,36 @@
 ******************************************************************************/
 
 #pragma once
-#include "osn-IEncoder.hpp"
+#include <ipc-server.hpp>
+#include <obs.h>
+#include "utility.hpp"
 
 namespace osn
 {
-	class Audio
-	{};
-} // namespace osn
+    class Audio
+    {
+        public:
+        static void Register(ipc::server&);
+
+        static void GetAudioContext(
+            void*                          data,
+            const int64_t                  id,
+            const std::vector<ipc::value>& args,
+            std::vector<ipc::value>&       rval);
+        static void SetAudioContext(
+            void*                          data,
+            const int64_t                  id,
+            const std::vector<ipc::value>& args,
+            std::vector<ipc::value>&       rval);
+		static void GetLegacySettings(
+		    void*                          data,
+		    const int64_t                  id,
+		    const std::vector<ipc::value>& args,
+		    std::vector<ipc::value>&       rval);
+		static void SetLegacySettings(
+		    void*                          data,
+		    const int64_t                  id,
+		    const std::vector<ipc::value>& args,
+		    std::vector<ipc::value>&       rval);
+    };
+}
