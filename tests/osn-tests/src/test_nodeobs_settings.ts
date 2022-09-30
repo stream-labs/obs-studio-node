@@ -1135,6 +1135,8 @@ describe(testName, function() {
 
             // Checking settings were updated correctly
             const updatedCBROutputSettings = obs.getSettingsContainer(EOBSSettingsCategories.Output);
+            console.log(cbrOutputSettings)
+            console.log(updatedCBROutputSettings)
             expect(cbrOutputSettings).to.eql(updatedCBROutputSettings, GetErrorMessage(ETestErrorMsg.OutputSettings));
 
             // Setting rate control to ABR
@@ -1229,6 +1231,8 @@ describe(testName, function() {
 
             // Checking if settings were updated correctly
             const updatedABROutputSettings = obs.getSettingsContainer(EOBSSettingsCategories.Output);
+            console.log(abrOutputSettings)
+            console.log(updatedABROutputSettings)
             expect(abrOutputSettings).to.eql(updatedABROutputSettings, GetErrorMessage(ETestErrorMsg.OutputSettings));
 
             // Setting rate control to VBR
@@ -1319,6 +1323,8 @@ describe(testName, function() {
 
             // Checking if settings were updated correctly
             const updatedVBROutputSettings = obs.getSettingsContainer(EOBSSettingsCategories.Output);
+            console.log(vbrOutputSettings)
+            console.log(updatedVBROutputSettings)
             expect(vbrOutputSettings).to.eql(updatedVBROutputSettings, GetErrorMessage(ETestErrorMsg.OutputSettings));
 
             // Setting rate control to CRF
@@ -1401,6 +1407,8 @@ describe(testName, function() {
 
             // Checking if settings were updated correctly
             const updatedCRFOutputSettings = obs.getSettingsContainer(EOBSSettingsCategories.Output);
+            console.log(updatedCRFOutputSettings)
+            console.log(updatedCRFOutputSettings)
             expect(crfOutputSettings).to.eql(updatedCRFOutputSettings, GetErrorMessage(ETestErrorMsg.OutputSettings));
         }
     });
