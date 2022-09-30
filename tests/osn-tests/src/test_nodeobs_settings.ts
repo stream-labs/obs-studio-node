@@ -1143,10 +1143,10 @@ describe(testName, function() {
             console.log(cbrOutputSettings[1])
             console.log(updatedCBROutputSettings[1])
             expect(cbrOutputSettings[1]).to.eql(updatedCBROutputSettings[1], GetErrorMessage(ETestErrorMsg.OutputSettings));
-            // console.log('logging updatedCBROutputSettings 2 ')
-            // console.log(cbrOutputSettings[2])
-            // console.log(updatedCBROutputSettings[2])
-            // expect(cbrOutputSettings[2]).to.eql(updatedCBROutputSettings[2], GetErrorMessage(ETestErrorMsg.OutputSettings));
+            console.log('logging updatedCBROutputSettings 2 ')
+            console.log(cbrOutputSettings[2])
+            console.log(updatedCBROutputSettings[2])
+            expect(cbrOutputSettings[2]).to.eql(updatedCBROutputSettings[2], GetErrorMessage(ETestErrorMsg.OutputSettings));
             // console.log('logging updatedCBROutputSettings 3 ')
             // console.log(cbrOutputSettings[3])
             // console.log(updatedCBROutputSettings[3])
