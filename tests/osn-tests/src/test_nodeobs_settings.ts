@@ -1135,18 +1135,24 @@ describe(testName, function() {
 
             // Checking settings were updated correctly
             const updatedCBROutputSettings = obs.getSettingsContainer(EOBSSettingsCategories.Output);
-            console.log('logging updatedCBROutputSettings 0 ')
-            console.log(cbrOutputSettings[0])
-            console.log(updatedCBROutputSettings[0])
-            expect(cbrOutputSettings[0]).to.eql(updatedCBROutputSettings[0], GetErrorMessage(ETestErrorMsg.OutputSettings));
-            console.log('logging updatedCBROutputSettings 1 ')
-            console.log(cbrOutputSettings[1])
-            console.log(updatedCBROutputSettings[1])
-            expect(cbrOutputSettings[1]).to.eql(updatedCBROutputSettings[1], GetErrorMessage(ETestErrorMsg.OutputSettings));
-            console.log('logging updatedCBROutputSettings 2 ')
-            console.log(cbrOutputSettings[2])
-            console.log(updatedCBROutputSettings[2])
-            expect(cbrOutputSettings[2]).to.eql(updatedCBROutputSettings[2], GetErrorMessage(ETestErrorMsg.OutputSettings));
+            // console.log('logging updatedCBROutputSettings 0 ')
+            // console.log(cbrOutputSettings[0])
+            // console.log(updatedCBROutputSettings[0])
+            // expect(cbrOutputSettings[0]).to.eql(updatedCBROutputSettings[0], GetErrorMessage(ETestErrorMsg.OutputSettings));
+            // console.log('logging updatedCBROutputSettings 1 ')
+            // console.log(cbrOutputSettings[1])
+            // console.log(updatedCBROutputSettings[1])
+            // expect(cbrOutputSettings[1]).to.eql(updatedCBROutputSettings[1], GetErrorMessage(ETestErrorMsg.OutputSettings));
+            // console.log('logging updatedCBROutputSettings 2 ')
+            // console.log(cbrOutputSettings[2])
+            // console.log(updatedCBROutputSettings[2])
+            // expect(cbrOutputSettings[2]).to.eql(updatedCBROutputSettings[2], GetErrorMessage(ETestErrorMsg.OutputSettings));
+            cbrOutputSettings[2].parameters.forEach((element, index) => {
+                console.log(`logging updatedCBROutputSettings 2 - ${index}`);
+                console.log(cbrOutputSettings[2].parameters[index])
+                console.log(updatedCBROutputSettings[2].parameters[index])
+                expect(cbrOutputSettings[2][index]).to.eql(updatedCBROutputSettings[2][index], GetErrorMessage(ETestErrorMsg.OutputSettings));
+            });
             // console.log('logging updatedCBROutputSettings 3 ')
             // console.log(cbrOutputSettings[3])
             // console.log(updatedCBROutputSettings[3])
