@@ -90,13 +90,15 @@ void osn::Input::Register(ipc::server& srv)
 	    "SetDeInterlaceMode", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32}, GetDeInterlaceMode));
 
 	cls->register_function(
-	    std::make_shared<ipc::function>("GetFilters", std::vector<ipc::type>{ipc::type::UInt64}, GetFilters));
+	    std::make_shared<ipc::function>("GetFilters", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32}, GetFilters));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "AddFilter", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64}, AddFilter));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "RemoveFilter", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64}, RemoveFilter));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "MoveFilter", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64, ipc::type::UInt32}, MoveFilter));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "PositionFilter", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64, ipc::type::UInt32, ipc::type::UInt32}, PositionFilter));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "FindFilter", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String}, FindFilter));
 	cls->register_function(std::make_shared<ipc::function>(
@@ -632,6 +634,66 @@ void osn::Input::MoveFilter(
 	AUTO_DEBUG;
 }
 
+size_t FilterPositionInFullList(obs_source_t* input, size_t position, int subset)
+{
+	struct filter_position_info {
+		size_t count;
+		size_t position;
+		size_t subset_count;
+		size_t full_position;
+		int subset;
+	} info = {0, position, 0, position, subset};
+
+	auto enum_cb = [](obs_source_t* parent, obs_source_t* filter, void* data) {
+		filter_position_info* info = reinterpret_cast<filter_position_info*>(data);
+		uint32_t output_flags = obs_source_get_output_flags(filter);
+		info->count++;
+		if(info->subset == OBS_SOURCE_VIDEO && (output_flags & OBS_SOURCE_VIDEO)) {
+			info->subset_count++;
+			if( info->subset_count == info->position) {
+				info->full_position = info->count;
+			}
+		}
+		if(info->subset == OBS_SOURCE_AUDIO && (output_flags & OBS_SOURCE_AUDIO)) {
+			info->subset_count++;
+			if( info->subset_count == info->position) {
+				info->full_position = info->count;
+			}
+		}
+	};
+
+	obs_source_enum_filters(input, enum_cb, &info);
+	return info.full_position;
+}
+
+void osn::Input::PositionFilter(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	obs_source_t* input = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	if (!input) {
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Input reference is not valid.");
+	}
+
+	obs_source_t* filter = osn::Source::Manager::GetInstance().find(args[1].value_union.ui64);
+	if (!filter) {
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Filter reference is not valid.");
+	}
+
+	size_t position = (size_t)args[2].value_union.ui32;
+	int subset = args[3].value_union.ui32;
+	
+	if (subset != 0)
+		position = FilterPositionInFullList(input, position, subset);
+
+	obs_source_filter_set_position(input, filter, position);
+
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
+}
+
 void osn::Input::FindFilter(
     void*                          data,
     const int64_t                  id,
@@ -674,10 +736,12 @@ void osn::Input::GetFilters(
 
 	auto enum_cb = [](obs_source_t* parent, obs_source_t* filter, void* data) {
 		std::vector<ipc::value>* rval = reinterpret_cast<std::vector<ipc::value>*>(data);
-
+		uint32_t output_flags = obs_source_get_output_flags(filter);
 		uint64_t id = osn::Source::Manager::GetInstance().find(filter);
+
 		if (id != UINT64_MAX) {
 			rval->push_back(id);
+			rval->push_back(output_flags & (OBS_SOURCE_AUDIO|OBS_SOURCE_VIDEO));
 		}
 	};
 

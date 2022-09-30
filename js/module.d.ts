@@ -458,8 +458,12 @@ export interface IInput extends ISource {
     sendFocus(focus: boolean): void;
     sendKeyClick(eventData: IKeyEvent, keyUp: boolean): void;
     setFilterOrder(filter: IFilter, movement: EOrderMovement): void;
-    setFilterOrder(filter: IFilter, movement: EOrderMovement): void;
+    setFilterPosition(filter: IFilter, position: number): void;
+    setVideoFilterPosition(filter: IFilter, position: number): void;
+    setAudioFilterPosition(filter: IFilter, position: number): void;
     readonly filters: IFilter[];
+    readonly videoFilters: IFilter[];
+    readonly audioFilters: IFilter[];
     readonly width: number;
     readonly height: number;
     getDuration(): number;

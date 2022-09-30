@@ -23,6 +23,12 @@
 
 namespace osn
 {
+	enum class FilterSubset : std::int16_t
+	{
+		All =0,
+		Audio = 2,
+		Video = 1
+	};
 	class Input : public Napi::ObjectWrap<osn::Input>
 	{
 		public:
@@ -43,6 +49,9 @@ namespace osn
 		Napi::Value AddFilter(const Napi::CallbackInfo& info);
 		Napi::Value RemoveFilter(const Napi::CallbackInfo& info);
 		Napi::Value SetFilterOrder(const Napi::CallbackInfo& info);
+		Napi::Value SetFilterPosition(const Napi::CallbackInfo& info);
+		Napi::Value SetVideoFilterPosition(const Napi::CallbackInfo& info);
+		Napi::Value SetAudioFilterPosition(const Napi::CallbackInfo& info);
 		Napi::Value FindFilter(const Napi::CallbackInfo& info);
 		Napi::Value CopyFilters(const Napi::CallbackInfo& info);
 
@@ -63,6 +72,10 @@ namespace osn
 		Napi::Value GetDeinterlaceMode(const Napi::CallbackInfo& info);
 		void SetDeinterlaceMode(const Napi::CallbackInfo& info, const Napi::Value &value);
 		Napi::Value Filters(const Napi::CallbackInfo& info);
+		Napi::Value VideoFilters(const Napi::CallbackInfo& info);
+		Napi::Value AudioFilters(const Napi::CallbackInfo& info);
+		Napi::Value GetFilters(const Napi::CallbackInfo& info, osn::FilterSubset subset);
+		Napi::Value FiltersFromCache(const Napi::CallbackInfo& info, osn::FilterSubset subset, std::vector<std::pair<uint64_t, int>> * filters);
 
 		Napi::Value CallIsConfigurable(const Napi::CallbackInfo& info);
 		Napi::Value CallGetProperties(const Napi::CallbackInfo& info);

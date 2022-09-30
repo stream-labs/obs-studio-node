@@ -86,6 +86,8 @@ export const enum ETestErrorMsg {
     MonitoringType = 'Failed to update monitoring type of input %VALUE1%',
     FindFilter = 'Did not found filter %VALUE1% in input %VALUE2%',
     RemoveFilter = 'Not all filters were removed',
+    PositionFilter = 'Failed to move filter %VALUE1% into position',
+    FilterInsert = 'Failed to insert a filter %VALUE1% into source',
     MoveFilterDown = 'Failed to move filter %VALUE1% down',
     MoveFilterUp = 'Failed to move filter %VALUE1% up',
     MoveFilterBottom = 'Failed to move filter %VALUE1% to bottom',
