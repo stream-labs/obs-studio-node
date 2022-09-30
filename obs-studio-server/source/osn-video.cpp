@@ -29,13 +29,13 @@
 void osn::Video::Register(ipc::server& srv)
 {
     std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Video");
-    cls->register_function(std::make_shared<ipc::function>(
-        "GetSkippedFrames", std::vector<ipc::type>{}, GetSkippedFrames));
+    cls->register_function(
+        std::make_shared<ipc::function>("GetSkippedFrames", std::vector<ipc::type>{}, GetSkippedFrames));
     cls->register_function(
         std::make_shared<ipc::function>("GetTotalFrames", std::vector<ipc::type>{}, GetTotalFrames));
 
     cls->register_function(
-        std::make_shared<ipc::function>("AddVideoContext", std::vector<ipc::type>{ipc::type::UInt32}, AddVideoContext));
+        std::make_shared<ipc::function>("AddVideoContext", std::vector<ipc::type>{}, AddVideoContext));
     cls->register_function(
         std::make_shared<ipc::function>("RemoveVideoContext", std::vector<ipc::type>{ipc::type::UInt32}, RemoveVideoContext));
     cls->register_function(
@@ -44,11 +44,11 @@ void osn::Video::Register(ipc::server& srv)
         std::make_shared<ipc::function>("SetVideoContext", std::vector<ipc::type>{
             ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32,
             ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32,
-            ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32
+	        ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt64
         }, SetVideoContext));
+
     cls->register_function(
-        std::make_shared<ipc::function>("GetLegacySettings",
-        std::vector<ipc::type>{}, GetLegacySettings));
+        std::make_shared<ipc::function>("GetLegacySettings", std::vector<ipc::type>{}, GetLegacySettings));
     cls->register_function(
         std::make_shared<ipc::function>("SetLegacySettings", std::vector<ipc::type>{
             ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32,
@@ -86,7 +86,7 @@ void osn::Video::GetVideoContext(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-	obs_video_info* video = osn::Video::Manager::GetInstance().find(args[10].value_union.ui64);
+	obs_video_info* video = osn::Video::Manager::GetInstance().find(args[0].value_union.ui64);
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 
@@ -261,43 +261,13 @@ static inline enum video_range_type ColoRangeFromStr(const std::string& value)
     return VIDEO_RANGE_DEFAULT;
 }
 
-static inline void SaveVideoSettings()
-{
-    config_set_uint(
-        ConfigManager::getInstance().getBasic(), "Video", "FPSNum", video.fps_num);
-    config_set_uint(
-        ConfigManager::getInstance().getBasic(), "Video", "FPSDen", video.fps_den);
-    config_set_uint(
-        ConfigManager::getInstance().getBasic(), "Video", "BaseCX", video.base_width);
-    config_set_uint(
-        ConfigManager::getInstance().getBasic(), "Video", "BaseCY", video.base_height);
-    config_set_uint(
-        ConfigManager::getInstance().getBasic(), "Video", "OutputCX", video.output_width);
-    config_set_uint(
-        ConfigManager::getInstance().getBasic(), "Video", "OutputCY", video.output_height);
-    config_set_string(
-        ConfigManager::getInstance().getBasic(),
-        "Video", "ScaleType", GetScaleType(video.scale_type));
-    config_set_string(
-        ConfigManager::getInstance().getBasic(),
-        "Video", "ColorFormat", GetOutputFormat(video.output_format));
-    config_set_string(
-        ConfigManager::getInstance().getBasic(),
-        "Video", "ColorSpace", GetColorSpace(video.colorspace));
-    config_set_string(
-        ConfigManager::getInstance().getBasic(),
-        "Video", "ColorRange", GetColorRange(video.range));
-
-    return VIDEO_RANGE_DEFAULT;
-}
-
 void osn::Video::SetVideoContext(
     void*                          data,
     const int64_t                  id,
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-    if (args.size() != 11) {
+    if (args.size() != 12) {
         PRETTY_ERROR_RETURN(ErrorCode::Error,
             "Invalid number of arguments to set the video context.");
     }
@@ -312,9 +282,9 @@ void osn::Video::SetVideoContext(
     uint32_t colorspace = args[7].value_union.ui32;
     uint32_t range = args[8].value_union.ui32;
     uint32_t scaleType = args[9].value_union.ui32;
-    uint32_t fpsType = args[9].value_union.ui32;
+    uint32_t fpsType = args[10].value_union.ui32;
     
- 	obs_video_info* canvas = osn::Video::Manager::GetInstance().find(args[10].value_union.ui64);
+ 	obs_video_info* canvas = osn::Video::Manager::GetInstance().find(args[11].value_union.ui64);
 	obs_video_info  video;
 #ifdef _WIN32
     video.graphics_module = "libobs-d3d11.dll";
@@ -336,17 +306,10 @@ void osn::Video::SetVideoContext(
     video.adapter = 0;
     video.gpu_conversion = true;
 
-    config_set_uint(
-        ConfigManager::getInstance().getBasic(),
-        "Video", "FPSType", fpsType);
-    config_save_safe(
-        ConfigManager::getInstance().getBasic(), "tmp", nullptr);
+    // ???? fpsType
 
     try {
 		obs_set_video_info(canvas, &video);
-
-        // DELETE ME WHEN REMOVING NODEOBS
-        SaveVideoSettings();
     } catch (const char* error) {
         blog(LOG_ERROR, error);
     }
@@ -397,9 +360,6 @@ void osn::Video::RemoveVideoContext(
 	osn::Video::Manager::GetInstance().free(args[0].value_union.ui64);
     try {
         obs_reset_video();
-
-        // DELETE ME WHEN REMOVING NODEOBS
-        SaveVideoSettings();
     } catch (const char* error) {
         blog(LOG_ERROR, error);
     }
@@ -413,7 +373,6 @@ osn::Video::Manager& osn::Video::Manager::GetInstance()
 	static osn::Video::Manager _inst;
 	return _inst;
 }
-
 
 void osn::Video::GetLegacySettings(
     void*                          data,

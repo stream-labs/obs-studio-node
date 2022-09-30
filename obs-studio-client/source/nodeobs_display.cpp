@@ -74,7 +74,7 @@ Napi::Value display::OBS_content_createDisplay(const Napi::CallbackInfo& info)
 	if (!conn)
 		return info.Env().Undefined();
  
-	conn->call("Display", "OBS_content_createDisplay", {ipc::value((uint64_t)windowHandle), ipc::value(key), ipc::value(mode), ipc::value(video->canvas)});
+	conn->call("Display", "OBS_content_createDisplay", {ipc::value((uint64_t)windowHandle), ipc::value(key), ipc::value(mode), ipc::value(video->canvasId)});
 
 	return info.Env().Undefined();
 }
