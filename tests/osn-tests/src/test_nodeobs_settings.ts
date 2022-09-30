@@ -1133,48 +1133,48 @@ describe(testName, function() {
             // Setting advanced output settings container with CBR parameters
             obs.setSettingsContainer(EOBSSettingsCategories.Output, cbrOutputSettings);
 
-        //     // Checking settings were updated correctly
-        //     const updatedCBROutputSettings = obs.getSettingsContainer(EOBSSettingsCategories.Output);
-        //     // console.log('logging updatedCBROutputSettings 0 ')
-        //     // console.log(cbrOutputSettings[0])
-        //     // console.log(updatedCBROutputSettings[0])
-        //     // expect(cbrOutputSettings[0]).to.eql(updatedCBROutputSettings[0], GetErrorMessage(ETestErrorMsg.OutputSettings));
-        //     console.log('logging updatedCBROutputSettings 1 ')
-        //     // console.log(cbrOutputSettings[1])
-        //     // console.log(updatedCBROutputSettings[1])
-        //     // expect(cbrOutputSettings[1]).to.eql(updatedCBROutputSettings[1], GetErrorMessage(ETestErrorMsg.OutputSettings));
-        //     // console.log('logging updatedCBROutputSettings 2 ')
-        //     // console.log(cbrOutputSettings[2])
-        //     // console.log(updatedCBROutputSettings[2])
-        //     // expect(cbrOutputSettings[2]).to.eql(updatedCBROutputSettings[2], GetErrorMessage(ETestErrorMsg.OutputSettings));
-        //     // console.log('logging updatedCBROutputSettings 3 ')
-        //     // console.log(cbrOutputSettings[3])
-        //     // console.log(updatedCBROutputSettings[3])
-        //     // expect(cbrOutputSettings[3]).to.eql(updatedCBROutputSettings[3], GetErrorMessage(ETestErrorMsg.OutputSettings));
-        //     // console.log('logging updatedCBROutputSettings 4 ')
-        //     // console.log(cbrOutputSettings[4])
-        //     // console.log(updatedCBROutputSettings[4])
-        //     // expect(cbrOutputSettings[4]).to.eql(updatedCBROutputSettings[4], GetErrorMessage(ETestErrorMsg.OutputSettings));
-        //     // console.log('logging updatedCBROutputSettings 5 ')
-        //     // console.log(cbrOutputSettings[5])
-        //     // console.log(updatedCBROutputSettings[5])
-        //     // expect(cbrOutputSettings[5]).to.eql(updatedCBROutputSettings[5], GetErrorMessage(ETestErrorMsg.OutputSettings));
-        //     // console.log('logging updatedCBROutputSettings 6 ')
-        //     // console.log(cbrOutputSettings[6])
-        //     // console.log(updatedCBROutputSettings[6])
-        //     // expect(cbrOutputSettings[6]).to.eql(updatedCBROutputSettings[6], GetErrorMessage(ETestErrorMsg.OutputSettings));
-        //     // console.log('logging updatedCBROutputSettings 7 ')
-        //     // console.log(cbrOutputSettings[7])
-        //     // console.log(updatedCBROutputSettings[7])
-        //     // expect(cbrOutputSettings[7]).to.eql(updatedCBROutputSettings[7], GetErrorMessage(ETestErrorMsg.OutputSettings));
-        //     // console.log('logging updatedCBROutputSettings 8 ')
-        //     // console.log(cbrOutputSettings[8])
-        //     // console.log(updatedCBROutputSettings[8])
-        //     // expect(cbrOutputSettings[8]).to.eql(updatedCBROutputSettings[8], GetErrorMessage(ETestErrorMsg.OutputSettings));
-        //     // console.log('logging updatedCBROutputSettings 9 ')
-        //     // console.log(cbrOutputSettings[9])
-        //     // console.log(updatedCBROutputSettings[9])
-        //     // expect(cbrOutputSettings[9]).to.eql(updatedCBROutputSettings[9], GetErrorMessage(ETestErrorMsg.OutputSettings));
+            // Checking settings were updated correctly
+            const updatedCBROutputSettings = obs.getSettingsContainer(EOBSSettingsCategories.Output);
+            console.log('logging updatedCBROutputSettings 0 ')
+            console.log(cbrOutputSettings[0])
+            console.log(updatedCBROutputSettings[0])
+            expect(cbrOutputSettings[0]).to.eql(updatedCBROutputSettings[0], GetErrorMessage(ETestErrorMsg.OutputSettings));
+            console.log('logging updatedCBROutputSettings 1 ')
+            console.log(cbrOutputSettings[1])
+            console.log(updatedCBROutputSettings[1])
+            expect(cbrOutputSettings[1]).to.eql(updatedCBROutputSettings[1], GetErrorMessage(ETestErrorMsg.OutputSettings));
+            console.log('logging updatedCBROutputSettings 2 ')
+            console.log(cbrOutputSettings[2])
+            console.log(updatedCBROutputSettings[2])
+            expect(cbrOutputSettings[2]).to.eql(updatedCBROutputSettings[2], GetErrorMessage(ETestErrorMsg.OutputSettings));
+            console.log('logging updatedCBROutputSettings 3 ')
+            console.log(cbrOutputSettings[3])
+            console.log(updatedCBROutputSettings[3])
+            expect(cbrOutputSettings[3]).to.eql(updatedCBROutputSettings[3], GetErrorMessage(ETestErrorMsg.OutputSettings));
+            console.log('logging updatedCBROutputSettings 4 ')
+            console.log(cbrOutputSettings[4])
+            console.log(updatedCBROutputSettings[4])
+            expect(cbrOutputSettings[4]).to.eql(updatedCBROutputSettings[4], GetErrorMessage(ETestErrorMsg.OutputSettings));
+            console.log('logging updatedCBROutputSettings 5 ')
+            console.log(cbrOutputSettings[5])
+            console.log(updatedCBROutputSettings[5])
+            expect(cbrOutputSettings[5]).to.eql(updatedCBROutputSettings[5], GetErrorMessage(ETestErrorMsg.OutputSettings));
+            console.log('logging updatedCBROutputSettings 6 ')
+            console.log(cbrOutputSettings[6])
+            console.log(updatedCBROutputSettings[6])
+            expect(cbrOutputSettings[6]).to.eql(updatedCBROutputSettings[6], GetErrorMessage(ETestErrorMsg.OutputSettings));
+            console.log('logging updatedCBROutputSettings 7 ')
+            console.log(cbrOutputSettings[7])
+            console.log(updatedCBROutputSettings[7])
+            expect(cbrOutputSettings[7]).to.eql(updatedCBROutputSettings[7], GetErrorMessage(ETestErrorMsg.OutputSettings));
+            console.log('logging updatedCBROutputSettings 8 ')
+            console.log(cbrOutputSettings[8])
+            console.log(updatedCBROutputSettings[8])
+            expect(cbrOutputSettings[8]).to.eql(updatedCBROutputSettings[8], GetErrorMessage(ETestErrorMsg.OutputSettings));
+            console.log('logging updatedCBROutputSettings 9 ')
+            console.log(cbrOutputSettings[9])
+            console.log(updatedCBROutputSettings[9])
+            expect(cbrOutputSettings[9]).to.eql(updatedCBROutputSettings[9], GetErrorMessage(ETestErrorMsg.OutputSettings));
 
         //     // Setting rate control to ABR
         //     obs.setSetting(EOBSSettingsCategories.Output, 'rate_control', 'ABR');
