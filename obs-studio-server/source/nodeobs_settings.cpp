@@ -2441,6 +2441,8 @@ void OBS_settings::getStandardRecordingSettings(
 	recSplitFileType.sizeOfValues = recSplitFileType.values.size();
 	recSplitFileType.countValues  = recSplitFileTypeValues.size();
 	recSplitFileType.visible = recSplitFileVal;
+	recSplitFileType.enabled = isCategoryEnabled;
+	recSplitFileType.masked  = false;
 
 	subCategoryParameters->params.push_back(recSplitFileType);
 
