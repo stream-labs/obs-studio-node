@@ -564,7 +564,7 @@ describe(testName, () => {
         });
     });
 
-    it('Change the order of filters in the list', () => {
+    it('Change the order of filters in the list by moving', () => {
         // Creating source
         const input = osn.InputFactory.create(EOBSInputTypes.ImageSource, 'test_source');
         
@@ -611,6 +611,59 @@ describe(testName, () => {
 
         // Checking if filter is in the right position
         expect(input.filters[0].name).to.equal('filter2', GetErrorMessage(ETestErrorMsg.MoveFilterTop, EOBSFilterTypes.Crop));
+
+        // Removing all filters
+        input.filters.forEach(function(filter) {
+            input.removeFilter(filter);
+            filter.release();
+        });
+
+        input.release();
+    });
+
+    it('Change the order of filters in the list by positioning', () => {
+        // Creating source
+        const input = osn.InputFactory.create(EOBSInputTypes.FFMPEGSource, 'ffmpeg_source');
+        
+        // Checking if source was created correctly
+        expect(input).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateInput, EOBSInputTypes.FFMPEGSource));
+        expect(input.id).to.equal(EOBSInputTypes.FFMPEGSource, GetErrorMessage(ETestErrorMsg.InputId, EOBSInputTypes.FFMPEGSource));
+        expect(input.name).to.equal('ffmpeg_source', GetErrorMessage(ETestErrorMsg.InputName, EOBSInputTypes.FFMPEGSource));
+
+        // Creating filters
+        const filter1 = osn.FilterFactory.create(EOBSFilterTypes.Color, 'filter1');
+        const filter2 = osn.FilterFactory.create(EOBSFilterTypes.Crop, 'filter2');
+        const filter3 = osn.FilterFactory.create(EOBSFilterTypes.Gain, 'filter3');
+        const filter4 = osn.FilterFactory.create(EOBSFilterTypes.GPUDelay, 'filter4');
+
+        // Checking if filters were created correctly
+        expect(filter1).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateFilter, EOBSFilterTypes.Color));
+        expect(filter2).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateFilter, EOBSFilterTypes.Crop));
+        expect(filter3).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateFilter, EOBSFilterTypes.Gain));
+        expect(filter4).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateFilter, EOBSFilterTypes.GPUDelay));
+                    
+        // Adding filters to source
+        input.addFilter(filter1);
+        input.addFilter(filter2);
+        input.addFilter(filter3);
+        input.addFilter(filter4);
+
+        // Checking if filters are in the right position
+        expect(input.filters[0].name).to.equal('filter1', GetErrorMessage(ETestErrorMsg.FilterInsert, EOBSFilterTypes.Color));
+        expect(input.filters[1].name).to.equal('filter2', GetErrorMessage(ETestErrorMsg.FilterInsert, EOBSFilterTypes.Crop));
+        expect(input.filters[2].name).to.equal('filter3', GetErrorMessage(ETestErrorMsg.FilterInsert, EOBSFilterTypes.Gain));
+        expect(input.filters[3].name).to.equal('filter4', GetErrorMessage(ETestErrorMsg.FilterInsert, EOBSFilterTypes.GPUDelay));
+
+        // Changing filter order down
+        input.setFilterOrder(filter1, osn.EOrderMovement.Down);
+        // Checking if filter is in the right position
+        expect(input.filters[1].name).to.equal('filter1', GetErrorMessage(ETestErrorMsg.MoveFilterDown, EOBSFilterTypes.Color));
+
+        // Change filter position
+        input.setFilterPosition(filter1, 2);
+
+        // Checking if filter is in the right position
+        expect(input.filters[2].name).to.equal('filter1', GetErrorMessage(ETestErrorMsg.PositionFilter, EOBSFilterTypes.Color));
 
         // Removing all filters
         input.filters.forEach(function(filter) {

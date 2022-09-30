@@ -47,6 +47,7 @@ Napi::Object osn::Input::Init(Napi::Env env, Napi::Object exports) {
 			InstanceMethod("addFilter", &osn::Input::AddFilter),
 			InstanceMethod("removeFilter", &osn::Input::RemoveFilter),
 			InstanceMethod("setFilterOrder", &osn::Input::SetFilterOrder),
+			InstanceMethod("setFilterPosition", &osn::Input::SetFilterPosition),
 			InstanceMethod("findFilter", &osn::Input::FindFilter),
 			InstanceMethod("copyFilters", &osn::Input::CopyFilters),
 
@@ -666,6 +667,26 @@ Napi::Value osn::Input::SetFilterOrder(const Napi::CallbackInfo& info)
 
 	conn->call(
 	    "Input", "MoveFilter", {ipc::value(this->sourceId), ipc::value(objfilter->sourceId), ipc::value(movement)});
+
+	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(this->sourceId);
+	if (sdi) {
+		sdi->filtersOrderChanged = true;
+	}
+
+	return info.Env().Undefined();
+}
+
+Napi::Value osn::Input::SetFilterPosition(const Napi::CallbackInfo& info)
+{
+	osn::Filter* objfilter = Napi::ObjectWrap<osn::Filter>::Unwrap(info[0].ToObject());
+	uint32_t position = info[1].ToNumber().Uint32Value();
+
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
+
+	conn->call(
+	    "Input", "PositionFilter", {ipc::value(this->sourceId), ipc::value(objfilter->sourceId), ipc::value(position)});
 
 	SourceDataInfo* sdi = CacheManager<SourceDataInfo*>::getInstance().Retrieve(this->sourceId);
 	if (sdi) {

@@ -458,7 +458,7 @@ export interface IInput extends ISource {
     sendFocus(focus: boolean): void;
     sendKeyClick(eventData: IKeyEvent, keyUp: boolean): void;
     setFilterOrder(filter: IFilter, movement: EOrderMovement): void;
-    setFilterOrder(filter: IFilter, movement: EOrderMovement): void;
+    setFilterPosition(filter: IFilter, position: number): void;
     readonly filters: IFilter[];
     readonly width: number;
     readonly height: number;

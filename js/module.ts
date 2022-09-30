@@ -819,11 +819,11 @@ export interface IInput extends ISource {
     setFilterOrder(filter: IFilter, movement: EOrderMovement): void;
 
     /**
-     * Move a filter up, down, top, or bottom in the filter list.
+     * Set a filter position in the filter list.
      * @param filter - The filter to move within the input source.
-     * @param movement - The movement to make within the list.
+     * @param position - The position to make within the list.
      */
-    setFilterOrder(filter: IFilter, movement: EOrderMovement): void;
+    setFilterPosition(filter: IFilter, position: number): void;
 
 
     /**
