@@ -35,6 +35,7 @@ extern std::string currentScene; /* defined in OBS_content.cpp */
 
 static const uint32_t grayPaddingArea = 10ul;
 std::mutex OBS::Display::m_displayMtx;
+bool OBS::Display::m_dayTheme = false;
 
 static void RecalculateApectRatioConstrainedSize(
     uint32_t  origW,
@@ -238,6 +239,23 @@ void OBS::Display::SystemWorker()
 }
 #endif
 
+static vec4 ConvertColorToVec4(uint32_t color)
+{
+	vec4 colorVec4;
+	vec4_set(
+		&colorVec4,
+		static_cast<float>(color & 0xFF) / 255.0f,
+		static_cast<float>((color & 0xFF00) >> 8) / 255.0f,
+		static_cast<float>((color & 0xFF0000) >> 16) / 255.0f,
+		static_cast<float>((color & 0xFF000000) >> 24) / 255.0f);
+	return colorVec4;
+}
+
+void OBS::Display::SetDayTheme(bool dayTheme)
+{
+	m_dayTheme = dayTheme;
+}
+
 OBS::Display::Display()
 {
 #if defined(_WIN32)
@@ -263,6 +281,62 @@ OBS::Display::Display()
 	obs_enter_graphics();
 	m_gsSolidEffect = obs_get_base_effect(OBS_EFFECT_SOLID);
 	GS::Vertex v(nullptr, nullptr, nullptr, nullptr, nullptr);
+
+	// Left solid outline
+	m_leftSolidOutline = std::make_unique<GS::VertexBuffer>(2);
+	m_leftSolidOutline->Resize(2);
+	v = m_leftSolidOutline->At(0);
+	vec3_set(v.position, 0.0f, 0.0f, 0);
+	vec4_set(v.uv[0], 0, 0, 0, 0);
+	*v.color = 0xFFFFFFFF;
+	v = m_leftSolidOutline->At(1);
+	vec3_set(v.position, 0.0f, 1.0f, 0);
+	vec4_set(v.uv[0], 0, 0, 0, 0);
+	*v.color = 0xFFFFFFFF;
+	m_leftSolidOutline->Update();
+
+	// Top solid outline
+	m_topSolidOutline = std::make_unique<GS::VertexBuffer>(2);
+	m_topSolidOutline->Resize(2);
+	v = m_topSolidOutline->At(0);
+	vec3_set(v.position, 0.0f, 0.0f, 0);
+	vec4_set(v.uv[0], 0, 0, 0, 0);
+	*v.color = 0xFFFFFFFF;
+	v = m_topSolidOutline->At(1);
+	vec3_set(v.position, 1.0f, 0.0f, 0);
+	vec4_set(v.uv[0], 0, 0, 0, 0);
+	*v.color = 0xFFFFFFFF;
+	m_topSolidOutline->Update();
+
+	// Right solid outline
+	m_rightSolidOutline = std::make_unique<GS::VertexBuffer>(2);
+	m_rightSolidOutline->Resize(2);
+	v = m_rightSolidOutline->At(0);
+	vec3_set(v.position, 1.0f, 0.0f, 0);
+	vec4_set(v.uv[0], 0, 0, 0, 0);
+	*v.color = 0xFFFFFFFF;
+	v = m_rightSolidOutline->At(1);
+	vec3_set(v.position, 1.0f, 1.0f, 0);
+	vec4_set(v.uv[0], 0, 0, 0, 0);
+	*v.color = 0xFFFFFFFF;
+	m_rightSolidOutline->Update();
+
+	// Bottom solid outline
+	m_bottomSolidOutline = std::make_unique<GS::VertexBuffer>(2);
+	m_bottomSolidOutline->Resize(2);
+	v = m_bottomSolidOutline->At(0);
+	vec3_set(v.position, 0.0f, 1.0f, 0);
+	vec4_set(v.uv[0], 0, 0, 0, 0);
+	*v.color = 0xFFFFFFFF;
+	v = m_bottomSolidOutline->At(1);
+	vec3_set(v.position, 1.0f, 1.0f, 0);
+	vec4_set(v.uv[0], 0, 0, 0, 0);
+	*v.color = 0xFFFFFFFF;
+	m_bottomSolidOutline->Update();	
+
+	// Crop effect outline
+	m_cropOutline = std::make_unique<GS::VertexBuffer>(4);
+	m_cropOutline->Resize(4);
 
 	m_boxLine = std::make_unique<GS::VertexBuffer>(6);
 	m_boxLine->Resize(6);
@@ -362,16 +436,30 @@ OBS::Display::Display()
 		throw std::runtime_error("couldn't load roboto font");
 	}
 
+	// Overflow
+	m_overflowNightTexture = gs_texture_create_from_file(
+		(g_moduleDirectory + "/resources/overflow-night-mode.png").c_str());
+	if (!m_overflowNightTexture) {
+		throw std::runtime_error("couldn't load the night pattern overflow texture");
+	}
+	m_overflowDayTexture = gs_texture_create_from_file(
+		(g_moduleDirectory + "/resources/overflow-day-mode.png").c_str());
+	if (!m_overflowDayTexture) {
+		throw std::runtime_error("couldn't load the day pattern overflow texture");
+	}
+
 	obs_leave_graphics();
 
-	SetOutlineColor(26, 230, 168);
-	SetGuidelineColor(26, 230, 168);
-	SetRotationHandleColor(26, 230, 168);
+	m_paddingColorVec4 = ConvertColorToVec4(m_paddingColor);
+	m_backgroundColorVec4 = ConvertColorToVec4(m_backgroundColor);
+	m_outlineColorVec4 = ConvertColorToVec4(m_outlineColor);
+	m_cropOutlineColorVec4 = ConvertColorToVec4(m_cropOutlineColor);
+	m_guidelineColorVec4 = ConvertColorToVec4(m_guidelineColor);
+	m_resizeOuterColorVec4 = ConvertColorToVec4(m_resizeOuterColor);
+	m_resizeInnerColorVec4 = ConvertColorToVec4(m_resizeInnerColor);
+	m_rotationHandleColorVec4 = ConvertColorToVec4(m_rotationHandleColor);
 
 	UpdatePreviewArea();
-
-	m_drawGuideLines = true;
-	m_drawRotationHandle = false;
 }
 
 OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode) : Display()
@@ -448,6 +536,23 @@ OBS::Display::~Display()
 		obs_leave_graphics();
 	}
 
+	if (m_overflowNightTexture) {
+		obs_enter_graphics();
+		gs_texture_destroy(m_overflowNightTexture);
+		obs_leave_graphics();
+	}
+
+	if (m_overflowDayTexture) {
+		obs_enter_graphics();
+		gs_texture_destroy(m_overflowDayTexture);
+		obs_leave_graphics();
+	}
+
+	m_leftSolidOutline.reset();
+	m_topSolidOutline.reset();
+	m_rightSolidOutline.reset();
+	m_bottomSolidOutline.reset();
+	m_cropOutline.reset();
 	m_boxLine = nullptr;
 	m_boxTris = nullptr;
 	m_rotHandleLine.reset();
@@ -648,12 +753,20 @@ bool OBS::Display::GetDrawUI()
 	return m_shouldDrawUI;
 }
 
+static void PrepareColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a, uint32_t* color, vec4* colorVec4)
+{
+	*color = a << 24 | b << 16 | g << 8 | r;
+	vec4_set(
+		colorVec4,
+		static_cast<float>(r) / 255.0f,
+		static_cast<float>(g) / 255.0f,
+		static_cast<float>(b) / 255.0f,
+		static_cast<float>(a) / 255.0f);
+}
+
 void OBS::Display::SetPaddingColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a /*= 255u*/)
 {
-	m_paddingColor[0] = float_t(r) / 255.0f;
-	m_paddingColor[1] = float_t(g) / 255.0f;
-	m_paddingColor[2] = float_t(b) / 255.0f;
-	m_paddingColor[3] = float_t(a) / 255.0f;
+	PrepareColor(r, g, b, a, &m_paddingColor, &m_paddingColorVec4);
 }
 
 void OBS::Display::SetPaddingSize(uint32_t pixels)
@@ -664,32 +777,37 @@ void OBS::Display::SetPaddingSize(uint32_t pixels)
 
 void OBS::Display::SetBackgroundColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a /*= 255u*/)
 {
-	m_backgroundColor = a << 24 | b << 16 | g << 8 | r;
+	PrepareColor(r, g, b, a, &m_backgroundColor, &m_backgroundColorVec4);
 }
 
 void OBS::Display::SetOutlineColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a /*= 255u*/)
 {
-	m_outlineColor = a << 24 | b << 16 | g << 8 | r;
+	PrepareColor(r, g, b, a, &m_outlineColor, &m_outlineColorVec4);
+}
+
+void OBS::Display::SetCropOutlineColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a /*= 255u*/)
+{
+	PrepareColor(r, g, b, a, &m_cropOutlineColor, &m_cropOutlineColorVec4);
 }
 
 void OBS::Display::SetGuidelineColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a /*= 255u*/)
 {
-	m_guidelineColor = a << 24 | b << 16 | g << 8 | r;
+	PrepareColor(r, g, b, a, &m_guidelineColor, &m_guidelineColorVec4);
 }
 
 void OBS::Display::SetResizeBoxOuterColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a /*= 255u*/)
 {
-	m_resizeOuterColor = a << 24 | b << 16 | g << 8 | r;
+	PrepareColor(r, g, b, a, &m_resizeOuterColor, &m_resizeOuterColorVec4);
 }
 
 void OBS::Display::SetResizeBoxInnerColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a /*= 255u*/)
 {
-	m_resizeInnerColor = a << 24 | b << 16 | g << 8 | r;
+	PrepareColor(r, g, b, a, &m_resizeInnerColor, &m_resizeInnerColorVec4);
 }
 
 void OBS::Display::SetRotationHandleColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a /*= 255u*/)
 {
-	m_rotationHandleColor = a << 24 | b << 16 | g << 8 | r;
+	PrepareColor(r, g, b, a, &m_rotationHandleColor, &m_rotationHandleColorVec4);
 }
 
 static void
@@ -792,12 +910,69 @@ inline bool CloseFloat(float a, float b, float epsilon = 0.01)
 	return abs(a - b) <= epsilon;
 }
 
-inline void DrawOutline(OBS::Display* dp, matrix4& mtx, obs_transform_info& info)
+void OBS::Display::DrawCropOutline(float x1, float y1, float x2, float y2, vec2 scale)
 {
-	gs_matrix_push();
-	gs_matrix_set(&mtx);
-	gs_draw(GS_LINESTRIP, 0, 0);
-	gs_matrix_pop();
+	// This is partially code from OBS Studio. See window-basic-preview.cpp in obs-studio for copyright/license.
+
+	float ySide = (y1 == y2) ? (y1 < 0.5f ? 1.0f : -1.0f) : 0.0f;
+	float xSide = (x1 == x2) ? (x1 < 0.5f ? 1.0f : -1.0f) : 0.0f;
+
+	float dist =
+		sqrt(pow((x1 - x2) * scale.x, 2) + pow((y1 - y2) * scale.y, 2));
+	float offX = (x2 - x1) / dist;
+	float offY = (y2 - y1) / dist;
+
+	int l = static_cast<int>(ceil(dist / 15));
+	for (int i = 0; i < l; ++i) {
+		float xx1 = x1 + i * 15 * offX;
+		float yy1 = y1 + i * 15 * offY;
+
+		float dx;
+		float dy;
+
+		if (x1 < x2) {
+			dx = std::min(xx1 + 7.5f * offX, x2);
+		} else {
+			dx = std::max(xx1 + 7.5f * offX, x2);
+		}
+
+		if (y1 < y2) {
+			dy = std::min(yy1 + 7.5f * offY, y2);
+		} else {
+			dy = std::max(yy1 + 7.5f * offY, y2);
+		}
+
+		GS::Vertex v(nullptr, nullptr, nullptr, nullptr, nullptr);
+
+		v = m_cropOutline->At(0);
+		vec3_set(v.position, xx1, yy1, 0);
+		vec4_set(v.uv[0], 0, 0, 0, 0);
+		*v.color = 0xFFFFFFFF;
+
+		v = m_cropOutline->At(1);
+		vec3_set(v.position, xx1 + (xSide * (5 / scale.x)), yy1 + (ySide * (5 / scale.y)), 0);
+		vec4_set(v.uv[0], 0, 0, 0, 0);
+		*v.color = 0xFFFFFFFF;
+
+		v = m_cropOutline->At(2);
+		vec3_set(v.position, dx, dy, 0);
+		vec4_set(v.uv[0], 0, 0, 0, 0);
+		*v.color = 0xFFFFFFFF;
+
+		v = m_cropOutline->At(3);
+		vec3_set(v.position, dx + (xSide * (5 / scale.x)), dy + (ySide * (5 / scale.y)), 0);
+		vec4_set(v.uv[0], 0, 0, 0, 0);
+		*v.color = 0xFFFFFFFF;
+
+		gs_load_vertexbuffer(m_cropOutline->Update());
+		gs_draw(GS_TRISTRIP, 0, 0);
+	}
+}
+
+static void DrawSolidOutline(GS::VertexBuffer* vertexBuffer)
+{
+	gs_load_vertexbuffer(vertexBuffer->Update(false));
+	gs_draw(GS_LINES, 0, 0);
 }
 
 inline void DrawBoxAt(OBS::Display* dp, float_t x, float_t y, matrix4& mtx)
@@ -929,16 +1104,42 @@ void OBS::Display::DrawRotationHandle(float rot, matrix4& mtx)
 	gs_matrix_pop();
 }
 
-static void ConvertColorToEffectParam(uint32_t color, gs_eparam_t* dst)
+void OBS::Display::DrawOutline(const matrix4& mtx, const obs_sceneitem_crop& crop,
+	const vec2& boxScale, gs_eparam_t* color)
 {
-	vec4 colorVec;
-	vec4_set(
-		&colorVec,
-		(color & 0xFF) / 255.0f,
-		((color & 0xFF00) >> 8) / 255.0f,
-		((color & 0xFF0000) >> 16) / 255.0f,
-		((color & 0xFF000000) >> 24) / 255.0f);
-	gs_effect_set_vec4(dst, &colorVec);
+	gs_matrix_push();
+	gs_matrix_mul(&mtx);
+
+	if (crop.left) {
+		gs_effect_set_vec4(color, &m_cropOutlineColorVec4);
+		DrawCropOutline(0.0f, 0.0f, 0.0f, 1.0f, boxScale);
+	} else {
+		gs_effect_set_vec4(color, &m_outlineColorVec4);
+		DrawSolidOutline(m_leftSolidOutline.get());
+	}
+	if (crop.top) {
+		gs_effect_set_vec4(color, &m_cropOutlineColorVec4);
+		DrawCropOutline(0.0f, 0.0f, 1.0f, 0.0f, boxScale);
+	} else {
+		gs_effect_set_vec4(color, &m_outlineColorVec4);
+		DrawSolidOutline(m_topSolidOutline.get());
+	}
+	if (crop.right) {
+		gs_effect_set_vec4(color, &m_cropOutlineColorVec4);
+		DrawCropOutline(1.0f, 0.0f, 1.0f, 1.0f, boxScale);
+	} else {
+		gs_effect_set_vec4(color, &m_outlineColorVec4);
+		DrawSolidOutline(m_rightSolidOutline.get());
+	}
+	if (crop.bottom) {
+		gs_effect_set_vec4(color, &m_cropOutlineColorVec4);
+		DrawCropOutline(0.0f, 1.0f, 1.0f, 1.0f, boxScale);
+	} else {
+		gs_effect_set_vec4(color, &m_outlineColorVec4);
+		DrawSolidOutline(m_bottomSolidOutline.get());
+	}
+
+	gs_matrix_pop();
 }
 
 bool OBS::Display::DrawSelectedSource(obs_scene_t* scene, obs_sceneitem_t* item, void* param)
@@ -993,27 +1194,24 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t* scene, obs_sceneitem_t* item,
 	float rot = obs_sceneitem_get_rot(item);
 	bool rot45 = (rot == 45.0f || rot == 135.0f || rot == 225.0f || rot == 315.0f);
 
-	obs_transform_info info;
-	obs_sceneitem_get_info(item, &info);
+	// Prepare data for outline
+	matrix4 curTransform;	
+	gs_matrix_get(&curTransform);
 
-	gs_load_vertexbuffer(dp->m_boxLine->Update(false));
-	vec4_set(
-	    &color,
-	    (dp->m_outlineColor & 0xFF) / 255.0f,
-	    ((dp->m_outlineColor & 0xFF00) >> 8) / 255.0f,
-	    ((dp->m_outlineColor & 0xFF0000) >> 16) / 255.0f,
-	    ((dp->m_outlineColor & 0xFF000000) >> 24) / 255.0f);
-	gs_effect_set_vec4(solid_color, &color);
-	DrawOutline(dp, boxTransform, info);
+	vec2 boxScale;
+	obs_sceneitem_get_box_scale(item, &boxScale);
+
+	boxScale.x *= curTransform.x.x;
+	boxScale.y *= curTransform.y.y;
+
+	obs_sceneitem_crop crop;
+	obs_sceneitem_get_crop(item, &crop);
+	
+	dp->DrawOutline(boxTransform, crop, boxScale, solid_color);
 
 	if (dp->m_drawGuideLines) {
-		vec4_set(
-		    &color,
-		    (dp->m_guidelineColor & 0xFF) / 255.0f,
-		    ((dp->m_guidelineColor & 0xFF00) >> 8) / 255.0f,
-		    ((dp->m_guidelineColor & 0xFF0000) >> 16) / 255.0f,
-		    ((dp->m_guidelineColor & 0xFF000000) >> 24) / 255.0f);
-		gs_effect_set_vec4(solid_color, &color);
+		gs_load_vertexbuffer(dp->m_boxLine->Update(false));
+		gs_effect_set_vec4(solid_color, &dp->m_guidelineColorVec4);
 		DrawGuideline(dp, rot45, 0.5, 0, boxTransform);
 		DrawGuideline(dp, rot45, 0.5, 1, boxTransform);
 		DrawGuideline(dp, rot45, 0, 0.5, boxTransform);
@@ -1146,18 +1344,12 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t* scene, obs_sceneitem_t* item,
 	}
 
 	if (dp->m_drawRotationHandle) {
-		ConvertColorToEffectParam(dp->m_rotationHandleColor, solid_color);
+		gs_effect_set_vec4(solid_color, &dp->m_rotationHandleColorVec4);
 		dp->DrawRotationHandle(rot, boxTransform);
 	}
 
 	gs_load_vertexbuffer(dp->m_boxTris->Update(false));
-	vec4_set(
-		&color,
-		(dp->m_resizeInnerColor & 0xFF) / 255.0f,
-		((dp->m_resizeInnerColor & 0xFF00) >> 8) / 255.0f,
-		((dp->m_resizeInnerColor & 0xFF0000) >> 16) / 255.0f,
-		((dp->m_resizeInnerColor & 0xFF000000) >> 24) / 255.0f);
-	gs_effect_set_vec4(solid_color, &color);
+	gs_effect_set_vec4(solid_color, &dp->m_resizeInnerColorVec4);
 	DrawSquareAt(dp, 0, 0, boxTransform);
 	DrawSquareAt(dp, 1, 0, boxTransform);
 	DrawSquareAt(dp, 0, 1, boxTransform);
@@ -1168,13 +1360,7 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t* scene, obs_sceneitem_t* item,
 	DrawSquareAt(dp, 1, 0.5, boxTransform);
 
 	gs_load_vertexbuffer(dp->m_boxLine->Update(false));
-	vec4_set(
-		&color,
-		(dp->m_resizeOuterColor & 0xFF) / 255.0f,
-		((dp->m_resizeOuterColor & 0xFF00) >> 8) / 255.0f,
-		((dp->m_resizeOuterColor & 0xFF0000) >> 16) / 255.0f,
-		((dp->m_resizeOuterColor & 0xFF000000) >> 24) / 255.0f);
-	gs_effect_set_vec4(solid_color, &color);
+	gs_effect_set_vec4(solid_color, &dp->m_resizeOuterColorVec4);
 	DrawBoxAt(dp, 0, 0, boxTransform);
 	DrawBoxAt(dp, 1, 0, boxTransform);
 	DrawBoxAt(dp, 0, 1, boxTransform);
@@ -1183,6 +1369,78 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t* scene, obs_sceneitem_t* item,
 	DrawBoxAt(dp, 0.5, 1, boxTransform);
 	DrawBoxAt(dp, 0, 0.5, boxTransform);
 	DrawBoxAt(dp, 1, 0.5, boxTransform);
+
+	return true;
+}
+
+bool OBS::Display::DrawSelectedOverflow(obs_scene_t *scene, obs_sceneitem_t *item, void *param)
+{
+	if (obs_sceneitem_locked(item))
+		return true;
+
+	obs_source_t* itemSource  = obs_sceneitem_get_source(item);
+	uint32_t      flags       = obs_source_get_output_flags(itemSource);
+	bool          isOnlyAudio = (flags & OBS_SOURCE_VIDEO) == 0;
+
+	obs_source_t* sceneSource = obs_scene_get_source(scene);
+
+	uint32_t sceneWidth  = obs_source_get_width(sceneSource);
+	uint32_t sceneHeight = obs_source_get_height(sceneSource);
+	uint32_t itemWidth   = obs_source_get_width(itemSource);
+	uint32_t itemHeight  = obs_source_get_height(itemSource);
+
+	if (!obs_sceneitem_selected(item) || isOnlyAudio || ((itemWidth <= 0) && (itemHeight <= 0)))
+		return true;
+
+	OBS::Display* dp = reinterpret_cast<OBS::Display*>(param);
+
+	matrix4 boxTransform;
+	matrix4 invBoxTransform;
+	obs_sceneitem_get_box_transform(item, &boxTransform);
+	matrix4_inv(&invBoxTransform, &boxTransform);
+
+	vec3 bounds[] = {
+		{{{0.f, 0.f, 0.f}}},
+		{{{1.f, 0.f, 0.f}}},
+		{{{0.f, 1.f, 0.f}}},
+		{{{1.f, 1.f, 0.f}}},
+	};
+
+	bool visible = std::all_of(
+		std::begin(bounds), std::end(bounds), [&](const vec3 &b) {
+			vec3 pos;
+			vec3_transform(&pos, &b, &boxTransform);
+			vec3_transform(&pos, &pos, &invBoxTransform);
+			return CloseFloat(pos.x, b.x) && CloseFloat(pos.y, b.y);
+		});
+
+	if (!visible)
+		return true;
+
+	gs_effect_t* repeat = obs_get_base_effect(OBS_EFFECT_REPEAT);
+	gs_eparam_t* image = gs_effect_get_param_by_name(repeat, "image");
+	gs_eparam_t* scale = gs_effect_get_param_by_name(repeat, "scale");
+
+	vec2 s;
+	vec2_set(&s, boxTransform.x.x / 96, boxTransform.y.y / 96);
+
+	gs_effect_set_vec2(scale, &s);
+
+	gs_texture_t* texture = (dp->m_dayTheme) ?
+		dp->m_overflowDayTexture : dp->m_overflowNightTexture;
+	gs_effect_set_texture(image, texture);
+
+	gs_matrix_push();
+	gs_matrix_mul(&boxTransform);
+
+	obs_sceneitem_crop crop;
+	obs_sceneitem_get_crop(item, &crop);
+
+	while (gs_effect_loop(repeat, "Draw")) {
+		gs_draw_sprite(texture, 0, 1, 1);
+	}
+	
+	gs_matrix_pop();
 
 	return true;
 }
@@ -1218,8 +1476,40 @@ void OBS::Display::DisplayCallback(void* displayPtr, uint32_t cx, uint32_t cy)
 			sourceH = 1;
 	}
 
+	// Get a source and its scene for the UI effects
+	obs_source_t* source = dp->GetSourceForUIEffects();
+
+	/* This should work for both individual sources 
+	 * that are actually scenes and our main transition scene */
+	obs_scene_t* scene = (source) ? obs_scene_from_source(source) : nullptr;
+
 	gs_viewport_push();
 	gs_projection_push();
+
+	//------------------------------------------------------------------------------
+
+	// Padding
+	gs_clear(GS_CLEAR_COLOR | GS_CLEAR_DEPTH | GS_CLEAR_STENCIL, &dp->m_paddingColorVec4, 100, 0);
+
+	//------------------------------------------------------------------------------
+
+	// Overflow effect
+	if (scene && dp->m_shouldDrawUI) {
+
+		uint32_t width, height;
+		obs_display_size(dp->m_display, &width, &height);
+		float right = float(width) - dp->m_previewOffset.first;
+		float bottom = float(height) - dp->m_previewOffset.second;
+
+		gs_ortho(-float(dp->m_previewOffset.first), right, -float(dp->m_previewOffset.second), bottom, -100.0f, 100.0f);
+
+		gs_matrix_push();
+		gs_matrix_scale3f(dp->m_worldToPreviewScale.x, dp->m_worldToPreviewScale.y, 1.0f);
+		obs_scene_enum_items(scene, DrawSelectedOverflow, dp);
+		gs_matrix_pop();
+	}
+
+	//------------------------------------------------------------------------------
 
 	gs_ortho(0.0f, float(sourceW), 0.0f, float(sourceH), -100.0f, 100.0f);
 
@@ -1229,19 +1519,9 @@ void OBS::Display::DisplayCallback(void* displayPtr, uint32_t cx, uint32_t cy)
 		dp->m_previewSize.first,
 		dp->m_previewSize.second);
 
-	// Padding
-	vec4_set(&color, dp->m_paddingColor[0], dp->m_paddingColor[1], dp->m_paddingColor[2], dp->m_paddingColor[3]);
-	gs_clear(GS_CLEAR_COLOR | GS_CLEAR_DEPTH | GS_CLEAR_STENCIL, &color, 100, 0);
-
 	// Background
 	if (dp->m_boxTris) {
-		vec4_set(
-		    &color,
-		    ((dp->m_backgroundColor & 0xFF)) / 255.0f,
-		    ((dp->m_backgroundColor & 0xFF00) >> 8) / 255.0f,
-		    ((dp->m_backgroundColor & 0xFF0000) >> 16) / 255.0f,
-		    ((dp->m_backgroundColor & 0xFF000000) >> 24) / 255.0f);
-		gs_effect_set_vec4(solid_color, &color);
+		gs_effect_set_vec4(solid_color, &dp->m_backgroundColorVec4);
 
 		gs_technique_begin(solid_tech);
 		gs_technique_begin_pass(solid_tech, 0);
@@ -1259,27 +1539,18 @@ void OBS::Display::DisplayCallback(void* displayPtr, uint32_t cx, uint32_t cy)
 		gs_technique_end(solid_tech);
 	}
 
+	//------------------------------------------------------------------------------
+
 	// Source Rendering
-	obs_source_t* source = NULL;
 	if (dp->m_source) {
-		/* If the the source is a transition it means this display 
+		/* If the source is a transition it means this display 
 		 * is for Studio Mode and that the scene it contains is a 
 		 * duplicate of the current scene, apply selective recording
 		 * layer rendering if it is enabled */
 		if (obs_get_multiple_rendering() &&
 			obs_source_get_type(dp->m_source) == OBS_SOURCE_TYPE_TRANSITION)
 				obs_set_video_rendering_mode(dp->m_renderingMode);
-
 		obs_source_video_render(dp->m_source);
-		/* If we want to draw guidelines, we need a scene,
-		 * not a transition. This may not be a scene which
-		 * we'll check later. */
-		if (obs_source_get_type(dp->m_source) == OBS_SOURCE_TYPE_TRANSITION) {
-			source = obs_transition_get_active_source(dp->m_source);
-		} else {
-			source = dp->m_source;
-			obs_source_addref(source);
-		}
 	} else {
 		switch (dp->m_renderingMode) {
 		case OBS_MAIN_VIDEO_RENDERING:
@@ -1292,16 +1563,13 @@ void OBS::Display::DisplayCallback(void* displayPtr, uint32_t cx, uint32_t cy)
 			obs_render_recording_texture();
 			break;
 		}
-		
-		/* Here we assume that channel 0 holds the primary transition.
-		* We also assume that the active source within that transition is
-		* the scene that we need */
-		obs_source_t* transition = obs_get_output_source(0);
-		source                   = obs_transition_get_active_source(transition);
-		obs_source_release(transition);
 	}
 
-	if (dp->m_shouldDrawUI == true) {
+	//------------------------------------------------------------------------------
+
+	// The other UI effects
+	if (scene && dp->m_shouldDrawUI) {
+
 		// Display-Aligned Drawing
 		vec2 tlCorner = {(float)-dp->m_previewOffset.first, (float)-dp->m_previewOffset.second};
 		vec2 brCorner = {(float)(cx - dp->m_previewOffset.first), (float)(cy - dp->m_previewOffset.second)};
@@ -1311,31 +1579,24 @@ void OBS::Display::DisplayCallback(void* displayPtr, uint32_t cx, uint32_t cy)
 		gs_ortho(tlCorner.x, brCorner.x, tlCorner.y, brCorner.y, -100.0f, 100.0f);
 		gs_reset_viewport();
 
-		obs_scene_t* scene = obs_scene_from_source(source);
+		dp->m_textVertices->Resize(0);
 
-		/* This should work for both individual sources 
-		 * that are actually scenes and our main transition scene */
+		gs_technique_begin(solid_tech);
+		gs_technique_begin_pass(solid_tech, 0);
 
-		if (scene) {
-			dp->m_textVertices->Resize(0);
+		obs_scene_enum_items(scene, DrawSelectedSource, dp);
 
-			gs_technique_begin(solid_tech);
-			gs_technique_begin_pass(solid_tech, 0);
+		gs_technique_end_pass(solid_tech);
+		gs_technique_end(solid_tech);
 
-			obs_scene_enum_items(scene, DrawSelectedSource, dp);
-
-			gs_technique_end_pass(solid_tech);
-			gs_technique_end(solid_tech);
-
-			// Text Rendering
-			if (dp->m_textVertices->Size() > 0) {
-				gs_vertbuffer_t* vb = dp->m_textVertices->Update();
-				while (gs_effect_loop(dp->m_textEffect, "Draw")) {
-					gs_effect_set_texture(gs_effect_get_param_by_name(dp->m_textEffect, "image"), dp->m_textTexture);
-					gs_load_vertexbuffer(vb);
-					gs_load_indexbuffer(nullptr);
-					gs_draw(GS_TRIS, 0, (uint32_t)dp->m_textVertices->Size());
-				}
+		// Text Rendering
+		if (dp->m_textVertices->Size() > 0) {
+			gs_vertbuffer_t* vb = dp->m_textVertices->Update();
+			while (gs_effect_loop(dp->m_textEffect, "Draw")) {
+				gs_effect_set_texture(gs_effect_get_param_by_name(dp->m_textEffect, "image"), dp->m_textTexture);
+				gs_load_vertexbuffer(vb);
+				gs_load_indexbuffer(nullptr);
+				gs_draw(GS_TRIS, 0, (uint32_t)dp->m_textVertices->Size());
 			}
 		}
 	}
@@ -1343,6 +1604,30 @@ void OBS::Display::DisplayCallback(void* displayPtr, uint32_t cx, uint32_t cy)
 	obs_source_release(source);
 	gs_projection_pop();
 	gs_viewport_pop();
+}
+
+obs_source_t* OBS::Display::GetSourceForUIEffects()
+{
+	obs_source_t* source = nullptr;
+	if (m_source) {
+		/* If we want to draw UI effects, we need a scene,
+		 * not a transition. This may not be a scene which
+		 * we'll check later. */
+		if (obs_source_get_type(m_source) == OBS_SOURCE_TYPE_TRANSITION) {
+			source = obs_transition_get_active_source(m_source);
+		} else {
+			source = m_source;
+			obs_source_addref(source);
+		}
+	} else {
+		/* Here we assume that channel 0 holds the primary transition.
+		* We also assume that the active source within that transition is
+		* the scene that we need */
+		obs_source_t* transition = obs_get_output_source(0);
+		source = obs_transition_get_active_source(transition);
+		obs_source_release(transition);
+	}
+	return source;
 }
 
 void OBS::Display::UpdatePreviewArea()

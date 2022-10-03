@@ -22,6 +22,7 @@ namespace display
 {
 	void Init(Napi::Env env, Napi::Object exports);
 
+	Napi::Value OBS_content_setDayTheme(const Napi::CallbackInfo& info);
 	Napi::Value OBS_content_createDisplay(const Napi::CallbackInfo& info);
 	Napi::Value OBS_content_destroyDisplay(const Napi::CallbackInfo& info);
 	Napi::Value OBS_content_getDisplayPreviewOffset(const Napi::CallbackInfo& info);
@@ -32,6 +33,7 @@ namespace display
 	Napi::Value OBS_content_setPaddingSize(const Napi::CallbackInfo& info);
 	Napi::Value OBS_content_setPaddingColor(const Napi::CallbackInfo& info);
 	Napi::Value OBS_content_setOutlineColor(const Napi::CallbackInfo& info);
+	Napi::Value OBS_content_setCropOutlineColor(const Napi::CallbackInfo& info);
 	Napi::Value OBS_content_setShouldDrawUI(const Napi::CallbackInfo& info);
 	Napi::Value OBS_content_setDrawGuideLines(const Napi::CallbackInfo& info);
 	Napi::Value OBS_content_setDrawRotationHandle(const Napi::CallbackInfo& info);
