@@ -50,7 +50,7 @@ void osn::OutputSignals::deleteOutput()
     output = nullptr;
 }
 
-static inline void calbback(void* data, calldata_t* params)
+static inline void callback(void* data, calldata_t* params)
 {
     auto info =
         reinterpret_cast<osn::cbData*>(data);
@@ -88,7 +88,7 @@ void osn::OutputSignals::ConnectSignals()
         signal_handler_connect(
             handler,
             signal.c_str(),
-            calbback,
+            callback,
             cd);
     }
 }
