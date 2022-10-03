@@ -24,6 +24,9 @@ export const DefaultPluginPath: string =
 export const DefaultPluginDataPath: string =
     path.resolve(__dirname, `data/obs-plugins/%module%`);
 
+export const DefaultPluginPathMac: string =
+    path.resolve(__dirname, `PlugIns`);
+
 /**
  * To be passed to Input.flags
  */
@@ -77,6 +80,21 @@ export const enum EDeinterlaceMode {
     Linear2X,
     Yadif,
     Yadif2X
+}
+
+export const enum EBlendingMethod {
+    Default,
+    SrgbOff
+}
+
+export const enum EBlendingMode {
+    Normal,
+    Additive,
+    Substract,
+    Screen,
+    Multiply,
+    Lighten,
+    Darken
 }
 
 export const enum EFontStyle {
@@ -229,7 +247,7 @@ export const enum EColorFormat {
 }
 
 export const enum EScaleType {
-    Default,
+    Disable,
     Point,
     Bicubic,
     Bilinear,
@@ -327,6 +345,12 @@ export const enum EIPCError {
     OTHER_ERROR = 253,
     MISSING_DEPENDENCY = 254,
     NORMAL_EXIT = 0,
+}
+
+export const enum EVcamInstalledStatus {
+    NotInstalled = 0,
+    LegacyInstalled = 1,
+    Installed = 2
 }
 
 export const Global: IGlobal = obs.Global;
@@ -777,6 +801,10 @@ export interface ISceneItemInfo {
     x: number,
     y: number,
     rotation: number
+    streamVisible: boolean,
+    recordingVisible: boolean,
+    scaleFilter: EScaleType,
+    blendingMode: EBlendingMode
 }
 
 /**
@@ -1067,6 +1095,12 @@ export interface ISceneItem {
 
     /** Allow updating of the item after calling {@link deferUpdateBegin} */
     deferUpdateEnd(): void;
+
+    /** Set the item blending method */
+    blendingMethod: EBlendingMethod;
+
+    /** Set the item blending mode */
+    blendingMode: EBlendingMode;
 }
 
 export interface ITransitionFactory extends IFactoryTypes {
@@ -1459,7 +1493,9 @@ export interface SourceInfo {
     settings: ISettings,
     type: string,
     volume: number,
-    syncOffset: SyncOffset
+    syncOffset: SyncOffset,
+    deinterlaceMode: EDeinterlaceMode,
+    deinterlaceFieldOrder: EDeinterlaceFieldOrder
 }
 
 export function createSources(sources: SourceInfo[]): IInput[] {
@@ -1473,6 +1509,8 @@ export function createSources(sources: SourceInfo[]): IInput[] {
                 newSource.syncOffset =
                 (source.syncOffset != null) ? source.syncOffset : {sec: 0, nsec: 0};
             }
+            newSource.deinterlaceMode = source.deinterlaceMode;
+            newSource.deinterlaceFieldOrder = source.deinterlaceFieldOrder;
             items.push(newSource);
             const filters = source.filters;
             if (Array.isArray(filters)) {
@@ -1762,8 +1800,9 @@ export interface IAudioTrackFactory {
 }
 
 // Initialization and other stuff which needs local data.
-if (fs.existsSync(path.resolve(__dirname, `obs64`).replace('app.asar', 'app.asar.unpacked'))) {
-    obs.IPC.setServerPath(path.resolve(__dirname, `obs64`).replace('app.asar', 'app.asar.unpacked'), path.resolve(__dirname).replace('app.asar', 'app.asar.unpacked'));
+const __dirnameApple = __dirname + '/bin';
+if (fs.existsSync(path.resolve(__dirnameApple).replace('app.asar', 'app.asar.unpacked'))) {
+    obs.IPC.setServerPath(path.resolve(__dirnameApple, `obs64`).replace('app.asar', 'app.asar.unpacked'), path.resolve(__dirnameApple).replace('app.asar', 'app.asar.unpacked'));
 }
 else if (fs.existsSync(path.resolve(__dirname, `obs64.exe`).replace('app.asar', 'app.asar.unpacked'))) {
     obs.IPC.setServerPath(path.resolve(__dirname, `obs64.exe`).replace('app.asar', 'app.asar.unpacked'), path.resolve(__dirname).replace('app.asar', 'app.asar.unpacked'));

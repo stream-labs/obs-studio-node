@@ -98,7 +98,7 @@ static bool ValidateResponse(const Napi::CallbackInfo& info, std::vector<ipc::va
 
 		// Check if there is an error message to show
 		if (response.size() == 1) {
-			Napi::Error::New(info.Env(), "Error without description.").ThrowAsJavaScriptException();
+			Napi::Error::New(info.Env(), "IPC received error code " + std::to_string(uint64_t(error)) + ", no additional description provided.").ThrowAsJavaScriptException();
 			return false;
 		}
 

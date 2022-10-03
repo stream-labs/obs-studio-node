@@ -1089,51 +1089,76 @@ void OBS_settings::getSimpleAvailableEncoders(std::vector<std::pair<std::string,
 		    "Software (x264 low CPU usage preset, increases file size)", ipc::value(SIMPLE_ENCODER_X264_LOWCPU)));
 
 	if (EncoderAvailable("obs_qsv11"))
-		encoders->push_back(std::make_pair("Hardware (QSV)", ipc::value(SIMPLE_ENCODER_QSV)));
+		encoders->push_back(std::make_pair("Hardware (QSV, H.264)", ipc::value(SIMPLE_ENCODER_QSV)));
 
-	if (EncoderAvailable("ffmpeg_nvenc"))
-		encoders->push_back(std::make_pair("Hardware (NVENC)", ipc::value(SIMPLE_ENCODER_NVENC)));
+	if (EncoderAvailable("h264_texture_amf"))
+		encoders->push_back(std::make_pair("Hardware (AMD, H.264)", ipc::value(SIMPLE_ENCODER_AMD)));
 
-	if (EncoderAvailable("amd_amf_h264"))
-		encoders->push_back(std::make_pair("Hardware (AMD)", ipc::value(SIMPLE_ENCODER_AMD)));
+	if (recording) {
+		if (EncoderAvailable("h265_texture_amf"))
+			encoders->push_back(std::make_pair("Hardware (AMD, HEVC)", ipc::value(SIMPLE_ENCODER_AMD_HEVC)));
+	}
 
 	if (EncoderAvailable("jim_nvenc"))
-		encoders->push_back(std::make_pair("Hardware (NVENC) (new)", ipc::value(ENCODER_NEW_NVENC)));
+		encoders->push_back(std::make_pair("Hardware (NVENC, H.264)", ipc::value(SIMPLE_ENCODER_NVENC)));
+
+	if (recording) {
+		if (EncoderAvailable("jim_hevc_nvenc") ? "jim_hevc_nvenc"
+							  : "ffmpeg_hevc_nvenc")
+			encoders->push_back(std::make_pair("Hardware (NVENC, HEVC)", ipc::value(SIMPLE_ENCODER_NVENC_HEVC)));
+	}
 
 	if (EncoderAvailable(APPLE_SOFTWARE_VIDEO_ENCODER))
-		encoders->push_back(std::make_pair("Apple VT H264 Software Encoder", ipc::value(APPLE_SOFTWARE_VIDEO_ENCODER)));
+		encoders->push_back(std::make_pair("Software (Apple, H.264)", ipc::value(APPLE_SOFTWARE_VIDEO_ENCODER)));
 
 	if (EncoderAvailable(APPLE_HARDWARE_VIDEO_ENCODER))
-		encoders->push_back(std::make_pair("Apple VT H264 Hardware Encoder", ipc::value(APPLE_HARDWARE_VIDEO_ENCODER)));
+		encoders->push_back(std::make_pair("Hardware (Apple, H.264)", ipc::value(APPLE_HARDWARE_VIDEO_ENCODER)));
 
 	if (EncoderAvailable(APPLE_HARDWARE_VIDEO_ENCODER_M1))
-		encoders->push_back(std::make_pair("Apple VT H264 Hardware Encoder", ipc::value(APPLE_HARDWARE_VIDEO_ENCODER_M1)));
+		encoders->push_back(std::make_pair("Hardware (Apple, H.264)", ipc::value(APPLE_HARDWARE_VIDEO_ENCODER_M1)));
 }
 
-void OBS_settings::getAdvancedAvailableEncoders(std::vector<std::pair<std::string, ipc::value>>* streamEncoder)
+void OBS_settings::getAdvancedAvailableEncoders(std::vector<std::pair<std::string, ipc::value>>* encoder, bool recording)
 {
-	streamEncoder->push_back(std::make_pair("Software (x264)", ipc::value(ADVANCED_ENCODER_X264)));
+	encoder->push_back(std::make_pair("Software (x264)", ipc::value(ADVANCED_ENCODER_X264)));
 
-	if (EncoderAvailable("obs_qsv11"))
-		streamEncoder->push_back(std::make_pair("Hardware (QSV)", ipc::value(ADVANCED_ENCODER_QSV)));
+	if (EncoderAvailable(ADVANCED_ENCODER_QSV))
+		encoder->push_back(std::make_pair("QuickSync H.264", ipc::value(ADVANCED_ENCODER_QSV)));
 
-	if (EncoderAvailable("ffmpeg_nvenc"))
-		streamEncoder->push_back(std::make_pair("Hardware (NVENC)", ipc::value(ADVANCED_ENCODER_NVENC)));
+	if (EncoderAvailable(ADVANCED_ENCODER_AMD))
+		encoder->push_back(std::make_pair("AMD HW H.264", ipc::value(ADVANCED_ENCODER_AMD)));
 
-	if (EncoderAvailable("amd_amf_h264"))
-		streamEncoder->push_back(std::make_pair("AMD", ipc::value(ADVANCED_ENCODER_AMD)));
+	if (recording) {
+		if (EncoderAvailable(ADVANCED_ENCODER_AMD_HEVC))
+			encoder->push_back(std::make_pair("AMD HW H.265 (HEVC)", ipc::value(ADVANCED_ENCODER_AMD_HEVC)));
+	}
 
-	if (EncoderAvailable("jim_nvenc"))
-		streamEncoder->push_back(std::make_pair("Hardware (NVENC) (new)", ipc::value(ENCODER_NEW_NVENC)));
+	if (EncoderAvailable(ADVANCED_ENCODER_NVENC))
+		encoder->push_back(std::make_pair("NVIDIA NVENC H.264", ipc::value(ADVANCED_ENCODER_NVENC)));
+
+	if (EncoderAvailable(ENCODER_NEW_NVENC))
+		encoder->push_back(std::make_pair("NVIDIA NVENC H.264 (new)", ipc::value(ENCODER_NEW_NVENC)));
+
+	if (recording) {
+		if (EncoderAvailable(ENCODER_NEW_HEVC_NVENC))
+			encoder->push_back(std::make_pair("NVIDIA NVENC HEVC (new)", ipc::value(ENCODER_NEW_HEVC_NVENC)));
+	}
 
 	if (EncoderAvailable(APPLE_SOFTWARE_VIDEO_ENCODER))
-		streamEncoder->push_back(std::make_pair("Apple VT H264 Software Encoder", ipc::value(APPLE_SOFTWARE_VIDEO_ENCODER)));
+		encoder->push_back(std::make_pair("Apple VT H264 Software Encoder", ipc::value(APPLE_SOFTWARE_VIDEO_ENCODER)));
 
 	if (EncoderAvailable(APPLE_HARDWARE_VIDEO_ENCODER))
-		streamEncoder->push_back(std::make_pair("Apple VT H264 Hardware Encoder", ipc::value(APPLE_HARDWARE_VIDEO_ENCODER)));
+		encoder->push_back(std::make_pair("Apple VT H264 Hardware Encoder", ipc::value(APPLE_HARDWARE_VIDEO_ENCODER)));
 
 	if (EncoderAvailable(APPLE_HARDWARE_VIDEO_ENCODER_M1))
-		streamEncoder->push_back(std::make_pair("Apple VT H264 Hardware Encoder", ipc::value(APPLE_HARDWARE_VIDEO_ENCODER_M1)));
+		encoder->push_back(std::make_pair("Apple VT H264 Hardware Encoder", ipc::value(APPLE_HARDWARE_VIDEO_ENCODER_M1)));
+
+	if (recording) {
+		if (EncoderAvailable("ffmpeg_svt_av1"))
+			encoder->push_back(std::make_pair("SVT-AV1", ipc::value("ffmpeg_svt_av1")));
+		if (EncoderAvailable("ffmpeg_aom_av1"))
+			encoder->push_back(std::make_pair("AOM AV1", ipc::value("ffmpeg_aom_av1")));
+	}
 }
 
 #ifdef __APPLE__
@@ -1897,7 +1922,7 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t* config, b
 	videoEncoders.sizeOfCurrentValue = strlen(encoderCurrentValue);
 
 	std::vector<std::pair<std::string, ipc::value>> encoderValues;
-	getAdvancedAvailableEncoders(&encoderValues);
+	getAdvancedAvailableEncoders(&encoderValues, false);
 
 	for (int i = 0; i < encoderValues.size(); i++) {
 		std::string name = encoderValues.at(i).first;
@@ -2225,7 +2250,7 @@ void OBS_settings::getStandardRecordingSettings(
 
 	std::vector<std::pair<std::string, ipc::value>> Encoder;
 	Encoder.push_back(std::make_pair("Use stream encoder", ipc::value("none")));
-	getAdvancedAvailableEncoders(&Encoder);
+	getAdvancedAvailableEncoders(&Encoder, true);
 
 	uint32_t indexDataRecEncoder = 0;
 
@@ -2353,6 +2378,131 @@ void OBS_settings::getStandardRecordingSettings(
 
 	subCategoryParameters->params.push_back(recMuxerCustom);
 
+	// Automatic File Splitting
+	Parameter recSplitFile;
+	recSplitFile.name        = "RecSplitFile";
+	recSplitFile.type        = "OBS_PROPERTY_BOOL";
+	recSplitFile.description = "Automatic File Splitting";
+
+	bool recSplitFileVal = config_get_bool(config, "AdvOut", "RecSplitFile");
+
+	recSplitFile.currentValue.resize(sizeof(recSplitFileVal));
+	memcpy(recSplitFile.currentValue.data(), &recSplitFileVal, sizeof(recSplitFileVal));
+	recSplitFile.sizeOfCurrentValue = sizeof(recSplitFileVal);
+
+	recSplitFile.visible = true;
+	recSplitFile.enabled = isCategoryEnabled;
+	recSplitFile.masked  = false;
+
+	subCategoryParameters->params.push_back(recSplitFile);
+
+	// Automatic File Splitting
+	Parameter recSplitFileType;
+	recSplitFileType.name        = "RecSplitFileType";
+	recSplitFileType.type        = "OBS_PROPERTY_LIST";
+	recSplitFileType.description = "";
+	recSplitFileType.subType     = "OBS_COMBO_FORMAT_STRING";
+
+	const char* recSplitFileTypeVal = config_get_string(config, "AdvOut", "RecSplitFileType");
+	if (recSplitFileTypeVal == NULL)
+		recSplitFileTypeVal = "Time";
+
+	recSplitFileType.currentValue.resize(strlen(recSplitFileTypeVal));
+	memcpy(recSplitFileType.currentValue.data(), recSplitFileTypeVal, strlen(recSplitFileTypeVal));
+	recSplitFileType.sizeOfCurrentValue = strlen(recSplitFileTypeVal);
+
+	std::vector<std::pair<std::string, std::string>> recSplitFileTypeValues;
+	recSplitFileTypeValues.push_back(std::make_pair("Split by Time", "Time"));
+	recSplitFileTypeValues.push_back(std::make_pair("Split by Size", "Size"));
+	recSplitFileTypeValues.push_back(std::make_pair("Only split manually", "Manual"));
+
+	for (int i = 0; i < recSplitFileTypeValues.size(); i++) {
+		std::string name = recSplitFileTypeValues.at(i).first;
+
+		uint64_t          sizeName = name.length();
+		std::vector<char> sizeNameBuffer;
+		sizeNameBuffer.resize(sizeof(sizeName));
+		memcpy(sizeNameBuffer.data(), &sizeName, sizeof(sizeName));
+
+		recSplitFileType.values.insert(recSplitFileType.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
+		recSplitFileType.values.insert(recSplitFileType.values.end(), name.begin(), name.end());
+
+		std::string value = recSplitFileTypeValues.at(i).second;
+
+		uint64_t          sizeValue = value.length();
+		std::vector<char> sizeValueBuffer;
+		sizeValueBuffer.resize(sizeof(sizeValue));
+		memcpy(sizeValueBuffer.data(), &sizeValue, sizeof(sizeValue));
+
+		recSplitFileType.values.insert(recSplitFileType.values.end(), sizeValueBuffer.begin(), sizeValueBuffer.end());
+		recSplitFileType.values.insert(recSplitFileType.values.end(), value.begin(), value.end());
+	}
+
+	recSplitFileType.sizeOfValues = recSplitFileType.values.size();
+	recSplitFileType.countValues  = recSplitFileTypeValues.size();
+	recSplitFileType.visible = recSplitFileVal;
+	recSplitFileType.enabled = isCategoryEnabled;
+	recSplitFileType.masked  = false;
+
+	subCategoryParameters->params.push_back(recSplitFileType);
+
+	if (strcmp(recSplitFileTypeVal, "Time") == 0) {
+		Parameter recSplitFileTime;
+		recSplitFileTime.name        = "RecSplitFileTime";
+		recSplitFileTime.type        = "OBS_PROPERTY_UINT";
+		recSplitFileTime.description = "Split Time (MB)";
+
+		uint64_t recSplitFileTimeVal = config_get_uint(config, "AdvOut", "RecSplitFileTime");
+
+		recSplitFileTime.currentValue.resize(sizeof(recSplitFileTimeVal));
+		memcpy(recSplitFileTime.currentValue.data(), &recSplitFileTimeVal, sizeof(recSplitFileTimeVal));
+		recSplitFileTime.sizeOfCurrentValue = sizeof(recSplitFileTimeVal);
+
+		recSplitFileTime.visible = recSplitFileVal;
+		recSplitFileTime.enabled = isCategoryEnabled;
+		recSplitFileTime.masked  = false;
+		recSplitFileTime.minVal = 1;
+		recSplitFileTime.maxVal = 525600;
+
+		subCategoryParameters->params.push_back(recSplitFileTime);
+	} else if (strcmp(recSplitFileTypeVal, "Size") == 0) {
+		Parameter recSplitFileSize;
+		recSplitFileSize.name        = "RecSplitFileSize";
+		recSplitFileSize.type        = "OBS_PROPERTY_UINT";
+		recSplitFileSize.description = "Split Time (min)";
+
+		uint64_t recSplitFileSizeVal = config_get_uint(config, "AdvOut", "RecSplitFileSize");
+
+		recSplitFileSize.currentValue.resize(sizeof(recSplitFileSizeVal));
+		memcpy(recSplitFileSize.currentValue.data(), &recSplitFileSizeVal, sizeof(recSplitFileSizeVal));
+		recSplitFileSize.sizeOfCurrentValue = sizeof(recSplitFileSizeVal);
+
+		recSplitFileSize.visible = recSplitFileVal;
+		recSplitFileSize.enabled = isCategoryEnabled;
+		recSplitFileSize.masked  = false;
+		recSplitFileSize.minVal = 20;
+		recSplitFileSize.maxVal = 1073741824;
+
+		subCategoryParameters->params.push_back(recSplitFileSize);
+	}
+
+	Parameter recSplitFileResetTimestamps;
+	recSplitFileResetTimestamps.name        = "RecSplitFileResetTimestamps";
+	recSplitFileResetTimestamps.type        = "OBS_PROPERTY_BOOL";
+	recSplitFileResetTimestamps.description = "Reset timestamps at the beginning of each split file";
+
+	bool recSplitFileResetTimestampsVal = config_get_bool(config, "AdvOut", "RecSplitFileResetTimestamps");
+
+	recSplitFileResetTimestamps.currentValue.resize(sizeof(recSplitFileResetTimestampsVal));
+	memcpy(recSplitFileResetTimestamps.currentValue.data(), &recSplitFileResetTimestampsVal, sizeof(recSplitFileResetTimestampsVal));
+	recSplitFileResetTimestamps.sizeOfCurrentValue = sizeof(recSplitFileResetTimestampsVal);
+
+	recSplitFileResetTimestamps.visible = recSplitFileVal;
+	recSplitFileResetTimestamps.enabled = isCategoryEnabled;
+	recSplitFileResetTimestamps.masked  = false;
+
+	subCategoryParameters->params.push_back(recSplitFileResetTimestamps);
+
 	// Encoder settings
 	struct stat buffer;
 
@@ -2454,13 +2604,6 @@ SubCategory OBS_settings::getAdvancedOutputRecordingSettings(config_t* config, b
 	recType.masked  = false;
 
 	recordingSettings.params.push_back(recType);
-
-	const char* currentRecType = config_get_string(config, "AdvOut", "RecType");
-
-	if (currentRecType == NULL) {
-		currentRecType = "Standard";
-		config_set_string(config, "AdvOut", "RecType", currentRecType);
-	}
 
 	getStandardRecordingSettings(&recordingSettings, config, isCategoryEnabled);
 
@@ -2922,7 +3065,17 @@ void OBS_settings::saveAdvancedOutputRecordingSettings(std::vector<SubCategory> 
 	obs_encoder_t* encoder         = OBS_service::getRecordingEncoder();
 	obs_data_t*    encoderSettings = obs_encoder_get_settings(encoder);
 
-	size_t indexEncoderSettings = 8;
+	bool recSplitFileVal =
+		config_get_bool(ConfigManager::getInstance().getBasic(), "AdvOut", "RecSplitFile");
+	const char* recSplitFileTypeVal =
+		config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "RecSplitFileType");
+	size_t indexEncoderSettings = 9;
+
+	if (recSplitFileVal) {
+		indexEncoderSettings += 4;
+		if (strcmp(recSplitFileTypeVal, "Manual") == 0)
+			indexEncoderSettings --;
+	}
 
 	bool newEncoderType = false;
 	std::string currentFormat;
@@ -3625,10 +3778,12 @@ std::vector<SubCategory> OBS_settings::getAdvancedSettings()
 	colorFormat.push_back(std::make_pair("minVal", ipc::value((double)0)));
 	colorFormat.push_back(std::make_pair("maxVal", ipc::value((double)0)));
 	colorFormat.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	colorFormat.push_back(std::make_pair("NV12", ipc::value("NV12")));
-	colorFormat.push_back(std::make_pair("I420", ipc::value("I420")));
-	colorFormat.push_back(std::make_pair("I444", ipc::value("I444")));
-	colorFormat.push_back(std::make_pair("RGB", ipc::value("RGB")));
+	colorFormat.push_back(std::make_pair("NV12 (8-bit, 4:2:0, 2 planes)", ipc::value("NV12")));
+	colorFormat.push_back(std::make_pair("I420 (8-bit, 4:2:0, 3 planes)", ipc::value("I420")));
+	colorFormat.push_back(std::make_pair("I444 (8-bit, 4:4:4, 3 planes)", ipc::value("I444")));
+	colorFormat.push_back(std::make_pair("P010 (10-bit, 4:2:0, 2 planes)", ipc::value("P010")));
+	colorFormat.push_back(std::make_pair("I010 (10-bit, 4:2:0, 3 planes)", ipc::value("I010")));
+	colorFormat.push_back(std::make_pair("RGB (8-bit)", ipc::value("RGB")));
 	entries.push_back(colorFormat);
 
 	//YUV Color Space
@@ -3653,7 +3808,7 @@ std::vector<SubCategory> OBS_settings::getAdvancedSettings()
 	colorRange.push_back(std::make_pair("minVal", ipc::value((double)0)));
 	colorRange.push_back(std::make_pair("maxVal", ipc::value((double)0)));
 	colorRange.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	colorRange.push_back(std::make_pair("Partial", ipc::value("Partial")));
+	colorRange.push_back(std::make_pair("Limited", ipc::value("Partial")));
 	colorRange.push_back(std::make_pair("Full", ipc::value("Full")));
 	entries.push_back(colorRange);
 
@@ -3667,6 +3822,28 @@ std::vector<SubCategory> OBS_settings::getAdvancedSettings()
 	forceGPUAsRenderDevice.push_back(std::make_pair("maxVal", ipc::value((double)0)));
 	forceGPUAsRenderDevice.push_back(std::make_pair("stepVal", ipc::value((double)0)));
 	entries.push_back(forceGPUAsRenderDevice);
+
+	//SDR White Level
+	std::vector<std::pair<std::string, ipc::value>> sdrWhiteLevel;
+	sdrWhiteLevel.push_back(std::make_pair("name", ipc::value("SdrWhiteLevel")));
+	sdrWhiteLevel.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_INT")));
+	sdrWhiteLevel.push_back(std::make_pair("description", ipc::value("SDR White Level")));
+	sdrWhiteLevel.push_back(std::make_pair("subType", ipc::value("")));
+	sdrWhiteLevel.push_back(std::make_pair("minVal", ipc::value((double)80)));
+	sdrWhiteLevel.push_back(std::make_pair("maxVal", ipc::value((double)480)));
+	sdrWhiteLevel.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+	entries.push_back(sdrWhiteLevel);
+
+	//HDR Nominal Peak Level
+	std::vector<std::pair<std::string, ipc::value>> hdrNominalPeakLevel;
+	hdrNominalPeakLevel.push_back(std::make_pair("name", ipc::value("HdrNominalPeakLevel")));
+	hdrNominalPeakLevel.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_INT")));
+	hdrNominalPeakLevel.push_back(std::make_pair("description", ipc::value("HDR Nominal Peak Level")));
+	hdrNominalPeakLevel.push_back(std::make_pair("subType", ipc::value("")));
+	hdrNominalPeakLevel.push_back(std::make_pair("minVal", ipc::value((double)400)));
+	hdrNominalPeakLevel.push_back(std::make_pair("maxVal", ipc::value((double)10000)));
+	hdrNominalPeakLevel.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+	entries.push_back(hdrNominalPeakLevel);
 
 	advancedSettings.push_back(serializeSettingsData(
 	    "Video",
@@ -3720,6 +3897,20 @@ std::vector<SubCategory> OBS_settings::getAdvancedSettings()
 
 	advancedSettings.push_back(
 	    serializeSettingsData("Audio", entries, ConfigManager::getInstance().getBasic(), "Audio", true, true));
+	entries.clear();
+
+	std::vector<std::pair<std::string, ipc::value>> lowLatencyAudioBuffering;
+	lowLatencyAudioBuffering.push_back(std::make_pair("name", ipc::value("LowLatencyAudioBuffering")));
+	lowLatencyAudioBuffering.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_BOOL")));
+	lowLatencyAudioBuffering.push_back(std::make_pair("description", ipc::value("Low Latency Audio Buffering Mode (For Decklink/NDI outputs), requires a restart")));
+	lowLatencyAudioBuffering.push_back(std::make_pair("subType", ipc::value("")));
+	lowLatencyAudioBuffering.push_back(std::make_pair("minVal", ipc::value((double)0)));
+	lowLatencyAudioBuffering.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+	lowLatencyAudioBuffering.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+	entries.push_back(lowLatencyAudioBuffering);
+
+	advancedSettings.push_back(
+	    serializeSettingsData("Audio", entries, ConfigManager::getInstance().getGlobal(), "Audio", true, true));
 	entries.clear();
 
 	//Recording
@@ -3978,6 +4169,9 @@ void OBS_settings::saveAdvancedSettings(std::vector<SubCategory> advancedSetting
 
 	audioAdvancedSettings.push_back(advancedSettings.at(index++));
 	saveGenericSettings(audioAdvancedSettings, "Audio", ConfigManager::getInstance().getBasic());
+	audioAdvancedSettings.clear();
+	audioAdvancedSettings.push_back(advancedSettings.at(index++));
+	saveGenericSettings(audioAdvancedSettings, "Audio", ConfigManager::getInstance().getGlobal());
 
 	//Recording
 	std::vector<SubCategory> recordingAdvancedSettings;

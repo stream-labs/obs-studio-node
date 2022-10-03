@@ -56,6 +56,18 @@ static void FixChromeD3DIssue(HWND chromeWindow)
 }
 #endif
 
+Napi::Value display::OBS_content_setDayTheme(const Napi::CallbackInfo& info)
+{
+	bool dayTheme = info[0].ToBoolean().Value();
+
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
+
+	conn->call("Display", "OBS_content_setDayTheme", {ipc::value(dayTheme)});
+	return info.Env().Undefined();
+}
+
 Napi::Value display::OBS_content_createDisplay(const Napi::CallbackInfo& info)
 {
 	Napi::Buffer<void *> bufferData = info[0].As<Napi::Buffer<void*>>();
@@ -238,6 +250,26 @@ Napi::Value display::OBS_content_setOutlineColor(const Napi::CallbackInfo& info)
 	return info.Env().Undefined();
 }
 
+Napi::Value display::OBS_content_setCropOutlineColor(const Napi::CallbackInfo& info)
+{
+	std::string key = info[0].ToString().Utf8Value();
+	uint32_t r = info[1].ToNumber().Uint32Value();
+	uint32_t g = info[2].ToNumber().Uint32Value();
+	uint32_t b = info[3].ToNumber().Uint32Value();
+	uint32_t a = 255;
+
+	if (info.Length() > 4)
+		a = info[4].ToNumber().Uint32Value();
+
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
+
+	conn->call("Display", "OBS_content_setCropOutlineColor",
+	    {ipc::value(key), ipc::value(r), ipc::value(g), ipc::value(b), ipc::value(a)});
+	return info.Env().Undefined();
+}
+
 Napi::Value display::OBS_content_setShouldDrawUI(const Napi::CallbackInfo& info)
 {
 	std::string key = info[0].ToString().Utf8Value();
@@ -264,6 +296,19 @@ Napi::Value display::OBS_content_setDrawGuideLines(const Napi::CallbackInfo& inf
 	return info.Env().Undefined();
 }
 
+Napi::Value display::OBS_content_setDrawRotationHandle(const Napi::CallbackInfo& info)
+{
+	std::string key = info[0].ToString().Utf8Value();
+	bool drawRotationHandle = info[1].ToBoolean().Value();
+
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
+
+	conn->call("Display", "OBS_content_setDrawRotationHandle", {ipc::value(key), ipc::value(drawRotationHandle)});
+	return info.Env().Undefined();
+}
+
 Napi::Value display::OBS_content_createIOSurface(const Napi::CallbackInfo& info)
 {
 	std::string key = info[0].ToString().Utf8Value();
@@ -283,6 +328,9 @@ Napi::Value display::OBS_content_createIOSurface(const Napi::CallbackInfo& info)
 
 void display::Init(Napi::Env env, Napi::Object exports)
 {
+	exports.Set(
+		Napi::String::New(env, "OBS_content_setDayTheme"),
+		Napi::Function::New(env, display::OBS_content_setDayTheme));
 	exports.Set(
 		Napi::String::New(env, "OBS_content_createDisplay"),
 		Napi::Function::New(env, display::OBS_content_createDisplay));
@@ -311,11 +359,17 @@ void display::Init(Napi::Env env, Napi::Object exports)
 		Napi::String::New(env, "OBS_content_setPaddingColor"),
 		Napi::Function::New(env, display::OBS_content_setPaddingColor));
 	exports.Set(
+		Napi::String::New(env, "OBS_content_setCropOutlineColor"),
+		Napi::Function::New(env, display::OBS_content_setCropOutlineColor));
+	exports.Set(
 		Napi::String::New(env, "OBS_content_setShouldDrawUI"),
 		Napi::Function::New(env, display::OBS_content_setShouldDrawUI));
 	exports.Set(
 		Napi::String::New(env, "OBS_content_setDrawGuideLines"),
 		Napi::Function::New(env, display::OBS_content_setDrawGuideLines));
+	exports.Set(
+		Napi::String::New(env, "OBS_content_setDrawRotationHandle"),
+		Napi::Function::New(env, display::OBS_content_setDrawRotationHandle));
 	exports.Set(
 		Napi::String::New(env, "OBS_content_createIOSurface"),
 		Napi::Function::New(env, display::OBS_content_createIOSurface));

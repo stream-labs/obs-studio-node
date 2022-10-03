@@ -173,7 +173,15 @@ void initBasicDefault(config_t* config)
 	config_set_default_uint(config, "AdvOut", "Track5Bitrate", 160);
 	config_set_default_uint(config, "AdvOut", "Track6Bitrate", 160);
 
-	config_set_default_bool(config, "AdvOut", "RecRB", true);
+	config_set_default_bool(config, "AdvOut", "RecSplitFile", false);
+	config_set_default_string(config, "AdvOut", "RecSplitFileType", "Time");
+	config_set_default_uint(config, "AdvOut", "RecSplitFileTime", 15);
+	config_set_default_uint(config, "AdvOut", "RecSplitFileSize",
+				2048);
+	config_set_default_bool(config, "AdvOut",
+				"RecSplitFileResetTimestamps", true);
+
+	config_set_default_bool(config, "AdvOut", "RecRB", false);
 	config_set_default_uint(config, "AdvOut", "RecRBTime", 20);
 	config_set_default_int(config, "AdvOut", "RecRBSize", 512);
 	config_set_default_bool(config, "AdvOut", "replayBufferUseStreamOutput", true);
@@ -195,8 +203,8 @@ void initBasicDefault(config_t* config)
 	config_set_default_bool(config, "Output", "DelayPreserve", true);
 
 	config_set_default_bool(config, "Output", "Reconnect", true);
-	config_set_default_uint(config, "Output", "RetryDelay", 10);
-	config_set_default_uint(config, "Output", "MaxRetries", 20);
+	config_set_default_uint(config, "Output", "RetryDelay", 2);
+	config_set_default_uint(config, "Output", "MaxRetries", 25);
 
 	config_set_default_string(config, "Output", "BindIP", "default");
 	config_set_default_bool(config, "Output", "DynamicBitrate", false);
@@ -233,12 +241,16 @@ void initBasicDefault(config_t* config)
 	config_set_default_uint(config, "Video", "FPSDen", 1);
 	config_set_default_string(config, "Video", "ScaleType", "bicubic");
 	config_set_default_string(config, "Video", "ColorFormat", "NV12");
-	config_set_default_string(config, "Video", "ColorSpace", "601");
+	config_set_default_string(config, "Video", "ColorSpace", "709");
 	config_set_default_string(config, "Video", "ColorRange", "Partial");
+	config_set_default_uint(config, "Video", "SdrWhiteLevel", 300);
+	config_set_default_uint(config, "Video", "HdrNominalPeakLevel",
+				1000);
 	config_set_default_bool(config, "Video", "ForceGPUAsRenderDevice", true);
 
 	config_set_default_string(config, "Audio", "MonitoringDeviceId", "default");
 	config_set_default_string(config, "Audio", "MonitoringDeviceName", "Default");
+	config_set_default_bool(config, "Audio", "LowLatencyAudioBuffering", false);
 	
 	if (config_get_uint(config, "Audio", "SampleRate") == 0 ) {
 		config_set_uint(config, "Audio", "SampleRate", 44100);

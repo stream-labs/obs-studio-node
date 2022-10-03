@@ -52,14 +52,18 @@
 #define SIMPLE_ENCODER_X264_LOWCPU "x264_lowcpu"
 #define SIMPLE_ENCODER_QSV "qsv"
 #define SIMPLE_ENCODER_NVENC "nvenc"
+#define SIMPLE_ENCODER_NVENC_HEVC "nvenc_hevc"
 #define SIMPLE_ENCODER_AMD "amd"
+#define SIMPLE_ENCODER_AMD_HEVC "amd_hevc"
 
 #define ADVANCED_ENCODER_X264 "obs_x264"
 #define ADVANCED_ENCODER_QSV "obs_qsv11"
 #define ADVANCED_ENCODER_NVENC "ffmpeg_nvenc"
-#define ADVANCED_ENCODER_AMD "amd_amf_h264"
+#define ADVANCED_ENCODER_AMD "h264_texture_amf"
+#define ADVANCED_ENCODER_AMD_HEVC "h265_texture_amf"
 
 #define ENCODER_NEW_NVENC "jim_nvenc"
+#define ENCODER_NEW_HEVC_NVENC "jim_hevc_nvenc"
 
 #define APPLE_SOFTWARE_VIDEO_ENCODER "com.apple.videotoolbox.videoencoder.h264"
 #define APPLE_HARDWARE_VIDEO_ENCODER "com.apple.videotoolbox.videoencoder.h264.gva"
@@ -177,6 +181,11 @@ class OBS_service
 	    const std::vector<ipc::value>& args,
 	    std::vector<ipc::value>&       rval);
 	static void OBS_service_getLastRecording(
+	    void*                          data,
+	    const int64_t                  id,
+	    const std::vector<ipc::value>& args,
+	    std::vector<ipc::value>&       rval);
+	static void OBS_service_splitFile(
 	    void*                          data,
 	    const int64_t                  id,
 	    const std::vector<ipc::value>& args,

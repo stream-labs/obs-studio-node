@@ -47,6 +47,12 @@ struct SourceDataInfo
 
 	std::vector<uint64_t>* filters             = new std::vector<uint64_t>();
 	bool                   filtersOrderChanged = true;
+
+	uint32_t deinterlaceMode = 0;
+	bool    deinterlaceModeChanged = true;
+
+	uint32_t deinterlaceFieldOrder = 0;
+	bool    deinterlaceFieldOrderChanged = true;
 };
 
 struct SceneItemData
@@ -83,6 +89,15 @@ struct SceneItemData
 
 	bool isRecordingVisible = true;
 	bool recordingVisibleChanged = true;
+
+	uint32_t scaleFilter = 0;
+	bool scaleFilterChanged = true;
+
+	uint32_t blendingMode = 0;
+	bool blendingModeChanged = true;
+
+	uint32_t blendingMethod = 0;
+	bool blendingMethodChanged = true;
 };
 
 template<class T>

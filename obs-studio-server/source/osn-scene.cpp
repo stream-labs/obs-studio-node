@@ -48,7 +48,8 @@ void osn::Scene::Register(ipc::server& srv)
 	cls->register_function(std::make_shared<ipc::function>(
         "AddSourceWithTransform", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64,
         ipc::type::Double,ipc::type::Double, ipc::type::Int32, ipc::type::Double, ipc::type::Double, ipc::type::Double,
-        ipc::type::Int64, ipc::type::Int64, ipc::type::Int64, ipc::type::Int64, ipc::type::Int32, ipc::type::Int32}, AddSource));
+        ipc::type::Int64, ipc::type::Int64, ipc::type::Int64, ipc::type::Int64, ipc::type::Int32, ipc::type::Int32,
+				ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32}, AddSource));
 
 	cls->register_function(std::make_shared<ipc::function>(
 	    "FindItemByName", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String}, FindItemByName));
@@ -329,6 +330,10 @@ void osn::Scene::AddSource(
 
 		obs_sceneitem_set_stream_visible(item , !!args[12].value_union.i32);
 		obs_sceneitem_set_recording_visible(item , !!args[13].value_union.i32);
+
+		obs_sceneitem_set_scale_filter(item, (enum obs_scale_type)args[14].value_union.ui32);
+		obs_sceneitem_set_blending_mode(item, (enum obs_blending_type)args[15].value_union.ui32);
+		obs_sceneitem_set_blending_method(item, (enum obs_blending_method)args[16].value_union.ui32);
 	}
 
 	obs_sceneitem_addref(item);

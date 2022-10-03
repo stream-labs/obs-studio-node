@@ -58,6 +58,8 @@ namespace OBS
 		Display();
 
 		public:
+		static void SetDayTheme(bool dayTheme);
+
 		Display(uint64_t windowHandle,
 		    enum obs_video_rendering_mode mode);       // Create a Main Preview one
 		Display(uint64_t windowHandle,
@@ -81,16 +83,26 @@ namespace OBS
 		void SetPaddingColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255u);
 		void SetBackgroundColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255u);
 		void SetOutlineColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255u);
+		void SetCropOutlineColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255u);
 		void SetGuidelineColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255u);
 		void SetResizeBoxOuterColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255u);
 		void SetResizeBoxInnerColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255u);
+		void SetRotationHandleColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255u);
 		bool GetDrawGuideLines(void);
 		void SetDrawGuideLines(bool drawGuideLines);
+		bool GetDrawRotationHandle();
+		void SetDrawRotationHandle(bool drawRotationHandle);
 		void UpdatePreviewArea();
 
 		private:
 		static void DisplayCallback(void* displayPtr, uint32_t cx, uint32_t cy);
 		static bool DrawSelectedSource(obs_scene_t* scene, obs_sceneitem_t* item, void* param);
+		static bool DrawSelectedOverflow(obs_scene_t *scene, obs_sceneitem_t *item, void *param);
+		obs_source_t* GetSourceForUIEffects();
+		void        DrawCropOutline(float x1, float y1, float x2, float y2, vec2 scale);
+		void        DrawOutline(const matrix4& mtx, const obs_sceneitem_crop& crop,
+		            	const vec2& boxScale, gs_eparam_t* color);
+		void        DrawRotationHandle(float rot, matrix4& mtx);
 		void        setSizeCall(int step);
 
 		public: // Rendering code needs it.
@@ -99,7 +111,8 @@ namespace OBS
 		gs_init_data   m_gsInitData;
 		obs_display_t* m_display;
 		obs_source_t*  m_source;
-		bool           m_drawGuideLines;
+		bool m_drawGuideLines = true;
+		bool m_drawRotationHandle = false;
 
 		// Preview
 		/// Window Position
@@ -110,25 +123,49 @@ namespace OBS
 		std::pair<uint32_t, uint32_t> m_previewSize;
 
 		private:
+		static bool m_dayTheme;
 		// OBS Graphics API
 		gs_effect_t * m_gsSolidEffect, *m_textEffect;
 		gs_texture_t* m_textTexture;
+		gs_texture_t* m_overflowNightTexture;
+		gs_texture_t* m_overflowDayTexture;
 		static std::mutex m_displayMtx;
 
 		GS::VertexBuffer* m_textVertices;
 
+		std::unique_ptr<GS::VertexBuffer> m_leftSolidOutline;
+		std::unique_ptr<GS::VertexBuffer> m_topSolidOutline;
+		std::unique_ptr<GS::VertexBuffer> m_rightSolidOutline;
+		std::unique_ptr<GS::VertexBuffer> m_bottomSolidOutline;
+		std::unique_ptr<GS::VertexBuffer> m_cropOutline;
+
 		std::unique_ptr<GS::VertexBuffer> m_boxLine, m_boxTris;
+		std::unique_ptr<GS::VertexBuffer> m_rotHandleLine, m_rotHandleCircle;
 
 		// Theme/Style
 		/// Padding
-		uint32_t             m_paddingSize  = 10;
-		std::vector<float_t> m_paddingColor = {0.1328125, 0.1328125, 0.1328125, 1.0};
+		uint32_t m_paddingSize = 10;
+		uint32_t m_paddingColor = 0xFF222222;
 		/// Other
-		uint32_t m_backgroundColor  = 0xFF000000;
-		uint32_t m_outlineColor     = 0xFFFF7EFF;
-		uint32_t m_guidelineColor   = 0xFF0000FF;
-		uint32_t m_resizeOuterColor = 0xFF7E7E7E;
-		uint32_t m_resizeInnerColor = 0xFFFFFFFF;
+		uint32_t m_backgroundColor  = 0xFF000000; // 0, 0, 0
+		uint32_t m_outlineColor = 0xFFA8E61A; // 26, 230, 168
+		uint32_t m_cropOutlineColor = 0xFFA8E61A; // 26, 230, 168
+		uint32_t m_guidelineColor = 0xFFA8E61A; // 26, 230, 168
+		uint32_t m_resizeOuterColor = 0xFF7E7E7E; // 126, 126, 126
+		uint32_t m_resizeInnerColor = 0xFFFFFFFF; // 255, 255, 255
+		uint32_t m_rotationHandleColor = 0xFFA8E61A; // 26, 230, 168
+
+		// The following values must be pre-calculated
+		// in the constructor and the "Set" color methods!
+		vec4 m_paddingColorVec4;
+		vec4 m_backgroundColorVec4;
+		vec4 m_outlineColorVec4;
+		vec4 m_cropOutlineColorVec4;
+		vec4 m_guidelineColorVec4;
+		vec4 m_resizeOuterColorVec4;
+		vec4 m_resizeInnerColorVec4;
+		vec4 m_rotationHandleColorVec4;
+
 		bool     m_shouldDrawUI     = true;
 
 		enum obs_video_rendering_mode m_renderingMode = OBS_MAIN_VIDEO_RENDERING;

@@ -156,6 +156,11 @@ void OBS_content::Register(ipc::server& srv)
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Display");
 
 	cls->register_function(std::make_shared<ipc::function>(
+	    "OBS_content_setDayTheme",
+	    std::vector<ipc::type>{ipc::type::UInt32},
+	    OBS_content_setDayTheme));
+
+	cls->register_function(std::make_shared<ipc::function>(
 	    "OBS_content_createDisplay",
 	    std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String, ipc::type::Int32},
 	    OBS_content_createDisplay));
@@ -212,6 +217,12 @@ void OBS_content::Register(ipc::server& srv)
 	    OBS_content_setOutlineColor));
 
 	cls->register_function(std::make_shared<ipc::function>(
+	    "OBS_content_setCropOutlineColor",
+	    std::vector<ipc::type>{
+	        ipc::type::String, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32},
+	    OBS_content_setCropOutlineColor));
+
+	cls->register_function(std::make_shared<ipc::function>(
 	    "OBS_content_setShouldDrawUI",
 	    std::vector<ipc::type>{ipc::type::String, ipc::type::Int32},
 	    OBS_content_setShouldDrawUI));
@@ -220,6 +231,11 @@ void OBS_content::Register(ipc::server& srv)
 	    "OBS_content_setDrawGuideLines",
 	    std::vector<ipc::type>{ipc::type::String, ipc::type::Int32},
 	    OBS_content_setDrawGuideLines));
+
+	cls->register_function(std::make_shared<ipc::function>(
+	    "OBS_content_setDrawRotationHandle",
+	    std::vector<ipc::type>{ipc::type::String, ipc::type::Int32},
+	    OBS_content_setDrawRotationHandle));
 
 	cls->register_function(std::make_shared<ipc::function>(
 	    "OBS_content_createIOSurface",
@@ -243,6 +259,18 @@ void popupAeroDisabledWindow(void)
 	    TEXT("Aero is disabled"),
 	    MB_OK);
 #endif
+}
+
+void OBS_content::OBS_content_setDayTheme(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	OBS::Display::SetDayTheme((bool)args[0].value_union.ui32);
+
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
 }
 
 void OBS_content::OBS_content_createDisplay(
@@ -571,6 +599,42 @@ void OBS_content::OBS_content_setOutlineColor(
 	return;
 }
 
+void OBS_content::OBS_content_setCropOutlineColor(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	union
+	{
+		uint32_t rgba;
+		uint8_t  c[4];
+	} color;
+
+	// Assign Color
+	color.c[0] = (uint8_t)(args[1].value_union.ui32);
+	color.c[1] = (uint8_t)(args[2].value_union.ui32);
+	color.c[2] = (uint8_t)(args[3].value_union.ui32);
+	if (args[4].value_union.ui32 != NULL) {
+		color.c[3] = (uint8_t)(args[4].value_union.ui32);
+	}
+	else
+		color.c[3] = 255;
+
+	// Find Display
+	auto it = displays.find(args[0].value_str);
+	if (it == displays.end()) {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
+		rval.push_back(ipc::value("Display key is not valid!"));
+		return;
+	}
+
+	it->second->SetCropOutlineColor(color.c[0], color.c[1], color.c[2], color.c[3]);
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
+	return;
+}
+
 void OBS_content::OBS_content_setShouldDrawUI(
     void*                          data,
     const int64_t                  id,
@@ -650,6 +714,24 @@ void OBS_content::OBS_content_setDrawGuideLines(
 		return;
 	}
 	it->second->SetDrawGuideLines((bool)args[1].value_union.i32);
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
+}
+
+void OBS_content::OBS_content_setDrawRotationHandle(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	// Find Display
+	auto it = displays.find(args[0].value_str);
+	if (it == displays.end()) {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
+		rval.push_back(ipc::value("Display key is not valid!"));
+		return;
+	}
+	it->second->SetDrawRotationHandle((bool)args[1].value_union.ui32);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }

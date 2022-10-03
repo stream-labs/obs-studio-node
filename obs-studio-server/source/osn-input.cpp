@@ -87,7 +87,7 @@ void osn::Input::Register(ipc::server& srv)
 	cls->register_function(std::make_shared<ipc::function>(
 	    "GetDeInterlaceMode", std::vector<ipc::type>{ipc::type::UInt64}, GetDeInterlaceMode));
 	cls->register_function(std::make_shared<ipc::function>(
-	    "SetDeInterlaceMode", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32}, GetDeInterlaceMode));
+	    "SetDeInterlaceMode", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32}, SetDeInterlaceMode));
 
 	cls->register_function(
 	    std::make_shared<ipc::function>("GetFilters", std::vector<ipc::type>{ipc::type::UInt64}, GetFilters));
@@ -170,6 +170,8 @@ void osn::Input::Create(
 	rval.push_back(ipc::value(uid));
 	rval.push_back(ipc::value(obs_data_get_full_json(settingsSource)));
 	rval.push_back(ipc::value(obs_source_get_audio_mixers(source)));
+	rval.push_back(ipc::value((uint32_t)obs_source_get_deinterlace_mode(source)));
+	rval.push_back(ipc::value((uint32_t)obs_source_get_deinterlace_field_order(source)));
 
 	obs_data_release(settingsSource);
 	AUTO_DEBUG;
