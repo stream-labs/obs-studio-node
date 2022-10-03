@@ -212,7 +212,7 @@ void osn::ISimpleRecording::SetAudioEncoder(
     AUTO_DEBUG;
 }
 
-static inline void LoadLosslessPreset(osn::Recording* recording)
+static void LoadLosslessPreset(osn::Recording* recording)
 {
     obs_data_t* settings = obs_data_create();
     obs_data_set_string(settings, "format_name", "avi");
@@ -224,7 +224,7 @@ static inline void LoadLosslessPreset(osn::Recording* recording)
     obs_data_release(settings);
 }
 
-static inline obs_data_t* UpdateRecordingSettings_x264_crf(int crf, bool lowCPU)
+static obs_data_t* UpdateRecordingSettings_x264_crf(int crf, bool lowCPU)
 {
     obs_data_t* settings = obs_data_create();
     obs_data_set_int(settings, "crf", crf);
@@ -235,7 +235,7 @@ static inline obs_data_t* UpdateRecordingSettings_x264_crf(int crf, bool lowCPU)
     return settings;
 }
 
-static inline obs_data_t* UpdateRecordingSettings_amd_cqp(int cqp)
+static obs_data_t* UpdateRecordingSettings_amd_cqp(int cqp)
 {
     obs_data_t* settings = obs_data_create();
     obs_data_set_int(settings, "Usage", 0);
@@ -251,7 +251,7 @@ static inline obs_data_t* UpdateRecordingSettings_amd_cqp(int cqp)
     return settings;
 }
 
-static inline obs_data_t* UpdateRecordingSettings_nvenc(int cqp)
+static obs_data_t* UpdateRecordingSettings_nvenc(int cqp)
 {
     obs_data_t* settings = obs_data_create();
     obs_data_set_string(settings, "rate_control", "CQP");
@@ -262,7 +262,7 @@ static inline obs_data_t* UpdateRecordingSettings_nvenc(int cqp)
     return settings;
 }
 
-static inline bool icq_available(obs_encoder_t* encoder)
+static bool icq_available(obs_encoder_t* encoder)
 {
     obs_properties_t* props     = obs_encoder_properties(encoder);
     obs_property_t*   p         = obs_properties_get(props, "rate_control");
@@ -281,7 +281,7 @@ static inline bool icq_available(obs_encoder_t* encoder)
     return icq_found;
 }
 
-static inline obs_data_t* UpdateRecordingSettings_qsv11(int crf, obs_encoder_t* encoder)
+static obs_data_t* UpdateRecordingSettings_qsv11(int crf, obs_encoder_t* encoder)
 {
     bool icq = icq_available(encoder);
     obs_data_t* settings = obs_data_create();
@@ -299,7 +299,7 @@ static inline obs_data_t* UpdateRecordingSettings_qsv11(int crf, obs_encoder_t* 
 }
 
 #define CROSS_DIST_CUTOFF 2000.0
-static inline int CalcCRF(int crf, bool lowCPU = false)
+static int CalcCRF(int crf, bool lowCPU = false)
 {
     obs_video_info ovi = {0};
     obs_get_video_info(&ovi);
@@ -318,7 +318,7 @@ static inline int CalcCRF(int crf, bool lowCPU = false)
     return crf - int(crfResReduction);
 }
 
-static inline void UpdateRecordingSettings_crf(
+static void UpdateRecordingSettings_crf(
     const int& crf, osn::SimpleRecording* recording)
 {
     std::string id =

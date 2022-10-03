@@ -82,7 +82,7 @@ Napi::Value osn::Video::GetEncodedFrames(const Napi::CallbackInfo& info)
     return Napi::Number::New(info.Env(), response[1].value_union.ui32);
 }
 
-inline void CreateVideo(
+void CreateVideo(
     const Napi::CallbackInfo& info,const std::vector<ipc::value>& response,
     Napi::Object& video, uint32_t index)
 {
@@ -99,7 +99,7 @@ inline void CreateVideo(
     video.Set("fpsType", response[index++].value_union.ui32);
 }
 
-inline void SerializeVideoData(
+void SerializeVideoData(
     const Napi::Object& video, std::vector<ipc::value>& args)
 {
     args.push_back(video.Get("fpsNum").ToNumber().Uint32Value());

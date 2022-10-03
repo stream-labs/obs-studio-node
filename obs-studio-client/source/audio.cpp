@@ -44,7 +44,7 @@ osn::Audio::Audio(const Napi::CallbackInfo& info)
     Napi::HandleScope scope(env);
 }
 
-inline void CreateAudio(
+void CreateAudio(
     const Napi::CallbackInfo& info,const std::vector<ipc::value>& response,
     Napi::Object& audio, uint32_t index)
 {
@@ -52,7 +52,7 @@ inline void CreateAudio(
     audio.Set("speakers", response[index++].value_union.ui32);
 }
 
-inline void SerializeAudioData(
+void SerializeAudioData(
     const Napi::Object& audio, std::vector<ipc::value>& args)
 {
     args.push_back(audio.Get("sampleRate").ToNumber().Uint32Value());

@@ -50,7 +50,7 @@ void osn::OutputSignals::deleteOutput()
     output = nullptr;
 }
 
-static inline void callback(void* data, calldata_t* params)
+static void callback(void* data, calldata_t* params)
 {
     auto info =
         reinterpret_cast<osn::cbData*>(data);

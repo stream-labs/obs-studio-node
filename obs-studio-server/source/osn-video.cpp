@@ -106,7 +106,7 @@ void osn::Video::GetVideoContext(
     AUTO_DEBUG;
 }
 
-static inline const char* GetScaleType(const enum obs_scale_type& scaleType)
+static const char* GetScaleType(const enum obs_scale_type& scaleType)
 {
     switch (scaleType) {
         case OBS_SCALE_BILINEAR:
@@ -120,7 +120,7 @@ static inline const char* GetScaleType(const enum obs_scale_type& scaleType)
     }
 }
 
-static inline enum obs_scale_type ScaleTypeFromStr(const std::string& value)
+static enum obs_scale_type ScaleTypeFromStr(const std::string& value)
 {
     if (value.compare("bilinear") == 0)
         return OBS_SCALE_BILINEAR;
@@ -132,7 +132,7 @@ static inline enum obs_scale_type ScaleTypeFromStr(const std::string& value)
     return OBS_SCALE_BILINEAR;
 }
 
-static inline const char* GetOutputFormat(const enum video_format& outputFormat)
+static const char* GetOutputFormat(const enum video_format& outputFormat)
 {
     switch (outputFormat) {
         case VIDEO_FORMAT_I420:
@@ -172,7 +172,7 @@ static inline const char* GetOutputFormat(const enum video_format& outputFormat)
     }
 }
 
-static inline enum video_format OutputFormFromStr(const std::string& value)
+static enum video_format OutputFormFromStr(const std::string& value)
 {
     if (value.compare("I420") == 0)
         return VIDEO_FORMAT_I420;
@@ -210,7 +210,7 @@ static inline enum video_format OutputFormFromStr(const std::string& value)
     return VIDEO_FORMAT_I420;
 }
 
-static inline const char* GetColorSpace(const enum video_colorspace& colorSpace)
+static const char* GetColorSpace(const enum video_colorspace& colorSpace)
 {
     switch (colorSpace) {
         case VIDEO_CS_DEFAULT:
@@ -226,7 +226,7 @@ static inline const char* GetColorSpace(const enum video_colorspace& colorSpace)
     }
 }
 
-static inline enum video_colorspace ColorSpaceFromStr(const std::string& value)
+static enum video_colorspace ColorSpaceFromStr(const std::string& value)
 {
     if (value.compare("709") == 0)
         return VIDEO_CS_709;
@@ -238,7 +238,7 @@ static inline enum video_colorspace ColorSpaceFromStr(const std::string& value)
     return VIDEO_CS_DEFAULT;
 }
 
-static inline const char* GetColorRange(const enum video_range_type& colorRange)
+static const char* GetColorRange(const enum video_range_type& colorRange)
 {
     switch (colorRange) {
         case VIDEO_RANGE_DEFAULT:
@@ -252,7 +252,7 @@ static inline const char* GetColorRange(const enum video_range_type& colorRange)
     }
 }
 
-static inline enum video_range_type ColoRangeFromStr(const std::string& value)
+static enum video_range_type ColoRangeFromStr(const std::string& value)
 {
     if (value.compare("Partial") == 0)
         return VIDEO_RANGE_PARTIAL;

@@ -384,7 +384,7 @@ void osn::IAdvancedStreaming::SetOutputHeight(
     AUTO_DEBUG;
 }
 
-static inline obs_encoder_t* createAudioEncoder(uint32_t bitrate)
+static obs_encoder_t* createAudioEncoder(uint32_t bitrate)
 {
     obs_encoder_t* audioEncoder = nullptr;
 
@@ -395,7 +395,7 @@ static inline obs_encoder_t* createAudioEncoder(uint32_t bitrate)
 }
 
 
-static inline bool setAudioEncoder(osn::AdvancedStreaming* streaming)
+static bool setAudioEncoder(osn::AdvancedStreaming* streaming)
 {
     osn::AudioTrack* audioTrack =
         osn::IAudioTrack::audioTracks[streaming->audioTrack - 1];
@@ -413,7 +413,7 @@ static inline bool setAudioEncoder(osn::AdvancedStreaming* streaming)
 static constexpr int kSoundtrackArchiveEncoderIdx = 1;
 static constexpr int kSoundtrackArchiveTrackIdx = 5;
 
-static inline uint32_t setMixer(obs_source_t *source, const int mixerIdx, const bool checked)
+static uint32_t setMixer(obs_source_t *source, const int mixerIdx, const bool checked)
 {
     uint32_t mixers = obs_source_get_audio_mixers(source);
     uint32_t new_mixers = mixers;
@@ -426,7 +426,7 @@ static inline uint32_t setMixer(obs_source_t *source, const int mixerIdx, const 
     return mixers;
 }
 
-static inline void SetupTwitchSoundtrackAudio(osn::AdvancedStreaming* streaming)
+static void SetupTwitchSoundtrackAudio(osn::AdvancedStreaming* streaming)
 {
     // These are magic ints provided by OBS for default sources:
     // 0 is the main scene/transition which you'd see on the main preview,
@@ -473,7 +473,7 @@ static inline void SetupTwitchSoundtrackAudio(osn::AdvancedStreaming* streaming)
     obs_data_release(settings);
 }
 
-static inline void StopTwitchSoundtrackAudio(osn::Streaming* streaming)
+static void StopTwitchSoundtrackAudio(osn::Streaming* streaming)
 {
     if (streaming->streamArchive) {
         obs_encoder_release(streaming->streamArchive);
