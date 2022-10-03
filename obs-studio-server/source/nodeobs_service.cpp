@@ -2485,6 +2485,7 @@ void OBS_service::OBS_service_getLastReplay(
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(path));
+    calldata_free(&cd);
 }
 
 void OBS_service::OBS_service_getLastRecording(
@@ -2509,6 +2510,7 @@ void OBS_service::OBS_service_getLastRecording(
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(path));
+    calldata_free(&cd);
 }
 
 bool OBS_service::useRecordingPreset()

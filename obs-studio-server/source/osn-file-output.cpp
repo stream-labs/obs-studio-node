@@ -312,6 +312,7 @@ void osn::IFileOutput::GetLastFile(
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
     rval.push_back(ipc::value(path));
+    calldata_free(&cd);
 }
 
 osn::IFileOutput::Manager& osn::IFileOutput::Manager::GetInstance()
