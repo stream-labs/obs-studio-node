@@ -31,8 +31,10 @@ namespace osn
         protected:
 
         Napi::Value GetPath(const Napi::CallbackInfo& info);
-        void SetPath(const Napi::CallbackInfo& info, const Napi::Value& value);
-        Napi::Value GetFormat(const Napi::CallbackInfo& info);
+		void SetPath(const Napi::CallbackInfo& info, const Napi::Value& value);
+		Napi::Value GetCanvas(const Napi::CallbackInfo& info);
+		void SetCanvas(const Napi::CallbackInfo& info, const Napi::Value& value);
+		Napi::Value GetFormat(const Napi::CallbackInfo& info);
         void SetFormat(const Napi::CallbackInfo& info, const Napi::Value& value);
         Napi::Value GetFileFormat(const Napi::CallbackInfo& info);
         void SetFileFormat(const Napi::CallbackInfo& info, const Napi::Value& value);

@@ -277,7 +277,13 @@ bool osn::AdvancedRecording::UpdateEncoders()
 
     if (!videoEncoder)
         return false;
-        
+
+    if (obs_get_multiple_rendering()) {
+        obs_encoder_set_video_mix(videoEncoder, obs_video_mix_get(0, OBS_RECORDING_VIDEO_RENDERING));
+    } else {
+        obs_encoder_set_video_mix(videoEncoder, obs_video_mix_get(0, OBS_MAIN_VIDEO_RENDERING));
+    }
+
     return true;
 }
 
@@ -320,7 +326,6 @@ void osn::IAdvancedRecording::Start(
             ErrorCode::InvalidReference, "Invalid video encoder.");
     }
 
-    obs_encoder_set_video(recording->videoEncoder, obs_get_video());
     obs_output_set_video_encoder(recording->output, recording->videoEncoder);
 
     std::string path = recording->path;

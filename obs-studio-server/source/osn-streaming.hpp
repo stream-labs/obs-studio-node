@@ -109,6 +109,16 @@ namespace osn
             const int64_t                  id,
             const std::vector<ipc::value>& args,
             std::vector<ipc::value>&       rval);
+        static void GetVideoCanvas(
+            void*                          data,
+            const int64_t                  id,
+            const std::vector<ipc::value>& args,
+            std::vector<ipc::value>&       rval);
+        static void SetVideoCanvas(
+            void*                          data,
+            const int64_t                  id,
+            const std::vector<ipc::value>& args,
+            std::vector<ipc::value>&       rval);
         static void GetVideoEncoder(
             void*                          data,
             const int64_t                  id,

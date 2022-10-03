@@ -157,6 +157,8 @@ void OBS_API::Register(ipc::server& srv)
 	    ProcessHotkeyStatus));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "SetUsername", std::vector<ipc::type>{ipc::type::String}, SetUsername));
+	cls->register_function(
+	    std::make_shared<ipc::function>("OBS_API_forceCrash", std::vector<ipc::type>{}, OBS_API_forceCrash));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "SetBrowserAcceleration",
 		std::vector<ipc::type>{ipc::type::UInt32},
@@ -386,6 +388,7 @@ static void DeleteOldestFile(const char* location, unsigned maxLogs)
 #else
 #include <unistd.h>
 #endif
+#include <osn-error.hpp>
 
 outdated_driver_error * outdated_driver_error::inst = nullptr;
 
@@ -998,6 +1001,7 @@ void OBS_API::OBS_API_initAPI(
 #ifdef WIN32
 		util::CrashManager::GetMetricsProvider()->BlameUser();
 
+		blog(LOG_INFO, "Error returning now");
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
 		rval.push_back(ipc::value(videoError));
 		AUTO_DEBUG;
@@ -1286,11 +1290,11 @@ void OBS_API::OBS_API_forceCrash(
     const std::vector<ipc::value>& args,
     std::vector<ipc::value>&       rval)
 {
-    throw std::runtime_error("Simulated crash to test crash handling functionality");
+	throw std::runtime_error("Simulated crash to test crash handling functionality");
 
-    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 
-    AUTO_DEBUG;
+	AUTO_DEBUG;
 }
 
 bool DisableAudioDucking(bool disable)
@@ -1620,7 +1624,7 @@ void OBS_API::destroyOBS_API(void)
 		obs_encoder_release(streamingEncoder);
 		streamingEncoder = nullptr;
     }
-
+ 
 	obs_encoder_t* recordingEncoder = OBS_service::getRecordingEncoder();
 	if (recordingEncoder != NULL && (OBS_service::useRecordingPreset() || obs_get_multiple_rendering())) {
 		obs_encoder_release(recordingEncoder);

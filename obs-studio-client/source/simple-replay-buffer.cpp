@@ -85,6 +85,7 @@ Napi::Object osn::SimpleReplayBuffer::Init(Napi::Env env, Napi::Object exports) 
                 "recording",
                 &osn::SimpleReplayBuffer::GetRecording,
                 &osn::SimpleReplayBuffer::SetRecording),
+	        InstanceAccessor("video", &osn::SimpleReplayBuffer::GetCanvas, &osn::SimpleReplayBuffer::SetCanvas),
 
             InstanceMethod("start", &osn::SimpleReplayBuffer::Start),
             InstanceMethod("stop", &osn::SimpleReplayBuffer::Stop),

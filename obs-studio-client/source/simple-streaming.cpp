@@ -83,6 +83,7 @@ Napi::Object osn::SimpleStreaming::Init(Napi::Env env, Napi::Object exports) {
                 "network",
                 &osn::SimpleStreaming::GetNetwork,
                 &osn::SimpleStreaming::SetNetwork),
+	        InstanceAccessor("video", &osn::SimpleStreaming::GetCanvas, &osn::SimpleStreaming::SetCanvas),
 
             InstanceMethod("start", &osn::SimpleStreaming::Start),
             InstanceMethod("stop", &osn::SimpleStreaming::Stop),

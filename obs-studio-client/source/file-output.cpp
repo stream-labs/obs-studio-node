@@ -18,6 +18,7 @@
 
 #include "file-output.hpp"
 #include "utility.hpp"
+#include "video.hpp"
 
 Napi::Value osn::FileOutput::GetPath(const Napi::CallbackInfo& info) {
     auto conn = GetConnection(info);
@@ -46,6 +47,39 @@ void osn::FileOutput::SetPath(
         "FileOutput",
         "SetPath",
         {ipc::value(this->uid), ipc::value(value.ToString().Utf8Value())});
+}
+
+Napi::Value osn::FileOutput::GetCanvas(const Napi::CallbackInfo& info)
+{
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
+
+	std::vector<ipc::value> response = conn->call_synchronous_helper("FileOutput", "GetVideoCanvas", {ipc::value(this->uid)});
+
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
+
+	auto instance = osn::Video::constructor.New({Napi::Number::New(info.Env(), response[1].value_union.ui64)});
+
+	return instance;
+}
+
+void osn::FileOutput::SetCanvas(const Napi::CallbackInfo& info, const Napi::Value& value)
+{
+	osn::Video* canvas = Napi::ObjectWrap<osn::Video>::Unwrap(value.ToObject());
+
+	if (!canvas) {
+		Napi::TypeError::New(info.Env(), "Invalid canvas argument").ThrowAsJavaScriptException();
+		return;
+	}
+
+	auto conn = GetConnection(info);
+	if (!conn)
+		return;
+ 
+	conn->call_synchronous_helper(
+	    "FileOutput", "SetVideoCanvas", {ipc::value(this->uid), ipc::value(canvas->canvasId)});
 }
 
 Napi::Value osn::FileOutput::GetFormat(const Napi::CallbackInfo& info) {

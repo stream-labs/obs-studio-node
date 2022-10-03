@@ -531,6 +531,12 @@ void osn::AdvancedStreaming::UpdateEncoders()
 
     obs_encoder_update(videoEncoder, settings);
     obs_data_release(settings);
+
+    if (obs_get_multiple_rendering()) {
+        obs_encoder_set_video_mix(videoEncoder, obs_video_mix_get(0, OBS_STREAMING_VIDEO_RENDERING));
+    } else {
+        obs_encoder_set_video_mix(videoEncoder, obs_video_mix_get(0, OBS_MAIN_VIDEO_RENDERING));
+    }
 }
 
 void osn::IAdvancedStreaming::Start(
@@ -586,7 +592,6 @@ void osn::IAdvancedStreaming::Start(
             streaming->videoEncoder,
             streaming->outputWidth,
             streaming->outputHeight);
-    obs_encoder_set_video(streaming->videoEncoder, obs_get_video());
     obs_output_set_video_encoder(streaming->output, streaming->videoEncoder);
 
     if (streaming->enableTwitchVOD) {

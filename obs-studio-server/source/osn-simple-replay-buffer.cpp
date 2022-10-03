@@ -193,7 +193,6 @@ void osn::ISimpleReplayBuffer::Start(
             ErrorCode::InvalidReference, "Invalid video encoder.");
     }
 
-    obs_encoder_set_video(videoEncoder, obs_get_video());
     obs_output_set_video_encoder(replayBuffer->output, videoEncoder);
 
     if (!replayBuffer->path.size()) {

@@ -35,6 +35,7 @@ namespace osn
         public:
         OutputSignals() {
             output = nullptr;
+            canvas = nullptr;
         }
         virtual ~OutputSignals() {}
 
@@ -43,6 +44,7 @@ namespace osn
         std::queue<signalInfo> signalsReceived;
         std::vector<std::string> signals;
         obs_output_t* output;
+        obs_video_info* canvas;
 
         void ConnectSignals();
 
