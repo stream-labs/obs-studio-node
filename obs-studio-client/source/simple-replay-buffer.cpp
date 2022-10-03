@@ -277,7 +277,7 @@ void osn::SimpleReplayBuffer::SetRecording(
 
     if (!recording) {
         Napi::TypeError::New(info.Env(),
-            "Invalid streaming argument").ThrowAsJavaScriptException();
+            "Invalid recording argument").ThrowAsJavaScriptException();
         return;
     }
 
