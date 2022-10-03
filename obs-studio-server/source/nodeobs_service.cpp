@@ -101,6 +101,8 @@ void OBS_service::Register(ipc::server& srv)
 	cls->register_function(std::make_shared<ipc::function>(
 	    "OBS_service_processReplayBufferHotkey", std::vector<ipc::type>{}, OBS_service_processReplayBufferHotkey));
 	cls->register_function(std::make_shared<ipc::function>(
+	    "OBS_service_splitFile", std::vector<ipc::type>{}, OBS_service_splitFile));
+	cls->register_function(std::make_shared<ipc::function>(
 	    "OBS_service_getLastReplay", std::vector<ipc::type>{}, OBS_service_getLastReplay));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "OBS_service_getLastRecording", std::vector<ipc::type>{}, OBS_service_getLastRecording));
@@ -246,7 +248,7 @@ void OBS_service::OBS_service_stopReplayBuffer(
 
 bool OBS_service::resetAudioContext(bool reload)
 {
-	struct obs_audio_info ai;
+	struct obs_audio_info2 ai = {};
 
 	if (reload)
 		ConfigManager::getInstance().reloadConfig();
@@ -269,7 +271,14 @@ bool OBS_service::resetAudioContext(bool reload)
 	else
 		ai.speakers = SPEAKERS_STEREO;
 
-	return obs_reset_audio(&ai);
+	bool lowLatencyAudioBuffering = config_get_bool(
+		ConfigManager::getInstance().getGlobal(), "Audio", "LowLatencyAudioBuffering");
+	if (lowLatencyAudioBuffering) {
+		ai.max_buffering_ms = 20;
+		ai.fixed_buffering = true;
+	}
+
+	return obs_reset_audio2(&ai);
 }
 
 static uint64_t basicConfigGetUInt(const char *section, const char *name, bool defaultConf)
@@ -288,26 +297,26 @@ static const char *basicConfigGetString(const char *section, const char *name, b
 
 static inline enum video_format GetVideoFormatFromName(const char* name)
 {
-	if (name != NULL) {
-		if (astrcmpi(name, "I420") == 0)
-			return VIDEO_FORMAT_I420;
-		else if (astrcmpi(name, "NV12") == 0)
-			return VIDEO_FORMAT_NV12;
-		else if (astrcmpi(name, "I444") == 0)
-			return VIDEO_FORMAT_I444;
-#if 0 //currently unsupported
-        else if (astrcmpi(name, "YVYU") == 0)
-            return VIDEO_FORMAT_YVYU;
-        else if (astrcmpi(name, "YUY2") == 0)
-            return VIDEO_FORMAT_YUY2;
-        else if (astrcmpi(name, "UYVY") == 0)
-            return VIDEO_FORMAT_UYVY;
-#endif
-		else
-			return VIDEO_FORMAT_RGBA;
-	} else {
+	if (astrcmpi(name, "I420") == 0)
 		return VIDEO_FORMAT_I420;
-	}
+	else if (astrcmpi(name, "NV12") == 0)
+		return VIDEO_FORMAT_NV12;
+	else if (astrcmpi(name, "I444") == 0)
+		return VIDEO_FORMAT_I444;
+	else if (astrcmpi(name, "I010") == 0)
+		return VIDEO_FORMAT_I010;
+	else if (astrcmpi(name, "P010") == 0)
+		return VIDEO_FORMAT_P010;
+#if 0 //currently unsupported
+	else if (astrcmpi(name, "YVYU") == 0)
+		return VIDEO_FORMAT_YVYU;
+	else if (astrcmpi(name, "YUY2") == 0)
+		return VIDEO_FORMAT_YUY2;
+	else if (astrcmpi(name, "UYVY") == 0)
+		return VIDEO_FORMAT_UYVY;
+#endif
+	else
+		return VIDEO_FORMAT_RGBA;
 }
 
 static inline enum obs_scale_type GetScaleType(const char* scaleTypeStr)
@@ -334,7 +343,7 @@ static inline const char* GetRenderModule(config_t* config)
 #ifdef _WIN32
 	DL_OPENGL = "libobs-opengl.dll";
 #else
-	DL_OPENGL = "libobs-opengl.so";
+	DL_OPENGL = "libobs-opengl.dylib";
 #endif
 
 	if (renderer != NULL) {
@@ -472,6 +481,15 @@ int OBS_service::resetVideoContext(bool reload, bool retryWithDefaultConf)
 		}
 	}
 
+	if (errorcode == OBS_VIDEO_SUCCESS) {
+		const float sdr_white_level = (float)config_get_uint(
+			ConfigManager::getInstance().getBasic(), "Video", "SdrWhiteLevel");
+		const float hdr_nominal_peak_level = (float)config_get_uint(
+			ConfigManager::getInstance().getBasic(), "Video", "HdrNominalPeakLevel");
+		obs_set_video_levels(sdr_white_level, hdr_nominal_peak_level);
+	}
+
+
 	return errorcode;
 }
 
@@ -490,13 +508,28 @@ int OBS_service::doResetVideoContext(const obs_video_info& ovi)
 	}
 }
 
+static inline enum video_colorspace GetVideoColorSpaceFromName(const char *name)
+{
+	enum video_colorspace colorspace = VIDEO_CS_SRGB;
+	if (strcmp(name, "601") == 0)
+		colorspace = VIDEO_CS_601;
+	else if (strcmp(name, "709") == 0)
+		colorspace = VIDEO_CS_709;
+	else if (strcmp(name, "2100PQ") == 0)
+		colorspace = VIDEO_CS_2100_PQ;
+	else if (strcmp(name, "2100HLG") == 0)
+		colorspace = VIDEO_CS_2100_HLG;
+
+	return colorspace;
+}
+
 obs_video_info OBS_service::prepareOBSVideoInfo(bool reload, bool defaultConf)
 {
 	obs_video_info ovi = {};
 #ifdef _WIN32
 	ovi.graphics_module = "libobs-d3d11.dll";
 #else
-	ovi.graphics_module = "libobs-opengl";
+	ovi.graphics_module = "libobs-opengl.dylib";
 #endif
 
 	if (reload)
@@ -580,7 +613,7 @@ obs_video_info OBS_service::prepareOBSVideoInfo(bool reload, bool defaultConf)
 	ovi.adapter        = 0;
 	ovi.gpu_conversion = true;
 
-	ovi.colorspace = astrcmpi(colorSpace, "601") == 0 ? VIDEO_CS_601 : VIDEO_CS_709;
+	ovi.colorspace = GetVideoColorSpaceFromName(colorSpace);
 	ovi.range      = astrcmpi(colorRange, "Full") == 0 ? VIDEO_RANGE_FULL : VIDEO_RANGE_PARTIAL;
 
 	const char* scaleTypeStr = basicConfigGetString("Video", "ScaleType", defaultConf);
@@ -1165,6 +1198,57 @@ void OBS_service::updateAudioRecordingEncoder(bool isSimpleMode)
 	}
 }
 
+// Code taken from obs upstream in window-basic-main-outputs
+// to preserve the same settings in order to facilitate importing
+bool EncoderAvailable(const char *encoder)
+{
+	const char *val;
+	int i = 0;
+
+	while (obs_enum_encoder_types(i++, &val))
+		if (strcmp(val, encoder) == 0)
+			return true;
+
+	return false;
+}
+
+void LoadRecordingPreset_Lossy(const char *encoderId)
+{
+	if (videoRecordingEncoder != NULL)
+		obs_encoder_release(videoRecordingEncoder);
+
+	videoRecordingEncoder = obs_video_encoder_create(
+		encoderId, "simple_video_recording", nullptr, nullptr);
+	if (!videoRecordingEncoder)
+		throw "Failed to create video recording encoder (simple output)";
+}
+
+const char *get_simple_output_encoder(const char *encoder)
+{
+	if (strcmp(encoder, SIMPLE_ENCODER_X264) == 0) {
+		return "obs_x264";
+	} else if (strcmp(encoder, SIMPLE_ENCODER_X264_LOWCPU) == 0) {
+		return "obs_x264";
+	} else if (strcmp(encoder, SIMPLE_ENCODER_QSV) == 0) {
+		return "obs_qsv11";
+	} else if (strcmp(encoder, SIMPLE_ENCODER_AMD) == 0) {
+		return "h264_texture_amf";
+	} else if (strcmp(encoder, SIMPLE_ENCODER_AMD_HEVC) == 0) {
+		return "h265_texture_amf";
+	} else if (strcmp(encoder, SIMPLE_ENCODER_NVENC) == 0 ||
+		strcmp(encoder, "jim_nvenc") == 0) {
+		return EncoderAvailable("jim_nvenc") ? "jim_nvenc"
+						     : "ffmpeg_nvenc";
+	} else if (strcmp(encoder, SIMPLE_ENCODER_NVENC_HEVC) == 0) {
+		return EncoderAvailable("jim_hevc_nvenc") ? "jim_hevc_nvenc"
+							  : "ffmpeg_hevc_nvenc";
+	} else if (strcmp(encoder, APPLE_HARDWARE_VIDEO_ENCODER_M1) == 0) {
+		return APPLE_HARDWARE_VIDEO_ENCODER_M1;
+	}
+
+	return "obs_x264";
+}
+
 void OBS_service::updateVideoRecordingEncoder(bool isSimpleMode)
 {
 	if (isRecording && rpUsesRec)
@@ -1179,20 +1263,9 @@ void OBS_service::updateVideoRecordingEncoder(bool isSimpleMode)
 
 	if (isSimpleMode) {
 		lowCPUx264 = false;
-		if (strcmp(encoder, SIMPLE_ENCODER_X264) == 0 || strcmp(encoder, ADVANCED_ENCODER_X264) == 0) {
-			LoadRecordingPreset_h264("obs_x264");
-		} else if (strcmp(encoder, SIMPLE_ENCODER_X264_LOWCPU) == 0) {
-			LoadRecordingPreset_h264("obs_x264");
+		if (strcmp(encoder, SIMPLE_ENCODER_X264_LOWCPU) == 0)
 			lowCPUx264 = true;
-		} else if (strcmp(encoder, SIMPLE_ENCODER_QSV) == 0 || strcmp(encoder, ADVANCED_ENCODER_QSV) == 0) {
-			LoadRecordingPreset_h264("obs_qsv11");
-		} else if (strcmp(encoder, SIMPLE_ENCODER_AMD) == 0 || strcmp(encoder, ADVANCED_ENCODER_AMD) == 0) {
-			LoadRecordingPreset_h264("amd_amf_h264");
-		} else if (strcmp(encoder, SIMPLE_ENCODER_NVENC) == 0 || strcmp(encoder, ADVANCED_ENCODER_NVENC) == 0) {
-			LoadRecordingPreset_h264("ffmpeg_nvenc");
-		} else if (strcmp(encoder, ENCODER_NEW_NVENC) == 0) {
-			LoadRecordingPreset_h264("jim_nvenc");
-		}
+		LoadRecordingPreset_Lossy(get_simple_output_encoder(encoder));
 		usingRecordingPreset = true;
 		updateVideoRecordingEncoderSettings();
 	} else {
@@ -1213,7 +1286,13 @@ void OBS_service::updateVideoRecordingEncoder(bool isSimpleMode)
 			}
 		}
 	}
-	obs_encoder_set_video(videoRecordingEncoder, obs_get_video());
+	if (obs_get_multiple_rendering()) {
+		obs_encoder_set_video_mix(videoRecordingEncoder, OBS_RECORDING_VIDEO_RENDERING);
+		obs_encoder_set_video(videoRecordingEncoder, obs_get_record_video());
+	} else {
+		obs_encoder_set_video_mix(videoRecordingEncoder, OBS_MAIN_VIDEO_RENDERING);
+		obs_encoder_set_video(videoRecordingEncoder, obs_get_video());
+	}
 }
 
 bool OBS_service::updateRecordingEncoders(bool isSimpleMode)
@@ -1250,11 +1329,13 @@ bool OBS_service::updateRecordingEncoders(bool isSimpleMode)
 			updateVideoStreamingEncoder(isSimpleMode);
 
 		if (!obs_get_multiple_rendering()) {
+			obs_encoder_set_video_mix(videoStreamingEncoder, OBS_MAIN_VIDEO_RENDERING);
 			obs_encoder_set_video(videoStreamingEncoder, obs_get_video());
 			useStreamEncoder = true;
 		} else {
 			duplicate_encoder(&videoRecordingEncoder, videoStreamingEncoder);
-			obs_encoder_set_video(videoRecordingEncoder, obs_get_video());
+			obs_encoder_set_video_mix(videoRecordingEncoder, OBS_RECORDING_VIDEO_RENDERING);
+			obs_encoder_set_video(videoRecordingEncoder, obs_get_record_video());
 			useStreamEncoder = false;
 		}
 	} else {
@@ -1698,8 +1779,15 @@ void OBS_service::updateVideoStreamingEncoder(bool isSimpleMode)
 		video_t*          video  = obs_get_video();
 		enum video_format format = video_output_get_format(video);
 
-		if (format != VIDEO_FORMAT_NV12 && format != VIDEO_FORMAT_I420)
+		switch (format) {
+		case VIDEO_FORMAT_I420:
+		case VIDEO_FORMAT_NV12:
+		case VIDEO_FORMAT_I010:
+		case VIDEO_FORMAT_P010:
+			break;
+		default:
 			obs_encoder_set_preferred_video_format(videoStreamingEncoder, VIDEO_FORMAT_NV12);
+		}
 
 		if (strcmp(encoder, APPLE_SOFTWARE_VIDEO_ENCODER) == 0 ||
 			strcmp(encoder, APPLE_HARDWARE_VIDEO_ENCODER) == 0 ||
@@ -1732,7 +1820,14 @@ void OBS_service::updateVideoStreamingEncoder(bool isSimpleMode)
 			}
 		}
 	}
-	obs_encoder_set_video(videoStreamingEncoder, obs_get_video());
+	if (obs_get_multiple_rendering()) {
+		obs_encoder_set_video_mix(videoStreamingEncoder, OBS_STREAMING_VIDEO_RENDERING);
+		obs_encoder_set_video(videoStreamingEncoder, obs_get_stream_video());
+	}
+	else {
+		obs_encoder_set_video_mix(videoStreamingEncoder, OBS_MAIN_VIDEO_RENDERING);
+		obs_encoder_set_video(videoStreamingEncoder, obs_get_video());
+	}
 }
 
 std::string OBS_service::GetDefaultVideoSavePath(void)
@@ -1818,6 +1913,33 @@ void OBS_service::updateFfmpegOutput(bool isSimpleMode, obs_output_t* output)
 	if (strPath.size() > 0) {
 		obs_data_t* settings = obs_data_create();
 		obs_data_set_string(settings, ffmpegOutput ? "url" : "path", strPath.c_str());
+
+		if (config_get_bool(ConfigManager::getInstance().getBasic(),
+			"AdvOut", "RecSplitFile")) {
+			const char* splitFileType = config_get_string(
+				ConfigManager::getInstance().getBasic(), "AdvOut", "RecSplitFileType");
+			if (strcmp(splitFileType, "Time") == 0)
+				obs_data_set_int(settings, "max_time_sec",
+					config_get_int(ConfigManager::getInstance().getBasic(),
+						"AdvOut", "RecSplitFileTime") * 60);
+			else if (strcmp(splitFileType, "Size") == 0)
+				obs_data_set_int(settings, "max_size_mb",
+					config_get_int(ConfigManager::getInstance().getBasic(),
+						"AdvOut", "RecSplitFileSize"));
+
+			obs_data_set_string(settings, "directory", path);
+			obs_data_set_string(settings, "format", fileNameFormat);
+			obs_data_set_string(settings, "extension", format);
+			obs_data_set_bool(settings, "allow_spaces", !noSpace);
+			obs_data_set_bool(settings, "allow_overwrite",
+						overwriteIfExists);
+			obs_data_set_bool(settings, "split_file", true);
+
+			obs_data_set_bool(settings, "reset_timestamps",
+				config_get_bool(ConfigManager::getInstance().getBasic(),
+				"AdvOut", "RecSplitFileResetTimestamps"));
+		}
+
 		obs_output_update(output, settings);
 		obs_data_release(settings);
 	}
@@ -2040,6 +2162,27 @@ void OBS_service::UpdateRecordingSettings_nvenc(int cqp)
 	obs_data_release(settings);
 }
 
+void UpdateRecordingSettings_nvenc_hevc(int cqp)
+{
+	OBSDataAutoRelease settings = obs_data_create();
+	obs_data_set_string(settings, "rate_control", "CQP");
+	obs_data_set_string(settings, "profile", "main");
+	obs_data_set_string(settings, "preset", "hq");
+	obs_data_set_int(settings, "cqp", cqp);
+
+	obs_encoder_update(videoRecordingEncoder, settings);
+}
+
+void UpdateRecordingSettings_apple(int quality)
+{
+	OBSDataAutoRelease settings = obs_data_create();
+	obs_data_set_string(settings, "rate_control", "CRF");
+	obs_data_set_string(settings, "profile", "high");
+	obs_data_set_int(settings, "quality", quality);
+
+	obs_encoder_update(videoRecordingEncoder, settings);
+}
+
 void OBS_service::UpdateStreamingSettings_amd(obs_data_t* settings, int bitrate)
 {
 	// Static Properties
@@ -2128,13 +2271,22 @@ void OBS_service::updateVideoRecordingEncoderSettings()
 	} else if (videoEncoder.compare(SIMPLE_ENCODER_QSV) == 0 || videoEncoder.compare(ADVANCED_ENCODER_QSV) == 0) {
 		UpdateRecordingSettings_qsv11(crf);
 
-	} else if (videoEncoder.compare(SIMPLE_ENCODER_AMD) == 0 || videoEncoder.compare(ADVANCED_ENCODER_AMD) == 0) {
+	} else if (videoEncoder.compare(SIMPLE_ENCODER_AMD) == 0 ||
+		videoEncoder.compare(SIMPLE_ENCODER_AMD_HEVC) == 0 ||
+		videoEncoder.compare(ADVANCED_ENCODER_AMD) == 0) {
 		UpdateRecordingSettings_amd_cqp(crf);
 
 	} else if (videoEncoder.compare(SIMPLE_ENCODER_NVENC) == 0 || videoEncoder.compare(ADVANCED_ENCODER_NVENC) == 0) {
 		UpdateRecordingSettings_nvenc(crf);
 	} else if (videoEncoder.compare(ENCODER_NEW_NVENC) == 0) {
 		UpdateRecordingSettings_nvenc(crf);
+	} else if (videoEncoder.compare(SIMPLE_ENCODER_NVENC_HEVC) == 0) {
+		UpdateRecordingSettings_nvenc_hevc(crf);
+	} else if (videoEncoder.compare(APPLE_SOFTWARE_VIDEO_ENCODER) == 0 ||
+		videoEncoder.compare(APPLE_HARDWARE_VIDEO_ENCODER) == 0 ||
+		videoEncoder.compare(APPLE_HARDWARE_VIDEO_ENCODER_M1) == 0) {
+		/* These are magic numbers. 0 - 100, more is better. */
+		UpdateRecordingSettings_apple(ultra_hq ? 70 : 50);
 	}
 }
 
@@ -2511,6 +2663,24 @@ void OBS_service::OBS_service_getLastRecording(
 	rval.push_back(ipc::value(path));
 }
 
+void OBS_service::OBS_service_splitFile(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	if (!recordingOutput) {
+		PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Invalid recording ouput.");
+	}
+
+	calldata_t cd = {0};
+
+	proc_handler_t* ph = obs_output_get_proc_handler(recordingOutput);
+	proc_handler_call(ph, "split_file", &cd);
+
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+}
+
 bool OBS_service::useRecordingPreset()
 {
 	return usingRecordingPreset;
@@ -2583,7 +2753,7 @@ void OBS_service::OBS_service_createVirtualWebcam(
 	obs_data_set_int(settings, "height", ovi.output_height);
 	obs_data_set_double(settings, "fps", ovi.fps_num);
 
-	virtualWebcamOutput = obs_output_create("virtual_output", "Virtual Webcam", settings, NULL);
+	virtualWebcamOutput = obs_output_create("virtualcam_output", "Virtual Webcam", settings, NULL);
 	obs_data_release(settings);
 }
 

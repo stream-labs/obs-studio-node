@@ -187,6 +187,8 @@ Napi::Value osn::Input::Create(const Napi::CallbackInfo& info)
 	sdi->id             = response[1].value_union.ui64;
 	sdi->setting        = response[2].value_str;
 	sdi->audioMixers    = response[3].value_union.ui32;
+	sdi->deinterlaceMode = response[4].value_union.ui32;
+	sdi->deinterlaceFieldOrder = response[5].value_union.ui32;
 
 	CacheManager<SourceDataInfo*>::getInstance().Store(response[1].value_union.ui64, name, sdi);
 
@@ -235,6 +237,8 @@ Napi::Value osn::Input::CreatePrivate(const Napi::CallbackInfo& info)
 	sdi->id             = response[1].value_union.ui64;
 	sdi->setting        = response[2].value_str;
 	sdi->audioMixers    = response[3].value_union.ui32;
+	sdi->deinterlaceMode = response[4].value_union.ui32;
+	sdi->deinterlaceFieldOrder = response[5].value_union.ui32;
 
 	CacheManager<SourceDataInfo*>::getInstance().Store(response[1].value_union.ui64, name, sdi);
 
@@ -562,7 +566,7 @@ Napi::Value osn::Input::GetDeinterlaceMode(const Napi::CallbackInfo& info)
 
 void osn::Input::SetDeinterlaceMode(const Napi::CallbackInfo& info, const Napi::Value &value)
 {
-	int32_t deinterlaceMode = info[0].ToNumber().Int32Value();
+	uint32_t deinterlaceMode = info[0].ToNumber().Uint32Value();
 
 	auto conn = GetConnection(info);
 	if (!conn)

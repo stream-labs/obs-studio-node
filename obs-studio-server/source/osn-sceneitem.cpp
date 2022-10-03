@@ -100,6 +100,14 @@ void osn::SceneItem::Register(ipc::server& srv)
 	    "DeferUpdateBegin", std::vector<ipc::type>{ipc::type::UInt64}, DeferUpdateBegin));
 	cls->register_function(
 	    std::make_shared<ipc::function>("DeferUpdateEnd", std::vector<ipc::type>{ipc::type::UInt64}, DeferUpdateEnd));
+	cls->register_function(
+	    std::make_shared<ipc::function>("GetBlendingMethod", std::vector<ipc::type>{ipc::type::UInt64}, GetBlendingMethod));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "SetBlendingMethod", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32}, SetBlendingMethod));
+	cls->register_function(
+	    std::make_shared<ipc::function>("GetBlendingMode", std::vector<ipc::type>{ipc::type::UInt64}, GetBlendingMode));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "SetBlendingMode", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32}, SetBlendingMode));
 	srv.register_collection(cls);
 }
 
@@ -807,4 +815,80 @@ osn::SceneItem::Manager& osn::SceneItem::Manager::GetInstance()
 	// Thread Safe since C++13 (Visual Studio 2015, GCC 4.3).
 	static Manager instance;
 	return instance;
+}
+
+void osn::SceneItem::GetBlendingMethod(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
+	if (!item) {
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
+	}
+
+	obs_blending_method method = obs_sceneitem_get_blending_method(item);
+
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value((uint32_t)method));
+	AUTO_DEBUG;
+}
+
+void osn::SceneItem::SetBlendingMethod(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
+	if (!item) {
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
+	}
+
+	obs_sceneitem_set_blending_method(item,
+		(obs_blending_method)args[1].value_union.ui32);
+	obs_blending_method method = obs_sceneitem_get_blending_method(item);
+
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(method));
+	AUTO_DEBUG;
+}
+
+void osn::SceneItem::GetBlendingMode(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
+	if (!item) {
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
+	}
+
+	obs_blending_type type = obs_sceneitem_get_blending_mode(item);
+
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value((uint32_t)type));
+	AUTO_DEBUG;
+}
+
+void osn::SceneItem::SetBlendingMode(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	obs_sceneitem_t* item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
+	if (!item) {
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
+	}
+
+	obs_sceneitem_set_blending_mode(item,
+		(obs_blending_type)args[1].value_union.ui32);
+	obs_blending_type type = obs_sceneitem_get_blending_mode(item);
+
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(type));
+	AUTO_DEBUG;
 }

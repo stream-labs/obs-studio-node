@@ -287,6 +287,10 @@ Napi::Value osn::Scene::AddSource(const Napi::CallbackInfo& info)
 
 		params.push_back(ipc::value(transform.Get("streamVisible").ToBoolean().Value()));
 		params.push_back(ipc::value(transform.Get("recordingVisible").ToBoolean().Value()));
+
+		params.push_back(ipc::value(transform.Get("scaleFilter").ToNumber().Uint32Value()));
+		params.push_back(ipc::value(transform.Get("blendingMode").ToNumber().Uint32Value()));
+		params.push_back(ipc::value(transform.Get("blendingMethod").ToNumber().Uint32Value()));
 	}
 
 	auto conn = GetConnection(info);
@@ -346,6 +350,18 @@ Napi::Value osn::Scene::AddSource(const Napi::CallbackInfo& info)
 		// Recording visible
 		sid->isRecordingVisible      = transform.Get("recordingVisible").ToBoolean().Value();
 		sid->recordingVisibleChanged = false;
+
+		// Scale Filter
+		sid->scaleFilter        = transform.Get("scaleFilter").ToNumber().Uint32Value();
+		sid->scaleFilterChanged = false;
+
+		// Blending mode
+		sid->blendingMode        = transform.Get("blendingMode").ToNumber().Uint32Value();
+		sid->blendingModeChanged = false;
+
+		// Recording visible
+		sid->blendingMethod        = transform.Get("blendingMethod").ToNumber().Uint32Value();
+		sid->blendingMethodChanged = false;
 	}
 
 	CacheManager<SceneItemData*>::getInstance().Store(id, sid);	

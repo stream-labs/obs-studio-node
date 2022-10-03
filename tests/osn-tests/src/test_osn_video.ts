@@ -72,7 +72,7 @@ describe(testName, () => {
         expect(currentVideo.outputWidth).to.equal(1280, GetErrorMessage(ETestErrorMsg.VideoDefaultOutputWidth));
         expect(currentVideo.outputHeight).to.equal(720, GetErrorMessage(ETestErrorMsg.VideoDefaultOutputHeight));
         expect(currentVideo.outputFormat).to.equal(osn.EVideoFormat.NV12, GetErrorMessage(ETestErrorMsg.VideoDefaultOutputFormat));
-        expect(currentVideo.colorspace).to.equal(osn.EColorSpace.CS601, GetErrorMessage(ETestErrorMsg.VideoDefaultColorSpace));
+        expect(currentVideo.colorspace).to.equal(osn.EColorSpace.CS709, GetErrorMessage(ETestErrorMsg.VideoDefaultColorSpace));
         expect(currentVideo.range).to.equal(osn.ERangeType.Partial, GetErrorMessage(ETestErrorMsg.VideoDefaultRange));
         expect(currentVideo.scaleType).to.equal(osn.EScaleType.Bicubic, GetErrorMessage(ETestErrorMsg.VideoDefaultScaleType));
 
