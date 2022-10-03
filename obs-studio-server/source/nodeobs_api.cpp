@@ -1658,9 +1658,8 @@ void OBS_API::destroyOBS_API(void)
 	obs_wait_for_destroy_queue();
 
 	// Release all video encoders
-	std::vector<obs_encoder_t*> videoEncoders;
 	osn::VideoEncoder::Manager::GetInstance().
-		for_each([&videoEncoders](obs_encoder_t* videoEncoder)
+		for_each([](obs_encoder_t* videoEncoder)
 	{
 		if (videoEncoder) {
 			obs_encoder_release(videoEncoder);
@@ -1669,9 +1668,8 @@ void OBS_API::destroyOBS_API(void)
 	});
 
 	// Release all audio encoders
-	std::vector<obs_encoder_t*> audioEncoders;
 	osn::AudioEncoder::Manager::GetInstance().
-		for_each([&audioEncoders](obs_encoder_t* audioEncoder)
+		for_each([](obs_encoder_t* audioEncoder)
 	{
 		if (audioEncoder) {
 			obs_encoder_release(audioEncoder);
@@ -1691,9 +1689,8 @@ void OBS_API::destroyOBS_API(void)
 	};
 
 	// Release all services
-	std::vector<obs_encoder_t*> services;
 	osn::Service::Manager::GetInstance().
-		for_each([&services](obs_service_t* service)
+		for_each([](obs_service_t* service)
 	{
 		if (service) {
 			obs_service_release(service);
@@ -1702,45 +1699,40 @@ void OBS_API::destroyOBS_API(void)
 	});
 
 	// Release all delays
-	std::vector<osn::Delay*> delays;
 	osn::IDelay::Manager::GetInstance().
-		for_each([&delays](osn::Delay* delay)
+		for_each([](osn::Delay* delay)
 	{
 		if (delay)
 			delete delay;
 	});
 
 	// Release all reconnects
-	std::vector<osn::Reconnect*> reconnects;
 	osn::IReconnect::Manager::GetInstance().
-		for_each([&reconnects](osn::Reconnect* reconnect)
+		for_each([](osn::Reconnect* reconnect)
 	{
 		if (reconnect)
 			delete reconnect;
 	});
 
 	// Release all networks
-	std::vector<osn::Network*> networks;
 	osn::INetwork::Manager::GetInstance().
-		for_each([&networks](osn::Network* network)
+		for_each([](osn::Network* network)
 	{
 		if (network)
 			delete network;
 	});
 
 	// Release all streaming ouputs
-	std::vector<osn::Streaming*> streamingOutputs;
 	osn::IStreaming::Manager::GetInstance().
-		for_each([&streamingOutputs](osn::Streaming* streamingOutput)
+		for_each([](osn::Streaming* streamingOutput)
 	{
 		if (streamingOutput)
 			delete streamingOutput;
 	});
 
 	// Release all recording ouputs
-	std::vector<osn::FileOutput*> fileOutputs;
 	osn::IFileOutput::Manager::GetInstance().
-		for_each([&fileOutputs](osn::FileOutput* fileOutput)
+		for_each([](osn::FileOutput* fileOutput)
 	{
 		if (fileOutput)
 			delete fileOutput;
