@@ -84,9 +84,30 @@ Napi::Object osn::AdvancedRecording::Init(Napi::Env env, Napi::Object exports) {
                 "useStreamEncoders",
                 &osn::AdvancedRecording::GetUseStreamEncoders,
                 &osn::AdvancedRecording::SetUseStreamEncoders),
+            InstanceAccessor(
+                "enableFileSplit",
+                &osn::AdvancedRecording::GetEnableFileSplit,
+                &osn::AdvancedRecording::SetEnableFileSplit),
+            InstanceAccessor(
+                "splitType",
+                &osn::AdvancedRecording::GetSplitType,
+                &osn::AdvancedRecording::SetSplitType),
+            InstanceAccessor(
+                "splitTime",
+                &osn::AdvancedRecording::GetSplitTime,
+                &osn::AdvancedRecording::SetSplitTime),
+            InstanceAccessor(
+                "splitSize",
+                &osn::AdvancedRecording::GetSplitSize,
+                &osn::AdvancedRecording::SetSplitSize),
+            InstanceAccessor(
+                "fileResetTimestamps",
+                &osn::AdvancedRecording::GetFileResetTimestamps,
+                &osn::AdvancedRecording::SetFileResetTimestamps),
 
             InstanceMethod("start", &osn::AdvancedRecording::Start),
             InstanceMethod("stop", &osn::AdvancedRecording::Stop),
+            InstanceMethod("splitFile", &osn::AdvancedRecording::SplitFile),
 
             StaticAccessor(
                 "legacySettings",

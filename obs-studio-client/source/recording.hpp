@@ -38,8 +38,20 @@ namespace osn
         void SetVideoEncoder(const Napi::CallbackInfo& info, const Napi::Value& value);
         Napi::Value GetSignalHandler(const Napi::CallbackInfo& info);
         void SetSignalHandler(const Napi::CallbackInfo& info, const Napi::Value& value);
+        Napi::Value GetEnableFileSplit(const Napi::CallbackInfo& info);
+        void SetEnableFileSplit(const Napi::CallbackInfo& info, const Napi::Value& value);
+        Napi::Value GetSplitType(const Napi::CallbackInfo& info);
+        void SetSplitType(const Napi::CallbackInfo& info, const Napi::Value& value);
+        Napi::Value GetSplitTime(const Napi::CallbackInfo& info);
+        void SetSplitTime(const Napi::CallbackInfo& info, const Napi::Value& value);
+        Napi::Value GetSplitSize(const Napi::CallbackInfo& info);
+        void SetSplitSize(const Napi::CallbackInfo& info, const Napi::Value& value);
+        Napi::Value GetFileResetTimestamps(const Napi::CallbackInfo& info);
+        void SetFileResetTimestamps(const Napi::CallbackInfo& info, const Napi::Value& value);
+
         
         void Start(const Napi::CallbackInfo& info);
         void Stop(const Napi::CallbackInfo& info);
+        void SplitFile(const Napi::CallbackInfo& info);
     };
 }

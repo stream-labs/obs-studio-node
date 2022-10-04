@@ -2637,7 +2637,7 @@ void OBS_service::OBS_service_getLastReplay(
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(path));
-    calldata_free(&cd);
+	calldata_free(&cd);
 }
 
 void OBS_service::OBS_service_getLastRecording(
@@ -2662,7 +2662,7 @@ void OBS_service::OBS_service_getLastRecording(
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(path));
-    calldata_free(&cd);
+	calldata_free(&cd);
 }
 
 void OBS_service::OBS_service_splitFile(
@@ -2679,7 +2679,7 @@ void OBS_service::OBS_service_splitFile(
 
 	proc_handler_t* ph = obs_output_get_proc_handler(recordingOutput);
 	proc_handler_call(ph, "split_file", &cd);
-
+	calldata_free(&cd);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 }
 

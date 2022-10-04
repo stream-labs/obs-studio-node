@@ -95,6 +95,50 @@ void osn::IAdvancedRecording::Register(ipc::server& srv)
         "SetStreaming",
         std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64},
         SetStreaming));
+    cls->register_function(std::make_shared<ipc::function>(
+        "SplitFile",
+        std::vector<ipc::type>{ipc::type::UInt64},
+        SplitFile));
+    cls->register_function(std::make_shared<ipc::function>(
+        "GetEnableFileSplit",
+        std::vector<ipc::type>{ipc::type::UInt64},
+        GetEnableFileSplit));
+    cls->register_function(std::make_shared<ipc::function>(
+        "SetEnableFileSplit",
+        std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32},
+        SetEnableFileSplit));
+    cls->register_function(std::make_shared<ipc::function>(
+        "GetSplitType",
+        std::vector<ipc::type>{ipc::type::UInt64},
+        GetSplitType));
+    cls->register_function(std::make_shared<ipc::function>(
+        "SetSplitType",
+        std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32},
+        SetSplitType));
+    cls->register_function(std::make_shared<ipc::function>(
+        "GetSplitTime",
+        std::vector<ipc::type>{ipc::type::UInt64},
+        GetSplitTime));
+    cls->register_function(std::make_shared<ipc::function>(
+        "SetSplitTime",
+        std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32},
+        SetSplitTime));
+    cls->register_function(std::make_shared<ipc::function>(
+        "GetSplitSize",
+        std::vector<ipc::type>{ipc::type::UInt64},
+        GetSplitSize));
+    cls->register_function(std::make_shared<ipc::function>(
+        "SetSplitSize",
+        std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32},
+        SetSplitSize));
+    cls->register_function(std::make_shared<ipc::function>(
+        "GetFileResetTimestamps",
+        std::vector<ipc::type>{ipc::type::UInt64},
+        GetFileResetTimestamps));
+    cls->register_function(std::make_shared<ipc::function>(
+        "SetFileResetTimestamps",
+        std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32},
+        SetFileResetTimestamps));
 
     srv.register_collection(cls);
 }
@@ -341,6 +385,9 @@ void osn::IAdvancedRecording::Start(
         "muxer_settings", recording->muxerSettings.c_str());
     obs_output_update(recording->output, settings);
     obs_data_release(settings);
+
+    if (recording->enableFileSplit)
+        recording->ConfigureRecFileSplitting();
 
     recording->startOutput();
 
