@@ -353,6 +353,12 @@ export const enum EVcamInstalledStatus {
     Installed = 2
 }
 
+export const enum ERecSplitType {
+    Time = 0,
+    Size = 1,
+    Manual = 2
+}
+
 export const Global: IGlobal = obs.Global;
 export const Video: IVideo = obs.Video;
 export const VideoFactory: IVideoFactory = obs.Video;
@@ -1683,9 +1689,15 @@ export interface IFileOutput {
 
 export interface IRecording extends IFileOutput {
     videoEncoder: IVideoEncoder,
+    enableFileSplit: boolean,
+    splitType: ERecSplitType,
+    splitTime: number,
+    splitSize: number,
+    fileResetTimestamps: boolean,
     signalHandler: (signal: EOutputSignal) => void,
     start(): void,
-    stop(force?: boolean): void
+    stop(force?: boolean): void,
+    splitFile(): void
 }
 
 export interface ISimpleRecording extends IRecording {

@@ -275,6 +275,11 @@ export declare const enum EVcamInstalledStatus {
     LegacyInstalled = 1,
     Installed = 2
 }
+export declare const enum ERecSplitType {
+    Time = 0,
+    Size = 1,
+    Manual = 2
+}
 export declare const Global: IGlobal;
 export declare const Video: IVideo;
 export declare const VideoFactory: IVideoFactory;
@@ -810,9 +815,15 @@ export interface IFileOutput {
 }
 export interface IRecording extends IFileOutput {
     videoEncoder: IVideoEncoder;
+    enableFileSplit: boolean;
+    splitType: ERecSplitType;
+    splitTime: number;
+    splitSize: number;
+    fileResetTimestamps: boolean;
     signalHandler: (signal: EOutputSignal) => void;
     start(): void;
     stop(force?: boolean): void;
+    splitFile(): void;
 }
 export interface ISimpleRecording extends IRecording {
     quality: ERecordingQuality;
