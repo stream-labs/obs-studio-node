@@ -39,14 +39,14 @@ void osn::ISimpleStreaming::Register(ipc::server& srv)
         "SetService",
         std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64},
         SetService));
-    cls->register_function(std::make_shared<ipc::function>(
-        "GetVideoEncoder",
-        std::vector<ipc::type>{ipc::type::UInt64},
-        GetVideoEncoder));
-    cls->register_function(std::make_shared<ipc::function>(
-        "SetVideoEncoder",
-        std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64},
-        SetVideoEncoder));
+	cls->register_function(
+	    std::make_shared<ipc::function>("GetVideoEncoder", std::vector<ipc::type>{ipc::type::UInt64}, GetVideoEncoder));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "SetVideoEncoder", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64}, SetVideoEncoder));
+	cls->register_function(
+	    std::make_shared<ipc::function>("GetVideoCanvas", std::vector<ipc::type>{ipc::type::UInt64}, GetVideoCanvas));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "SetVideoCanvas", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64}, SetVideoCanvas));
     cls->register_function(std::make_shared<ipc::function>(
         "GetAudioEncoder",
         std::vector<ipc::type>{ipc::type::UInt64},

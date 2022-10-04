@@ -66,7 +66,10 @@ Napi::Object osn::AdvancedStreaming::Init(Napi::Env env, Napi::Object exports) {
                 "network",
                 &osn::AdvancedStreaming::GetNetwork,
                 &osn::AdvancedStreaming::SetNetwork),
-	        InstanceAccessor("video", &osn::AdvancedStreaming::GetCanvas, &osn::AdvancedStreaming::SetCanvas),
+	        InstanceAccessor(
+                "video",
+                &osn::AdvancedStreaming::GetCanvas,
+                &osn::AdvancedStreaming::SetCanvas),
 
             InstanceAccessor(
                 "audioTrack",

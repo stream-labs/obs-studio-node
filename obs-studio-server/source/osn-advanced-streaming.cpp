@@ -39,15 +39,15 @@ void osn::IAdvancedStreaming::Register(ipc::server& srv)
         "SetService",
         std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64},
         SetService));
-    cls->register_function(std::make_shared<ipc::function>(
-        "GetVideoEncoder",
-        std::vector<ipc::type>{ipc::type::UInt64},
-        GetVideoEncoder));
-    cls->register_function(std::make_shared<ipc::function>(
-        "SetVideoEncoder",
-        std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64},
-        SetVideoEncoder));
-    cls->register_function(std::make_shared<ipc::function>(
+	cls->register_function(
+	    std::make_shared<ipc::function>("GetVideoEncoder", std::vector<ipc::type>{ipc::type::UInt64}, GetVideoEncoder));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "SetVideoEncoder", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64}, SetVideoEncoder));
+	cls->register_function(
+	    std::make_shared<ipc::function>("GetVideoCanvas", std::vector<ipc::type>{ipc::type::UInt64}, GetVideoCanvas));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "SetVideoCanvas", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64}, SetVideoCanvas));
+	cls->register_function(std::make_shared<ipc::function>(
         "GetEnforceServiceBirate",
         std::vector<ipc::type>{ipc::type::UInt64},
         GetEnforceServiceBirate));
@@ -533,9 +533,9 @@ void osn::AdvancedStreaming::UpdateEncoders()
     obs_data_release(settings);
 
     if (obs_get_multiple_rendering()) {
-        obs_encoder_set_video_mix(videoEncoder, obs_video_mix_get(0, OBS_STREAMING_VIDEO_RENDERING));
+        obs_encoder_set_video_mix(videoEncoder, obs_video_mix_get(canvas, OBS_STREAMING_VIDEO_RENDERING));
     } else {
-        obs_encoder_set_video_mix(videoEncoder, obs_video_mix_get(0, OBS_MAIN_VIDEO_RENDERING));
+        obs_encoder_set_video_mix(videoEncoder, obs_video_mix_get(canvas, OBS_MAIN_VIDEO_RENDERING));
     }
 }
 

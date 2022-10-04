@@ -81,7 +81,10 @@ Napi::Object osn::AdvancedReplayBuffer::Init(Napi::Env env, Napi::Object exports
                 "usesStream",
                 &osn::AdvancedReplayBuffer::GetUsesStream,
                 &osn::AdvancedReplayBuffer::SetUsesStream),
-	        InstanceAccessor("video", &osn::AdvancedReplayBuffer::GetCanvas, &osn::AdvancedReplayBuffer::SetCanvas),
+	        InstanceAccessor(
+                "video",
+                &osn::AdvancedReplayBuffer::GetCanvas,
+                &osn::AdvancedReplayBuffer::SetCanvas),
             InstanceMethod("start", &osn::AdvancedReplayBuffer::Start),
             InstanceMethod("stop", &osn::AdvancedReplayBuffer::Stop),
 

@@ -46,26 +46,26 @@ namespace osn
     class IRecording: public IFileOutput
     {
         public:
-        static void GetVideoEncoder(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-        static void SetVideoEncoder(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-        static void GetVideoCanvas(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-        static void SetVideoCanvas(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
+		static void GetVideoEncoder(
+		    void*                          data,
+		    const int64_t                  id,
+		    const std::vector<ipc::value>& args,
+		    std::vector<ipc::value>&       rval);
+		static void SetVideoEncoder(
+		    void*                          data,
+		    const int64_t                  id,
+		    const std::vector<ipc::value>& args,
+		    std::vector<ipc::value>&       rval);
+		static void GetVideoCanvas(
+		    void*                          data,
+		    const int64_t                  id,
+		    const std::vector<ipc::value>& args,
+		    std::vector<ipc::value>&       rval);
+		static void SetVideoCanvas(
+		    void*                          data,
+		    const int64_t                  id,
+		    const std::vector<ipc::value>& args,
+		    std::vector<ipc::value>&       rval);
         static void Query(
             void*                          data,
             const int64_t                  id,
@@ -73,7 +73,7 @@ namespace osn
             std::vector<ipc::value>&       rval);
 
         static std::string GenerateSpecifiedFilename(
-            const std::string& extension, bool noSpace, const std::string& format);
+            const std::string& extension, bool noSpace, const std::string& format, int width, int height);
         static void FindBestFilename(std::string& strPath, bool noSpace);
 
         static obs_encoder_t* duplicate_encoder(obs_encoder_t* src, uint64_t trackIndex = 0);

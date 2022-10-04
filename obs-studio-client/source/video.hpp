@@ -36,7 +36,7 @@ namespace osn
         Napi::Value GetEncodedFrames(const Napi::CallbackInfo& info);
 
 		static Napi::Value Create(const Napi::CallbackInfo& info);
-		static void Destroy(const Napi::CallbackInfo& info);
+		void Destroy(const Napi::CallbackInfo& info);
 
 		Napi::Value get(const Napi::CallbackInfo& info);
 		void set(const Napi::CallbackInfo& info, const Napi::Value &value);

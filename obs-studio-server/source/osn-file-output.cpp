@@ -221,48 +221,6 @@ void osn::IFileOutput::SetFileFormat(
     AUTO_DEBUG;
 }
 
-void osn::IFileOutput::GetVideoCanvas(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-    FileOutput* fileOutput =
-        osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64);
-    if (!fileOutput) {
-        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "ReplayBuffer reference is not valid.");
-    }
-
-    uint64_t uid =
-        osn::Video::Manager::GetInstance().find(fileOutput->canvas);
-
-    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-    rval.push_back(ipc::value(uid));
-    AUTO_DEBUG;
-}
-
-void osn::IFileOutput::SetVideoCanvas(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-    FileOutput* fileOutput =
-        osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64);
-    if (!fileOutput) {
-        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "ReplayBuffer reference is not valid.");
-    }
-    obs_video_info* canvas =
-        osn::Video::Manager::GetInstance().find(args[1].value_union.ui64);
-    if (!canvas) {
-        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Canvas reference is not valid.");
-    }
-    fileOutput->canvas = canvas;
-
-    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-    AUTO_DEBUG;
-}
-
 void osn::IFileOutput::GetOverwrite(
     void*                          data,
     const int64_t                  id,

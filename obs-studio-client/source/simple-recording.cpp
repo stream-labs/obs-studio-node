@@ -84,7 +84,10 @@ Napi::Object osn::SimpleRecording::Init(Napi::Env env, Napi::Object exports) {
                 "streaming",
                 &osn::SimpleRecording::GetStreaming,
                 &osn::SimpleRecording::SetStreaming),
-	        InstanceAccessor("video", &osn::SimpleRecording::GetCanvas, &osn::SimpleRecording::SetCanvas),
+	        InstanceAccessor(
+                "video",
+                &osn::SimpleRecording::GetCanvas,
+                &osn::SimpleRecording::SetCanvas),
 
             InstanceMethod("start", &osn::SimpleRecording::Start),
             InstanceMethod("stop", &osn::SimpleRecording::Stop),

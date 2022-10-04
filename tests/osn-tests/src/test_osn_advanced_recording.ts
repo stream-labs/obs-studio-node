@@ -7,6 +7,7 @@ import { OBSHandler } from '../util/obs_handler'
 import { deleteConfigFiles, sleep } from '../util/general';
 import { EOBSInputTypes, EOBSOutputSignal, EOBSOutputType } from '../util/obs_enums';
 import { ERecordingFormat, ERecordingQuality } from '../osn';
+import { EFPSType } from '../osn';
 import path = require('path');
 
 const testName = 'osn-advanced-recording';
@@ -14,13 +15,15 @@ const testName = 'osn-advanced-recording';
 describe(testName, () => {
     let obs: OBSHandler;
     let hasTestFailed: boolean = false;
-
+    let context: osn.IVideo;
     // Initialize OBS process
     before(async() => {
         logInfo(testName, 'Starting ' + testName + ' tests');
         deleteConfigFiles();
         obs = new OBSHandler(testName);
-        osn.VideoFactory.videoContext = {
+        context = osn.VideoFactory.create();
+
+        const firstVideoInfo: osn.IVideoInfo = {
             fpsNum: 60,
             fpsDen: 1,
             baseWidth: 1920,
@@ -43,6 +46,8 @@ describe(testName, () => {
     // Shutdown OBS process
     after(async function() {
         // Releasing user got from pool
+        context.destroy();
+
         await obs.releaseUser();
 
         obs.shutdown();
@@ -98,6 +103,7 @@ describe(testName, () => {
             osn.VideoEncoderFactory.create('obs_x264', 'video-encoder');
         recording.overwrite = true;
         recording.noSpace = false;
+        recording.video = context;
         recording.mixer = 7;
         recording.rescaling = true;
         recording.outputWidth = 1920;
@@ -132,12 +138,14 @@ describe(testName, () => {
         recording.format = ERecordingFormat.MP4;
         recording.overwrite = false;
         recording.noSpace = false;
+        recording.video = context;
         recording.signalHandler = (signal) => {obs.signals.push(signal)};
         recording.useStreamEncoders = true;
         const stream = osn.AdvancedStreamingFactory.create();
         stream.videoEncoder =
             osn.VideoEncoderFactory.create('obs_x264', 'video-encoder');
         stream.service = osn.ServiceFactory.legacySettings;
+        stream.video = context;
         stream.signalHandler = (signal) => {obs.signals.push(signal)};
         const track1 = osn.AudioTrackFactory.create(160, 'track1');
         osn.AudioTrackFactory.setAtIndex(track1, 1);
@@ -263,6 +271,7 @@ describe(testName, () => {
             osn.VideoEncoderFactory.create('obs_x264', 'video-encoder');
         recording.overwrite = false;
         recording.noSpace = false;
+        recording.video = context;
         const track1 = osn.AudioTrackFactory.create(160, 'track1');
         osn.AudioTrackFactory.setAtIndex(track1, 1);
         recording.signalHandler = (signal) => {obs.signals.push(signal)};
@@ -285,6 +294,121 @@ describe(testName, () => {
         await sleep(500);
 
         recording.stop();
+
+        signalInfo = await obs.getNextSignalInfo(
+            EOBSOutputType.Recording, EOBSOutputSignal.Stopping);
+        expect(signalInfo.type).to.equal(
+            EOBSOutputType.Recording, GetErrorMessage(ETestErrorMsg.RecordingOutput));
+        expect(signalInfo.signal).to.equal(
+            EOBSOutputSignal.Stopping, GetErrorMessage(ETestErrorMsg.RecordingOutput));
+
+        signalInfo = await obs.getNextSignalInfo(
+            EOBSOutputType.Recording, EOBSOutputSignal.Stop);
+
+        if (signalInfo.code != 0) {
+            throw Error(GetErrorMessage(
+                ETestErrorMsg.RecordOutputStoppedWithError, signalInfo.code.toString(), signalInfo.error));
+        }
+
+        expect(signalInfo.type).to.equal(
+            EOBSOutputType.Recording, GetErrorMessage(ETestErrorMsg.RecordingOutput));
+        expect(signalInfo.signal).to.equal(
+            EOBSOutputSignal.Stop, GetErrorMessage(ETestErrorMsg.RecordingOutput));
+
+        signalInfo = await obs.getNextSignalInfo(
+            EOBSOutputType.Recording, EOBSOutputSignal.Wrote);
+
+        if (signalInfo.code != 0) {
+            throw Error(GetErrorMessage(
+                ETestErrorMsg.RecordOutputStoppedWithError, signalInfo.code.toString(), signalInfo.error));
+        }
+
+        expect(signalInfo.type).to.equal(
+            EOBSOutputType.Recording, GetErrorMessage(ETestErrorMsg.RecordingOutput));
+        expect(signalInfo.signal).to.equal(
+            EOBSOutputSignal.Wrote, GetErrorMessage(ETestErrorMsg.RecordingOutput));
+
+        osn.AdvancedRecordingFactory.destroy(recording);
+    });
+
+    it('Start recording - Dual Output', async () => {
+        const secondContext = osn.VideoFactory.create();
+
+        const secondVideoInfo: osn.IVideoInfo = {
+            fpsNum: 60,
+            fpsDen: 2,
+            baseWidth: 1080,
+            baseHeight: 1920,
+            outputWidth: 1080,
+            outputHeight: 1920,
+            outputFormat: osn.EVideoFormat.I420,
+            colorspace: osn.EColorSpace.CS709,
+            range: osn.ERangeType.Full,
+            scaleType: osn.EScaleType.Lanczos,
+            fpsType: EFPSType.Fractional
+        };
+        secondContext.videoContext = secondVideoInfo;
+
+        const recording = osn.AdvancedRecordingFactory.create();
+        recording.path = path.join(path.normalize(__dirname), '..', 'osnData');
+        recording.format = ERecordingFormat.MP4;
+        recording.useStreamEncoders = false;
+        recording.videoEncoder = osn.VideoEncoderFactory.create('obs_x264', 'video-encoder');
+        recording.overwrite = false;
+        recording.noSpace = false;
+        recording.video = context;
+        const track1 = osn.AudioTrackFactory.create(160, 'track1');
+        osn.AudioTrackFactory.setAtIndex(track1, 1);
+        recording.signalHandler = (signal) => {obs.signals.push(signal)};
+
+        recording.start();
+
+        let signalInfo = await obs.getNextSignalInfo(
+            EOBSOutputType.Recording, EOBSOutputSignal.Start);
+
+        if (signalInfo.signal == EOBSOutputSignal.Stop) {
+            throw Error(GetErrorMessage(
+                ETestErrorMsg.RecordOutputDidNotStart, signalInfo.code.toString(), signalInfo.error));
+        }
+
+        expect(signalInfo.type).to.equal(
+            EOBSOutputType.Recording, GetErrorMessage(ETestErrorMsg.RecordingOutput));
+        expect(signalInfo.signal).to.equal(
+            EOBSOutputSignal.Start, GetErrorMessage(ETestErrorMsg.RecordingOutput));
+
+            const recording2 = osn.AdvancedRecordingFactory.create();
+            recording2.path = path.join(path.normalize(__dirname), '..', 'osnData');
+            recording2.format = ERecordingFormat.MP4;
+            recording2.useStreamEncoders = false;
+            recording2.videoEncoder = osn.VideoEncoderFactory.create('obs_x264', 'video-encoder');
+            recording2.overwrite = false;
+            recording2.noSpace = false;
+            recording2.video = secondContext;
+            const track2 = osn.AudioTrackFactory.create(160, 'track2');
+            osn.AudioTrackFactory.setAtIndex(track2, 1);
+            recording2.signalHandler = (signal) => {obs.signals.push(signal)};
+    
+            recording2.start();
+    
+            let signalInfo2 = await obs.getNextSignalInfo(
+                EOBSOutputType.Recording, EOBSOutputSignal.Start);
+    
+            if (signalInfo2.signal == EOBSOutputSignal.Stop) {
+                throw Error(GetErrorMessage(
+                    ETestErrorMsg.RecordOutputDidNotStart, signalInfo.code.toString(), signalInfo.error));
+            }
+    
+            expect(signalInfo.type).to.equal(
+                EOBSOutputType.Recording, GetErrorMessage(ETestErrorMsg.RecordingOutput));
+            expect(signalInfo.signal).to.equal(
+                EOBSOutputSignal.Start, GetErrorMessage(ETestErrorMsg.RecordingOutput));
+ 
+
+
+        await sleep(500);
+
+        recording.stop();
+        recording2.stop();
 
         signalInfo = await obs.getNextSignalInfo(
             EOBSOutputType.Recording, EOBSOutputSignal.Stopping);

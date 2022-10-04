@@ -1404,7 +1404,7 @@ export interface IDisplay {
 /**
  * This represents a video_t structure from within libobs
  */
-export interface IVideo {
+export interface IVideoInfo {
     fpsNum: number;
     fpsDen: number;
     baseWidth: number;
@@ -1418,10 +1418,10 @@ export interface IVideo {
     fpsType: EFPSType;
 }
 
-export interface IVideoFactory {
-    videoContext: IVideo;
-    legacySettings: IVideo;
-
+export interface IVideo {
+    videoContext: IVideoInfo;
+    legacySettings: IVideoInfo;
+    destroy(): void;
 	/**
      * Number of total skipped frames
      */
@@ -1431,6 +1431,10 @@ export interface IVideoFactory {
       * Number of total encoded frames
       */
      readonly encodedFrames: number;
+}
+
+export interface IVideoFactory {
+    create(): IVideo;
 }
 
 export interface IAudio {
@@ -1633,6 +1637,7 @@ export interface IStreaming {
     delay: IDelay,
     reconnect: IReconnect,
     network: INetwork,
+    video: IVideo,
     signalHandler: (signal: EOutputSignal) => void,
     start(): void,
     stop(force?: boolean): void,
@@ -1678,6 +1683,7 @@ export interface IFileOutput {
     overwrite: boolean,
     noSpace: boolean,
     muxerSettings: string,
+    video: IVideo,
     lastFile(): string
 }
 

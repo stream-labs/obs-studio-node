@@ -157,7 +157,7 @@ namespace osn
             std::vector<ipc::value>&       rval);
 
         static std::string GenerateSpecifiedFilename(
-            const std::string& extension, bool noSpace, const std::string& format);
+            const std::string& extension, bool noSpace, const std::string& format, int width, int height);
         static void FindBestFilename(std::string& strPath, bool noSpace);
 
         static obs_encoder_t* duplicate_encoder(obs_encoder_t* src, uint64_t trackIndex = 0);

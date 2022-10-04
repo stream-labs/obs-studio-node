@@ -32,15 +32,16 @@ void osn::ISimpleRecording::Register(ipc::server& srv)
         "Create", std::vector<ipc::type>{}, Create));
     cls->register_function(std::make_shared<ipc::function>(
         "Destroy", std::vector<ipc::type>{ipc::type::UInt64}, Destroy));
-    cls->register_function(std::make_shared<ipc::function>(
-        "GetVideoEncoder",
-        std::vector<ipc::type>{ipc::type::UInt64},
-        GetVideoEncoder));
-    cls->register_function(std::make_shared<ipc::function>(
-        "SetVideoEncoder",
-        std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64},
-        SetVideoEncoder));
-    cls->register_function(std::make_shared<ipc::function>(
+	cls->register_function(
+	    std::make_shared<ipc::function>("GetVideoEncoder", std::vector<ipc::type>{ipc::type::UInt64}, GetVideoEncoder));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "SetVideoEncoder", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64}, SetVideoEncoder));
+	cls->register_function(
+	    std::make_shared<ipc::function>("GetVideoCanvas", std::vector<ipc::type>{ipc::type::UInt64}, GetVideoCanvas));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "SetVideoCanvas", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64}, SetVideoCanvas));
+	cls->register_function(
+	    std::make_shared<ipc::function>(
         "GetAudioEncoder",
         std::vector<ipc::type>{ipc::type::UInt64},
         GetAudioEncoder));
@@ -382,9 +383,9 @@ void osn::SimpleRecording::UpdateEncoders()
     }
 
     if (obs_get_multiple_rendering()) {
-        obs_encoder_set_video_mix(videoEncoder, obs_video_mix_get(0, OBS_RECORDING_VIDEO_RENDERING));
+        obs_encoder_set_video_mix(videoEncoder, obs_video_mix_get(canvas, OBS_RECORDING_VIDEO_RENDERING));
     } else {
-        obs_encoder_set_video_mix(videoEncoder, obs_video_mix_get(0, OBS_MAIN_VIDEO_RENDERING));
+        obs_encoder_set_video_mix(videoEncoder, obs_video_mix_get(canvas, OBS_MAIN_VIDEO_RENDERING));
     }
 }
 
@@ -451,7 +452,11 @@ void osn::ISimpleRecording::Start(
         path += "/";
 
     path += GenerateSpecifiedFilename(
-        format, recording->noSpace, recording->fileFormat);
+	    format,
+	    recording->noSpace,
+	    recording->fileFormat,
+	    recording->canvas->base_width,
+	    recording->canvas->base_height);
 
     if (!recording->overwrite)
         FindBestFilename(path, recording->noSpace);

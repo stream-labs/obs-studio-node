@@ -790,7 +790,7 @@ static void erase_ch(struct dstr* str, size_t pos)
 	*str = new_str;
 }
 
-char* os_generate_formatted_filename(const char* extension, bool space, const char* format)
+char* osn_generate_formatted_filename(const char* extension, bool space, const char* format, int width, int height)
 {
 	time_t     now = time(0);
 	struct tm* cur_time;
@@ -843,8 +843,10 @@ char* os_generate_formatted_filename(const char* extension, bool space, const ch
 
 	if (!space)
 		dstr_replace(&sf, " ", "_");
- 
-	
+
+	std::string resolution = std::to_string(width) + std::string("x") + std::to_string(height) + std::string("_");
+	dstr_cat(&sf, resolution.c_str());
+
 	dstr_cat_ch(&sf, (char)(rand()%9+0x30));
 	dstr_cat_ch(&sf, (char)(rand()%9+0x30));
 
@@ -858,9 +860,9 @@ char* os_generate_formatted_filename(const char* extension, bool space, const ch
 	return sf.array;
 }
 
-std::string GenerateSpecifiedFilename(const char* extension, bool noSpace, const char* format)
+std::string GenerateSpecifiedFilename(const char* extension, bool noSpace, const char* format, int width, int height)
 {
-	char* filename = os_generate_formatted_filename(extension, !noSpace, format);
+	char* filename = osn_generate_formatted_filename(extension, !noSpace, format, width, height);
 	if (filename == nullptr) {
 		throw "Invalid filename";
 	}
@@ -1906,7 +1908,7 @@ void OBS_service::updateFfmpegOutput(bool isSimpleMode, obs_output_t* output)
 		strPath += "/";
 
 	if (fileNameFormat != NULL && format != NULL)
-		strPath += GenerateSpecifiedFilename(ffmpegOutput ? "avi" : format, noSpace, fileNameFormat);
+		strPath += GenerateSpecifiedFilename(ffmpegOutput ? "avi" : format, noSpace, fileNameFormat, 0, 0);
 
 	if (!overwriteIfExists)
 		FindBestFilename(strPath, noSpace);

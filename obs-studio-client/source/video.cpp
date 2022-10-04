@@ -33,7 +33,7 @@ Napi::Object osn::Video::Init(Napi::Env env, Napi::Object exports) {
 		"Video",
 		{
 			StaticMethod("create", &osn::Video::Create),
-			StaticMethod("destroy", &osn::Video::Destroy),
+	        InstanceMethod("destroy", &osn::Video::Destroy),
 
 			InstanceAccessor("video", &osn::Video::get, &osn::Video::set),
 	        InstanceAccessor("legacySettings",&osn::Video::GetLegacySettings, &osn::Video::SetLegacySettings),
@@ -108,14 +108,8 @@ void osn::Video::Destroy(const Napi::CallbackInfo& info)
 	if (!conn)
 		return;
 
-    auto video =
-        Napi::ObjectWrap<osn::Video>::Unwrap(info[0].ToObject());
-
 	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("Video", "RemoveVideoContext", {ipc::value((uint64_t)video->canvasId)});
-
-	if (!ValidateResponse(info, response))
-		return;
+		conn->call_synchronous_helper("Video", "RemoveVideoContext", {ipc::value((uint64_t)(this->canvasId))});
 
 	return;
 }

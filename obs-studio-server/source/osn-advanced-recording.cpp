@@ -29,15 +29,16 @@ void osn::IAdvancedRecording::Register(ipc::server& srv)
         "Create", std::vector<ipc::type>{}, Create));
     cls->register_function(std::make_shared<ipc::function>(
         "Destroy", std::vector<ipc::type>{ipc::type::UInt64}, Destroy));
-    cls->register_function(std::make_shared<ipc::function>(
-        "GetVideoEncoder",
-        std::vector<ipc::type>{ipc::type::UInt64},
-        GetVideoEncoder));
-    cls->register_function(std::make_shared<ipc::function>(
-        "SetVideoEncoder",
-        std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64},
-        SetVideoEncoder));
-    cls->register_function(std::make_shared<ipc::function>(
+	cls->register_function(
+	    std::make_shared<ipc::function>("GetVideoEncoder", std::vector<ipc::type>{ipc::type::UInt64}, GetVideoEncoder));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "SetVideoEncoder", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64}, SetVideoEncoder));
+	cls->register_function(
+	    std::make_shared<ipc::function>("GetVideoCanvas", std::vector<ipc::type>{ipc::type::UInt64}, GetVideoCanvas));
+	cls->register_function(std::make_shared<ipc::function>(
+	    "SetVideoCanvas", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64}, SetVideoCanvas));
+    cls->register_function(
+	    std::make_shared<ipc::function>(
         "GetMixer",
         std::vector<ipc::type>{ipc::type::UInt64},
         GetMixer));
@@ -335,7 +336,11 @@ void osn::IAdvancedRecording::Start(
         path += "/";
 
     path += GenerateSpecifiedFilename(
-        recording->format, recording->noSpace, recording->fileFormat);
+	    recording->format,
+	    recording->noSpace,
+	    recording->fileFormat,
+	    recording->canvas->base_width,
+	    recording->canvas->base_height);
 
     if (!recording->overwrite)
         FindBestFilename(path, recording->noSpace);

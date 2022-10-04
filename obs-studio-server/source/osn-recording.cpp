@@ -23,6 +23,8 @@
 #include "util/platform.h"
 #include <osn-video.hpp>
 
+extern char* osn_generate_formatted_filename(const char* extension, bool space, const char* format, int width, int height);
+
 osn::Recording::~Recording()
 {
     deleteOutput();
@@ -155,14 +157,13 @@ void osn::IRecording::Query(
 }
 
 std::string osn::IRecording::GenerateSpecifiedFilename(
-    const std::string& extension, bool noSpace, const std::string& format)
+    const std::string& extension, bool noSpace, const std::string& format, int width, int height)
 {
-    char* filename =
-        os_generate_formatted_filename(extension.c_str(), !noSpace, format.c_str());
+    char* filename = osn_generate_formatted_filename(extension.c_str(), !noSpace, format.c_str(), width, height);
     if (filename == nullptr) {
         throw "Invalid filename";
     }
-
+    
     std::string result(filename);
 
     bfree(filename);

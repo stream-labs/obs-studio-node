@@ -84,7 +84,10 @@ Napi::Object osn::AdvancedRecording::Init(Napi::Env env, Napi::Object exports) {
                 "useStreamEncoders",
                 &osn::AdvancedRecording::GetUseStreamEncoders,
                 &osn::AdvancedRecording::SetUseStreamEncoders),
-	        InstanceAccessor("video", &osn::AdvancedRecording::GetCanvas, &osn::AdvancedRecording::SetCanvas),
+	        InstanceAccessor(
+                "video",
+                &osn::AdvancedRecording::GetCanvas,
+                &osn::AdvancedRecording::SetCanvas),
 
             InstanceMethod("start", &osn::AdvancedRecording::Start),
             InstanceMethod("stop", &osn::AdvancedRecording::Stop),
