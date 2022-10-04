@@ -21,7 +21,7 @@
 #include <ipc-value.hpp>
 #include <mutex>
 #include "controller.hpp"
-#include "error.hpp"
+#include "osn-error.hpp"
 #include "input.hpp"
 #include "scene.hpp"
 #include "transition.hpp"

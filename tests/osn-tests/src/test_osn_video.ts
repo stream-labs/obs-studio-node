@@ -5,6 +5,7 @@ import { logInfo, logEmptyLine } from '../util/logger';
 import { OBSHandler } from '../util/obs_handler';
 import { deleteConfigFiles } from '../util/general';
 import { ETestErrorMsg, GetErrorMessage } from '../util/error_messages';
+import { EFPSType } from '../osn';
 
 const testName = 'osn-video';
 
@@ -42,7 +43,7 @@ describe(testName, () => {
 
     it('Get skipped frames value', () => {
         // Getting skipped frames
-        const skippedFrames = osn.Video.skippedFrames;
+        const skippedFrames = osn.VideoFactory.skippedFrames;
 
         // Checking if skipped frames was returned properly
         expect(skippedFrames).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.VideoSkippedFrames));
@@ -51,7 +52,7 @@ describe(testName, () => {
 
     it('Get total frames value', () => {
         // Getting total frames value
-        const totalFrames = osn.Video.encodedFrames;
+        const totalFrames = osn.VideoFactory.encodedFrames;
 
         // Checking if total frames was returned properly
         expect(totalFrames).to.not.equal(undefined,  GetErrorMessage(ETestErrorMsg.VideoTotalFrames));
@@ -59,7 +60,7 @@ describe(testName, () => {
     });
 
     it('Get and set video context', () => {
-        let currentVideo = osn.Video.videoContext;
+        let currentVideo = osn.VideoFactory.videoContext;
 
         // Check if the current video context correctly returns
         // the default values
@@ -77,7 +78,7 @@ describe(testName, () => {
         expect(currentVideo.scaleType).to.equal(osn.EScaleType.Bicubic, GetErrorMessage(ETestErrorMsg.VideoDefaultScaleType));
 
 
-        const newVideoContext: osn.VideoContext = {
+        const newVideoContext: osn.IVideo = {
             fpsNum: 120,
             fpsDen: 2,
             baseWidth: 3840,
@@ -87,11 +88,12 @@ describe(testName, () => {
             outputFormat: osn.EVideoFormat.I420,
             colorspace: osn.EColorSpace.CS709,
             range: osn.ERangeType.Full,
-            scaleType: osn.EScaleType.Lanczos
+            scaleType: osn.EScaleType.Lanczos,
+            fpsType: EFPSType.Fractional
         };
-        osn.Video.videoContext = newVideoContext;
+        osn.VideoFactory.videoContext = newVideoContext;
 
-        currentVideo = osn.Video.videoContext;
+        currentVideo = osn.VideoFactory.videoContext;
         expect(currentVideo.fpsNum).to.equal(120, GetErrorMessage(ETestErrorMsg.VideoSetFPSNum));
         expect(currentVideo.fpsDen).to.equal(2, GetErrorMessage(ETestErrorMsg.VideoSetFPSDen));
         expect(currentVideo.baseWidth).to.equal(3840, GetErrorMessage(ETestErrorMsg.VideoSetBaseWidth));

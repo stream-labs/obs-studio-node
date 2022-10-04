@@ -50,7 +50,7 @@
 #endif
 
 #include "nodeobs_api.h"
-#include "error.hpp"
+#include "osn-error.hpp"
 #include "shared.hpp"
 
 #ifdef ENABLE_CRASHREPORT

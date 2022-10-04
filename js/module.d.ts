@@ -188,6 +188,11 @@ export declare const enum EScaleType {
     Lanczos = 4,
     Area = 5
 }
+export declare const enum EFPSType {
+    Common = 0,
+    Integer = 1,
+    Fractional = 2
+}
 export declare const enum ERangeType {
     Default = 0,
     Partial = 1,
@@ -232,13 +237,10 @@ export declare const enum ESpeakerLayout {
     Mono = 1,
     Stereo = 2,
     TwoOne = 3,
-    Quad = 4,
+    Four = 4,
     FourOne = 5,
     FiveOne = 6,
-    FiveOneSurround = 7,
-    SevenOne = 8,
-    SevenOneSurround = 9,
-    Surround = 10
+    SevenOne = 8
 }
 export declare const enum EOutputCode {
     Success = 0,
@@ -275,6 +277,7 @@ export declare const enum EVcamInstalledStatus {
 }
 export declare const Global: IGlobal;
 export declare const Video: IVideo;
+export declare const VideoFactory: IVideoFactory;
 export declare const InputFactory: IInputFactory;
 export declare const SceneFactory: ISceneFactory;
 export declare const FilterFactory: IFilterFactory;
@@ -282,9 +285,23 @@ export declare const TransitionFactory: ITransitionFactory;
 export declare const DisplayFactory: IDisplayFactory;
 export declare const VolmeterFactory: IVolmeterFactory;
 export declare const FaderFactory: IFaderFactory;
+export declare const Audio: IAudio;
+export declare const AudioFactory: IAudioFactory;
 export declare const ModuleFactory: IModuleFactory;
 export declare const IPC: IIPC;
+export declare const VideoEncoderFactory: IVideoEncoderFactory;
 export declare const ServiceFactory: IServiceFactory;
+export declare const SimpleStreamingFactory: ISimpleStreamingFactory;
+export declare const AdvancedStreamingFactory: IAdvancedStreamingFactory;
+export declare const DelayFactory: IDelayFactory;
+export declare const ReconnectFactory: IReconnectFactory;
+export declare const NetworkFactory: INetworkFactory;
+export declare const AudioTrackFactory: IAudioTrackFactory;
+export declare const SimpleRecordingFactory: ISimpleRecordingFactory;
+export declare const AdvancedRecordingFactory: IAdvancedRecordingFactory;
+export declare const AudioEncoderFactory: IAudioEncoderFactory;
+export declare const SimpleReplayBufferFactory: ISimpleReplayBufferFactory;
+export declare const AdvancedReplayBufferFactory: IAdvancedReplayBufferFactory;
 export interface ISettings {
     [key: string]: any;
 }
@@ -613,7 +630,7 @@ export interface IDisplay {
     setResizeBoxOuterColor(r: number, g: number, b: number, a: number): void;
     setResizeBoxInnerColor(r: number, g: number, b: number, a: number): void;
 }
-export interface VideoContext {
+export interface IVideo {
     fpsNum: number;
     fpsDen: number;
     baseWidth: number;
@@ -624,11 +641,21 @@ export interface VideoContext {
     colorspace: EColorSpace;
     range: ERangeType;
     scaleType: EScaleType;
+    fpsType: EFPSType;
 }
-export interface IVideo {
+export interface IVideoFactory {
+    videoContext: IVideo;
+    legacySettings: IVideo;
     readonly skippedFrames: number;
     readonly encodedFrames: number;
-    videoContext: VideoContext;
+}
+export interface IAudio {
+    sampleRate: (44100 | 48000);
+    speakers: ESpeakerLayout;
+}
+export interface IAudioFactory {
+    audioContext: IAudio;
+    legacySettings: IAudio;
 }
 export interface IModuleFactory extends IFactoryTypes {
     open(binPath: string, dataPath: string): IModule;
@@ -680,16 +707,203 @@ export declare function getSourcesSize(sourcesNames: string[]): ISourceSize[];
 export interface IServiceFactory {
     types(): string[];
     create(id: string, name: string, settings?: ISettings): IService;
-    serviceContext: IService;
+    legacySettings: IService;
 }
 export interface IService {
     readonly name: string;
     readonly properties: IProperties;
     readonly settings: ISettings;
-    readonly url: string;
-    readonly key: string;
-    readonly username: string;
-    readonly password: string;
     update(settings: ISettings): void;
+}
+export declare const enum ERecordingFormat {
+    MP4 = "mp4",
+    FLV = "flv",
+    MOV = "mov",
+    MKV = "mkv",
+    TS = "ts",
+    M3M8 = "m3m8"
+}
+export declare const enum ERecordingQuality {
+    Stream = 0,
+    HighQuality = 1,
+    HigherQuality = 2,
+    Lossless = 3
+}
+export declare const enum EVideoEncoderType {
+    Audio = 0,
+    Video = 1
+}
+export declare const enum EProcessPriority {
+    High = "High",
+    AboveNormal = "AboveNormal",
+    Normal = "Normal",
+    BelowNormal = "BelowNormal",
+    Idle = "Idle"
+}
+export interface IVideoEncoder extends IConfigurable {
+    name: string;
+    readonly type: EVideoEncoderType;
+    readonly active: boolean;
+    readonly id: string;
+    readonly lastError: string;
+}
+export interface IAudioEncoder {
+    name: string;
+    bitrate: number;
+}
+export interface IAudioEncoderFactory {
+    create(): IAudioEncoder;
+}
+export interface IVideoEncoderFactory {
+    types(): string[];
+    types(filter: EVideoEncoderType): string[];
+    create(id: string, name: string, settings?: ISettings): IVideoEncoder;
+}
+export interface IStreaming {
+    videoEncoder: IVideoEncoder;
+    service: IService;
+    enforceServiceBitrate: boolean;
+    enableTwitchVOD: boolean;
+    delay: IDelay;
+    reconnect: IReconnect;
+    network: INetwork;
+    signalHandler: (signal: EOutputSignal) => void;
+    start(): void;
+    stop(force?: boolean): void;
+}
+export interface EOutputSignal {
+    type: string;
+    signal: string;
+    code: number;
+    error: string;
+}
+export interface ISimpleStreaming extends IStreaming {
+    audioEncoder: IAudioEncoder;
+    useAdvanced: boolean;
+    customEncSettings: string;
+}
+export interface ISimpleStreamingFactory {
+    create(): ISimpleStreaming;
+    destroy(stream: ISimpleStreaming): void;
+    legacySettings: ISimpleStreaming;
+}
+export interface IAdvancedStreaming extends IStreaming {
+    audioTrack: number;
+    twitchTrack: number;
+    rescaling: boolean;
+    outputWidth?: number;
+    outputHeight?: number;
+}
+export interface IAdvancedStreamingFactory {
+    create(): IAdvancedStreaming;
+    destroy(stream: IAdvancedStreaming): void;
+    legacySettings: IAdvancedStreaming;
+}
+export interface IFileOutput {
+    path: string;
+    format: ERecordingFormat;
+    fileFormat: string;
+    overwrite: boolean;
+    noSpace: boolean;
+    muxerSettings: string;
+    lastFile(): string;
+}
+export interface IRecording extends IFileOutput {
+    videoEncoder: IVideoEncoder;
+    signalHandler: (signal: EOutputSignal) => void;
+    start(): void;
+    stop(force?: boolean): void;
+}
+export interface ISimpleRecording extends IRecording {
+    quality: ERecordingQuality;
+    audioEncoder: IAudioEncoder;
+    lowCPU: boolean;
+    streaming: ISimpleStreaming;
+}
+export interface IAdvancedRecording extends IRecording {
+    mixer: number;
+    rescaling: boolean;
+    outputWidth?: number;
+    outputHeight?: number;
+    useStreamEncoders: boolean;
+    streaming: IAdvancedStreaming;
+}
+export interface ISimpleRecordingFactory {
+    create(): ISimpleRecording;
+    destroy(stream: ISimpleRecording): void;
+    legacySettings: ISimpleRecording;
+}
+export interface IAdvancedRecordingFactory {
+    create(): IAdvancedRecording;
+    destroy(stream: IAdvancedRecording): void;
+    legacySettings: IAdvancedRecording;
+}
+export interface IReplayBuffer extends IFileOutput {
+    duration: number;
+    prefix: string;
+    suffix: string;
+    usesStream: boolean;
+    signalHandler: (signal: EOutputSignal) => void;
+    start(): void;
+    stop(force?: boolean): void;
+    save(): void;
+}
+export interface ISimpleReplayBuffer extends IReplayBuffer {
+    streaming: ISimpleStreaming;
+    recording: ISimpleRecording;
+}
+export interface IAdvancedReplayBuffer extends IReplayBuffer {
+    mixer: number;
+    streaming: IAdvancedStreaming;
+    recording: IAdvancedRecording;
+}
+export interface ISimpleReplayBufferFactory {
+    create(): ISimpleReplayBuffer;
+    destroy(stream: ISimpleReplayBuffer): void;
+    legacySettings: ISimpleReplayBuffer;
+}
+export interface IAdvancedReplayBufferFactory {
+    create(): IAdvancedReplayBuffer;
+    destroy(stream: IAdvancedReplayBuffer): void;
+    legacySettings: IAdvancedReplayBufferFactory;
+}
+export interface IDelay {
+    enabled: boolean;
+    delaySec: number;
+    preserveDelay: boolean;
+}
+export interface IDelayFactory {
+    create(): IDelay;
+}
+export interface IReconnect {
+    enabled: boolean;
+    retryDelay: number;
+    maxRetries: number;
+}
+export interface IReconnectFactory {
+    create(): IReconnect;
+}
+export interface INetwork {
+    bindIP: string;
+    readonly networkInterfaces: ISettings;
+    enableDynamicBitrate: boolean;
+    enableOptimizations: boolean;
+    enableLowLatency: boolean;
+}
+export interface INetworkFactory {
+    create(): INetwork;
+}
+export interface IAudioTrack {
+    bitrate: number;
+    name: string;
+}
+export interface IAudioTrackFactory {
+    create(bitrate: number, name: string): IAudioTrack;
+    readonly audioTracks: IAudioTrack[];
+    readonly audioBitrates: number[];
+    getAtIndex(index: number): IAudioTrack;
+    setAtIndex(audioTrack: IAudioTrack, index: number): void;
+    importLegacySettings(): void;
+    saveLegacySettings(): void;
 }
 export declare const NodeObs: any;

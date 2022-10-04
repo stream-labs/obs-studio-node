@@ -17,7 +17,7 @@
 ******************************************************************************/
 
 #include "isource.hpp"
-#include <error.hpp>
+#include "osn-error.hpp"
 #include <functional>
 #include "controller.hpp"
 #include "shared.hpp"

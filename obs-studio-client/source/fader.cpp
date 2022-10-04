@@ -20,7 +20,7 @@
 #include <iterator>
 #include <vector>
 #include "controller.hpp"
-#include "error.hpp"
+#include "osn-error.hpp"
 #include "input.hpp"
 #include "shared.hpp"
 #include <iostream>

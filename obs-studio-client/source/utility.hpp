@@ -24,7 +24,7 @@
 #include <napi.h>
 #include "shared.hpp"
 #include "controller.hpp"
-#include "error.hpp"
+#include "osn-error.hpp"
 #include <thread>
 
 #ifdef __cplusplus

@@ -21,7 +21,7 @@
 #include <string>
 
 #include "controller.hpp"
-#include "error.hpp"
+#include "osn-error.hpp"
 #include "input.hpp"
 #include "ipc-value.hpp"
 #include "scene.hpp"

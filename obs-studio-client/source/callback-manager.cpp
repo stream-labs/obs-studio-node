@@ -18,7 +18,7 @@
 
 #include "callback-manager.hpp"
 #include "controller.hpp"
-#include "error.hpp"
+#include "osn-error.hpp"
 #include "utility-v8.hpp"
 
 #include <node.h>

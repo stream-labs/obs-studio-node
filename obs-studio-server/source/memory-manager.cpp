@@ -17,6 +17,7 @@
 ******************************************************************************/
 
 #include "memory-manager.h"
+#include "nodeobs_api.h"
 
 MemoryManager::MemoryManager()
 {
@@ -89,7 +90,7 @@ bool MemoryManager::shouldCacheSource(source_info* si)
 
 	bool looping        = obs_data_get_bool(settings, "looping");
 	bool local_file     = obs_data_get_bool(settings, "is_local_file");
-	bool enable_caching = config_get_bool(ConfigManager::getInstance().getGlobal(), "General", "fileCaching");
+	bool enable_caching = OBS_API::getMediaFileCaching();
 	bool showing        = obs_source_showing(si->source);
 
 	bool is_small = obs_data_get_bool(settings, "caching") ?
