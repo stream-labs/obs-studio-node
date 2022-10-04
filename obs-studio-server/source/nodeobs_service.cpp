@@ -450,11 +450,11 @@ int OBS_service::resetVideoContext(bool reload, bool retryWithDefaultConf)
 {
 	obs_video_info ovi = prepareOBSVideoInfo(reload, false);
 	int errorcode = OBS_VIDEO_NOT_SUPPORTED;
-#ifndef REPLACED_BY_MULTI_CANVAS 
+
 	config_save_safe(ConfigManager::getInstance().getBasic(), "tmp", nullptr);
 
 	blog(LOG_INFO, "About to reset the video context with the user configuration");
-	errorcode = doResetVideoContext(ovi);
+	errorcode = doResetVideoContext(&ovi);
 
 	// OBS_VIDEO_NOT_SUPPORTED: any of the following functions fails:
 	//   gl_init_extensions,
@@ -474,7 +474,7 @@ int OBS_service::resetVideoContext(bool reload, bool retryWithDefaultConf)
 		ovi = prepareOBSVideoInfo(false, true);
 
 		blog(LOG_INFO, "About to reset the video context with the default configuration");
-		errorcode = doResetVideoContext(ovi);
+		errorcode = doResetVideoContext(&ovi);
 		if (errorcode == OBS_VIDEO_SUCCESS) {
 			keepFallbackVideoConfig(ovi);
 		} else {
@@ -490,19 +490,17 @@ int OBS_service::resetVideoContext(bool reload, bool retryWithDefaultConf)
 		obs_set_video_levels(sdr_white_level, hdr_nominal_peak_level);
 	}
 
-#endif //REPLACED_BY_MULTI_CANVAS
 	return errorcode;
 }
 
-int OBS_service::doResetVideoContext(const obs_video_info& ovi)
+int OBS_service::doResetVideoContext(obs_video_info* ovi)
 {
 	try {
 		// obs_reset_video may change some parameters. For example,
 		// ovi->output_width &= 0xFFFFFFFC;
 		// ovi->output_height &= 0xFFFFFFFE;
-		// So just make a temporary copy and then forget about it.
-		obs_video_info tmp = ovi;
-		//return obs_set_video_info(ovi, ovi);
+		obs_video_info* canvas = obs_create_video_info();
+		return obs_set_video_info(canvas, ovi);
 	} catch (const char* error) {
 		blog(LOG_ERROR, error);
 		return OBS_VIDEO_FAIL;
@@ -527,7 +525,6 @@ static inline enum video_colorspace GetVideoColorSpaceFromName(const char *name)
 obs_video_info OBS_service::prepareOBSVideoInfo(bool reload, bool defaultConf)
 {
 	obs_video_info ovi = {};
-#ifdef REPLACED_BY_MULTI_CANVAS
 #ifdef _WIN32
 	ovi.graphics_module = "libobs-d3d11.dll";
 #else
@@ -624,15 +621,6 @@ obs_video_info OBS_service::prepareOBSVideoInfo(bool reload, bool defaultConf)
 
 	ovi.scale_type = GetScaleType(scaleTypeStr);
 
-	ovi.base_width    = ovi.base_height;
-	ovi.base_height   = ovi.base_width;
-	ovi.output_width  = ovi.output_height;
-	ovi.output_height = ovi.output_width;
-	ovi.base_width    = 0;
-	ovi.base_height   = 0;
-	ovi.output_width  = 0;
-	ovi.output_height = 0;
-
 	blog(LOG_DEBUG, "Prepared obs_video_info:");
 	blog(LOG_DEBUG, "  base_width: %u", ovi.base_width);
 	blog(LOG_DEBUG, "  base_height: %u", ovi.base_height);
@@ -644,7 +632,7 @@ obs_video_info OBS_service::prepareOBSVideoInfo(bool reload, bool defaultConf)
 	blog(LOG_DEBUG, "  colorspace: %u", static_cast<uint32_t>(ovi.colorspace));
 	blog(LOG_DEBUG, "  range: %u", static_cast<uint32_t>(ovi.range));
 	blog(LOG_DEBUG, "  scale_type: %u", static_cast<uint32_t>(ovi.scale_type));
-#endif //REPLACED_BY_MULTI_CANVAS
+
 	return ovi;
 }
 

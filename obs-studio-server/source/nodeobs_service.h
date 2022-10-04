@@ -303,7 +303,7 @@ class OBS_service
 	// Reset contexts
 	static bool resetAudioContext(bool reload = false);
 	static int resetVideoContext(bool reload = false, bool retryWithDefaultConf = false);
-	static int doResetVideoContext(const obs_video_info& ovi);
+	static int doResetVideoContext(obs_video_info *ovi);
 
 	// Prepare the obs_video_info object for video context reset/initialization.
 	// The user configuration information will be re-read from files if |reload| is true.
