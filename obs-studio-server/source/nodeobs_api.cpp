@@ -132,6 +132,9 @@ ipc::server* g_server = nullptr;
 
 static bool browserAccel = true;
 static bool mediaFileCaching = true;
+static uint32_t sdrWhiteLevel = 300;
+static uint32_t hdrNominalPeakLevel = 1000;
+static bool lowLatencyAudioBuffering = false;
 static std::string processPriority = "Normal";
 
 void OBS_API::Register(ipc::server& srv)
@@ -139,64 +142,100 @@ void OBS_API::Register(ipc::server& srv)
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("API");
 
 	cls->register_function(std::make_shared<ipc::function>(
-	    "OBS_API_initAPI",
-	    std::vector<ipc::type>{ipc::type::String, ipc::type::String, ipc::type::String, ipc::type::String},
-	    OBS_API_initAPI));
+			"OBS_API_initAPI",
+			std::vector<ipc::type>{ipc::type::String, ipc::type::String, ipc::type::String, ipc::type::String},
+			OBS_API_initAPI));
 	cls->register_function(
-	    std::make_shared<ipc::function>("OBS_API_destroyOBS_API", std::vector<ipc::type>{}, OBS_API_destroyOBS_API));
+			std::make_shared<ipc::function>("OBS_API_destroyOBS_API", std::vector<ipc::type>{}, OBS_API_destroyOBS_API));
 	cls->register_function(std::make_shared<ipc::function>(
-	    "OBS_API_getPerformanceStatistics", std::vector<ipc::type>{}, OBS_API_getPerformanceStatistics));
+			"OBS_API_getPerformanceStatistics", std::vector<ipc::type>{}, OBS_API_getPerformanceStatistics));
 	cls->register_function(std::make_shared<ipc::function>(
-	    "SetWorkingDirectory", std::vector<ipc::type>{ipc::type::String}, SetWorkingDirectory));
+			"SetWorkingDirectory", std::vector<ipc::type>{ipc::type::String}, SetWorkingDirectory));
 	cls->register_function(
-	    std::make_shared<ipc::function>("StopCrashHandler", std::vector<ipc::type>{}, StopCrashHandler));
+			std::make_shared<ipc::function>("StopCrashHandler", std::vector<ipc::type>{}, StopCrashHandler));
 	cls->register_function(std::make_shared<ipc::function>("OBS_API_QueryHotkeys", std::vector<ipc::type>{}, QueryHotkeys));
 	cls->register_function(std::make_shared<ipc::function>(
-	    "OBS_API_ProcessHotkeyStatus",
-	    std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32},
-	    ProcessHotkeyStatus));
+			"OBS_API_ProcessHotkeyStatus",
+			std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32},
+			ProcessHotkeyStatus));
 	cls->register_function(std::make_shared<ipc::function>(
-	    "SetUsername", std::vector<ipc::type>{ipc::type::String}, SetUsername));
+			"SetUsername", std::vector<ipc::type>{ipc::type::String}, SetUsername));
 	cls->register_function(std::make_shared<ipc::function>(
-	    "SetBrowserAcceleration",
+			"SetBrowserAcceleration",
 		std::vector<ipc::type>{ipc::type::UInt32},
 		SetBrowserAcceleration));
 	cls->register_function(std::make_shared<ipc::function>(
-	    "GetBrowserAcceleration",
+			"GetBrowserAcceleration",
 		std::vector<ipc::type>{},
 		GetBrowserAcceleration));
 	cls->register_function(std::make_shared<ipc::function>(
-	    "GetBrowserAccelerationLegacy",
+			"GetBrowserAccelerationLegacy",
 		std::vector<ipc::type>{},
 		GetBrowserAccelerationLegacy));
 	cls->register_function(std::make_shared<ipc::function>(
-	    "SetMediaFileCaching",
+			"SetMediaFileCaching",
 		std::vector<ipc::type>{ipc::type::UInt32},
 		SetMediaFileCaching));
 	cls->register_function(std::make_shared<ipc::function>(
-	    "GetMediaFileCaching",
+			"GetMediaFileCaching",
 		std::vector<ipc::type>{},
 		GetMediaFileCaching));
 	cls->register_function(std::make_shared<ipc::function>(
-	    "GetMediaFileCachingLegacy",
+			"GetMediaFileCachingLegacy",
 		std::vector<ipc::type>{},
 		GetMediaFileCachingLegacy));
 	cls->register_function(std::make_shared<ipc::function>(
-	    "SetProcessPriority",
+			"SetProcessPriority",
 		std::vector<ipc::type>{ipc::type::String},
 		SetProcessPriority));
 	cls->register_function(std::make_shared<ipc::function>(
-	    "GetProcessPriority",
+			"GetProcessPriority",
 		std::vector<ipc::type>{},
 		GetProcessPriority));
-    cls->register_function(std::make_shared<ipc::function>(
-        "GetProcessPriorityLegacy",
-        std::vector<ipc::type>{},
-        GetProcessPriorityLegacy));
-    cls->register_function(std::make_shared<ipc::function>(
-        "OBS_API_forceCrash",
-        std::vector<ipc::type>{},
-        OBS_API_forceCrash));
+	cls->register_function(std::make_shared<ipc::function>(
+			"GetProcessPriorityLegacy",
+			std::vector<ipc::type>{},
+			GetProcessPriorityLegacy));
+	cls->register_function(std::make_shared<ipc::function>(
+			"OBS_API_forceCrash",
+			std::vector<ipc::type>{},
+			OBS_API_forceCrash));
+	cls->register_function(std::make_shared<ipc::function>(
+			"GetSdrWhiteLevel",
+			std::vector<ipc::type>{},
+			GetSdrWhiteLevel));
+	cls->register_function(std::make_shared<ipc::function>(
+			"SetSdrWhiteLevel",
+			std::vector<ipc::type>{},
+			SetSdrWhiteLevel));
+	cls->register_function(std::make_shared<ipc::function>(
+			"GetSdrWhiteLevelLegacy",
+			std::vector<ipc::type>{},
+			GetSdrWhiteLevelLegacy));
+	cls->register_function(std::make_shared<ipc::function>(
+			"GetHdrNominalPeakLevel",
+			std::vector<ipc::type>{},
+			GetHdrNominalPeakLevel));
+	cls->register_function(std::make_shared<ipc::function>(
+			"SetHdrNominalPeakLevel",
+			std::vector<ipc::type>{},
+			SetHdrNominalPeakLevel));
+	cls->register_function(std::make_shared<ipc::function>(
+			"GetHdrNominalPeakLevelLegacy",
+			std::vector<ipc::type>{},
+			GetHdrNominalPeakLevelLegacy));
+	cls->register_function(std::make_shared<ipc::function>(
+			"GetLowLatencyAudioBuffering",
+			std::vector<ipc::type>{},
+			GetLowLatencyAudioBuffering));
+	cls->register_function(std::make_shared<ipc::function>(
+			"SetLowLatencyAudioBuffering",
+			std::vector<ipc::type>{},
+			SetLowLatencyAudioBuffering));
+	cls->register_function(std::make_shared<ipc::function>(
+			"GetLowLatencyAudioBufferingLegacy",
+			std::vector<ipc::type>{},
+			GetLowLatencyAudioBufferingLegacy));
 
 	srv.register_collection(cls);
 	g_server = &srv;
@@ -2247,5 +2286,122 @@ void OBS_API::GetProcessPriorityLegacy(
 	rval.push_back(ipc::value(
         config_get_string(ConfigManager::getInstance().getGlobal(),
         "General", "ProcessPriority")));
+	AUTO_DEBUG;
+}
+
+void OBS_API::GetSdrWhiteLevel(
+		void*                          data,
+		const int64_t                  id,
+		const std::vector<ipc::value>& args,
+		std::vector<ipc::value>&       rval)
+{
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value((uint32_t)sdrWhiteLevel));
+	AUTO_DEBUG;
+}
+
+void OBS_API::SetSdrWhiteLevel(
+		void*                          data,
+		const int64_t                  id,
+		const std::vector<ipc::value>& args,
+		std::vector<ipc::value>&       rval)
+{
+	sdrWhiteLevel = args[0].value_union.ui32;
+	config_set_uint(
+			ConfigManager::getInstance().getBasic(),
+			"Video", "SdrWhiteLevel", sdrWhiteLevel);
+	config_save_safe(ConfigManager::getInstance().getBasic(), "tmp", nullptr);
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
+}
+
+void OBS_API::GetSdrWhiteLevelLegacy(
+		void*                          data,
+		const int64_t                  id,
+		const std::vector<ipc::value>& args,
+		std::vector<ipc::value>&       rval)
+{
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value((uint32_t)
+        config_get_uint(ConfigManager::getInstance().getBasic(),
+        "Video", "SdrWhiteLevel")));
+	AUTO_DEBUG;
+}
+
+void OBS_API::GetHdrNominalPeakLevel(
+		void*                          data,
+		const int64_t                  id,
+		const std::vector<ipc::value>& args,
+		std::vector<ipc::value>&       rval)
+{
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value((uint32_t)hdrNominalPeakLevel));
+	AUTO_DEBUG;
+}
+
+void OBS_API::SetHdrNominalPeakLevel(
+		void*                          data,
+		const int64_t                  id,
+		const std::vector<ipc::value>& args,
+		std::vector<ipc::value>&       rval)
+{
+	hdrNominalPeakLevel = args[0].value_union.ui32;
+	config_set_uint(
+			ConfigManager::getInstance().getBasic(),
+			"Video", "HdrNominalPeakLevel", hdrNominalPeakLevel);
+	config_save_safe(ConfigManager::getInstance().getBasic(), "tmp", nullptr);
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
+}
+
+void OBS_API::GetHdrNominalPeakLevelLegacy(
+		void*                          data,
+		const int64_t                  id,
+		const std::vector<ipc::value>& args,
+		std::vector<ipc::value>&       rval)
+{
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value((uint32_t)
+        config_get_uint(ConfigManager::getInstance().getBasic(),
+        "Video", "HdrNominalPeakLevel")));
+	AUTO_DEBUG;
+}
+
+void OBS_API::GetLowLatencyAudioBuffering(
+		void*                          data,
+		const int64_t                  id,
+		const std::vector<ipc::value>& args,
+		std::vector<ipc::value>&       rval)
+{
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value((uint32_t)lowLatencyAudioBuffering));
+	AUTO_DEBUG;
+}
+
+void OBS_API::SetLowLatencyAudioBuffering(
+		void*                          data,
+		const int64_t                  id,
+		const std::vector<ipc::value>& args,
+		std::vector<ipc::value>&       rval)
+{
+	lowLatencyAudioBuffering = args[0].value_union.ui32;
+	config_set_bool(
+			ConfigManager::getInstance().getGlobal(),
+			"Audio", "LowLatencyAudioBuffering", lowLatencyAudioBuffering);
+	config_save_safe(ConfigManager::getInstance().getGlobal(), "tmp", nullptr);
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
+}
+
+void OBS_API::GetLowLatencyAudioBufferingLegacy(
+		void*                          data,
+		const int64_t                  id,
+		const std::vector<ipc::value>& args,
+		std::vector<ipc::value>&       rval)
+{
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value((uint32_t)
+        config_get_bool(ConfigManager::getInstance().getGlobal(),
+        "Audio", "LowLatencyAudioBuffering")));
 	AUTO_DEBUG;
 }

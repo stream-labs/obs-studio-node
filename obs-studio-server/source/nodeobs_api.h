@@ -173,6 +173,51 @@ class OBS_API
         const int64_t                  id,
         const std::vector<ipc::value>& args,
         std::vector<ipc::value>&       rval);
+    static void GetSdrWhiteLevel(
+        void*                          data,
+        const int64_t                  id,
+        const std::vector<ipc::value>& args,
+        std::vector<ipc::value>&       rval);
+    static void SetSdrWhiteLevel(
+        void*                          data,
+        const int64_t                  id,
+        const std::vector<ipc::value>& args,
+        std::vector<ipc::value>&       rval);
+    static void GetSdrWhiteLevelLegacy(
+        void*                          data,
+        const int64_t                  id,
+        const std::vector<ipc::value>& args,
+        std::vector<ipc::value>&       rval);
+    static void GetHdrNominalPeakLevel(
+        void*                          data,
+        const int64_t                  id,
+        const std::vector<ipc::value>& args,
+        std::vector<ipc::value>&       rval);
+    static void SetHdrNominalPeakLevel(
+        void*                          data,
+        const int64_t                  id,
+        const std::vector<ipc::value>& args,
+        std::vector<ipc::value>&       rval);
+    static void GetHdrNominalPeakLevelLegacy(
+        void*                          data,
+        const int64_t                  id,
+        const std::vector<ipc::value>& args,
+        std::vector<ipc::value>&       rval);
+    static void GetLowLatencyAudioBuffering(
+        void*                          data,
+        const int64_t                  id,
+        const std::vector<ipc::value>& args,
+        std::vector<ipc::value>&       rval);
+    static void SetLowLatencyAudioBuffering(
+        void*                          data,
+        const int64_t                  id,
+        const std::vector<ipc::value>& args,
+        std::vector<ipc::value>&       rval);
+    static void GetLowLatencyAudioBufferingLegacy(
+        void*                          data,
+        const int64_t                  id,
+        const std::vector<ipc::value>& args,
+        std::vector<ipc::value>&       rval);
 
     static bool getBrowserAcceleration();
     static bool getMediaFileCaching();
