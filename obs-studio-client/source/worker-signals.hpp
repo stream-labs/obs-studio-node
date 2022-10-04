@@ -142,9 +142,6 @@ class WorkerSignals
             std::this_thread::sleep_for(std::chrono::milliseconds(totalSleepMS));
         }
 
-        for (auto & signalData : signalsList) {
-            delete signalData;
-        }
         return;
     }
 
