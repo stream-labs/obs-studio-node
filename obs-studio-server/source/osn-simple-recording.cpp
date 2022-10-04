@@ -696,6 +696,24 @@ void osn::ISimpleRecording::GetLegacySettings(
         GetLegacyAudioEncoderSettings();
     osn::AudioEncoder::Manager::GetInstance().allocate(recording->audioEncoder);
 
+    recording->enableFileSplit =
+        config_get_bool(ConfigManager::getInstance().getBasic(), "AdvOut", "RecSplitFile");
+    const char* splitFileType =
+        config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "RecSplitFileType");
+    if (strcmp(splitFileType, "Time") == 0)
+        recording->splitType = SplitFileType::TIME;
+    else if (strcmp(splitFileType, "Size") == 0)
+        recording->splitType = SplitFileType::SIZE;
+    else
+        recording->splitType = SplitFileType::MANUAL;
+
+    recording->splitTime =
+        config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "RecSplitFileTime");
+    recording->splitSize =
+        config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "RecSplitFileSize");
+    recording->fileResetTimestamps =
+        config_get_bool(ConfigManager::getInstance().getBasic(), "AdvOut", "RecSplitFileResetTimestamps");
+
     uint64_t uid =
         osn::ISimpleRecording::Manager::GetInstance().allocate(recording);
     if (uid == UINT64_MAX) {
@@ -848,6 +866,41 @@ void osn::ISimpleRecording::SetLegacySettings(
             ConfigManager::getInstance().getBasic(),
             "SimpleOutput", "RecEncoder", encId);
     }
+
+    config_set_bool(
+        ConfigManager::getInstance().getBasic(), "AdvOut",
+        "RecSplitFile", recording->enableFileSplit);
+
+    switch(recording->splitType) {
+        case SplitFileType::TIME: {
+            config_set_string(
+                ConfigManager::getInstance().getBasic(), "AdvOut",
+                "RecSplitFileType", "Time");
+            break;
+        }
+        case SplitFileType::SIZE: {
+            config_set_string(
+                ConfigManager::getInstance().getBasic(), "AdvOut",
+                "RecSplitFileType", "Size");
+            break;
+        }
+        default: {
+            config_set_string(
+                ConfigManager::getInstance().getBasic(), "AdvOut",
+                "RecSplitFileType", "Manual");
+            break;
+        }
+    }
+
+    config_set_int(
+        ConfigManager::getInstance().getBasic(), "AdvOut",
+        "RecSplitFileTime", recording->splitTime);
+    config_set_int(
+        ConfigManager::getInstance().getBasic(), "AdvOut",
+        "RecSplitFileSize", recording->splitSize);
+    config_set_bool(
+        ConfigManager::getInstance().getBasic(), "AdvOut",
+        "RecSplitFileResetTimestamps", recording->fileResetTimestamps);
 
     config_save_safe(
         ConfigManager::getInstance().getBasic(), "tmp", nullptr);
