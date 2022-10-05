@@ -36,6 +36,7 @@ describe(testName, () => {
             scaleType: osn.EScaleType.Bilinear,
             fpsType: osn.EFPSType.Fractional
         };
+        context.video = firstVideoInfo;
 
         obs.instantiateUserPool(testName);
 
@@ -347,7 +348,7 @@ describe(testName, () => {
             scaleType: osn.EScaleType.Lanczos,
             fpsType: EFPSType.Fractional
         };
-        secondContext.videoContext = secondVideoInfo;
+        secondContext.video = secondVideoInfo;
 
         const recording = osn.AdvancedRecordingFactory.create();
         recording.path = path.join(path.normalize(__dirname), '..', 'osnData');
@@ -402,12 +403,43 @@ describe(testName, () => {
                 EOBSOutputType.Recording, GetErrorMessage(ETestErrorMsg.RecordingOutput));
             expect(signalInfo.signal).to.equal(
                 EOBSOutputSignal.Start, GetErrorMessage(ETestErrorMsg.RecordingOutput));
- 
-
 
         await sleep(500);
 
         recording.stop();
+        signalInfo = await obs.getNextSignalInfo(
+            EOBSOutputType.Recording, EOBSOutputSignal.Stopping);
+        expect(signalInfo.type).to.equal(
+            EOBSOutputType.Recording, GetErrorMessage(ETestErrorMsg.RecordingOutput));
+        expect(signalInfo.signal).to.equal(
+            EOBSOutputSignal.Stopping, GetErrorMessage(ETestErrorMsg.RecordingOutput));
+
+        signalInfo = await obs.getNextSignalInfo(
+            EOBSOutputType.Recording, EOBSOutputSignal.Stop);
+
+        if (signalInfo.code != 0) {
+            throw Error(GetErrorMessage(
+                ETestErrorMsg.RecordOutputStoppedWithError, signalInfo.code.toString(), signalInfo.error));
+        }
+
+        expect(signalInfo.type).to.equal(
+            EOBSOutputType.Recording, GetErrorMessage(ETestErrorMsg.RecordingOutput));
+        expect(signalInfo.signal).to.equal(
+            EOBSOutputSignal.Stop, GetErrorMessage(ETestErrorMsg.RecordingOutput));
+
+        signalInfo = await obs.getNextSignalInfo(
+            EOBSOutputType.Recording, EOBSOutputSignal.Wrote);
+
+        if (signalInfo.code != 0) {
+            throw Error(GetErrorMessage(
+                ETestErrorMsg.RecordOutputStoppedWithError, signalInfo.code.toString(), signalInfo.error));
+        }
+
+        expect(signalInfo.type).to.equal(
+            EOBSOutputType.Recording, GetErrorMessage(ETestErrorMsg.RecordingOutput));
+        expect(signalInfo.signal).to.equal(
+            EOBSOutputSignal.Wrote, GetErrorMessage(ETestErrorMsg.RecordingOutput));
+
         recording2.stop();
 
         signalInfo = await obs.getNextSignalInfo(
@@ -444,5 +476,7 @@ describe(testName, () => {
             EOBSOutputSignal.Wrote, GetErrorMessage(ETestErrorMsg.RecordingOutput));
 
         osn.AdvancedRecordingFactory.destroy(recording);
+
+        osn.AdvancedRecordingFactory.destroy(recording2);
     });
 });

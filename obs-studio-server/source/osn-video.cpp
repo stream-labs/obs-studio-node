@@ -271,42 +271,37 @@ void osn::Video::SetVideoContext(
         PRETTY_ERROR_RETURN(ErrorCode::Error,
             "Invalid number of arguments to set the video context.");
     }
-
-    uint32_t fpsNum = args[0].value_union.ui32;
-    uint32_t fpsDen = args[1].value_union.ui32;
-    uint32_t baseWidth = args[2].value_union.ui32;
-    uint32_t baseHeight = args[3].value_union.ui32;
-    uint32_t outputWidth = args[4].value_union.ui32;
-    uint32_t outputHeight = args[5].value_union.ui32;
-    uint32_t outputFormat = args[6].value_union.ui32;
-    uint32_t colorspace = args[7].value_union.ui32;
-    uint32_t range = args[8].value_union.ui32;
-    uint32_t scaleType = args[9].value_union.ui32;
-    uint32_t fpsType = args[10].value_union.ui32;
     
  	obs_video_info* canvas = osn::Video::Manager::GetInstance().find(args[11].value_union.ui64);
-	obs_video_info  video;
+	obs_video_info  video  = {0};
+
+
+    uint32_t        outputFormat = ;
+	uint32_t        colorspace   = ;
+	uint32_t        range        = ;
+	uint32_t        scaleType    = ;
+	uint32_t        fpsType      = ;
+
 #ifdef _WIN32
     video.graphics_module = "libobs-d3d11.dll";
 #else
     video.graphics_module = "libobs-opengl";
 #endif
-    video.fps_num = fpsNum;
-    video.fps_den = fpsDen;
+	video.fps_num = args[0].value_union.ui32;
+	video.fps_den = args[1].value_union.ui32;
 
-	video.base_width = baseWidth;
-	video.base_height = baseHeight;
-	video.output_width = outputWidth;
-	video.output_height = outputHeight;
+	video.base_width    = args[2].value_union.ui32;
+	video.base_height   = args[3].value_union.ui32;
+	video.output_width  = args[4].value_union.ui32;
+	video.output_height = args[5].value_union.ui32;
 
-    video.output_format = (video_format)outputFormat;
-    video.colorspace = (video_colorspace)colorspace;
-    video.range = (video_range_type)range;
-    video.scale_type = (obs_scale_type)scaleType;
-    video.adapter = 0;
+    video.output_format  = (video_format)args[6].value_union.ui32;
+	video.colorspace     = (video_colorspace)args[7].value_union.ui32;
+	video.range          = (video_range_type)args[8].value_union.ui32;
+	video.scale_type     = (obs_scale_type)args[9].value_union.ui32;
+    video.adapter        = 0;
     video.gpu_conversion = true;
-
-    // ???? fpsType
+    // ???? fpsType args[10].value_union.ui32
 
     try {
 		obs_set_video_info(canvas, &video);

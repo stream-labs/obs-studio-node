@@ -1419,7 +1419,7 @@ export interface IVideoInfo {
 }
 
 export interface IVideo {
-    videoContext: IVideoInfo;
+    video: IVideoInfo;
     legacySettings: IVideoInfo;
     destroy(): void;
 	/**

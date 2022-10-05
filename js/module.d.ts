@@ -645,7 +645,7 @@ export interface IVideoInfo {
     fpsType: EFPSType;
 }
 export interface IVideo {
-    videoContext: IVideoInfo;
+    video: IVideoInfo;
     legacySettings: IVideoInfo;
     destroy(): void;
     readonly skippedFrames: number;

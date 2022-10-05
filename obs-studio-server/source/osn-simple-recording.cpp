@@ -37,10 +37,6 @@ void osn::ISimpleRecording::Register(ipc::server& srv)
 	cls->register_function(std::make_shared<ipc::function>(
 	    "SetVideoEncoder", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64}, SetVideoEncoder));
 	cls->register_function(
-	    std::make_shared<ipc::function>("GetVideoCanvas", std::vector<ipc::type>{ipc::type::UInt64}, GetVideoCanvas));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "SetVideoCanvas", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64}, SetVideoCanvas));
-	cls->register_function(
 	    std::make_shared<ipc::function>(
         "GetAudioEncoder",
         std::vector<ipc::type>{ipc::type::UInt64},

@@ -76,52 +76,6 @@ void osn::IRecording::SetVideoEncoder(
     AUTO_DEBUG;
 }
 
-void osn::IRecording::GetVideoCanvas(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-    Recording* recording =
-        static_cast<Recording*>(
-            osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64));
-    if (!recording) {
-        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Simple recording reference is not valid.");
-    }
-
-    uint64_t uid =
-        osn::Video::Manager::GetInstance().find(recording->canvas);
-
-    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-    rval.push_back(ipc::value(uid));
-    AUTO_DEBUG;
-}
-
-void osn::IRecording::SetVideoCanvas(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
-{
-    Recording* recording =
-        static_cast<Recording*>(
-            osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64));
-    if (!recording) {
-        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Simple recording reference is not valid.");
-    }
-
-    obs_video_info* canvas =
-        osn::Video::Manager::GetInstance().find(args[1].value_union.ui64);
-    if (!canvas) {
-        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Canvas reference is not valid.");
-    }
-
-    recording->canvas = canvas;
-
-    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-    AUTO_DEBUG;
-}
-
 void osn::IRecording::Query(
     void*                          data,
     const int64_t                  id,

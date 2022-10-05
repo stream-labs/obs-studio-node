@@ -51,6 +51,8 @@ osn::Video::Video(const Napi::CallbackInfo& info)
     : Napi::ObjectWrap<osn::Video>(info) {
     Napi::Env env = info.Env();
     Napi::HandleScope scope(env);
+	
+    this->canvasId = (uint64_t)info[0].ToNumber().Int64Value();
 }
 
 Napi::Value osn::Video::GetSkippedFrames(const Napi::CallbackInfo& info)
@@ -60,7 +62,7 @@ Napi::Value osn::Video::GetSkippedFrames(const Napi::CallbackInfo& info)
         return info.Env().Undefined();
 
     std::vector<ipc::value> response =
-        conn->call_synchronous_helper("Video", "GetSkippedFrames", {});
+	    conn->call_synchronous_helper("Video", "GetSkippedFrames", {ipc::value((uint64_t)(this->canvasId))});
 
     if (!ValidateResponse(info, response))
         return info.Env().Undefined();
@@ -75,7 +77,7 @@ Napi::Value osn::Video::GetEncodedFrames(const Napi::CallbackInfo& info)
         return info.Env().Undefined();
 
     std::vector<ipc::value> response =
-        conn->call_synchronous_helper("Video", "GetTotalFrames", {});
+	    conn->call_synchronous_helper("Video", "GetTotalFrames", {ipc::value((uint64_t)(this->canvasId))});
 
     if (!ValidateResponse(info, response))
         return info.Env().Undefined();
@@ -96,8 +98,7 @@ Napi::Value osn::Video::Create(const Napi::CallbackInfo& info)
 		return info.Env().Undefined();
 
     auto instance =
-        osn::Video::constructor.New({Napi::BigInt::New(info.Env(), response[1].value_union.ui64)
-        });
+        osn::Video::constructor.New({Napi::Number::New(info.Env(), response[1].value_union.ui64)});
 
 	return instance;
 }

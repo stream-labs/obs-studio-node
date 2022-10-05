@@ -77,9 +77,9 @@ describe(testName, () => {
             scaleType: osn.EScaleType.Lanczos,
             fpsType: EFPSType.Fractional
         };
-        context.videoContext = newVideoContext;
+        context.video = newVideoContext;
 
-        const currentVideo = context.videoContext;
+        const currentVideo = context.video;
         expect(currentVideo.fpsNum).to.equal(120, GetErrorMessage(ETestErrorMsg.VideoSetFPSNum));
         expect(currentVideo.fpsDen).to.equal(2, GetErrorMessage(ETestErrorMsg.VideoSetFPSDen));
         expect(currentVideo.baseWidth).to.equal(3840, GetErrorMessage(ETestErrorMsg.VideoSetBaseWidth));
@@ -110,9 +110,9 @@ describe(testName, () => {
             scaleType: osn.EScaleType.Lanczos,
             fpsType: EFPSType.Fractional
         };
-        context.videoContext = firstVideoInfo;
+        context.video = firstVideoInfo;
 
-        const firstVideo = context.videoContext;
+        const firstVideo = context.video;
         expect(firstVideo.fpsNum).to.equal(120, GetErrorMessage(ETestErrorMsg.VideoSetFPSNum));
         expect(firstVideo.fpsDen).to.equal(2, GetErrorMessage(ETestErrorMsg.VideoSetFPSDen));
         expect(firstVideo.baseWidth).to.equal(3840, GetErrorMessage(ETestErrorMsg.VideoSetBaseWidth));
@@ -139,9 +139,9 @@ describe(testName, () => {
             scaleType: osn.EScaleType.Lanczos,
             fpsType: EFPSType.Fractional
         };
-        secondContext.videoContext = secondVideoInfo;
+        secondContext.video = secondVideoInfo;
 
-        const secondVideo = secondContext.videoContext;
+        const secondVideo = secondContext.video;
         expect(secondVideo.fpsNum).to.equal(60, GetErrorMessage(ETestErrorMsg.VideoSetFPSNum));
         expect(secondVideo.fpsDen).to.equal(2, GetErrorMessage(ETestErrorMsg.VideoSetFPSDen));
         expect(secondVideo.baseWidth).to.equal(1080, GetErrorMessage(ETestErrorMsg.VideoSetBaseWidth));
