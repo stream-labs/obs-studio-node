@@ -22,7 +22,6 @@ describe(testName, () => {
         deleteConfigFiles();
         obs = new OBSHandler(testName);
         context = osn.VideoFactory.create();
-
         const firstVideoInfo: osn.IVideoInfo = {
             fpsNum: 60,
             fpsDen: 1,

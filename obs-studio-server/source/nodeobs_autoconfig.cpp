@@ -161,7 +161,7 @@ struct ServerInfo
 
 	inline ServerInfo(const char* name_, const char* address_) : name(name_), address(address_) {}
 };
-
+/*
 class TestMode
 {
 	obs_video_info * ovi;
@@ -212,17 +212,16 @@ class TestMode
 
 	inline void SetVideo(int cx, int cy, int fps_num, int fps_den)
 	{
-		
-
-		ovi->output_width  = (uint32_t)cx;
-		ovi->output_height   = (uint32_t)cy;
-		ovi->fps_num       = (uint32_t)fps_num;
-		ovi->fps_den         = (uint32_t)fps_den;
-		ovi->initialized     = true;
-		obs_reset_video();
+		obs_video_info video = {0};
+		video.output_width  = (uint32_t)cx;
+		video.output_height = (uint32_t)cy;
+		video.fps_num       = (uint32_t)fps_num;
+		video.fps_den       = (uint32_t)fps_den;
+		video.initialized   = true;
+		obs_set_video_info(ovi, &video);
 	}
 };
-
+*/
 void autoConfig::Register(ipc::server& srv)
 {
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("AutoConfig");
@@ -643,13 +642,14 @@ void autoConfig::TestBandwidthThread(void)
 	bool gotError    = false;
 
 	obs_video_info* ovi = obs_create_video_info();
-
-	ovi->output_width  = 128;
-	ovi->output_height = 128;
-	ovi->fps_num       = 60;
-	ovi->fps_den       = 1;
-	ovi->initialized   = true;
-	obs_reset_video();
+	
+	obs_video_info video = {0};
+	video.output_width  = 128;
+	video.output_height  = 128;
+	video.fps_num        = 60;
+	video.fps_den        = 1;
+	video.initialized    = true;
+	obs_set_video_info(ovi, &video);
 
 	const char* serverType = "rtmp_common";
 
@@ -703,6 +703,7 @@ void autoConfig::TestBandwidthThread(void)
 		obs_encoder_release(vencoder);
 		obs_encoder_release(aencoder);
 		obs_service_release(service);
+		obs_remove_video_info(ovi);
 		return;
 	}
 	
@@ -783,7 +784,7 @@ void autoConfig::TestBandwidthThread(void)
 	/* -----------------------------------*/
 	/* connect encoders/services/outputs  */
 
-	obs_encoder_set_video_mix(vencoder, obs_video_mix_get(0, OBS_MAIN_VIDEO_RENDERING));
+	obs_encoder_set_video_mix(vencoder, obs_video_mix_get(ovi, OBS_MAIN_VIDEO_RENDERING));
 	obs_encoder_set_audio(aencoder, obs_get_audio());
 
 	obs_output_set_video_encoder(output, vencoder);
@@ -893,6 +894,7 @@ void autoConfig::TestBandwidthThread(void)
 	obs_encoder_release(vencoder);
 	obs_encoder_release(aencoder);
 	obs_service_release(service);
+	obs_remove_video_info(ovi);
 
 	if(!gotError) { 
 		eventsMutex.lock();

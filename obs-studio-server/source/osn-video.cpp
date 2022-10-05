@@ -275,13 +275,6 @@ void osn::Video::SetVideoContext(
  	obs_video_info* canvas = osn::Video::Manager::GetInstance().find(args[11].value_union.ui64);
 	obs_video_info  video  = {0};
 
-
-    uint32_t        outputFormat = ;
-	uint32_t        colorspace   = ;
-	uint32_t        range        = ;
-	uint32_t        scaleType    = ;
-	uint32_t        fpsType      = ;
-
 #ifdef _WIN32
     video.graphics_module = "libobs-d3d11.dll";
 #else
