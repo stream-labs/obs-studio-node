@@ -306,6 +306,25 @@ static obs_data_t* UpdateRecordingSettings_nvenc(int cqp)
     return settings;
 }
 
+static obs_data_t* UpdateRecordingSettings_nvenc_hevc(int cqp)
+{
+	obs_data_t* settings = obs_data_create();
+	obs_data_set_string(settings, "rate_control", "CQP");
+	obs_data_set_string(settings, "profile", "main");
+	obs_data_set_string(settings, "preset", "hq");
+	obs_data_set_int(settings, "cqp", cqp);
+	return settings;
+}
+
+static obs_data_t* UpdateRecordingSettings_apple(int quality)
+{
+	obs_data_t* settings = obs_data_create();
+	obs_data_set_string(settings, "rate_control", "CRF");
+	obs_data_set_string(settings, "profile", "high");
+	obs_data_set_int(settings, "quality", quality);
+	return settings;
+}
+
 static bool icq_available(obs_encoder_t* encoder)
 {
     obs_properties_t* props     = obs_encoder_properties(encoder);
@@ -363,22 +382,37 @@ static int CalcCRF(int crf, bool lowCPU = false)
 }
 
 static void UpdateRecordingSettings_crf(
-    const int& crf, osn::SimpleRecording* recording)
+    enum osn::RecQuality quality, osn::SimpleRecording* recording)
 {
     std::string id =
         obs_encoder_get_id(recording->videoEncoder);
+    bool ultra_hq = (quality == osn::RecQuality::HigherQuality);
+    int  crf      = CalcCRF(ultra_hq ? 16 : 23);
 
     obs_data_t* settings = nullptr;
-    if (id.compare("obs_x264") == 0) {
+    if (id.compare(SIMPLE_ENCODER_X264) == 0 || id.compare(ADVANCED_ENCODER_X264) == 0
+        || id.compare(SIMPLE_ENCODER_X264_LOWCPU) == 0) {
         settings = UpdateRecordingSettings_x264_crf(
             CalcCRF(crf, recording->lowCPU),
             recording->lowCPU);
-    } else if (id.compare("jim_nvenc") == 0 || id.compare("ffmpeg_nvenc") == 0) {
+    } else if (id.compare(SIMPLE_ENCODER_NVENC) == 0 ||
+        id.compare(ADVANCED_ENCODER_NVENC) == 0 ||
+        id.compare(ENCODER_NEW_NVENC) == 0) {
         settings = UpdateRecordingSettings_nvenc(CalcCRF(crf));
-    } else if (id.compare("obs_qsv11") == 0) {
+    } else if (id.compare(SIMPLE_ENCODER_NVENC_HEVC) == 0) {
+        settings = UpdateRecordingSettings_nvenc_hevc(CalcCRF(crf));
+    } else if (id.compare(SIMPLE_ENCODER_QSV) == 0 ||
+        id.compare(ADVANCED_ENCODER_QSV) == 0) {
         settings = UpdateRecordingSettings_qsv11(CalcCRF(crf), recording->videoEncoder);
-    } else if (id.compare("amd_amf_h264") == 0) {
+    } else if (id.compare(SIMPLE_ENCODER_AMD) == 0 ||
+        id.compare(SIMPLE_ENCODER_AMD_HEVC) == 0 ||
+        id.compare(ADVANCED_ENCODER_AMD) == 0) {
         settings = UpdateRecordingSettings_amd_cqp(CalcCRF(crf));
+    } else if (id.compare(APPLE_SOFTWARE_VIDEO_ENCODER) == 0 ||
+        id.compare(APPLE_HARDWARE_VIDEO_ENCODER) == 0 ||
+        id.compare(APPLE_HARDWARE_VIDEO_ENCODER_M1) == 0) {
+        /* These are magic numbers. 0 - 100, more is better. */
+        UpdateRecordingSettings_apple(ultra_hq ? 70 : 50);
     } else {
         return;
     }
@@ -413,11 +447,11 @@ void osn::SimpleRecording::UpdateEncoders()
             break;
         }
         case RecQuality::HighQuality: {
-            UpdateRecordingSettings_crf(16, this);
+            UpdateRecordingSettings_crf(RecQuality::HighQuality, this);
             break;
         }
         case RecQuality::HigherQuality: {
-            UpdateRecordingSettings_crf(23, this);
+            UpdateRecordingSettings_crf(RecQuality::HigherQuality, this);
             break;
         }
         default: {
