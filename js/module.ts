@@ -147,7 +147,8 @@ export const enum EPathType {
 export const enum ETextType {
     Default,
     Password,
-    Multiline
+    Multiline,
+    TextInfo
 }
 
 export const enum ENumberType {
