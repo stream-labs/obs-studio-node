@@ -106,7 +106,8 @@ export declare const enum EPathType {
 export declare const enum ETextType {
     Default = 0,
     Password = 1,
-    Multiline = 2
+    Multiline = 2,
+    TextInfo = 3
 }
 export declare const enum ENumberType {
     Scroller = 0,
