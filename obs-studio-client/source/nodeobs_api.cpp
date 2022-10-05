@@ -456,6 +456,133 @@ Napi::Value api::OBS_API_forceCrash(const Napi::CallbackInfo& info)
 	return info.Env().Undefined();
 }
 
+Napi::Value api::GetSdrWhiteLevel(const Napi::CallbackInfo& info)
+{
+    auto conn = GetConnection(info);
+    if (!conn)
+        return info.Env().Undefined();
+
+    std::vector<ipc::value> response = conn->call_synchronous_helper(
+        "API", "GetSdrWhiteLevel", {});
+
+    if (!ValidateResponse(info, response))
+        return info.Env().Undefined();
+
+    return Napi::Number::New(info.Env(), response[1].value_union.ui32);
+}
+
+void api::SetSdrWhiteLevel(const Napi::CallbackInfo& info)
+{
+    uint32_t sdrWhiteLevel = info[0].ToNumber().Uint32Value();
+
+    auto conn = GetConnection(info);
+    if (!conn)
+        return;
+
+    conn->call("API", "SetSdrWhiteLevel",
+        {ipc::value(sdrWhiteLevel)});
+}
+
+Napi::Value api::GetSdrWhiteLevelLegacy(const Napi::CallbackInfo& info)
+{
+    auto conn = GetConnection(info);
+    if (!conn)
+        return info.Env().Undefined();
+
+    std::vector<ipc::value> response = conn->call_synchronous_helper(
+        "API", "GetSdrWhiteLevelLegacy", {});
+
+    if (!ValidateResponse(info, response))
+        return info.Env().Undefined();
+
+    return Napi::Number::New(info.Env(), response[1].value_union.ui32);
+}
+
+Napi::Value api::GetHdrNominalPeakLevel(const Napi::CallbackInfo& info)
+{
+    auto conn = GetConnection(info);
+    if (!conn)
+        return info.Env().Undefined();
+
+    std::vector<ipc::value> response = conn->call_synchronous_helper(
+        "API", "GetHdrNominalPeakLevel", {});
+
+    if (!ValidateResponse(info, response))
+        return info.Env().Undefined();
+
+    return Napi::Number::New(info.Env(), response[1].value_union.ui32);
+}
+
+void api::SetHdrNominalPeakLevel(const Napi::CallbackInfo& info)
+{
+    uint32_t hdrNominalPeakLevel = info[0].ToNumber().Uint32Value();
+
+    auto conn = GetConnection(info);
+    if (!conn)
+        return;
+
+    conn->call("API", "SetHdrNominalPeakLevel",
+        {ipc::value(hdrNominalPeakLevel)});
+}
+
+Napi::Value api::GetHdrNominalPeakLevelLegacy(const Napi::CallbackInfo& info)
+{
+    auto conn = GetConnection(info);
+    if (!conn)
+        return info.Env().Undefined();
+
+    std::vector<ipc::value> response = conn->call_synchronous_helper(
+        "API", "GetHdrNominalPeakLevelLegacy", {});
+
+    if (!ValidateResponse(info, response))
+        return info.Env().Undefined();
+
+    return Napi::Number::New(info.Env(), response[1].value_union.ui32);
+}
+
+Napi::Value api::GetLowLatencyAudioBuffering(const Napi::CallbackInfo& info)
+{
+    auto conn = GetConnection(info);
+    if (!conn)
+        return info.Env().Undefined();
+
+    std::vector<ipc::value> response = conn->call_synchronous_helper(
+        "API", "GetLowLatencyAudioBuffering", {});
+
+    if (!ValidateResponse(info, response))
+        return info.Env().Undefined();
+
+    return Napi::Boolean::New(info.Env(), response[1].value_union.ui32);
+}
+
+void api::SetLowLatencyAudioBuffering(const Napi::CallbackInfo& info)
+{
+    bool lowLatencyAudioBuffering = info[0].ToBoolean().Value();
+
+    auto conn = GetConnection(info);
+    if (!conn)
+        return;
+
+    conn->call("API", "SetLowLatencyAudioBuffering",
+        {ipc::value(lowLatencyAudioBuffering)});
+}
+
+Napi::Value api::GetLowLatencyAudioBufferingLegacy(const Napi::CallbackInfo& info)
+{
+    auto conn = GetConnection(info);
+    if (!conn)
+        return info.Env().Undefined();
+
+    std::vector<ipc::value> response = conn->call_synchronous_helper(
+        "API", "GetLowLatencyAudioBufferingLegacy", {});
+
+    if (!ValidateResponse(info, response))
+        return info.Env().Undefined();
+
+    return Napi::Boolean::New(info.Env(), response[1].value_union.ui32);
+}
+
+
 void api::Init(Napi::Env env, Napi::Object exports)
 {
     exports.Set(Napi::String::New(env, "OBS_API_initAPI"),
@@ -498,4 +625,22 @@ void api::Init(Napi::Env env, Napi::Object exports)
         Napi::Function::New(env, api::GetProcessPriority));
     exports.Set(Napi::String::New(env, "OBS_API_forceCrash"),
         Napi::Function::New(env, api::OBS_API_forceCrash));
+    exports.Set(Napi::String::New(env, "GetSdrWhiteLevel"),
+        Napi::Function::New(env, api::GetSdrWhiteLevel));
+    exports.Set(Napi::String::New(env, "SetSdrWhiteLevel"),
+        Napi::Function::New(env, api::SetSdrWhiteLevel));
+    exports.Set(Napi::String::New(env, "GetSdrWhiteLevelLegacy"),
+        Napi::Function::New(env, api::GetSdrWhiteLevelLegacy));
+    exports.Set(Napi::String::New(env, "GetHdrNominalPeakLevel"),
+        Napi::Function::New(env, api::GetHdrNominalPeakLevel));
+    exports.Set(Napi::String::New(env, "SetHdrNominalPeakLevel"),
+        Napi::Function::New(env, api::SetHdrNominalPeakLevel));
+    exports.Set(Napi::String::New(env, "GetHdrNominalPeakLevelLegacy"),
+        Napi::Function::New(env, api::GetHdrNominalPeakLevelLegacy));
+    exports.Set(Napi::String::New(env, "GetLowLatencyAudioBuffering"),
+        Napi::Function::New(env, api::GetLowLatencyAudioBuffering));
+    exports.Set(Napi::String::New(env, "SetLowLatencyAudioBuffering"),
+        Napi::Function::New(env, api::SetLowLatencyAudioBuffering));
+    exports.Set(Napi::String::New(env, "GetLowLatencyAudioBufferingLegacy"),
+        Napi::Function::New(env, api::GetLowLatencyAudioBufferingLegacy));
 }

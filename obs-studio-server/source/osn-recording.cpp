@@ -176,3 +176,244 @@ obs_encoder_t* osn::IRecording::duplicate_encoder(obs_encoder_t* src, uint64_t t
 
     return dst;
 }
+
+void osn::IRecording::SplitFile(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+    Recording* recording =
+        static_cast<Recording*>(
+            osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64));
+    if (!recording || !recording->output) {
+        PRETTY_ERROR_RETURN(
+            ErrorCode::InvalidReference, "Recording reference is not valid.");
+    }
+
+    calldata_t cd = {0};
+
+    proc_handler_t* ph = obs_output_get_proc_handler(recording->output);
+    proc_handler_call(ph, "split_file", &cd);
+    calldata_free(&cd);
+
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+    AUTO_DEBUG;
+}
+
+void osn::IRecording::GetEnableFileSplit(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+    Recording* recording =
+        static_cast<Recording*>(
+            osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64));
+    if (!recording) {
+        PRETTY_ERROR_RETURN(
+            ErrorCode::InvalidReference, "Recording reference is not valid.");
+    }
+
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+    rval.push_back(ipc::value((uint32_t)recording->enableFileSplit));
+    AUTO_DEBUG;
+}
+
+void osn::IRecording::SetEnableFileSplit(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+    Recording* recording =
+        static_cast<Recording*>(
+            osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64));
+    if (!recording) {
+        PRETTY_ERROR_RETURN(
+            ErrorCode::InvalidReference, "Recording reference is not valid.");
+    }
+
+    recording->enableFileSplit = args[1].value_union.ui32;
+
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+    AUTO_DEBUG;
+}
+
+void osn::IRecording::GetSplitType(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+    Recording* recording =
+        static_cast<Recording*>(
+            osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64));
+    if (!recording) {
+        PRETTY_ERROR_RETURN(
+            ErrorCode::InvalidReference, "Recording reference is not valid.");
+    }
+
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+    rval.push_back(ipc::value((uint32_t)recording->splitType));
+    AUTO_DEBUG;
+}
+
+void osn::IRecording::SetSplitType(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+    Recording* recording =
+        static_cast<Recording*>(
+            osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64));
+    if (!recording) {
+        PRETTY_ERROR_RETURN(
+            ErrorCode::InvalidReference, "Recording reference is not valid.");
+    }
+
+    recording->splitType = (enum SplitFileType)args[1].value_union.ui32;
+
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+    AUTO_DEBUG;
+}
+
+void osn::IRecording::GetSplitTime(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+    Recording* recording =
+        static_cast<Recording*>(
+            osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64));
+    if (!recording) {
+        PRETTY_ERROR_RETURN(
+            ErrorCode::InvalidReference, "Recording reference is not valid.");
+    }
+
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+    rval.push_back(ipc::value((uint32_t)recording->splitTime));
+    AUTO_DEBUG;
+}
+
+void osn::IRecording::SetSplitTime(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+    Recording* recording =
+        static_cast<Recording*>(
+            osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64));
+    if (!recording) {
+        PRETTY_ERROR_RETURN(
+            ErrorCode::InvalidReference, "Recording reference is not valid.");
+    }
+
+    recording->splitTime = args[1].value_union.ui32;
+
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+    AUTO_DEBUG;
+}
+
+void osn::IRecording::GetSplitSize(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+    Recording* recording =
+        static_cast<Recording*>(
+            osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64));
+    if (!recording) {
+        PRETTY_ERROR_RETURN(
+            ErrorCode::InvalidReference, "Recording reference is not valid.");
+    }
+
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+    rval.push_back(ipc::value((uint32_t)recording->splitSize));
+    AUTO_DEBUG;
+}
+
+void osn::IRecording::SetSplitSize(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+    Recording* recording =
+        static_cast<Recording*>(
+            osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64));
+    if (!recording) {
+        PRETTY_ERROR_RETURN(
+            ErrorCode::InvalidReference, "Recording reference is not valid.");
+    }
+
+    recording->splitSize = args[1].value_union.ui32;
+
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+    AUTO_DEBUG;
+}
+
+void osn::IRecording::GetFileResetTimestamps(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+    Recording* recording =
+        static_cast<Recording*>(
+            osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64));
+    if (!recording) {
+        PRETTY_ERROR_RETURN(
+            ErrorCode::InvalidReference, "Recording reference is not valid.");
+    }
+
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+    rval.push_back(ipc::value((uint32_t)recording->fileResetTimestamps));
+    AUTO_DEBUG;
+}
+
+void osn::IRecording::SetFileResetTimestamps(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+    Recording* recording =
+        static_cast<Recording*>(
+            osn::IFileOutput::Manager::GetInstance().find(args[0].value_union.ui64));
+    if (!recording) {
+        PRETTY_ERROR_RETURN(
+            ErrorCode::InvalidReference, "Recording reference is not valid.");
+    }
+
+    recording->fileResetTimestamps = args[1].value_union.ui32;
+
+    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+    AUTO_DEBUG;
+}
+
+void osn::Recording::ConfigureRecFileSplitting()
+{
+    obs_data_t* settings = obs_data_create();
+
+    if (splitType == SplitFileType::TIME)
+        obs_data_set_int(settings, "max_time_sec", splitTime);// * 60);
+    else if (splitType == SplitFileType::SIZE)
+        obs_data_set_int(settings, "max_size_mb", splitSize);
+
+    obs_data_set_string(settings, "directory", path.c_str());
+    obs_data_set_string(settings, "format", fileFormat.c_str());
+    obs_data_set_string(settings, "extension", format.c_str());
+    obs_data_set_bool(settings, "allow_spaces", !noSpace);
+    obs_data_set_bool(settings, "allow_overwrite", overwrite);
+    obs_data_set_bool(settings, "split_file", true);
+
+    obs_data_set_bool(settings, "reset_timestamps", fileResetTimestamps);
+
+    obs_output_update(output, settings);
+    obs_data_release(settings);
+}

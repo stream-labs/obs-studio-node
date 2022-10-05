@@ -82,6 +82,50 @@ void osn::ISimpleRecording::Register(ipc::server& srv)
         "SetStreaming",
         std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64},
         SetStreaming));
+    cls->register_function(std::make_shared<ipc::function>(
+        "SplitFile",
+        std::vector<ipc::type>{ipc::type::UInt64},
+        SplitFile));
+    cls->register_function(std::make_shared<ipc::function>(
+        "GetEnableFileSplit",
+        std::vector<ipc::type>{ipc::type::UInt64},
+        GetEnableFileSplit));
+    cls->register_function(std::make_shared<ipc::function>(
+        "SetEnableFileSplit",
+        std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32},
+        SetEnableFileSplit));
+    cls->register_function(std::make_shared<ipc::function>(
+        "GetSplitType",
+        std::vector<ipc::type>{ipc::type::UInt64},
+        GetSplitType));
+    cls->register_function(std::make_shared<ipc::function>(
+        "SetSplitType",
+        std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32},
+        SetSplitType));
+    cls->register_function(std::make_shared<ipc::function>(
+        "GetSplitTime",
+        std::vector<ipc::type>{ipc::type::UInt64},
+        GetSplitTime));
+    cls->register_function(std::make_shared<ipc::function>(
+        "SetSplitTime",
+        std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32},
+        SetSplitTime));
+    cls->register_function(std::make_shared<ipc::function>(
+        "GetSplitSize",
+        std::vector<ipc::type>{ipc::type::UInt64},
+        GetSplitSize));
+    cls->register_function(std::make_shared<ipc::function>(
+        "SetSplitSize",
+        std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32},
+        SetSplitSize));
+    cls->register_function(std::make_shared<ipc::function>(
+        "GetFileResetTimestamps",
+        std::vector<ipc::type>{ipc::type::UInt64},
+        GetFileResetTimestamps));
+    cls->register_function(std::make_shared<ipc::function>(
+        "SetFileResetTimestamps",
+        std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32},
+        SetFileResetTimestamps));
 
     srv.register_collection(cls);
 }
@@ -262,6 +306,25 @@ static obs_data_t* UpdateRecordingSettings_nvenc(int cqp)
     return settings;
 }
 
+static obs_data_t* UpdateRecordingSettings_nvenc_hevc(int cqp)
+{
+	obs_data_t* settings = obs_data_create();
+	obs_data_set_string(settings, "rate_control", "CQP");
+	obs_data_set_string(settings, "profile", "main");
+	obs_data_set_string(settings, "preset", "hq");
+	obs_data_set_int(settings, "cqp", cqp);
+	return settings;
+}
+
+static obs_data_t* UpdateRecordingSettings_apple(int quality)
+{
+	obs_data_t* settings = obs_data_create();
+	obs_data_set_string(settings, "rate_control", "CRF");
+	obs_data_set_string(settings, "profile", "high");
+	obs_data_set_int(settings, "quality", quality);
+	return settings;
+}
+
 static bool icq_available(obs_encoder_t* encoder)
 {
     obs_properties_t* props     = obs_encoder_properties(encoder);
@@ -319,22 +382,37 @@ static int CalcCRF(int crf, bool lowCPU = false)
 }
 
 static void UpdateRecordingSettings_crf(
-    const int& crf, osn::SimpleRecording* recording)
+    enum osn::RecQuality quality, osn::SimpleRecording* recording)
 {
     std::string id =
         obs_encoder_get_id(recording->videoEncoder);
+    bool ultra_hq = (quality == osn::RecQuality::HigherQuality);
+    int  crf      = CalcCRF(ultra_hq ? 16 : 23);
 
     obs_data_t* settings = nullptr;
-    if (id.compare("obs_x264") == 0) {
+    if (id.compare(SIMPLE_ENCODER_X264) == 0 || id.compare(ADVANCED_ENCODER_X264) == 0
+        || id.compare(SIMPLE_ENCODER_X264_LOWCPU) == 0) {
         settings = UpdateRecordingSettings_x264_crf(
             CalcCRF(crf, recording->lowCPU),
             recording->lowCPU);
-    } else if (id.compare("jim_nvenc") == 0 || id.compare("ffmpeg_nvenc") == 0) {
+    } else if (id.compare(SIMPLE_ENCODER_NVENC) == 0 ||
+        id.compare(ADVANCED_ENCODER_NVENC) == 0 ||
+        id.compare(ENCODER_NEW_NVENC) == 0) {
         settings = UpdateRecordingSettings_nvenc(CalcCRF(crf));
-    } else if (id.compare("obs_qsv11") == 0) {
+    } else if (id.compare(SIMPLE_ENCODER_NVENC_HEVC) == 0) {
+        settings = UpdateRecordingSettings_nvenc_hevc(CalcCRF(crf));
+    } else if (id.compare(SIMPLE_ENCODER_QSV) == 0 ||
+        id.compare(ADVANCED_ENCODER_QSV) == 0) {
         settings = UpdateRecordingSettings_qsv11(CalcCRF(crf), recording->videoEncoder);
-    } else if (id.compare("amd_amf_h264") == 0) {
+    } else if (id.compare(SIMPLE_ENCODER_AMD) == 0 ||
+        id.compare(SIMPLE_ENCODER_AMD_HEVC) == 0 ||
+        id.compare(ADVANCED_ENCODER_AMD) == 0) {
         settings = UpdateRecordingSettings_amd_cqp(CalcCRF(crf));
+    } else if (id.compare(APPLE_SOFTWARE_VIDEO_ENCODER) == 0 ||
+        id.compare(APPLE_HARDWARE_VIDEO_ENCODER) == 0 ||
+        id.compare(APPLE_HARDWARE_VIDEO_ENCODER_M1) == 0) {
+        /* These are magic numbers. 0 - 100, more is better. */
+        UpdateRecordingSettings_apple(ultra_hq ? 70 : 50);
     } else {
         return;
     }
@@ -369,11 +447,11 @@ void osn::SimpleRecording::UpdateEncoders()
             break;
         }
         case RecQuality::HighQuality: {
-            UpdateRecordingSettings_crf(16, this);
+            UpdateRecordingSettings_crf(RecQuality::HighQuality, this);
             break;
         }
         case RecQuality::HigherQuality: {
-            UpdateRecordingSettings_crf(23, this);
+            UpdateRecordingSettings_crf(RecQuality::HigherQuality, this);
             break;
         }
         default: {
@@ -431,6 +509,13 @@ void osn::ISimpleRecording::Start(
         obs_output_set_audio_encoder(recording->output, recording->audioEncoder, 0);
 
         obs_encoder_set_video(recording->videoEncoder, obs_get_video());
+
+        bool doMultipleRendering = obs_get_multiple_rendering();
+        obs_encoder_set_video_mix(recording->videoEncoder,
+            doMultipleRendering ? OBS_RECORDING_VIDEO_RENDERING : OBS_MAIN_VIDEO_RENDERING);
+        obs_encoder_set_video(recording->videoEncoder,
+            doMultipleRendering ? obs_get_record_video() : obs_get_video());
+
         obs_output_set_video_encoder(recording->output, recording->videoEncoder);
     }
 
@@ -457,6 +542,9 @@ void osn::ISimpleRecording::Start(
         "muxer_settings", recording->muxerSettings.c_str());
     obs_output_update(recording->output, settings);
     obs_data_release(settings);
+
+    if (recording->enableFileSplit)
+        recording->ConfigureRecFileSplitting();
 
     recording->startOutput();
 
@@ -649,6 +737,24 @@ void osn::ISimpleRecording::GetLegacySettings(
         GetLegacyAudioEncoderSettings();
     osn::AudioEncoder::Manager::GetInstance().allocate(recording->audioEncoder);
 
+    recording->enableFileSplit =
+        config_get_bool(ConfigManager::getInstance().getBasic(), "AdvOut", "RecSplitFile");
+    const char* splitFileType =
+        config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "RecSplitFileType");
+    if (strcmp(splitFileType, "Time") == 0)
+        recording->splitType = SplitFileType::TIME;
+    else if (strcmp(splitFileType, "Size") == 0)
+        recording->splitType = SplitFileType::SIZE;
+    else
+        recording->splitType = SplitFileType::MANUAL;
+
+    recording->splitTime =
+        config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "RecSplitFileTime");
+    recording->splitSize =
+        config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "RecSplitFileSize");
+    recording->fileResetTimestamps =
+        config_get_bool(ConfigManager::getInstance().getBasic(), "AdvOut", "RecSplitFileResetTimestamps");
+
     uint64_t uid =
         osn::ISimpleRecording::Manager::GetInstance().allocate(recording);
     if (uid == UINT64_MAX) {
@@ -801,6 +907,41 @@ void osn::ISimpleRecording::SetLegacySettings(
             ConfigManager::getInstance().getBasic(),
             "SimpleOutput", "RecEncoder", encId);
     }
+
+    config_set_bool(
+        ConfigManager::getInstance().getBasic(), "AdvOut",
+        "RecSplitFile", recording->enableFileSplit);
+
+    switch(recording->splitType) {
+        case SplitFileType::TIME: {
+            config_set_string(
+                ConfigManager::getInstance().getBasic(), "AdvOut",
+                "RecSplitFileType", "Time");
+            break;
+        }
+        case SplitFileType::SIZE: {
+            config_set_string(
+                ConfigManager::getInstance().getBasic(), "AdvOut",
+                "RecSplitFileType", "Size");
+            break;
+        }
+        default: {
+            config_set_string(
+                ConfigManager::getInstance().getBasic(), "AdvOut",
+                "RecSplitFileType", "Manual");
+            break;
+        }
+    }
+
+    config_set_int(
+        ConfigManager::getInstance().getBasic(), "AdvOut",
+        "RecSplitFileTime", recording->splitTime);
+    config_set_int(
+        ConfigManager::getInstance().getBasic(), "AdvOut",
+        "RecSplitFileSize", recording->splitSize);
+    config_set_bool(
+        ConfigManager::getInstance().getBasic(), "AdvOut",
+        "RecSplitFileResetTimestamps", recording->fileResetTimestamps);
 
     config_save_safe(
         ConfigManager::getInstance().getBasic(), "tmp", nullptr);

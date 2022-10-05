@@ -101,3 +101,151 @@ void osn::Recording::Stop(const Napi::CallbackInfo& info) {
 
     conn->call(className, "Stop", {ipc::value(this->uid), ipc::value(force)});
 }
+
+void osn::Recording::SplitFile(const Napi::CallbackInfo& info) {
+    auto conn = GetConnection(info);
+    if (!conn)
+        return;
+
+    conn->call(className, "SplitFile", {ipc::value(this->uid)});
+}
+
+Napi::Value osn::Recording::GetEnableFileSplit(const Napi::CallbackInfo& info) {
+    auto conn = GetConnection(info);
+    if (!conn)
+        return info.Env().Undefined();
+
+    std::vector<ipc::value> response =
+        conn->call_synchronous_helper(
+            className,
+            "GetEnableFileSplit",
+            {ipc::value(this->uid)});
+
+    if (!ValidateResponse(info, response))
+        return info.Env().Undefined();
+
+    return Napi::Boolean::New(info.Env(), response[1].value_union.ui32);
+}
+
+void osn::Recording::SetEnableFileSplit(const Napi::CallbackInfo& info, const Napi::Value& value) {
+    auto conn = GetConnection(info);
+    if (!conn)
+        return;
+
+    conn->call_synchronous_helper(
+        className,
+        "SetEnableFileSplit",
+        {ipc::value(this->uid), ipc::value((uint32_t)value.ToBoolean().Value())});
+}
+
+Napi::Value osn::Recording::GetSplitType(const Napi::CallbackInfo& info) {
+    auto conn = GetConnection(info);
+    if (!conn)
+        return info.Env().Undefined();
+
+    std::vector<ipc::value> response =
+        conn->call_synchronous_helper(
+            className,
+            "GetSplitType",
+            {ipc::value(this->uid)});
+
+    if (!ValidateResponse(info, response))
+        return info.Env().Undefined();
+
+    return Napi::Number::New(info.Env(), response[1].value_union.ui32);
+}
+
+void osn::Recording::SetSplitType(const Napi::CallbackInfo& info, const Napi::Value& value) {
+    auto conn = GetConnection(info);
+    if (!conn)
+        return;
+
+    conn->call_synchronous_helper(
+        className,
+        "SetSplitType",
+        {ipc::value(this->uid), ipc::value(value.ToNumber().Uint32Value())});
+}
+
+Napi::Value osn::Recording::GetSplitTime(const Napi::CallbackInfo& info) {
+    auto conn = GetConnection(info);
+    if (!conn)
+        return info.Env().Undefined();
+
+    std::vector<ipc::value> response =
+        conn->call_synchronous_helper(
+            className,
+            "GetSplitTime",
+            {ipc::value(this->uid)});
+
+    if (!ValidateResponse(info, response))
+        return info.Env().Undefined();
+
+    return Napi::Number::New(info.Env(), response[1].value_union.ui32);
+}
+
+void osn::Recording::SetSplitTime(const Napi::CallbackInfo& info, const Napi::Value& value) {
+    auto conn = GetConnection(info);
+    if (!conn)
+        return;
+
+    conn->call_synchronous_helper(
+        className,
+        "SetSplitTime",
+        {ipc::value(this->uid), ipc::value(value.ToNumber().Uint32Value())});
+}
+
+Napi::Value osn::Recording::GetSplitSize(const Napi::CallbackInfo& info) {
+    auto conn = GetConnection(info);
+    if (!conn)
+        return info.Env().Undefined();
+
+    std::vector<ipc::value> response =
+        conn->call_synchronous_helper(
+            className,
+            "GetSplitSize",
+            {ipc::value(this->uid)});
+
+    if (!ValidateResponse(info, response))
+        return info.Env().Undefined();
+
+    return Napi::Number::New(info.Env(), response[1].value_union.ui32);
+}
+
+void osn::Recording::SetSplitSize(const Napi::CallbackInfo& info, const Napi::Value& value) {
+    auto conn = GetConnection(info);
+    if (!conn)
+        return;
+
+    conn->call_synchronous_helper(
+        className,
+        "SetSplitSize",
+        {ipc::value(this->uid), ipc::value(value.ToNumber().Uint32Value())});
+}
+
+Napi::Value osn::Recording::GetFileResetTimestamps(const Napi::CallbackInfo& info) {
+    auto conn = GetConnection(info);
+    if (!conn)
+        return info.Env().Undefined();
+
+    std::vector<ipc::value> response =
+        conn->call_synchronous_helper(
+            className,
+            "GetFileResetTimestamps",
+            {ipc::value(this->uid)});
+
+    if (!ValidateResponse(info, response))
+        return info.Env().Undefined();
+
+    return Napi::Boolean::New(info.Env(), response[1].value_union.ui32);
+}
+
+void osn::Recording::SetFileResetTimestamps(const Napi::CallbackInfo& info, const Napi::Value& value) {
+    auto conn = GetConnection(info);
+    if (!conn)
+        return;
+
+    conn->call_synchronous_helper(
+        className,
+        "SetFileResetTimestamps",
+        {ipc::value(this->uid), ipc::value(value.ToBoolean().Value())});
+}
