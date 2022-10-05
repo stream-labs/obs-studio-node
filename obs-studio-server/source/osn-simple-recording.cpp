@@ -509,6 +509,13 @@ void osn::ISimpleRecording::Start(
         obs_output_set_audio_encoder(recording->output, recording->audioEncoder, 0);
 
         obs_encoder_set_video(recording->videoEncoder, obs_get_video());
+
+        bool doMultipleRendering = obs_get_multiple_rendering();
+        obs_encoder_set_video_mix(recording->videoEncoder,
+            doMultipleRendering ? OBS_RECORDING_VIDEO_RENDERING : OBS_MAIN_VIDEO_RENDERING);
+        obs_encoder_set_video(recording->videoEncoder,
+            doMultipleRendering ? obs_get_record_video() : obs_get_video());
+
         obs_output_set_video_encoder(recording->output, recording->videoEncoder);
     }
 

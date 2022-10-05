@@ -228,6 +228,7 @@ void osn::IAdvancedReplayBuffer::Start(
             return;
         replayBuffer->streaming->UpdateEncoders();
         videoEncoder = replayBuffer->streaming->videoEncoder;
+        obs_encoder_set_video_mix(videoEncoder, OBS_STREAMING_VIDEO_RENDERING);
     } else {
         if (!replayBuffer->recording)
             return;

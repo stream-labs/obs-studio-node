@@ -496,7 +496,12 @@ void osn::ISimpleStreaming::Start(
     obs_encoder_set_audio(streaming->audioEncoder, obs_get_audio());
     obs_output_set_audio_encoder(streaming->output, streaming->audioEncoder, 0);
 
-    obs_encoder_set_video(streaming->videoEncoder, obs_get_video());
+    bool doMultipleRendering = obs_get_multiple_rendering();
+    obs_encoder_set_video_mix(streaming->videoEncoder,
+        doMultipleRendering ? OBS_STREAMING_VIDEO_RENDERING : OBS_MAIN_VIDEO_RENDERING);
+    obs_encoder_set_video(streaming->videoEncoder,
+        doMultipleRendering ? obs_get_stream_video() : obs_get_video());
+
     obs_output_set_video_encoder(streaming->output, streaming->videoEncoder);
 
     if (streaming->enableTwitchVOD) {
