@@ -24,76 +24,34 @@
 #include "osn-simple-recording.hpp"
 #include "osn-simple-streaming.hpp"
 
-namespace osn
-{
-    class SimpleReplayBuffer: public ReplayBuffer
-    {
-        public:
-        SimpleReplayBuffer() {
-            streaming = nullptr;
-            recording = nullptr;
-        }
-        ~SimpleReplayBuffer() {}
+namespace osn {
+class SimpleReplayBuffer : public ReplayBuffer {
+public:
+	SimpleReplayBuffer()
+	{
+		streaming = nullptr;
+		recording = nullptr;
+	}
+	~SimpleReplayBuffer() {}
 
-        public:
-        SimpleStreaming* streaming;
-        SimpleRecording* recording;
-    };
+public:
+	SimpleStreaming *streaming;
+	SimpleRecording *recording;
+};
 
-    class ISimpleReplayBuffer: public IReplayBuffer
-    {
-        public:
-        static void Register(ipc::server&);
+class ISimpleReplayBuffer : public IReplayBuffer {
+public:
+	static void Register(ipc::server &);
 
-        static void Create(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-        static void Destroy(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-        static void Start(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-        static void Stop(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-        static void GetLegacySettings(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-        static void SetLegacySettings(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-        static void GetStreaming(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-        static void SetStreaming(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-        static void GetRecording(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-        static void SetRecording(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-    };
+	static void Create(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void Destroy(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void Start(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void Stop(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void GetLegacySettings(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void SetLegacySettings(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void GetStreaming(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void SetStreaming(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void GetRecording(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void SetRecording(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+};
 }

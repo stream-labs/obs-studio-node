@@ -23,23 +23,22 @@
 #include <functional>
 
 class UtilObjCInt;
-typedef std::function<void(void* data, bool webcam, bool mic)> perms_cb;
+typedef std::function<void(void *data, bool webcam, bool mic)> perms_cb;
 
-class UtilInt
-{
+class UtilInt {
 public:
-    UtilInt (void);
-    ~UtilInt(void);
+	UtilInt(void);
+	~UtilInt(void);
 
-    void init(void);
-    void getPermissionsStatus(bool &webcam, bool &mic);
-    void requestPermissions(void *async_cb, perms_cb cb);
-    void installPlugin(void);
-    void uninstallPlugin(void);
-    void setServerWorkingDirectoryPath(std::string path);
+	void init(void);
+	void getPermissionsStatus(bool &webcam, bool &mic);
+	void requestPermissions(void *async_cb, perms_cb cb);
+	void installPlugin(void);
+	void uninstallPlugin(void);
+	void setServerWorkingDirectoryPath(std::string path);
 
 private:
-    UtilObjCInt * _impl;
+	UtilObjCInt *_impl;
 };
 
 #endif

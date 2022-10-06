@@ -23,111 +23,48 @@
 #include "osn-recording.hpp"
 #include "osn-simple-streaming.hpp"
 
-namespace osn
-{
-    enum RecQuality {
-        Stream = 0,
-        HighQuality = 1,
-        HigherQuality = 2,
-        Lossless = 3
-    };
+namespace osn {
+enum RecQuality { Stream = 0, HighQuality = 1, HigherQuality = 2, Lossless = 3 };
 
-    class SimpleRecording: public Recording
-    {
-        public:
-        SimpleRecording(): Recording() {
-            audioEncoder = nullptr;
-            quality = RecQuality::Stream;
-            lowCPU = false;
-            streaming = nullptr;
-        }
-        ~SimpleRecording() {}
+class SimpleRecording : public Recording {
+public:
+	SimpleRecording() : Recording()
+	{
+		audioEncoder = nullptr;
+		quality = RecQuality::Stream;
+		lowCPU = false;
+		streaming = nullptr;
+	}
+	~SimpleRecording() {}
 
-        public:
-        obs_encoder_t* audioEncoder;
-        RecQuality quality;
-        bool lowCPU;
-        SimpleStreaming* streaming;
+public:
+	obs_encoder_t *audioEncoder;
+	RecQuality quality;
+	bool lowCPU;
+	SimpleStreaming *streaming;
 
-        void UpdateEncoders();
-    };
+	void UpdateEncoders();
+};
 
-    class ISimpleRecording: public IRecording
-    {
-        public:
-        static void Register(ipc::server&);
+class ISimpleRecording : public IRecording {
+public:
+	static void Register(ipc::server &);
 
-        static void Create(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-        static void Destroy(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-        static void GetQuality(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-        static void SetQuality(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-        static void GetAudioEncoder(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-        static void SetAudioEncoder(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-        static void Start(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-        static void Stop(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-        static void GetLowCPU(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-        static void SetLowCPU(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-        static void GetLegacySettings(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-        static void SetLegacySettings(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-        static obs_encoder_t* GetLegacyVideoEncoderSettings();
-        static obs_encoder_t* GetLegacyAudioEncoderSettings();
-        static void GetStreaming(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-        static void SetStreaming(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-    };
+	static void Create(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void Destroy(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void GetQuality(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void SetQuality(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void GetAudioEncoder(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void SetAudioEncoder(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void Start(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void Stop(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void GetLowCPU(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void SetLowCPU(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void GetLegacySettings(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void SetLegacySettings(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static obs_encoder_t *GetLegacyVideoEncoderSettings();
+	static obs_encoder_t *GetLegacyAudioEncoderSettings();
+	static void GetStreaming(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void SetStreaming(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+};
 }

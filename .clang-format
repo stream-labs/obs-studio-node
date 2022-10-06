@@ -1,86 +1,95 @@
-# Basic Formatting
-BasedOnStyle: LLVM
-TabWidth: 4
-UseTab: ForIndentation
-ColumnLimit: 120
+# please use clang-format version 8 or later
 
-# Language
-Language: Cpp
 Standard: Cpp11
-
-# Indentation
-AccessModifierOffset: 0
-ConstructorInitializerIndentWidth: 4
-ContinuationIndentWidth: 4
-IndentCaseLabels: false
-#IndentPPDirectives: true
-IndentWidth: 4
-IndentWrappedFunctionNames: true
-NamespaceIndentation: All
-
-# Includes
-#IncludeBlocks: Regroup
-IncludeCategories:
-  - Regex: '^<'
-    Priority: 1
-  - Regex: '^"'
-    Priority: 2
-SortIncludes: true
-
-# Alignment
-AlignAfterOpenBracket: AlwaysBreak
-AlignConsecutiveAssignments: true
-AlignConsecutiveDeclarations: true
+AccessModifierOffset: -8
+AlignAfterOpenBracket: Align
+AlignConsecutiveAssignments: false
+AlignConsecutiveDeclarations: false
 AlignEscapedNewlines: Left
 AlignOperands: true
 AlignTrailingComments: true
-DerivePointerAlignment: false
-PointerAlignment: Left
-
-# Wrapping and Breaking
+#AllowAllArgumentsOnNextLine: false  # requires clang-format 9
+#AllowAllConstructorInitializersOnNextLine: false  # requires clang-format 9
 AllowAllParametersOfDeclarationOnNextLine: false
 AllowShortBlocksOnASingleLine: false
 AllowShortCaseLabelsOnASingleLine: false
-AllowShortFunctionsOnASingleLine: Empty
+AllowShortFunctionsOnASingleLine: Inline
 AllowShortIfStatementsOnASingleLine: false
+#AllowShortLambdasOnASingleLine: Inline  # requires clang-format 9
 AllowShortLoopsOnASingleLine: false
+AlwaysBreakAfterDefinitionReturnType: None
 AlwaysBreakAfterReturnType: None
-AlwaysBreakBeforeMultilineStrings: true
-AlwaysBreakTemplateDeclarations: true
+AlwaysBreakBeforeMultilineStrings: false
+AlwaysBreakTemplateDeclarations: false
+BinPackArguments: true
+BinPackParameters: true
 BraceWrapping:
-  AfterClass: true
+  AfterClass: false
   AfterControlStatement: false
-  AfterEnum: true
-#  AfterExternBlock: false
+  AfterEnum: false
   AfterFunction: true
-  AfterNamespace: true
-  AfterStruct: true
-  AfterUnion: true
+  AfterNamespace: false
+  AfterObjCDeclaration: false
+  AfterStruct: false
+  AfterUnion: false
+  AfterExternBlock: false
   BeforeCatch: false
   BeforeElse: false
-  SplitEmptyFunction: false
-  SplitEmptyRecord: false
-  SplitEmptyNamespace: false
-BinPackArguments: false
-BinPackParameters: false
-BreakBeforeBinaryOperators: NonAssignment
+  IndentBraces: false
+  SplitEmptyFunction: true
+  SplitEmptyRecord: true
+  SplitEmptyNamespace: true
+BreakBeforeBinaryOperators: None
 BreakBeforeBraces: Custom
 BreakBeforeTernaryOperators: true
 BreakConstructorInitializers: BeforeColon
-#BreakInheritanceList: BeforeColon
-BreakStringLiterals: true
-ConstructorInitializerAllOnOneLineOrOnePerLine: false
+BreakStringLiterals: false  # apparently unpredictable
+ColumnLimit: 300
+CompactNamespaces: false
+ConstructorInitializerAllOnOneLineOrOnePerLine: true
+ConstructorInitializerIndentWidth: 8
+ContinuationIndentWidth: 8
 Cpp11BracedListStyle: true
+DerivePointerAlignment: false
+DisableFormat: false
+FixNamespaceComments: false
+ForEachMacros: 
+  - 'json_object_foreach'
+  - 'json_object_foreach_safe'
+  - 'json_array_foreach'
+IncludeBlocks: Preserve
+IndentCaseLabels: false
+IndentPPDirectives: None
+IndentWidth: 8
+IndentWrappedFunctionNames: false
+KeepEmptyLinesAtTheStartOfBlocks: true
+MaxEmptyLinesToKeep: 1
+NamespaceIndentation: None
+#ObjCBinPackProtocolList: Auto  # requires clang-format 7
+ObjCBlockIndentWidth: 8
+ObjCSpaceAfterProperty: true
+ObjCSpaceBeforeProtocolList: true
 
-# Spaces
+PenaltyBreakAssignment: 10
+PenaltyBreakBeforeFirstCallParameter: 30
+PenaltyBreakComment: 10
+PenaltyBreakFirstLessLess: 0
+PenaltyBreakString: 10
+PenaltyExcessCharacter: 100
+PenaltyReturnTypeOnItsOwnLine: 60
+
+PointerAlignment: Right
+ReflowComments: false
+SortIncludes: false
+SortUsingDeclarations: false
 SpaceAfterCStyleCast: false
+#SpaceAfterLogicalNot: false  # requires clang-format 9
 SpaceAfterTemplateKeyword: false
 SpaceBeforeAssignmentOperators: true
-#SpaceBeforeCpp11BracedList: false
-#SpaceBeforeCtorInitializerColon: true
-#SpaceBeforeInheritanceColon: true
+#SpaceBeforeCtorInitializerColon: true  # requires clang-format 7
+#SpaceBeforeInheritanceColon: true  # requires clang-format 7
 SpaceBeforeParens: ControlStatements
-#SpaceBeforeRangeBasedForLoopColon: true
+#SpaceBeforeRangeBasedForLoopColon: true  # requires clang-format 7
 SpaceInEmptyParentheses: false
 SpacesBeforeTrailingComments: 1
 SpacesInAngles: false
@@ -88,13 +97,11 @@ SpacesInCStyleCastParentheses: false
 SpacesInContainerLiterals: false
 SpacesInParentheses: false
 SpacesInSquareBrackets: false
-
-# Other
-CommentPragmas: '^(!FIXME!|!TODO!|ToDo:)'
-CompactNamespaces: false
-DisableFormat: false
-FixNamespaceComments: true
-#ForEachMacros: ''
-KeepEmptyLinesAtTheStartOfBlocks: false
-ReflowComments: false
-SortUsingDeclarations: true
+#StatementMacros:  # requires clang-format 8
+#  - 'Q_OBJECT'
+TabWidth: 8
+#TypenameMacros:  # requires clang-format 9
+#  - 'DARRAY'
+UseTab: ForContinuationAndIndentation
+---
+Language: ObjC

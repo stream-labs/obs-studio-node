@@ -58,11 +58,11 @@
 #if defined(_WIN32)
 // Checks ForceGPUAsRenderDevice setting
 extern "C" __declspec(dllexport) DWORD NvOptimusEnablement = [] {
-	LPWSTR       roamingPath;
+	LPWSTR roamingPath;
 	std::wstring filePath;
-	std::string  line;
+	std::string line;
 	std::fstream file;
-	bool         settingValue = true; // Default value (NvOptimusEnablement = 1)
+	bool settingValue = true; // Default value (NvOptimusEnablement = 1)
 
 	if (FAILED(SHGetKnownFolderPath(FOLDERID_RoamingAppData, 0, nullptr, &roamingPath))) {
 		// Couldn't find roaming app data folder path, assume default value
@@ -97,9 +97,10 @@ extern "C" __declspec(dllexport) DWORD NvOptimusEnablement = [] {
 }();
 #endif
 
-int main(int, char ** , char **){}
+int main(int, char **, char **) {}
 
-Napi::Object main_node(Napi::Env env, Napi::Object exports) {
+Napi::Object main_node(Napi::Env env, Napi::Object exports)
+{
 #ifdef __APPLE__
 	g_util_osx = new UtilInt();
 	g_util_osx->init();

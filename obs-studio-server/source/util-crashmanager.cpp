@@ -64,62 +64,62 @@
 //////////////////////
 #ifdef WIN32
 // Global/static variables
-std::vector<std::string>                   handledOBSCrashes;
-PDH_HQUERY                                 cpuQuery;
-PDH_HCOUNTER                               cpuTotal;
-std::vector<nlohmann::json>                breadcrumbs;
-std::queue<std::pair<int, std::string>>    lastActions;
-std::vector<std::string>                   warnings;
-std::mutex                                 messageMutex;
-util::MetricsProvider                      metricsClient;
-LPTOP_LEVEL_EXCEPTION_FILTER               crashpadInternalExceptionFilterMethod = nullptr;
-HANDLE                                     memoryDumpEvent = INVALID_HANDLE_VALUE;
-std::filesystem::path                      memoryDumpFolder;
+std::vector<std::string> handledOBSCrashes;
+PDH_HQUERY cpuQuery;
+PDH_HCOUNTER cpuTotal;
+std::vector<nlohmann::json> breadcrumbs;
+std::queue<std::pair<int, std::string>> lastActions;
+std::vector<std::string> warnings;
+std::mutex messageMutex;
+util::MetricsProvider metricsClient;
+LPTOP_LEVEL_EXCEPTION_FILTER crashpadInternalExceptionFilterMethod = nullptr;
+HANDLE memoryDumpEvent = INVALID_HANDLE_VALUE;
+std::filesystem::path memoryDumpFolder;
 #endif
 
-std::string                                appState = "starting"; // "starting","idle","encoding","shutdown"
-std::string                                reportServerUrl = "";
+std::string appState = "starting"; // "starting","idle","encoding","shutdown"
+std::string reportServerUrl = "";
 // Crashpad variables
 #ifdef ENABLE_CRASHREPORT
-std::wstring                                   appdata_path;
-crashpad::CrashpadClient                       client;
+std::wstring appdata_path;
+crashpad::CrashpadClient client;
 std::unique_ptr<crashpad::CrashReportDatabase> database;
-std::string                                    url;
-base::FilePath                                 db;
-base::FilePath                                 handler;
-std::vector<std::string>                       arguments;
-std::string                                    workingDirectory;
+std::string url;
+base::FilePath db;
+base::FilePath handler;
+std::vector<std::string> arguments;
+std::string workingDirectory;
 #endif
 
-std::string                                    appStateFile;
+std::string appStateFile;
 
-std::chrono::steady_clock::time_point          initialTime;
-bool                                           reportsEnabled = true;
-std::map<std::string, std::string>             annotations;
+std::chrono::steady_clock::time_point initialTime;
+bool reportsEnabled = true;
+std::map<std::string, std::string> annotations;
 
 /////////////
 // FORWARD //
 /////////////
 
-std::string    FormatVAString(const char* const format, va_list args);
-void           RewindCallStack();
+std::string FormatVAString(const char *const format, va_list args);
+void RewindCallStack();
 
 typedef long long LongLong;
 
 // Transform a byte value into a string + sufix
 std::string PrettyBytes(uint64_t bytes)
 {
-	const char* suffixes[7];
-	char        temp[100];
-	suffixes[0]    = "b";
-	suffixes[1]    = "kb";
-	suffixes[2]    = "mb";
-	suffixes[3]    = "gb";
-	suffixes[4]    = "tb";
-	suffixes[5]    = "pb";
-	suffixes[6]    = "eb";
-	uint64_t s     = 0; // which suffix to use
-	double   count = double(bytes);
+	const char *suffixes[7];
+	char temp[100];
+	suffixes[0] = "b";
+	suffixes[1] = "kb";
+	suffixes[2] = "mb";
+	suffixes[3] = "gb";
+	suffixes[4] = "tb";
+	suffixes[5] = "pb";
+	suffixes[6] = "eb";
+	uint64_t s = 0; // which suffix to use
+	double count = double(bytes);
 	while (count >= 1024 && s < 7) {
 		s++;
 		count /= 1024;
@@ -132,19 +132,13 @@ std::string PrettyBytes(uint64_t bytes)
 	return std::string(temp);
 }
 
-void RequestComputerUsageParams(
-    long long& totalPhysMem,
-    long long& physMemUsed,
-    size_t&    physMemUsedByMe,
-    double&    totalCPUUsed,
-    long long& commitMemTotal,
-    long long& commitMemLimit)
+void RequestComputerUsageParams(long long &totalPhysMem, long long &physMemUsed, size_t &physMemUsedByMe, double &totalCPUUsed, long long &commitMemTotal, long long &commitMemLimit)
 {
 #ifdef WIN32
 
-	MEMORYSTATUSEX          memInfo = {0};
+	MEMORYSTATUSEX memInfo = {0};
 	PROCESS_MEMORY_COUNTERS pmc;
-	PDH_FMT_COUNTERVALUE    counterVal;
+	PDH_FMT_COUNTERVALUE counterVal;
 	PERFORMANCE_INFORMATION perfInfo = {0};
 
 	memInfo.dwLength = sizeof(MEMORYSTATUSEX);
@@ -153,27 +147,27 @@ void RequestComputerUsageParams(
 	PdhCollectQueryData(cpuQuery);
 	PdhGetFormattedCounterValue(cpuTotal, PDH_FMT_DOUBLE, NULL, &counterVal);
 
-	totalPhysMem    = memInfo.ullTotalPhys;
-	physMemUsed     = (memInfo.ullTotalPhys - memInfo.ullAvailPhys);
+	totalPhysMem = memInfo.ullTotalPhys;
+	physMemUsed = (memInfo.ullTotalPhys - memInfo.ullAvailPhys);
 	physMemUsedByMe = pmc.WorkingSetSize + pmc.PagefileUsage;
-	totalCPUUsed    = counterVal.doubleValue;
+	totalCPUUsed = counterVal.doubleValue;
 	perfInfo.cb = sizeof(PERFORMANCE_INFORMATION);
 	if (GetPerformanceInfo(&perfInfo, sizeof(PERFORMANCE_INFORMATION))) {
 		commitMemTotal = perfInfo.CommitTotal * perfInfo.PageSize;
 		commitMemLimit = perfInfo.CommitLimit * perfInfo.PageSize;
-	} 
+	}
 #else
-	totalPhysMem    = -1;
-	physMemUsed     = -1;
+	totalPhysMem = -1;
+	physMemUsed = -1;
 	physMemUsedByMe = size_t(-1);
-	totalCPUUsed    = double(-1.0);
-	commitMemTotal  = LongLong(-1);
-	commitMemLimit  = LongLong(-1);
+	totalCPUUsed = double(-1.0);
+	commitMemTotal = LongLong(-1);
+	commitMemLimit = LongLong(-1);
 
 #endif
 }
 
-void GetUserInfo(std::string& computerName)
+void GetUserInfo(std::string &computerName)
 {
 #ifdef WIN32
 	TCHAR infoBuf[MAX_COMPUTERNAME_LENGTH + 1];
@@ -189,15 +183,13 @@ void GetUserInfo(std::string& computerName)
 #else
 	computerName = "";
 #endif
-
 }
 
 nlohmann::json RequestProcessList()
 {
 #ifdef WIN32
-	DWORD          aProcesses[1024], cbNeeded, cProcesses;
+	DWORD aProcesses[1024], cbNeeded, cProcesses;
 	nlohmann::json result = nlohmann::json::object();
-
 
 	if (!EnumProcesses(aProcesses, sizeof(aProcesses), &cbNeeded)) {
 		return 1;
@@ -214,27 +206,22 @@ nlohmann::json RequestProcessList()
 			TCHAR szProcessName[MAX_PATH] = TEXT("<unknown>");
 
 			// Get a handle to the process
-			DWORD  processID = aProcesses[i];
-			HANDLE hProcess  = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, processID);
+			DWORD processID = aProcesses[i];
+			HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, processID);
 
 			// Get the process name.
 			if (NULL != hProcess) {
 				HMODULE hMod;
-				DWORD   cbNeeded;
+				DWORD cbNeeded;
 
 				if (EnumProcessModules(hProcess, &hMod, sizeof(hMod), &cbNeeded)) {
 					GetModuleBaseName(hProcess, hMod, szProcessName, sizeof(szProcessName) / sizeof(TCHAR));
-					
+
 					PROCESS_MEMORY_COUNTERS pmc = {};
 					if (GetProcessMemoryInfo(hProcess, &pmc, sizeof(pmc))) {
 						SIZE_T totalProcessMemory = pmc.PagefileUsage + pmc.WorkingSetSize;
-						if (totalProcessMemory > 1024*1024 * 32) {
-							result.push_back(
-							{std::to_string(processID),
-							std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t>().to_bytes(szProcessName)
-							+ std::string(", ")
-							+ std::to_string(totalProcessMemory/1024/1024)
-							+ std::string("Mb") });
+						if (totalProcessMemory > 1024 * 1024 * 32) {
+							result.push_back({std::to_string(processID), std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t>().to_bytes(szProcessName) + std::string(", ") + std::to_string(totalProcessMemory / 1024 / 1024) + std::string("Mb")});
 
 							reported_processes_count++;
 						} else {
@@ -255,17 +242,11 @@ nlohmann::json RequestProcessList()
 			break;
 		}
 	}
-	result.push_back({std::string("0"),
-		std::string("Total:")
-		+ std::to_string(cProcesses)
-		+ std::string(", Skipped:")
-		+ std::to_string(skipped_processes_count)
-		+ std::string(", Unprocessd:")
-		+ std::to_string(unprocessed_processes_count)});
-    
-    return result;
+	result.push_back({std::string("0"), std::string("Total:") + std::to_string(cProcesses) + std::string(", Skipped:") + std::to_string(skipped_processes_count) + std::string(", Unprocessd:") + std::to_string(unprocessed_processes_count)});
+
+	return result;
 #else
-    return NULL;
+	return NULL;
 #endif
 }
 
@@ -302,7 +283,7 @@ std::wstring util::CrashManager::GetMemoryDumpEventName_Success()
 #ifdef WIN32
 bool util::CrashManager::IsMemoryDumpEnabled()
 {
-	if (std::filesystem::exists( memoryDumpFolder ) && std::filesystem::is_directory( memoryDumpFolder )) {
+	if (std::filesystem::exists(memoryDumpFolder) && std::filesystem::is_directory(memoryDumpFolder)) {
 		return true;
 	} else {
 		return false;
@@ -315,15 +296,15 @@ bool util::CrashManager::InitializeMemoryDump()
 	if (!IsMemoryDumpEnabled())
 		return ret;
 
-	PSECURITY_DESCRIPTOR securityDescriptor = (PSECURITY_DESCRIPTOR) LocalAlloc(LPTR, SECURITY_DESCRIPTOR_MIN_LENGTH);
+	PSECURITY_DESCRIPTOR securityDescriptor = (PSECURITY_DESCRIPTOR)LocalAlloc(LPTR, SECURITY_DESCRIPTOR_MIN_LENGTH);
 	if (InitializeSecurityDescriptor(securityDescriptor, SECURITY_DESCRIPTOR_REVISION)) {
-		if (SetSecurityDescriptorDacl( securityDescriptor, TRUE, NULL, FALSE)) {
+		if (SetSecurityDescriptorDacl(securityDescriptor, TRUE, NULL, FALSE)) {
 			SECURITY_ATTRIBUTES eventSecurityAttr = {0};
 			eventSecurityAttr.nLength = sizeof(SECURITY_ATTRIBUTES);
 			eventSecurityAttr.lpSecurityDescriptor = securityDescriptor;
 			eventSecurityAttr.bInheritHandle = FALSE;
 
-			memoryDumpEvent = CreateEvent( &eventSecurityAttr, TRUE, FALSE, GetMemoryDumpEventName_Start().c_str());
+			memoryDumpEvent = CreateEvent(&eventSecurityAttr, TRUE, FALSE, GetMemoryDumpEventName_Start().c_str());
 			if (memoryDumpEvent != NULL && memoryDumpEvent != INVALID_HANDLE_VALUE) {
 				ret = true;
 			}
@@ -340,26 +321,23 @@ bool util::CrashManager::SignalMemoryDump()
 
 	if (memoryDumpEvent != NULL && memoryDumpEvent != INVALID_HANDLE_VALUE) {
 		if (SetEvent(memoryDumpEvent)) {
-			
+
 			constexpr int failEvent = 0;
 			constexpr int successEvent = 1;
 
-			HANDLE handles[2] = { 
-				OpenEvent(EVENT_ALL_ACCESS, FALSE, GetMemoryDumpEventName_Fail().c_str()),
-				OpenEvent(EVENT_ALL_ACCESS, FALSE, GetMemoryDumpEventName_Success().c_str())
-			};
+			HANDLE handles[2] = {OpenEvent(EVENT_ALL_ACCESS, FALSE, GetMemoryDumpEventName_Fail().c_str()), OpenEvent(EVENT_ALL_ACCESS, FALSE, GetMemoryDumpEventName_Success().c_str())};
 
-			if (handles[0] != NULL && handles[0] != INVALID_HANDLE_VALUE && handles[1] != NULL && handles[1] != INVALID_HANDLE_VALUE) {				
+			if (handles[0] != NULL && handles[0] != INVALID_HANDLE_VALUE && handles[1] != NULL && handles[1] != INVALID_HANDLE_VALUE) {
 				DWORD ret = WaitForMultipleObjects(2, handles, FALSE, INFINITE);
 
 				if (ret - WAIT_OBJECT_0 == successEvent) {
 					result = true;
 				}
-			} 
+			}
 
 			if (handles[0] != NULL && handles[0] != INVALID_HANDLE_VALUE)
 				CloseHandle(handles[0]);
-			
+
 			if (handles[1] != NULL && handles[1] != INVALID_HANDLE_VALUE)
 				CloseHandle(handles[1]);
 		}
@@ -384,13 +362,13 @@ std::wstring util::CrashManager::GetMemoryDumpName()
 		return dmpName;
 
 	std::mt19937 rangen(std::random_device{}());
-	
+
 	auto randomCharacter = [&]() {
 		auto crand = [&](char min, char max) {
 			std::uniform_int_distribution<char> distribution(min, max);
 			return distribution(rangen);
-		};	
-		
+		};
+
 		// ascinum for simplicity
 		return crand(0, 1) == 0 ? crand('A', 'Z') : crand('0', '9');
 	};
@@ -399,21 +377,33 @@ std::wstring util::CrashManager::GetMemoryDumpName()
 
 	for (int i = 0; i < 15; ++i)
 		randomCode.push_back(randomCharacter());
-	
+
 	using namespace std::chrono;
 	seconds ms = duration_cast<seconds>(system_clock::now().time_since_epoch());
 	return dmpName = L"obs." + std::to_wstring(ms.count()) + L"." + randomCode;
 }
 
 #else
-bool util::CrashManager::IsMemoryDumpEnabled() { return false; }
-bool util::CrashManager::InitializeMemoryDump() { return IsMemoryDumpEnabled(); }
+bool util::CrashManager::IsMemoryDumpEnabled()
+{
+	return false;
+}
+bool util::CrashManager::InitializeMemoryDump()
+{
+	return IsMemoryDumpEnabled();
+}
 bool util::CrashManager::SignalMemoryDump() {}
-std::wstring util::CrashManager::GetMemoryDumpPath() {return L""; }
-std::wstring util::CrashManager::GetMemoryDumpName() {return L""; }
+std::wstring util::CrashManager::GetMemoryDumpPath()
+{
+	return L"";
+}
+std::wstring util::CrashManager::GetMemoryDumpName()
+{
+	return L"";
+}
 #endif
 
-bool util::CrashManager::Initialize(char* path, std::string appdata)
+bool util::CrashManager::Initialize(char *path, std::string appdata)
 {
 #ifdef ENABLE_CRASHREPORT
 	appStateFile = appdata + "\\appState";
@@ -427,32 +417,32 @@ bool util::CrashManager::Initialize(char* path, std::string appdata)
 
 	// Handler for obs errors (mainly for bcrash() calls)
 	base_set_crash_handler(
-	    [](const char* format, va_list args, void* param) {
-		    std::string errorMessage;
-		    if (format == nullptr)
-			    errorMessage = "unknown error";
-		    else
-			    errorMessage = FormatVAString(format, args);
+		[](const char *format, va_list args, void *param) {
+			std::string errorMessage;
+			if (format == nullptr)
+				errorMessage = "unknown error";
+			else
+				errorMessage = FormatVAString(format, args);
 
-		    // Check if this crash error is handled internally (if this is a known
-		    // error that we can't do anything about it, just let the application
-		    // crash normally
-		    if (!TryHandleCrash(std::string(format), errorMessage))
-			    HandleCrash(errorMessage);
-	    },
-	    nullptr);
+			// Check if this crash error is handled internally (if this is a known
+			// error that we can't do anything about it, just let the application
+			// crash normally
+			if (!TryHandleCrash(std::string(format), errorMessage))
+				HandleCrash(errorMessage);
+		},
+		nullptr);
 
 	// Redirect all the calls from std::terminate
 	std::set_terminate([]() { HandleCrash("Direct call to std::terminate"); });
-	
+
 #ifdef WIN32
-	memoryDumpFolder = std::filesystem::u8path(appdata+"\\CrashMemoryDump");
+	memoryDumpFolder = std::filesystem::u8path(appdata + "\\CrashMemoryDump");
 
 	// There's a static local wstring inside this function, now it's cached for thread safe read access
 	util::CrashManager::GetMemoryDumpName();
 
 	// Setup the windows exeption filter
-	auto ExceptionHandlerMethod = [](struct _EXCEPTION_POINTERS* ExceptionInfo) {
+	auto ExceptionHandlerMethod = [](struct _EXCEPTION_POINTERS *ExceptionInfo) {
 		HandleCrash("UnhandledExceptionFilter", false);
 
 		// Call the crashpad internal exception filter method since we overrided it here and
@@ -470,9 +460,9 @@ bool util::CrashManager::Initialize(char* path, std::string appdata)
 	PdhAddEnglishCounter(cpuQuery, L"\\Processor(_Total)\\% Processor Time", NULL, &cpuTotal);
 	PdhCollectQueryData(cpuQuery);
 
-    // The atexit will check if obs was safelly closed
-    std::atexit(HandleExit);
-    std::at_quick_exit(HandleExit);
+	// The atexit will check if obs was safelly closed
+	std::atexit(HandleExit);
+	std::at_quick_exit(HandleExit);
 #endif
 
 #endif
@@ -490,7 +480,7 @@ void util::CrashManager::Configure()
 	// You don't need to set the entire message, we will just check for a substring match
 	// in the main error message
 	{
-		// commenting to let d3d11 crashes be reported to sentry 
+		// commenting to let d3d11 crashes be reported to sentry
 		// handledOBSCrashes.push_back("Failed to recreate D3D11");
 		// ...
 	}
@@ -510,7 +500,7 @@ bool util::CrashManager::SetupCrashpad()
 
 #if defined(_WIN32)
 	HRESULT hResult;
-	PWSTR   ppszPath;
+	PWSTR ppszPath;
 
 	hResult = SHGetKnownFolderPath(FOLDERID_RoamingAppData, 0, NULL, &ppszPath);
 
@@ -532,7 +522,7 @@ bool util::CrashManager::SetupCrashpad()
 #ifdef __APPLE__
 	std::string appdata_path = g_util_osx->getUserDataPath();
 #endif
-	db      = base::FilePath(appdata_path);
+	db = base::FilePath(appdata_path);
 	handler = base::FilePath(handler_path);
 
 	database = crashpad::CrashReportDatabase::Initialize(db);
@@ -589,7 +579,7 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 
 	annotations.clear();
 
-	int  known_crash_id = 0;
+	int known_crash_id = 0;
 
 	if (is_allocator_failed()) {
 		known_crash_id = 0x1;
@@ -598,18 +588,18 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 	// Get the information about the total of CPU and RAM used by this user
 	long long totalPhysMem = 1;
 	long long physMemUsed = 0;
-	double    totalCPUUsed = 0.0;
-	size_t    physMemUsedByMe = 0;
+	double totalCPUUsed = 0.0;
+	size_t physMemUsedByMe = 0;
 	long long commitMemTotal = 0ll;
 	long long commitMemLimit = 1ll;
 	std::string computerName;
 
 	try {
-		RequestComputerUsageParams(
-		    totalPhysMem, physMemUsed, physMemUsedByMe, totalCPUUsed, commitMemTotal, commitMemLimit);
+		RequestComputerUsageParams(totalPhysMem, physMemUsed, physMemUsedByMe, totalCPUUsed, commitMemTotal, commitMemLimit);
 
 		GetUserInfo(computerName);
-	} catch (...) { }
+	} catch (...) {
+	}
 
 	auto timeElapsed = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - initialTime);
 
@@ -618,22 +608,18 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 	systemResources.push_back({"Leaks", std::to_string(bnum_allocs())});
 	systemResources.push_back({"Total RAM", PrettyBytes(totalPhysMem)});
 
-	systemResources.push_back({"Total used RAM",
-	                     PrettyBytes(physMemUsed) + " - percentage: "
-	                         + std::to_string(double(physMemUsed * 100) / double(totalPhysMem)) + "%"});
-	systemResources.push_back({"OBS64 RAM",
-	                     PrettyBytes(physMemUsedByMe) + " - percentage: "
-	                         + std::to_string(double(physMemUsedByMe * 100) / double(totalPhysMem)) + "%"});
-	systemResources.push_back({"Commit charge",
-	        	     PrettyBytes(commitMemTotal) + " of "+ PrettyBytes(commitMemLimit) });
+	systemResources.push_back({"Total used RAM", PrettyBytes(physMemUsed) + " - percentage: " + std::to_string(double(physMemUsed * 100) / double(totalPhysMem)) + "%"});
+	systemResources.push_back({"OBS64 RAM", PrettyBytes(physMemUsedByMe) + " - percentage: " + std::to_string(double(physMemUsedByMe * 100) / double(totalPhysMem)) + "%"});
+	systemResources.push_back({"Commit charge", PrettyBytes(commitMemTotal) + " of " + PrettyBytes(commitMemLimit)});
 	systemResources.push_back({"CPU usage", std::to_string(int(totalCPUUsed)) + "%"});
 	annotations.insert({{"System Resources", systemResources.dump(4)}});
-	
+
 	annotations.insert({{"Time elapsed: ", std::to_string(timeElapsed.count()) + "s"}});
 	annotations.insert({{"Status", obs_initialized() ? "initialized" : "shutdown"}});
 	try {
 		annotations.insert({{"Process List", RequestProcessList().dump(4)}});
-	} catch (...) {}
+	} catch (...) {
+	}
 
 	try {
 		annotations.insert({{"OBS log general", RequestOBSLog(OBSLogType::General).dump(4)}});
@@ -642,7 +628,8 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 		annotations.insert({{"Breadcrumbs", ComputeBreadcrumbs().dump(4)}});
 		annotations.insert({{"Last actions", ComputeActions().dump(4)}});
 		annotations.insert({{"Warnings", ComputeWarnings().dump(4)}});
-	} catch (...) {}
+	} catch (...) {
+	}
 
 	annotations.insert({{"sentry[release]", OBS_API::getCurrentVersion()}});
 	annotations.insert({{"sentry[user][username]", OBS_API::getUsername()}});
@@ -651,8 +638,8 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 	// if saved memory dump
 	if (uploadedFullDump) {
 		std::string dmpNameA;
-		std::wstring dmpNameW = util::CrashManager::GetMemoryDumpName();		
-		std::transform(dmpNameW.begin(), dmpNameW.end(), std::back_inserter(dmpNameA), [] (wchar_t c) { return (char)c;});
+		std::wstring dmpNameW = util::CrashManager::GetMemoryDumpName();
+		std::transform(dmpNameW.begin(), dmpNameW.end(), std::back_inserter(dmpNameA), [](wchar_t c) { return (char)c; });
 		annotations.insert({{"sentry[tags][memorydump]", "true"}});
 		annotations.insert({{"sentry[tags][s3dmp]", dmpNameA.c_str()}});
 	}
@@ -667,7 +654,7 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 			blog(LOG_INFO, "Recrashed in RewindCallStack");
 		}
 	} catch (...) {
-		//ignore exceptions to not loose current crash info 
+		//ignore exceptions to not loose current crash info
 	}
 
 	// Recreate crashpad instance, this is a well defined/supported operation
@@ -693,18 +680,18 @@ void util::CrashManager::SetReportServerUrl(std::string url)
 		reportServerUrl = url;
 	} else {
 		bool isPreview = OBS_API::getCurrentVersion().find("preview") != std::string::npos;
-		reportServerUrl = isPreview
-	          ? std::string("https://sentry.io/api/1406061/minidump/?sentry_key=7376a60665cd40bebbd59d6bf8363172")
-	          : std::string("https://sentry.io/api/1283431/minidump/?sentry_key=ec98eac4e3ce49c7be1d83c8fb2005ef");
+		reportServerUrl = isPreview ? std::string("https://sentry.io/api/1406061/minidump/?sentry_key=7376a60665cd40bebbd59d6bf8363172") : std::string("https://sentry.io/api/1283431/minidump/?sentry_key=ec98eac4e3ce49c7be1d83c8fb2005ef");
 	}
 }
 
-void util::CrashManager::SetVersionName(std::string name) {
+void util::CrashManager::SetVersionName(std::string name)
+{
 	std::cout << "version name " << name.c_str() << std::endl;
 	annotations.insert({{"sentry[release]", name}});
 }
 
-void util::CrashManager::SetUsername(std::string name) {
+void util::CrashManager::SetUsername(std::string name)
+{
 	annotations.insert({{"sentry[user][username]", name}});
 }
 
@@ -718,7 +705,7 @@ bool util::CrashManager::TryHandleCrash(std::string _format, std::string _crashM
 	// try to finalize SLOBS in an attempt to NOT generate a crash report for it
 
 	bool crashIsHandled = false;
-	for (auto& handledCrashes : handledOBSCrashes) {
+	for (auto &handledCrashes : handledOBSCrashes) {
 		if (std::string(_format).find(handledCrashes) != std::string::npos) {
 			crashIsHandled = true;
 			break;
@@ -752,16 +739,16 @@ bool util::CrashManager::TryHandleCrash(std::string _format, std::string _crashM
 
 	// Something really bad went wrong when killing this process, generate a crash report!
 	util::CrashManager::HandleCrash(_crashMessage);
-    #endif
+#endif
 
 	return false;
 }
 
 // Format a var arg string into a c++ std::string type
-std::string FormatVAString(const char* const format, va_list args)
+std::string FormatVAString(const char *const format, va_list args)
 {
 	static const int MaximumVAStringSize = 63;
-	auto temp   = std::vector<char>{};
+	auto temp = std::vector<char>{};
 	auto length = std::size_t{MaximumVAStringSize};
 	while (temp.size() <= length) {
 		temp.resize(length + 1);
@@ -781,13 +768,12 @@ std::string FormatVAString(const char* const format, va_list args)
 void RewindCallStack()
 {
 #ifdef WIN32
-	class MyStackWalker : public StackWalker
-	{
-		public:
-		MyStackWalker(): StackWalker(){}
+	class MyStackWalker : public StackWalker {
+	public:
+		MyStackWalker() : StackWalker() {}
 
-		protected:
-		virtual void OnCallstackEntry(CallstackEntryType eType, CallstackEntry& entry)
+	protected:
+		virtual void OnCallstackEntry(CallstackEntryType eType, CallstackEntry &entry)
 		{
 			// If this entry is valid
 			if (entry.offset == 0)
@@ -795,21 +781,20 @@ void RewindCallStack()
 
 			// If the entry is inside this file
 			std::string fileName = std::string(entry.lineFileName);
-			if (fileName.find("util-crashmanager.cpp") != std::string::npos
-			    || fileName.find("stackwalker.cpp") != std::string::npos)
+			if (fileName.find("util-crashmanager.cpp") != std::string::npos || fileName.find("stackwalker.cpp") != std::string::npos)
 				return;
 			if (strlen(entry.name) > 0) {
 				std::string function = std::string(entry.name);
 				entry.name[0] = 0x00;
 
-				if(strlen(entry.lineFileName) > 0 )
+				if (strlen(entry.lineFileName) > 0)
 					function += std::string(" ") + std::string(entry.lineFileName);
 				entry.lineFileName[0] = 0x00;
 
-				if(entry.lineNumber > 0)
+				if (entry.lineNumber > 0)
 					function += std::string(":") + std::to_string(entry.lineNumber);
 
-				if(strlen(entry.moduleName) > 0)
+				if (strlen(entry.moduleName) > 0)
 					function += std::string(" ") + std::string(entry.moduleName);
 				entry.moduleName[0] = 0x00;
 
@@ -817,7 +802,7 @@ void RewindCallStack()
 			} else {
 				std::string function = std::string("unknown function");
 
-				if(strlen(entry.moduleName) > 0)
+				if (strlen(entry.moduleName) > 0)
 					function += std::string(" ") + std::string(entry.moduleName);
 				entry.moduleName[0] = 0x00;
 
@@ -826,7 +811,7 @@ void RewindCallStack()
 		}
 	};
 
-	MyStackWalker  sw;
+	MyStackWalker sw;
 	sw.ShowCallstack();
 #endif
 	return;
@@ -838,21 +823,21 @@ nlohmann::json util::CrashManager::RequestOBSLog(OBSLogType type)
 
 	switch (type) {
 	case OBSLogType::Errors: {
-		auto& errors = OBS_API::getOBSLogErrors();
-		for (auto& msg : errors)
+		auto &errors = OBS_API::getOBSLogErrors();
+		for (auto &msg : errors)
 			result.push_back(msg);
 		break;
 	}
 
 	case OBSLogType::Warnings: {
-		auto& warnings = OBS_API::getOBSLogWarnings();
-		for (auto& msg : warnings)
+		auto &warnings = OBS_API::getOBSLogWarnings();
+		for (auto &msg : warnings)
 			result.push_back(msg);
 		break;
 	}
 
 	case OBSLogType::General: {
-		auto& general = OBS_API::getOBSLogGeneral();
+		auto &general = OBS_API::getOBSLogGeneral();
 		while (!general.empty()) {
 			result.push_back(general.front());
 			general.pop();
@@ -872,12 +857,12 @@ nlohmann::json util::CrashManager::ComputeBreadcrumbs()
 #ifdef WIN32
 	nlohmann::json result = nlohmann::json::array();
 
-	for (auto& msg : breadcrumbs)
+	for (auto &msg : breadcrumbs)
 		result.push_back(msg);
 
 	return result;
 #else
-    return NULL;
+	return NULL;
 #endif
 }
 
@@ -901,7 +886,7 @@ nlohmann::json util::CrashManager::ComputeActions()
 
 	return result;
 #else
-    return NULL;
+	return NULL;
 #endif
 }
 
@@ -910,12 +895,12 @@ nlohmann::json util::CrashManager::ComputeWarnings()
 #ifdef WIN32
 	nlohmann::json result;
 
-	for (auto& msg : warnings)
+	for (auto &msg : warnings)
 		result.push_back(msg);
 
 	return result;
 #else
-    return NULL;
+	return NULL;
 #endif
 }
 
@@ -930,15 +915,15 @@ void BindCrtHandlesToStdHandles(bool bindStdIn, bool bindStdOut, bool bindStdErr
 	// use the "nul" device, which will place them into a valid state, after which we can redirect them to our target
 	// using the "_dup2" function.
 	if (bindStdIn) {
-		FILE* dummyFile;
+		FILE *dummyFile;
 		freopen_s(&dummyFile, "nul", "r", stdin);
 	}
 	if (bindStdOut) {
-		FILE* dummyFile;
+		FILE *dummyFile;
 		freopen_s(&dummyFile, "nul", "w", stdout);
 	}
 	if (bindStdErr) {
-		FILE* dummyFile;
+		FILE *dummyFile;
 		freopen_s(&dummyFile, "nul", "w", stderr);
 	}
 
@@ -948,7 +933,7 @@ void BindCrtHandlesToStdHandles(bool bindStdIn, bool bindStdOut, bool bindStdErr
 		if (stdHandle != INVALID_HANDLE_VALUE) {
 			int fileDescriptor = _open_osfhandle((intptr_t)stdHandle, _O_TEXT);
 			if (fileDescriptor != -1) {
-				FILE* file = _fdopen(fileDescriptor, "r");
+				FILE *file = _fdopen(fileDescriptor, "r");
 				if (file != NULL) {
 					int dup2Result = _dup2(_fileno(file), _fileno(stdin));
 					if (dup2Result == 0) {
@@ -965,7 +950,7 @@ void BindCrtHandlesToStdHandles(bool bindStdIn, bool bindStdOut, bool bindStdErr
 		if (stdHandle != INVALID_HANDLE_VALUE) {
 			int fileDescriptor = _open_osfhandle((intptr_t)stdHandle, _O_TEXT);
 			if (fileDescriptor != -1) {
-				FILE* file = _fdopen(fileDescriptor, "w");
+				FILE *file = _fdopen(fileDescriptor, "w");
 				if (file != NULL) {
 					int dup2Result = _dup2(_fileno(file), _fileno(stdout));
 					if (dup2Result == 0) {
@@ -982,7 +967,7 @@ void BindCrtHandlesToStdHandles(bool bindStdIn, bool bindStdOut, bool bindStdErr
 		if (stdHandle != INVALID_HANDLE_VALUE) {
 			int fileDescriptor = _open_osfhandle((intptr_t)stdHandle, _O_TEXT);
 			if (fileDescriptor != -1) {
-				FILE* file = _fdopen(fileDescriptor, "w");
+				FILE *file = _fdopen(fileDescriptor, "w");
 				if (file != NULL) {
 					int dup2Result = _dup2(_fileno(file), _fileno(stderr));
 					if (dup2Result == 0) {
@@ -1025,10 +1010,10 @@ void util::CrashManager::OpenConsole()
 #endif
 }
 
-void util::CrashManager::IPCValuesToData(const std::vector<ipc::value>& values, nlohmann::json& data)
+void util::CrashManager::IPCValuesToData(const std::vector<ipc::value> &values, nlohmann::json &data)
 {
 	int paramCounter = 0;
-	for (auto& value : values) {
+	for (auto &value : values) {
 		switch (value.type) {
 		case ipc::type::Null: {
 			data.push_back({{"arg" + std::to_string(paramCounter), "null"}});
@@ -1072,7 +1057,7 @@ void util::CrashManager::IPCValuesToData(const std::vector<ipc::value>& values, 
 	}
 }
 
-void util::CrashManager::AddWarning(const std::string& warning)
+void util::CrashManager::AddWarning(const std::string &warning)
 {
 #ifdef WIN32
 	std::lock_guard<std::mutex> lock(messageMutex);
@@ -1080,10 +1065,10 @@ void util::CrashManager::AddWarning(const std::string& warning)
 #endif
 }
 
-void RegisterAction(const std::string& message)
+void RegisterAction(const std::string &message)
 {
 #ifdef WIN32
-	static const int            MaximumActionsRegistered = 50;
+	static const int MaximumActionsRegistered = 50;
 	std::lock_guard<std::mutex> lock(messageMutex);
 
 	// Check if this and the last message are the same, if true just add a counter
@@ -1098,7 +1083,7 @@ void RegisterAction(const std::string& message)
 #endif
 }
 
-void util::CrashManager::AddBreadcrumb(const nlohmann::json& message)
+void util::CrashManager::AddBreadcrumb(const nlohmann::json &message)
 {
 #ifdef WIN32
 	std::lock_guard<std::mutex> lock(messageMutex);
@@ -1106,7 +1091,7 @@ void util::CrashManager::AddBreadcrumb(const nlohmann::json& message)
 #endif
 }
 
-void util::CrashManager::AddBreadcrumb(const std::string& message)
+void util::CrashManager::AddBreadcrumb(const std::string &message)
 {
 #ifdef WIN32
 	nlohmann::json j = nlohmann::json::array();
@@ -1136,7 +1121,7 @@ std::string util::CrashManager::getAppState()
 		std::string encoding_state = "";
 		std::string need_space = "";
 		if (OBS_service::getStreamingOutput()) {
-			if (OBS_service::isStreamingOutputActive() ){
+			if (OBS_service::isStreamingOutputActive()) {
 				encoding_state += "activestreaming";
 			} else {
 				encoding_state += "inactivestreaming";
@@ -1144,17 +1129,17 @@ std::string util::CrashManager::getAppState()
 			need_space = " ";
 		}
 		if (OBS_service::getRecordingOutput()) {
-			if (OBS_service::isRecordingOutputActive() ){
+			if (OBS_service::isRecordingOutputActive()) {
 				encoding_state += need_space;
 				encoding_state += " activerecording";
 				need_space = " ";
-			} 
+			}
 		}
 		if (OBS_service::getReplayBufferOutput()) {
-			if (OBS_service::isReplayBufferOutputActive() ){
+			if (OBS_service::isReplayBufferOutputActive()) {
 				encoding_state += need_space;
 				encoding_state += " activereply";
-			} 
+			}
 		}
 		if (encoding_state.size() > 0)
 			return encoding_state;
@@ -1162,7 +1147,7 @@ std::string util::CrashManager::getAppState()
 	return appState;
 }
 
-void util::CrashManager::ProcessPreServerCall(std::string cname, std::string fname, const std::vector<ipc::value>& args)
+void util::CrashManager::ProcessPreServerCall(std::string cname, std::string fname, const std::vector<ipc::value> &args)
 {
 	std::string jsonEntry = cname + std::string("::") + fname;
 
@@ -1176,17 +1161,12 @@ void util::CrashManager::ProcessPreServerCall(std::string cname, std::string fna
 	RegisterAction(jsonEntry);
 }
 
-void util::CrashManager::ProcessPostServerCall(
-    std::string                    cname,
-    std::string                    fname,
-    const std::vector<ipc::value>& args)
+void util::CrashManager::ProcessPostServerCall(std::string cname, std::string fname, const std::vector<ipc::value> &args)
 {
 	if (args.size() == 0) {
 		AddWarning(std::string("No return params on method ") + fname + std::string(" for class ") + cname);
 	} else if ((ErrorCode)args[0].value_union.ui64 != ErrorCode::Ok) {
-		AddWarning(
-		    std::string("Server call returned error number ") + std::to_string(args[0].value_union.ui64) + " on method "
-		    + fname + std::string(" for class ") + cname);
+		AddWarning(std::string("Server call returned error number ") + std::to_string(args[0].value_union.ui64) + " on method " + fname + std::string(" for class ") + cname);
 	}
 }
 
@@ -1203,7 +1183,7 @@ void util::CrashManager::DisableReports()
 #endif
 }
 
-util::MetricsProvider* const util::CrashManager::GetMetricsProvider()
+util::MetricsProvider *const util::CrashManager::GetMetricsProvider()
 {
 #ifdef WIN32
 	return &metricsClient;
@@ -1212,18 +1192,18 @@ util::MetricsProvider* const util::CrashManager::GetMetricsProvider()
 
 void util::CrashManager::SaveToAppStateFile()
 {
- 	std::ifstream state_file(appStateFile, std::ios::in);
+	std::ifstream state_file(appStateFile, std::ios::in);
 	if (!state_file.is_open())
 		return;
 
-	std::ostringstream buffer; 
-	buffer << state_file.rdbuf(); 
+	std::ostringstream buffer;
+	buffer << state_file.rdbuf();
 	state_file.close();
 
 	std::string current_status = buffer.str();
-	if (current_status.size() == 0) 
+	if (current_status.size() == 0)
 		return;
-	
+
 	const std::string flag_value = "obs_crash";
 	const std::string flag_name = "detected";
 
@@ -1233,12 +1213,13 @@ void util::CrashManager::SaveToAppStateFile()
 		std::string updated_status = jsonEntry.dump(-1);
 
 		std::ofstream out_state_file;
-		out_state_file.open(appStateFile, std::ios::trunc | std::ios::out );
+		out_state_file.open(appStateFile, std::ios::trunc | std::ios::out);
 		if (!out_state_file.is_open())
 			return;
 
 		out_state_file << updated_status << "\n";
 		out_state_file.flush();
 		out_state_file.close();
-	} catch(...) {}
+	} catch (...) {
+	}
 }

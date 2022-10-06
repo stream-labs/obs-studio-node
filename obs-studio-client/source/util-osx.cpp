@@ -19,41 +19,42 @@
 #include "util-osx.hpp"
 #include "util-osx-int.h"
 
-UtilInt::UtilInt(void)
-    : _impl ( nullptr )
-{   }
+UtilInt::UtilInt(void) : _impl(nullptr) {}
 
 void UtilInt::init(void)
 {
-    _impl = new UtilObjCInt();
+	_impl = new UtilObjCInt();
 }
 
 UtilInt::~UtilInt(void)
 {
-    if ( _impl ) { delete _impl; _impl = nullptr; }
+	if (_impl) {
+		delete _impl;
+		_impl = nullptr;
+	}
 }
 
 void UtilInt::getPermissionsStatus(bool &webcam, bool &mic)
 {
-    _impl->getPermissionsStatus(webcam, mic);
+	_impl->getPermissionsStatus(webcam, mic);
 }
 
 void UtilInt::requestPermissions(void *async_cb, perms_cb cb)
 {
-    _impl->requestPermissions(async_cb, cb);
+	_impl->requestPermissions(async_cb, cb);
 }
 
 void UtilInt::installPlugin(void)
 {
-    _impl->installPlugin();
+	_impl->installPlugin();
 }
 
 void UtilInt::uninstallPlugin(void)
 {
-    _impl->uninstallPlugin();
+	_impl->uninstallPlugin();
 }
 
 void UtilInt::setServerWorkingDirectoryPath(std::string path)
 {
-    _impl->setServerWorkingDirectoryPath(path);
+	_impl->setServerWorkingDirectoryPath(path);
 }

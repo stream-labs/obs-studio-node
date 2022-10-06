@@ -19,193 +19,154 @@
 #include "file-output.hpp"
 #include "utility.hpp"
 
-Napi::Value osn::FileOutput::GetPath(const Napi::CallbackInfo& info) {
-    auto conn = GetConnection(info);
-    if (!conn)
-        return info.Env().Undefined();
+Napi::Value osn::FileOutput::GetPath(const Napi::CallbackInfo &info)
+{
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
 
-    std::vector<ipc::value> response =
-        conn->call_synchronous_helper(
-            "FileOutput",
-            "GetPath",
-            {ipc::value(this->uid)});
+	std::vector<ipc::value> response = conn->call_synchronous_helper("FileOutput", "GetPath", {ipc::value(this->uid)});
 
-    if (!ValidateResponse(info, response))
-        return info.Env().Undefined();
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
 
-    return Napi::String::New(info.Env(), response[1].value_str);
+	return Napi::String::New(info.Env(), response[1].value_str);
 }
 
-void osn::FileOutput::SetPath(
-    const Napi::CallbackInfo& info, const Napi::Value& value) {
-    auto conn = GetConnection(info);
-    if (!conn)
-        return;
+void osn::FileOutput::SetPath(const Napi::CallbackInfo &info, const Napi::Value &value)
+{
+	auto conn = GetConnection(info);
+	if (!conn)
+		return;
 
-    conn->call_synchronous_helper(
-        "FileOutput",
-        "SetPath",
-        {ipc::value(this->uid), ipc::value(value.ToString().Utf8Value())});
+	conn->call_synchronous_helper("FileOutput", "SetPath", {ipc::value(this->uid), ipc::value(value.ToString().Utf8Value())});
 }
 
-Napi::Value osn::FileOutput::GetFormat(const Napi::CallbackInfo& info) {
-    auto conn = GetConnection(info);
-    if (!conn)
-        return info.Env().Undefined();
+Napi::Value osn::FileOutput::GetFormat(const Napi::CallbackInfo &info)
+{
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
 
-    std::vector<ipc::value> response =
-        conn->call_synchronous_helper(
-            "FileOutput",
-            "GetFormat",
-            {ipc::value(this->uid)});
+	std::vector<ipc::value> response = conn->call_synchronous_helper("FileOutput", "GetFormat", {ipc::value(this->uid)});
 
-    if (!ValidateResponse(info, response))
-        return info.Env().Undefined();
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
 
-    return Napi::String::New(info.Env(), response[1].value_str);
+	return Napi::String::New(info.Env(), response[1].value_str);
 }
 
-void osn::FileOutput::SetFormat(
-    const Napi::CallbackInfo& info, const Napi::Value& value) {
-    auto conn = GetConnection(info);
-    if (!conn)
-        return;
+void osn::FileOutput::SetFormat(const Napi::CallbackInfo &info, const Napi::Value &value)
+{
+	auto conn = GetConnection(info);
+	if (!conn)
+		return;
 
-    conn->call_synchronous_helper(
-        "FileOutput",
-        "SetFormat",
-        {ipc::value(this->uid), ipc::value(value.ToString().Utf8Value())});
+	conn->call_synchronous_helper("FileOutput", "SetFormat", {ipc::value(this->uid), ipc::value(value.ToString().Utf8Value())});
 }
 
-Napi::Value osn::FileOutput::GetFileFormat(const Napi::CallbackInfo& info) {
-    auto conn = GetConnection(info);
-    if (!conn)
-        return info.Env().Undefined();
+Napi::Value osn::FileOutput::GetFileFormat(const Napi::CallbackInfo &info)
+{
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
 
-    std::vector<ipc::value> response =
-        conn->call_synchronous_helper(
-            "FileOutput",
-            "GetFileFormat",
-            {ipc::value(this->uid)});
+	std::vector<ipc::value> response = conn->call_synchronous_helper("FileOutput", "GetFileFormat", {ipc::value(this->uid)});
 
-    if (!ValidateResponse(info, response))
-        return info.Env().Undefined();
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
 
-    return Napi::String::New(info.Env(), response[1].value_str);
+	return Napi::String::New(info.Env(), response[1].value_str);
 }
 
-void osn::FileOutput::SetFileFormat(
-    const Napi::CallbackInfo& info, const Napi::Value& value) {
-    auto conn = GetConnection(info);
-    if (!conn)
-        return;
+void osn::FileOutput::SetFileFormat(const Napi::CallbackInfo &info, const Napi::Value &value)
+{
+	auto conn = GetConnection(info);
+	if (!conn)
+		return;
 
-    conn->call_synchronous_helper(
-        "FileOutput",
-        "SetFileFormat",
-        {ipc::value(this->uid), ipc::value(value.ToString().Utf8Value())});
+	conn->call_synchronous_helper("FileOutput", "SetFileFormat", {ipc::value(this->uid), ipc::value(value.ToString().Utf8Value())});
 }
 
-Napi::Value osn::FileOutput::GetOverwrite(const Napi::CallbackInfo& info) {
-    auto conn = GetConnection(info);
-    if (!conn)
-        return info.Env().Undefined();
+Napi::Value osn::FileOutput::GetOverwrite(const Napi::CallbackInfo &info)
+{
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
 
-    std::vector<ipc::value> response =
-        conn->call_synchronous_helper(
-            "FileOutput",
-            "GetOverwrite",
-            {ipc::value(this->uid)});
+	std::vector<ipc::value> response = conn->call_synchronous_helper("FileOutput", "GetOverwrite", {ipc::value(this->uid)});
 
-    if (!ValidateResponse(info, response))
-        return info.Env().Undefined();
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
 
-    return Napi::Boolean::New(info.Env(), response[1].value_union.ui32);
+	return Napi::Boolean::New(info.Env(), response[1].value_union.ui32);
 }
 
-void osn::FileOutput::SetOverwrite(
-    const Napi::CallbackInfo& info, const Napi::Value& value) {
-    auto conn = GetConnection(info);
-    if (!conn)
-        return;
+void osn::FileOutput::SetOverwrite(const Napi::CallbackInfo &info, const Napi::Value &value)
+{
+	auto conn = GetConnection(info);
+	if (!conn)
+		return;
 
-    conn->call_synchronous_helper(
-        "FileOutput",
-        "SetOverwrite",
-        {ipc::value(this->uid), ipc::value((uint32_t)value.ToBoolean().Value())});
+	conn->call_synchronous_helper("FileOutput", "SetOverwrite", {ipc::value(this->uid), ipc::value((uint32_t)value.ToBoolean().Value())});
 }
 
-Napi::Value osn::FileOutput::GetNoSpace(const Napi::CallbackInfo& info) {
-    auto conn = GetConnection(info);
-    if (!conn)
-        return info.Env().Undefined();
+Napi::Value osn::FileOutput::GetNoSpace(const Napi::CallbackInfo &info)
+{
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
 
-    std::vector<ipc::value> response =
-        conn->call_synchronous_helper(
-            "FileOutput",
-            "GetNoSpace",
-            {ipc::value(this->uid)});
+	std::vector<ipc::value> response = conn->call_synchronous_helper("FileOutput", "GetNoSpace", {ipc::value(this->uid)});
 
-    if (!ValidateResponse(info, response))
-        return info.Env().Undefined();
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
 
-    return Napi::Boolean::New(info.Env(), response[1].value_union.ui32);
+	return Napi::Boolean::New(info.Env(), response[1].value_union.ui32);
 }
 
-void osn::FileOutput::SetNoSpace(
-    const Napi::CallbackInfo& info, const Napi::Value& value) {
-    auto conn = GetConnection(info);
-    if (!conn)
-        return;
+void osn::FileOutput::SetNoSpace(const Napi::CallbackInfo &info, const Napi::Value &value)
+{
+	auto conn = GetConnection(info);
+	if (!conn)
+		return;
 
-    conn->call_synchronous_helper(
-        "FileOutput",
-        "SetNoSpace",
-        {ipc::value(this->uid), ipc::value((uint32_t)value.ToBoolean().Value())});
+	conn->call_synchronous_helper("FileOutput", "SetNoSpace", {ipc::value(this->uid), ipc::value((uint32_t)value.ToBoolean().Value())});
 }
 
-Napi::Value osn::FileOutput::GetMuxerSettings(const Napi::CallbackInfo& info) {
-    auto conn = GetConnection(info);
-    if (!conn)
-        return info.Env().Undefined();
+Napi::Value osn::FileOutput::GetMuxerSettings(const Napi::CallbackInfo &info)
+{
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
 
-    std::vector<ipc::value> response =
-        conn->call_synchronous_helper(
-            "FileOutput",
-            "GetMuxerSettings",
-            {ipc::value(this->uid)});
+	std::vector<ipc::value> response = conn->call_synchronous_helper("FileOutput", "GetMuxerSettings", {ipc::value(this->uid)});
 
-    if (!ValidateResponse(info, response))
-        return info.Env().Undefined();
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
 
-    return Napi::String::New(info.Env(), response[1].value_str);
+	return Napi::String::New(info.Env(), response[1].value_str);
 }
 
-void osn::FileOutput::SetMuxerSettings(
-    const Napi::CallbackInfo& info, const Napi::Value& value) {
-    auto conn = GetConnection(info);
-    if (!conn)
-        return;
+void osn::FileOutput::SetMuxerSettings(const Napi::CallbackInfo &info, const Napi::Value &value)
+{
+	auto conn = GetConnection(info);
+	if (!conn)
+		return;
 
-    conn->call_synchronous_helper(
-        "FileOutput",
-        "SetMuxerSettings",
-        {ipc::value(this->uid), ipc::value(value.ToString().Utf8Value())});
+	conn->call_synchronous_helper("FileOutput", "SetMuxerSettings", {ipc::value(this->uid), ipc::value(value.ToString().Utf8Value())});
 }
 
-Napi::Value osn::FileOutput::GetLastFile(const Napi::CallbackInfo& info) {
-    auto conn = GetConnection(info);
-    if (!conn)
-        return info.Env().Undefined();
+Napi::Value osn::FileOutput::GetLastFile(const Napi::CallbackInfo &info)
+{
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
 
-    std::vector<ipc::value> response =
-        conn->call_synchronous_helper(
-            "FileOutput",
-            "GetLastFile",
-            {ipc::value(this->uid)});
+	std::vector<ipc::value> response = conn->call_synchronous_helper("FileOutput", "GetLastFile", {ipc::value(this->uid)});
 
-    if (!ValidateResponse(info, response))
-        return info.Env().Undefined();
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
 
-    return Napi::String::New(info.Env(), response[1].value_str);
+	return Napi::String::New(info.Env(), response[1].value_str);
 }

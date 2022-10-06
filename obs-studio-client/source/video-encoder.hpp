@@ -20,31 +20,29 @@
 #include <napi.h>
 #include <thread>
 
-namespace osn
-{
-    class VideoEncoder : public Napi::ObjectWrap<osn::VideoEncoder>
-    {
-        public:
-        uint64_t uid;
+namespace osn {
+class VideoEncoder : public Napi::ObjectWrap<osn::VideoEncoder> {
+public:
+	uint64_t uid;
 
-        public:
-        static Napi::FunctionReference constructor;
-        static Napi::Object Init(Napi::Env env, Napi::Object exports);
-        VideoEncoder(const Napi::CallbackInfo& info);
+public:
+	static Napi::FunctionReference constructor;
+	static Napi::Object Init(Napi::Env env, Napi::Object exports);
+	VideoEncoder(const Napi::CallbackInfo &info);
 
-        static Napi::Value Create(const Napi::CallbackInfo& info);
-        static Napi::Value GetTypes(const Napi::CallbackInfo& info);
+	static Napi::Value Create(const Napi::CallbackInfo &info);
+	static Napi::Value GetTypes(const Napi::CallbackInfo &info);
 
-        Napi::Value GetName(const Napi::CallbackInfo& info);
-        void SetName(const Napi::CallbackInfo& info, const Napi::Value &value);
-        Napi::Value GetType(const Napi::CallbackInfo& info);
-        Napi::Value GetActive(const Napi::CallbackInfo& info);
-        Napi::Value GetId(const Napi::CallbackInfo& info);
-        Napi::Value GetLastError(const Napi::CallbackInfo& info);
+	Napi::Value GetName(const Napi::CallbackInfo &info);
+	void SetName(const Napi::CallbackInfo &info, const Napi::Value &value);
+	Napi::Value GetType(const Napi::CallbackInfo &info);
+	Napi::Value GetActive(const Napi::CallbackInfo &info);
+	Napi::Value GetId(const Napi::CallbackInfo &info);
+	Napi::Value GetLastError(const Napi::CallbackInfo &info);
 
-        void Release(const Napi::CallbackInfo& info);
-        void Update(const Napi::CallbackInfo& info);
-        Napi::Value GetProperties(const Napi::CallbackInfo& info);
-        Napi::Value GetSettings(const Napi::CallbackInfo& info);
-    };
+	void Release(const Napi::CallbackInfo &info);
+	void Update(const Napi::CallbackInfo &info);
+	Napi::Value GetProperties(const Napi::CallbackInfo &info);
+	Napi::Value GetSettings(const Napi::CallbackInfo &info);
+};
 }

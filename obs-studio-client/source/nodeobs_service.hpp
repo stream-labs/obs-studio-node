@@ -21,54 +21,52 @@
 #include <thread>
 #include "utility-v8.hpp"
 
-struct SignalInfo
-{
+struct SignalInfo {
 	std::string outputType;
 	std::string signal;
-	int         code;
+	int code;
 	std::string errorMessage;
-	bool        sent;
-	bool        tosend;
+	bool sent;
+	bool tosend;
 };
 
-namespace service
-{
+namespace service {
 
-	extern bool isWorkerRunning;
-	extern bool worker_stop;
-	extern uint32_t sleepIntervalMS;
-	extern std::thread* worker_thread;
-	extern Napi::ThreadSafeFunction js_thread;
-	extern Napi::FunctionReference cb;
+extern bool isWorkerRunning;
+extern bool worker_stop;
+extern uint32_t sleepIntervalMS;
+extern std::thread *worker_thread;
+extern Napi::ThreadSafeFunction js_thread;
+extern Napi::FunctionReference cb;
 
-	void worker(void);
-	void start_worker(napi_env env, Napi::Function async_callback);
-	void stop_worker(void);
+void worker(void);
+void start_worker(napi_env env, Napi::Function async_callback);
+void stop_worker(void);
 
-	void Init(Napi::Env env, Napi::Object exports);
+void Init(Napi::Env env, Napi::Object exports);
 
-	Napi::Value OBS_service_resetAudioContext(const Napi::CallbackInfo& info);
-	Napi::Value OBS_service_resetVideoContext(const Napi::CallbackInfo& info);
+Napi::Value OBS_service_resetAudioContext(const Napi::CallbackInfo &info);
+Napi::Value OBS_service_resetVideoContext(const Napi::CallbackInfo &info);
 
-	Napi::Value OBS_service_startStreaming(const Napi::CallbackInfo& info);
-	Napi::Value OBS_service_startRecording(const Napi::CallbackInfo& info);
-	Napi::Value OBS_service_startReplayBuffer(const Napi::CallbackInfo& info);
-	Napi::Value OBS_service_stopStreaming(const Napi::CallbackInfo& info);
-	Napi::Value OBS_service_stopRecording(const Napi::CallbackInfo& info);
-	Napi::Value OBS_service_stopReplayBuffer(const Napi::CallbackInfo& info);
+Napi::Value OBS_service_startStreaming(const Napi::CallbackInfo &info);
+Napi::Value OBS_service_startRecording(const Napi::CallbackInfo &info);
+Napi::Value OBS_service_startReplayBuffer(const Napi::CallbackInfo &info);
+Napi::Value OBS_service_stopStreaming(const Napi::CallbackInfo &info);
+Napi::Value OBS_service_stopRecording(const Napi::CallbackInfo &info);
+Napi::Value OBS_service_stopReplayBuffer(const Napi::CallbackInfo &info);
 
-	Napi::Value OBS_service_connectOutputSignals(const Napi::CallbackInfo& info);
-	Napi::Value OBS_service_removeCallback(const Napi::CallbackInfo& info);
-	Napi::Value OBS_service_processReplayBufferHotkey(const Napi::CallbackInfo& info);
-	Napi::Value OBS_service_getLastReplay(const Napi::CallbackInfo& info);
-	Napi::Value OBS_service_getLastRecording(const Napi::CallbackInfo& info);
-	void OBS_service_splitFile(const Napi::CallbackInfo& info);
+Napi::Value OBS_service_connectOutputSignals(const Napi::CallbackInfo &info);
+Napi::Value OBS_service_removeCallback(const Napi::CallbackInfo &info);
+Napi::Value OBS_service_processReplayBufferHotkey(const Napi::CallbackInfo &info);
+Napi::Value OBS_service_getLastReplay(const Napi::CallbackInfo &info);
+Napi::Value OBS_service_getLastRecording(const Napi::CallbackInfo &info);
+void OBS_service_splitFile(const Napi::CallbackInfo &info);
 
-	Napi::Value OBS_service_createVirtualWebcam(const Napi::CallbackInfo& info);
-	Napi::Value OBS_service_removeVirtualWebcam(const Napi::CallbackInfo& info);
-	Napi::Value OBS_service_startVirtualWebcam(const Napi::CallbackInfo& info);
-	Napi::Value OBS_service_stopVirtualWebcam(const Napi::CallbackInfo& info);
-	Napi::Value OBS_service_installVirtualCamPlugin(const Napi::CallbackInfo& info);
-	Napi::Value OBS_service_uninstallVirtualCamPlugin(const Napi::CallbackInfo& info);
-	Napi::Value OBS_service_isVirtualCamPluginInstalled(const Napi::CallbackInfo& info);
+Napi::Value OBS_service_createVirtualWebcam(const Napi::CallbackInfo &info);
+Napi::Value OBS_service_removeVirtualWebcam(const Napi::CallbackInfo &info);
+Napi::Value OBS_service_startVirtualWebcam(const Napi::CallbackInfo &info);
+Napi::Value OBS_service_stopVirtualWebcam(const Napi::CallbackInfo &info);
+Napi::Value OBS_service_installVirtualCamPlugin(const Napi::CallbackInfo &info);
+Napi::Value OBS_service_uninstallVirtualCamPlugin(const Napi::CallbackInfo &info);
+Napi::Value OBS_service_isVirtualCamPluginInstalled(const Napi::CallbackInfo &info);
 }

@@ -30,41 +30,40 @@
 
 Napi::FunctionReference osn::Volmeter::constructor;
 
-Napi::Object osn::Volmeter::Init(Napi::Env env, Napi::Object exports) {
+Napi::Object osn::Volmeter::Init(Napi::Env env, Napi::Object exports)
+{
 	Napi::HandleScope scope(env);
-	Napi::Function func =
-		DefineClass(env,
-		"Volmeter",
-		{
-			StaticMethod("create", &osn::Volmeter::Create),
+	Napi::Function func = DefineClass(env, "Volmeter",
+					  {
+						  StaticMethod("create", &osn::Volmeter::Create),
 
-			InstanceMethod("destroy", &osn::Volmeter::Destroy),
-			InstanceMethod("attach", &osn::Volmeter::Attach),
-			InstanceMethod("detach", &osn::Volmeter::Detach),
-			InstanceMethod("addCallback", &osn::Volmeter::AddCallback),
-			InstanceMethod("removeCallback", &osn::Volmeter::RemoveCallback),
-		});
+						  InstanceMethod("destroy", &osn::Volmeter::Destroy),
+						  InstanceMethod("attach", &osn::Volmeter::Attach),
+						  InstanceMethod("detach", &osn::Volmeter::Detach),
+						  InstanceMethod("addCallback", &osn::Volmeter::AddCallback),
+						  InstanceMethod("removeCallback", &osn::Volmeter::RemoveCallback),
+					  });
 	exports.Set("Volmeter", func);
 	osn::Volmeter::constructor = Napi::Persistent(func);
 	osn::Volmeter::constructor.SuppressDestruct();
 	return exports;
 }
 
-osn::Volmeter::Volmeter(const Napi::CallbackInfo& info)
-    : Napi::ObjectWrap<osn::Volmeter>(info) {
-    Napi::Env env = info.Env();
-    Napi::HandleScope scope(env);
-    int length = info.Length();
+osn::Volmeter::Volmeter(const Napi::CallbackInfo &info) : Napi::ObjectWrap<osn::Volmeter>(info)
+{
+	Napi::Env env = info.Env();
+	Napi::HandleScope scope(env);
+	int length = info.Length();
 
-    if (length <= 0 || !info[0].IsNumber()) {
-        Napi::TypeError::New(env, "Number expected").ThrowAsJavaScriptException();
-        return;
-    }
+	if (length <= 0 || !info[0].IsNumber()) {
+		Napi::TypeError::New(env, "Number expected").ThrowAsJavaScriptException();
+		return;
+	}
 
 	this->m_uid = (uint64_t)info[0].ToNumber().Int64Value();
 }
 
-Napi::Value osn::Volmeter::Create(const Napi::CallbackInfo& info)
+Napi::Value osn::Volmeter::Create(const Napi::CallbackInfo &info)
 {
 	int32_t type = info[0].ToNumber().Int32Value();
 
@@ -72,25 +71,19 @@ Napi::Value osn::Volmeter::Create(const Napi::CallbackInfo& info)
 	if (!conn)
 		return info.Env().Undefined();
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper(
-	    "Volmeter",
-	    "Create",
-	    {
-	        ipc::value(type),
-	    });
+	std::vector<ipc::value> response = conn->call_synchronous_helper("Volmeter", "Create",
+									 {
+										 ipc::value(type),
+									 });
 
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
 
-    auto instance =
-        osn::Volmeter::constructor.New({
-            Napi::Number::New(info.Env(), response[1].value_union.ui64),
-            Napi::Number::New(info.Env(), response[2].value_union.ui32)
-            });
-    return instance;
+	auto instance = osn::Volmeter::constructor.New({Napi::Number::New(info.Env(), response[1].value_union.ui64), Napi::Number::New(info.Env(), response[2].value_union.ui32)});
+	return instance;
 }
 
-Napi::Value osn::Volmeter::Destroy(const Napi::CallbackInfo& info)
+Napi::Value osn::Volmeter::Destroy(const Napi::CallbackInfo &info)
 {
 	auto conn = GetConnection(info);
 	if (!conn)
@@ -101,9 +94,9 @@ Napi::Value osn::Volmeter::Destroy(const Napi::CallbackInfo& info)
 	return info.Env().Undefined();
 }
 
-Napi::Value osn::Volmeter::Attach(const Napi::CallbackInfo& info)
+Napi::Value osn::Volmeter::Attach(const Napi::CallbackInfo &info)
 {
-	osn::Input* input = Napi::ObjectWrap<osn::Input>::Unwrap(info[0].ToObject());
+	osn::Input *input = Napi::ObjectWrap<osn::Input>::Unwrap(info[0].ToObject());
 
 	auto conn = GetConnection(info);
 	if (!conn)
@@ -113,7 +106,7 @@ Napi::Value osn::Volmeter::Attach(const Napi::CallbackInfo& info)
 	return info.Env().Undefined();
 }
 
-Napi::Value osn::Volmeter::Detach(const Napi::CallbackInfo& info)
+Napi::Value osn::Volmeter::Detach(const Napi::CallbackInfo &info)
 {
 	auto conn = GetConnection(info);
 	if (!conn)
@@ -123,7 +116,7 @@ Napi::Value osn::Volmeter::Detach(const Napi::CallbackInfo& info)
 	return info.Env().Undefined();
 }
 
-Napi::Value osn::Volmeter::AddCallback(const Napi::CallbackInfo& info)
+Napi::Value osn::Volmeter::AddCallback(const Napi::CallbackInfo &info)
 {
 	std::unique_lock<std::mutex> lck(globalCallback::mtx_volmeters);
 	Napi::Function async_callback = info[0].As<Napi::Function>();
@@ -132,8 +125,7 @@ Napi::Value osn::Volmeter::AddCallback(const Napi::CallbackInfo& info)
 	if (!conn)
 		return info.Env().Undefined();
 
-	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("Volmeter", "AddCallback", {ipc::value(this->m_uid)});
+	std::vector<ipc::value> response = conn->call_synchronous_helper("Volmeter", "AddCallback", {ipc::value(this->m_uid)});
 
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
@@ -143,15 +135,14 @@ Napi::Value osn::Volmeter::AddCallback(const Napi::CallbackInfo& info)
 	return Napi::Boolean::New(info.Env(), true);
 }
 
-Napi::Value osn::Volmeter::RemoveCallback(const Napi::CallbackInfo& info)
+Napi::Value osn::Volmeter::RemoveCallback(const Napi::CallbackInfo &info)
 {
 	std::unique_lock<std::mutex> lck(globalCallback::mtx_volmeters);
 	auto conn = GetConnection(info);
 	if (!conn)
 		return info.Env().Undefined();
 
-	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("Volmeter", "RemoveCallback", {ipc::value(this->m_uid)});
+	std::vector<ipc::value> response = conn->call_synchronous_helper("Volmeter", "RemoveCallback", {ipc::value(this->m_uid)});
 
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();

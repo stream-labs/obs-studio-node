@@ -25,94 +25,44 @@
 #include "osn-network.hpp"
 #include "osn-streaming.hpp"
 
-namespace osn
-{
-    class SimpleStreaming: public Streaming
-    {
-        public:
-        SimpleStreaming(): Streaming() {
-            audioEncoder = nullptr;
-            useAdvanced = false;
-            customEncSettings = "";
-        }
-        ~SimpleStreaming() {}
+namespace osn {
+class SimpleStreaming : public Streaming {
+public:
+	SimpleStreaming() : Streaming()
+	{
+		audioEncoder = nullptr;
+		useAdvanced = false;
+		customEncSettings = "";
+	}
+	~SimpleStreaming() {}
 
-        public:
-        obs_encoder_t* audioEncoder;
-        bool useAdvanced;
-        std::string customEncSettings;
+public:
+	obs_encoder_t *audioEncoder;
+	bool useAdvanced;
+	std::string customEncSettings;
 
-        void UpdateEncoders();
-    };
+	void UpdateEncoders();
+};
 
-    class ISimpleStreaming: public IStreaming
-    {
-        public:
-        static void Register(ipc::server&);
+class ISimpleStreaming : public IStreaming {
+public:
+	static void Register(ipc::server &);
 
-        static void Create(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-        static void Destroy(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-        static void GetAudioEncoder(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-        static void SetAudioEncoder(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-        static void GetUseAdvanced(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-        static void SetUseAdvanced(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-        static void GetCustomEncSettings(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-        static void SetCustomEncSettings(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-        static void Start(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-        static void Stop(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-        static void GetLegacySettings(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-        static obs_encoder_t* GetLegacyVideoEncoderSettings();
-        static obs_encoder_t* GetLegacyAudioEncoderSettings();
-        static void SetLegacySettings(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-        static void SetLegacyVideoEncoderSettings(obs_encoder_t* encoder);
-        static void SetLegacyAudioEncoderSettings(obs_encoder_t* encoder);
-    };
+	static void Create(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void Destroy(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void GetAudioEncoder(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void SetAudioEncoder(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void GetUseAdvanced(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void SetUseAdvanced(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void GetCustomEncSettings(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void SetCustomEncSettings(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void Start(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void Stop(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void GetLegacySettings(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static obs_encoder_t *GetLegacyVideoEncoderSettings();
+	static obs_encoder_t *GetLegacyAudioEncoderSettings();
+	static void SetLegacySettings(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void SetLegacyVideoEncoderSettings(obs_encoder_t *encoder);
+	static void SetLegacyAudioEncoderSettings(obs_encoder_t *encoder);
+};
 }

@@ -37,23 +37,23 @@
 #endif
 #endif
 
-extern std::queue<std::function<void(Napi::Object)>>* initializerFunctions;
+extern std::queue<std::function<void(Napi::Object)>> *initializerFunctions;
 extern std::wstring utfWorkingDir;
 
 #ifdef __APPLE__
-	extern UtilInt* g_util_osx;
+extern UtilInt *g_util_osx;
 #endif
 
-void replaceAll(std::string& str, const std::string& from, const std::string& to);
+void replaceAll(std::string &str, const std::string &from, const std::string &to);
 
 #ifdef WIN32
-extern HANDLE create_semaphore(const char* name);
-extern void remove_semaphore(HANDLE sem, const char* name);
+extern HANDLE create_semaphore(const char *name);
+extern void remove_semaphore(HANDLE sem, const char *name);
 extern void wait_semaphore(HANDLE sem);
 extern void release_semaphore(HANDLE sem);
 #else
-extern sem_t* create_semaphore(const char* name);
-extern void remove_semaphore(sem_t *sem, const char* name);
+extern sem_t *create_semaphore(const char *name);
+extern void remove_semaphore(sem_t *sem, const char *name);
 extern void wait_semaphore(sem_t *sem);
 extern void release_semaphore(sem_t *sem);
 #endif

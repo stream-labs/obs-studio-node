@@ -21,96 +21,53 @@
 #include <obs.h>
 #include "utility.hpp"
 
-namespace osn
-{
-    class Network
-    {
-        public:
-        Network() {
-            bindIP = "default";
-            enableDynamicBitrate = false;
-            enableOptimizations = false;
-            enableLowLatency = false;
-        }
-        ~Network() {}
+namespace osn {
+class Network {
+public:
+	Network()
+	{
+		bindIP = "default";
+		enableDynamicBitrate = false;
+		enableOptimizations = false;
+		enableLowLatency = false;
+	}
+	~Network() {}
 
-        public:
-        std::string bindIP;
-        bool enableDynamicBitrate;
-        bool enableOptimizations;
-        bool enableLowLatency;
-    };
+public:
+	std::string bindIP;
+	bool enableDynamicBitrate;
+	bool enableOptimizations;
+	bool enableLowLatency;
+};
 
-    class INetwork
-    {
-        public:
-        class Manager : public utility::unique_object_manager<Network>
-        {
-            friend class std::shared_ptr<Manager>;
+class INetwork {
+public:
+	class Manager : public utility::unique_object_manager<Network> {
+		friend class std::shared_ptr<Manager>;
 
-            protected:
-            Manager() {}
-            ~Manager() {}
+	protected:
+		Manager() {}
+		~Manager() {}
 
-            public:
-            Manager(Manager const&) = delete;
-            Manager operator=(Manager const&) = delete;
+	public:
+		Manager(Manager const &) = delete;
+		Manager operator=(Manager const &) = delete;
 
-            public:
-            static Manager& GetInstance();
-        };
+	public:
+		static Manager &GetInstance();
+	};
 
-        static void Register(ipc::server&);
+	static void Register(ipc::server &);
 
-        static void Create(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-        static void GetBindIP(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-        static void SetBindIP(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-        static void GetNetworkInterfaces(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-        static void GetEnableDynamicBitrate(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-        static void SetEnableDynamicBitrate(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-        static void GetEnableOptimizations(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-        static void SetEnableOptimizations(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-        static void GetEnableLowLatency(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-        static void SetEnableLowLatency(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-    };
+	static void Create(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void GetBindIP(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void SetBindIP(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void GetNetworkInterfaces(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void GetEnableDynamicBitrate(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void SetEnableDynamicBitrate(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void GetEnableOptimizations(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void SetEnableOptimizations(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void GetEnableLowLatency(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void SetEnableLowLatency(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+};
 }

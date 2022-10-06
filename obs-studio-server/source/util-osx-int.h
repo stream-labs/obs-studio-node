@@ -23,27 +23,26 @@
 #include <thread>
 #include <vector>
 
-class UtilObjCInt
-{
+class UtilObjCInt {
 public:
-    UtilObjCInt(void);
-    ~UtilObjCInt(void);
+	UtilObjCInt(void);
+	~UtilObjCInt(void);
 
-    void init(void);
-    std::string getDefaultVideoSavePath(void);
-    void runApplication(void);
-    void stopApplication(void);
-    unsigned long long getTotalPhysicalMemory(void);
-    unsigned long long getAvailableMemory(void);
-    std::vector<std::pair<uint32_t, uint32_t>> getAvailableScreenResolutions(void);
-    std::string getUserDataPath(void);
-    std::string getWorkingDirectory(void);
-    void wait_terminate(void);
+	void init(void);
+	std::string getDefaultVideoSavePath(void);
+	void runApplication(void);
+	void stopApplication(void);
+	unsigned long long getTotalPhysicalMemory(void);
+	unsigned long long getAvailableMemory(void);
+	std::vector<std::pair<uint32_t, uint32_t>> getAvailableScreenResolutions(void);
+	std::string getUserDataPath(void);
+	std::string getWorkingDirectory(void);
+	void wait_terminate(void);
 
 private:
-    void * self;
-    bool appRunning;
-    std::thread *worker;
+	void *self;
+	bool appRunning;
+	std::thread *worker;
 };
 
 #endif
