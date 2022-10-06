@@ -21,79 +21,48 @@
 #include <obs.h>
 #include "utility.hpp"
 
-namespace osn
-{
-    class Delay
-    {
-        public:
-        Delay() {
-            enabled = false;
-            delaySec = 20;
-            preserveDelay = true;
-        }
-        ~Delay() {}
+namespace osn {
+class Delay {
+public:
+	Delay()
+	{
+		enabled = false;
+		delaySec = 20;
+		preserveDelay = true;
+	}
+	~Delay() {}
 
-        public:
-        bool enabled;
-        uint32_t delaySec;
-        bool preserveDelay;
-    };
+public:
+	bool enabled;
+	uint32_t delaySec;
+	bool preserveDelay;
+};
 
-    class IDelay
-    {
-        public:
-        class Manager : public utility::unique_object_manager<Delay>
-        {
-            friend class std::shared_ptr<Manager>;
+class IDelay {
+public:
+	class Manager : public utility::unique_object_manager<Delay> {
+		friend class std::shared_ptr<Manager>;
 
-            protected:
-            Manager() {}
-            ~Manager() {}
+	protected:
+		Manager() {}
+		~Manager() {}
 
-            public:
-            Manager(Manager const&) = delete;
-            Manager operator=(Manager const&) = delete;
+	public:
+		Manager(Manager const &) = delete;
+		Manager operator=(Manager const &) = delete;
 
-            public:
-            static Manager& GetInstance();
-        };
+	public:
+		static Manager &GetInstance();
+	};
 
-        static void Register(ipc::server&);
+	static void Register(ipc::server &);
 
-        static void Create(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-        static void GetEnabled(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-        static void SetEnabled(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-        static void GetDelaySec(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-        static void SetDelaySec(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-        static void GetPreserveDelay(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-        static void SetPreserveDelay(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-    };
+	static void Create(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void GetEnabled(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void SetEnabled(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void GetDelaySec(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void SetDelaySec(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void GetPreserveDelay(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void SetPreserveDelay(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+};
 }

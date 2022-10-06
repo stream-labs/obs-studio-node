@@ -19,15 +19,14 @@
 #include "shared.hpp"
 
 #ifdef WIN32
-    std::queue<std::function<void(Napi::Object)>>* initializerFunctions =
-        new std::queue<std::function<void(Napi::Object)>>;
+std::queue<std::function<void(Napi::Object)>> *initializerFunctions = new std::queue<std::function<void(Napi::Object)>>;
 #endif
 #ifdef __APPLE__
-    std::queue<std::function<void(Napi::Object)>>* initializerFunctions = nullptr;
-    UtilInt* g_util_osx;
+std::queue<std::function<void(Napi::Object)>> *initializerFunctions = nullptr;
+UtilInt *g_util_osx;
 #endif
 
-void replaceAll(std::string& str, const std::string& from, const std::string& to)
+void replaceAll(std::string &str, const std::string &from, const std::string &to)
 {
 	if (from.empty())
 		return;
@@ -39,44 +38,52 @@ void replaceAll(std::string& str, const std::string& from, const std::string& to
 };
 
 #ifdef WIN32
-HANDLE create_semaphore(const char* name = nullptr) {
+HANDLE create_semaphore(const char *name = nullptr)
+{
 	return CreateSemaphore(NULL, 1, 2, NULL);
 }
 
-void remove_semaphore(HANDLE sem, const char* name = nullptr) {
+void remove_semaphore(HANDLE sem, const char *name = nullptr)
+{
 	if (sem) {
 		CloseHandle(sem);
 	}
 }
 
-void wait_semaphore(HANDLE sem) {
+void wait_semaphore(HANDLE sem)
+{
 	if (sem) {
 		WaitForSingleObject(sem, INFINITE);
 	}
 }
 
-void release_semaphore(HANDLE sem) {
+void release_semaphore(HANDLE sem)
+{
 	if (sem) {
 		ReleaseSemaphore(sem, 1, NULL);
 	}
 }
 #else
-sem_t* create_semaphore(const char* name) {
+sem_t *create_semaphore(const char *name)
+{
 	sem_unlink(name);
 	remove(name);
 	return sem_open(name, O_CREAT | O_EXCL, 0644, 1);
 }
 
-void remove_semaphore(sem_t *sem, const char* name) {
+void remove_semaphore(sem_t *sem, const char *name)
+{
 	sem_close(sem);
 	remove(name);
 }
 
-void wait_semaphore(sem_t *sem) {
+void wait_semaphore(sem_t *sem)
+{
 	sem_wait(sem);
 }
 
-void release_semaphore(sem_t *sem) {
+void release_semaphore(sem_t *sem)
+{
 	sem_post(sem);
 }
 #endif

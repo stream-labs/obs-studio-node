@@ -21,30 +21,27 @@
 #include <thread>
 #include "utility-v8.hpp"
 
-struct VolmeterData
-{
+struct VolmeterData {
 	std::vector<float> magnitude;
 	std::vector<float> peak;
 	std::vector<float> input_peak;
 };
 
-namespace osn
-{
-	class Volmeter : public Napi::ObjectWrap<osn::Volmeter>
-	{
-		public:
-		uint64_t m_uid;
+namespace osn {
+class Volmeter : public Napi::ObjectWrap<osn::Volmeter> {
+public:
+	uint64_t m_uid;
 
-		public:
-		static Napi::FunctionReference constructor;
-		static Napi::Object Init(Napi::Env env, Napi::Object exports);
-		Volmeter(const Napi::CallbackInfo& info);
+public:
+	static Napi::FunctionReference constructor;
+	static Napi::Object Init(Napi::Env env, Napi::Object exports);
+	Volmeter(const Napi::CallbackInfo &info);
 
-		static Napi::Value Create(const Napi::CallbackInfo& info);
-		Napi::Value Destroy(const Napi::CallbackInfo& info);
-		Napi::Value Attach(const Napi::CallbackInfo& info);
-		Napi::Value Detach(const Napi::CallbackInfo& info);
-		Napi::Value AddCallback(const Napi::CallbackInfo& info);
-		Napi::Value RemoveCallback(const Napi::CallbackInfo& info);
-	};
+	static Napi::Value Create(const Napi::CallbackInfo &info);
+	Napi::Value Destroy(const Napi::CallbackInfo &info);
+	Napi::Value Attach(const Napi::CallbackInfo &info);
+	Napi::Value Detach(const Napi::CallbackInfo &info);
+	Napi::Value AddCallback(const Napi::CallbackInfo &info);
+	Napi::Value RemoveCallback(const Napi::CallbackInfo &info);
+};
 }

@@ -29,18 +29,18 @@
 
 #include <thread>
 
-std::map<std::string, OBS::Display*> displays;
-std::mutex                           displaysMutex;
-std::string                          sourceSelected;
-bool                                 firstDisplayCreation = true;
+std::map<std::string, OBS::Display *> displays;
+std::mutex displaysMutex;
+std::string sourceSelected;
+bool firstDisplayCreation = true;
 
-std::thread* windowMessage = NULL;
-ipc::server* g_srv;
+std::thread *windowMessage = NULL;
+ipc::server *g_srv;
 bool displayCreated = false;
 
 /* A lot of the sceneitem functionality is a lazy copy-pasta from the Qt UI. */
 // https://github.com/jp9000/obs-studio/blob/master/UI/window-basic-main.cpp#L4888
-static void GetItemBox(obs_sceneitem_t* item, vec3& tl, vec3& br)
+static void GetItemBox(obs_sceneitem_t *item, vec3 &tl, vec3 &br)
 {
 	matrix4 boxTransform;
 	obs_sceneitem_get_box_transform(item, &boxTransform);
@@ -62,14 +62,14 @@ static void GetItemBox(obs_sceneitem_t* item, vec3& tl, vec3& br)
 	GetMinPos(1.0f, 1.0f);
 }
 
-static vec3 GetItemTL(obs_sceneitem_t* item)
+static vec3 GetItemTL(obs_sceneitem_t *item)
 {
 	vec3 tl, br;
 	GetItemBox(item, tl, br);
 	return tl;
 }
 
-static void SetItemTL(obs_sceneitem_t* item, const vec3& tl)
+static void SetItemTL(obs_sceneitem_t *item, const vec3 &tl)
 {
 	vec3 newTL;
 	vec2 pos;
@@ -81,9 +81,9 @@ static void SetItemTL(obs_sceneitem_t* item, const vec3& tl)
 	obs_sceneitem_set_pos(item, &pos);
 }
 
-static bool CenterAlignSelectedItems(obs_scene_t* scene, obs_sceneitem_t* item, void* param)
+static bool CenterAlignSelectedItems(obs_scene_t *scene, obs_sceneitem_t *item, void *param)
 {
-	obs_bounds_type boundsType = *reinterpret_cast<obs_bounds_type*>(param);
+	obs_bounds_type boundsType = *reinterpret_cast<obs_bounds_type *>(param);
 
 	if (!obs_sceneitem_selected(item))
 		return true;
@@ -95,10 +95,10 @@ static bool CenterAlignSelectedItems(obs_scene_t* scene, obs_sceneitem_t* item, 
 	vec2_set(&itemInfo.pos, 0.0f, 0.0f);
 	vec2_set(&itemInfo.scale, 1.0f, 1.0f);
 	itemInfo.alignment = OBS_ALIGN_LEFT | OBS_ALIGN_TOP;
-	itemInfo.rot       = 0.0f;
+	itemInfo.rot = 0.0f;
 
 	vec2_set(&itemInfo.bounds, float(ovi.base_width), float(ovi.base_height));
-	itemInfo.bounds_type      = boundsType;
+	itemInfo.bounds_type = boundsType;
 	itemInfo.bounds_alignment = OBS_ALIGN_CENTER;
 
 	obs_sceneitem_set_info(item, &itemInfo);
@@ -107,9 +107,9 @@ static bool CenterAlignSelectedItems(obs_scene_t* scene, obs_sceneitem_t* item, 
 	return true;
 }
 
-static bool MultiplySelectedItemScale(obs_scene_t* scene, obs_sceneitem_t* item, void* param)
+static bool MultiplySelectedItemScale(obs_scene_t *scene, obs_sceneitem_t *item, void *param)
 {
-	vec2& mul = *reinterpret_cast<vec2*>(param);
+	vec2 &mul = *reinterpret_cast<vec2 *>(param);
 
 	if (!obs_sceneitem_selected(item))
 		return true;
@@ -129,17 +129,17 @@ static bool MultiplySelectedItemScale(obs_scene_t* scene, obs_sceneitem_t* item,
 
 #ifdef _WIN32
 
-static void OnDeviceLost(void* data)
+static void OnDeviceLost(void *data)
 {
 	// Do nothing
 	UNUSED_PARAMETER(data);
 }
 
-static void OnDeviceRebuilt(void* device, void* data)
+static void OnDeviceRebuilt(void *device, void *data)
 {
 	std::scoped_lock lock(displaysMutex);
 
-	for (const auto& p : displays) {
+	for (const auto &p : displays) {
 		if (auto display = p.second) {
 			// After device is rebuilt, there are can be problems with incorrect size of display
 			// In order to fix this, need to update the display by adjusting it's size
@@ -151,96 +151,43 @@ static void OnDeviceRebuilt(void* device, void* data)
 }
 #endif
 
-void OBS_content::Register(ipc::server& srv)
+void OBS_content::Register(ipc::server &srv)
 {
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Display");
 
-	cls->register_function(std::make_shared<ipc::function>(
-	    "OBS_content_setDayTheme",
-	    std::vector<ipc::type>{ipc::type::UInt32},
-	    OBS_content_setDayTheme));
+	cls->register_function(std::make_shared<ipc::function>("OBS_content_setDayTheme", std::vector<ipc::type>{ipc::type::UInt32}, OBS_content_setDayTheme));
 
-	cls->register_function(std::make_shared<ipc::function>(
-	    "OBS_content_createDisplay",
-	    std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String, ipc::type::Int32},
-	    OBS_content_createDisplay));
+	cls->register_function(std::make_shared<ipc::function>("OBS_content_createDisplay", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String, ipc::type::Int32}, OBS_content_createDisplay));
 
-	cls->register_function(std::make_shared<ipc::function>(
-	    "OBS_content_destroyDisplay", std::vector<ipc::type>{ipc::type::String}, OBS_content_destroyDisplay));
+	cls->register_function(std::make_shared<ipc::function>("OBS_content_destroyDisplay", std::vector<ipc::type>{ipc::type::String}, OBS_content_destroyDisplay));
 
-	cls->register_function(std::make_shared<ipc::function>(
-	    "OBS_content_getDisplayPreviewOffset",
-	    std::vector<ipc::type>{ipc::type::String},
-	    OBS_content_getDisplayPreviewOffset));
+	cls->register_function(std::make_shared<ipc::function>("OBS_content_getDisplayPreviewOffset", std::vector<ipc::type>{ipc::type::String}, OBS_content_getDisplayPreviewOffset));
 
-	cls->register_function(std::make_shared<ipc::function>(
-	    "OBS_content_getDisplayPreviewSize",
-	    std::vector<ipc::type>{ipc::type::String},
-	    OBS_content_getDisplayPreviewSize));
+	cls->register_function(std::make_shared<ipc::function>("OBS_content_getDisplayPreviewSize", std::vector<ipc::type>{ipc::type::String}, OBS_content_getDisplayPreviewSize));
 
-	cls->register_function(std::make_shared<ipc::function>(
-	    "OBS_content_createSourcePreviewDisplay",
-	    std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String, ipc::type::String},
-	    OBS_content_createSourcePreviewDisplay));
+	cls->register_function(std::make_shared<ipc::function>("OBS_content_createSourcePreviewDisplay", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String, ipc::type::String}, OBS_content_createSourcePreviewDisplay));
 
-	cls->register_function(std::make_shared<ipc::function>(
-	    "OBS_content_resizeDisplay",
-	    std::vector<ipc::type>{ipc::type::String, ipc::type::UInt32, ipc::type::UInt32},
-	    OBS_content_resizeDisplay));
+	cls->register_function(std::make_shared<ipc::function>("OBS_content_resizeDisplay", std::vector<ipc::type>{ipc::type::String, ipc::type::UInt32, ipc::type::UInt32}, OBS_content_resizeDisplay));
 
-	cls->register_function(std::make_shared<ipc::function>(
-	    "OBS_content_moveDisplay",
-	    std::vector<ipc::type>{ipc::type::String, ipc::type::UInt32, ipc::type::UInt32},
-	    OBS_content_moveDisplay));
+	cls->register_function(std::make_shared<ipc::function>("OBS_content_moveDisplay", std::vector<ipc::type>{ipc::type::String, ipc::type::UInt32, ipc::type::UInt32}, OBS_content_moveDisplay));
 
-	cls->register_function(std::make_shared<ipc::function>(
-	    "OBS_content_setPaddingSize",
-	    std::vector<ipc::type>{ipc::type::String, ipc::type::UInt32},
-	    OBS_content_setPaddingSize));
+	cls->register_function(std::make_shared<ipc::function>("OBS_content_setPaddingSize", std::vector<ipc::type>{ipc::type::String, ipc::type::UInt32}, OBS_content_setPaddingSize));
 
-	cls->register_function(std::make_shared<ipc::function>(
-	    "OBS_content_setPaddingColor",
-	    std::vector<ipc::type>{
-	        ipc::type::String, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32},
-	    OBS_content_setPaddingColor));
+	cls->register_function(std::make_shared<ipc::function>("OBS_content_setPaddingColor", std::vector<ipc::type>{ipc::type::String, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32}, OBS_content_setPaddingColor));
 
-	cls->register_function(std::make_shared<ipc::function>(
-	    "OBS_content_setBackgroundColor",
-	    std::vector<ipc::type>{
-	        ipc::type::String, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32},
-	    OBS_content_setBackgroundColor));
+	cls->register_function(std::make_shared<ipc::function>("OBS_content_setBackgroundColor", std::vector<ipc::type>{ipc::type::String, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32}, OBS_content_setBackgroundColor));
 
-	cls->register_function(std::make_shared<ipc::function>(
-	    "OBS_content_setOutlineColor",
-	    std::vector<ipc::type>{
-	        ipc::type::String, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32},
-	    OBS_content_setOutlineColor));
+	cls->register_function(std::make_shared<ipc::function>("OBS_content_setOutlineColor", std::vector<ipc::type>{ipc::type::String, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32}, OBS_content_setOutlineColor));
 
-	cls->register_function(std::make_shared<ipc::function>(
-	    "OBS_content_setCropOutlineColor",
-	    std::vector<ipc::type>{
-	        ipc::type::String, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32},
-	    OBS_content_setCropOutlineColor));
+	cls->register_function(std::make_shared<ipc::function>("OBS_content_setCropOutlineColor", std::vector<ipc::type>{ipc::type::String, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32}, OBS_content_setCropOutlineColor));
 
-	cls->register_function(std::make_shared<ipc::function>(
-	    "OBS_content_setShouldDrawUI",
-	    std::vector<ipc::type>{ipc::type::String, ipc::type::Int32},
-	    OBS_content_setShouldDrawUI));
+	cls->register_function(std::make_shared<ipc::function>("OBS_content_setShouldDrawUI", std::vector<ipc::type>{ipc::type::String, ipc::type::Int32}, OBS_content_setShouldDrawUI));
 
-	cls->register_function(std::make_shared<ipc::function>(
-	    "OBS_content_setDrawGuideLines",
-	    std::vector<ipc::type>{ipc::type::String, ipc::type::Int32},
-	    OBS_content_setDrawGuideLines));
+	cls->register_function(std::make_shared<ipc::function>("OBS_content_setDrawGuideLines", std::vector<ipc::type>{ipc::type::String, ipc::type::Int32}, OBS_content_setDrawGuideLines));
 
-	cls->register_function(std::make_shared<ipc::function>(
-	    "OBS_content_setDrawRotationHandle",
-	    std::vector<ipc::type>{ipc::type::String, ipc::type::Int32},
-	    OBS_content_setDrawRotationHandle));
+	cls->register_function(std::make_shared<ipc::function>("OBS_content_setDrawRotationHandle", std::vector<ipc::type>{ipc::type::String, ipc::type::Int32}, OBS_content_setDrawRotationHandle));
 
-	cls->register_function(std::make_shared<ipc::function>(
-	    "OBS_content_createIOSurface",
-	    std::vector<ipc::type>{ipc::type::String},
-	    OBS_content_createIOSurface));
+	cls->register_function(std::make_shared<ipc::function>("OBS_content_createIOSurface", std::vector<ipc::type>{ipc::type::String}, OBS_content_createIOSurface));
 
 	srv.register_collection(cls);
 	g_srv = &srv;
@@ -249,23 +196,17 @@ void OBS_content::Register(ipc::server& srv)
 void popupAeroDisabledWindow(void)
 {
 #ifdef WIN32
-	MessageBox(
-	    NULL,
-	    TEXT("Streamlabs Desktop needs Aero enabled to run properly on Windows 7.  "
-	         "If you've disabled Aero for performance reasons, "
-	         "you may still use the app, but you will need to keep the window maximized.\n\n\n\n\n"
-	         "This is a workaround to keep Streamlabs Desktop running and not the preferred route. "
-	         "We recommend upgrading to Windows 10 or enabling Aero."),
-	    TEXT("Aero is disabled"),
-	    MB_OK);
+	MessageBox(NULL,
+		   TEXT("Streamlabs Desktop needs Aero enabled to run properly on Windows 7.  "
+			"If you've disabled Aero for performance reasons, "
+			"you may still use the app, but you will need to keep the window maximized.\n\n\n\n\n"
+			"This is a workaround to keep Streamlabs Desktop running and not the preferred route. "
+			"We recommend upgrading to Windows 10 or enabling Aero."),
+		   TEXT("Aero is disabled"), MB_OK);
 #endif
 }
 
-void OBS_content::OBS_content_setDayTheme(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void OBS_content::OBS_content_setDayTheme(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
 	OBS::Display::SetDayTheme((bool)args[0].value_union.ui32);
 
@@ -273,16 +214,12 @@ void OBS_content::OBS_content_setDayTheme(
 	AUTO_DEBUG;
 }
 
-void OBS_content::OBS_content_createDisplay(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void OBS_content::OBS_content_createDisplay(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
 	std::scoped_lock lock(displaysMutex);
 
 	uint64_t windowHandle = args[0].value_union.ui64;
-	auto     found        = displays.find(args[1].value_str);
+	auto found = displays.find(args[1].value_str);
 
 	/* If found, do nothing since it would
 	be a memory leak otherwise. */
@@ -328,7 +265,7 @@ void OBS_content::OBS_content_createDisplay(
 		gs_device_loss callbacks;
 		callbacks.device_loss_release = &OnDeviceLost;
 		callbacks.device_loss_rebuild = &OnDeviceRebuilt;
-		callbacks.data                = nullptr;
+		callbacks.data = nullptr;
 
 		gs_register_loss_callbacks(&callbacks);
 		obs_leave_graphics();
@@ -340,11 +277,7 @@ void OBS_content::OBS_content_createDisplay(
 	AUTO_DEBUG;
 }
 
-void OBS_content::OBS_content_destroyDisplay(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void OBS_content::OBS_content_destroyDisplay(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
 	std::scoped_lock lock(displaysMutex);
 
@@ -359,9 +292,9 @@ void OBS_content::OBS_content_destroyDisplay(
 
 	if (windowMessage != NULL && windowMessage->joinable())
 		windowMessage->join();
-    
-    delete found->second;
-    displays.erase(found);
+
+	delete found->second;
+	displays.erase(found);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
@@ -379,11 +312,7 @@ void OBS_content::OBS_content_shutdownDisplays()
 	}
 }
 
-void OBS_content::OBS_content_createSourcePreviewDisplay(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void OBS_content::OBS_content_createSourcePreviewDisplay(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
 	std::scoped_lock lock(displaysMutex);
 
@@ -400,18 +329,13 @@ void OBS_content::OBS_content_createSourcePreviewDisplay(
 	}
 
 	OBS::Display *display = new OBS::Display(windowHandle, OBS_MAIN_VIDEO_RENDERING, args[1].value_str);
-	displays.insert_or_assign(
-	    args[2].value_str, display);
+	displays.insert_or_assign(args[2].value_str, display);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }
 
-void OBS_content::OBS_content_resizeDisplay(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void OBS_content::OBS_content_resizeDisplay(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
 	auto value = displays.find(args[0].value_str);
 	if (value == displays.end()) {
@@ -420,18 +344,16 @@ void OBS_content::OBS_content_resizeDisplay(
 		return;
 	}
 
-	OBS::Display* display = value->second;
+	OBS::Display *display = value->second;
 
 	display->m_gsInitData.cx = args[1].value_union.ui32;
 	display->m_gsInitData.cy = args[2].value_union.ui32;
 
 	// Resize Display
-    obs_display_resize(display->m_display,
-		display->m_gsInitData.cx,
-		display->m_gsInitData.cy);
+	obs_display_resize(display->m_display, display->m_gsInitData.cx, display->m_gsInitData.cy);
 
-    // Store new size.
-    display->UpdatePreviewArea();
+	// Store new size.
+	display->UpdatePreviewArea();
 
 #ifdef WIN32
 	display->SetSize(display->m_gsInitData.cx, display->m_gsInitData.cy);
@@ -440,11 +362,7 @@ void OBS_content::OBS_content_resizeDisplay(
 	AUTO_DEBUG;
 }
 
-void OBS_content::OBS_content_moveDisplay(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void OBS_content::OBS_content_moveDisplay(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
 	auto value = displays.find(args[0].value_str);
 	if (value == displays.end()) {
@@ -453,12 +371,12 @@ void OBS_content::OBS_content_moveDisplay(
 		return;
 	}
 
-	OBS::Display* display = value->second;
+	OBS::Display *display = value->second;
 
 	int x = args[1].value_union.ui32;
 	int y = args[2].value_union.ui32;
 
-	display->m_position.first  = x;
+	display->m_position.first = x;
 	display->m_position.second = y;
 
 	display->SetPosition(x, y);
@@ -466,11 +384,7 @@ void OBS_content::OBS_content_moveDisplay(
 	AUTO_DEBUG;
 }
 
-void OBS_content::OBS_content_setPaddingSize(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void OBS_content::OBS_content_setPaddingSize(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
 	// Find Display
 	auto it = displays.find(args[0].value_str);
@@ -486,16 +400,11 @@ void OBS_content::OBS_content_setPaddingSize(
 	return;
 }
 
-void OBS_content::OBS_content_setPaddingColor(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void OBS_content::OBS_content_setPaddingColor(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
-	union
-	{
+	union {
 		uint32_t rgba;
-		uint8_t  c[4];
+		uint8_t c[4];
 	} color;
 
 	// Assign Color
@@ -522,16 +431,11 @@ void OBS_content::OBS_content_setPaddingColor(
 	return;
 }
 
-void OBS_content::OBS_content_setBackgroundColor(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void OBS_content::OBS_content_setBackgroundColor(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
-	union
-	{
+	union {
 		uint32_t rgba;
-		uint8_t  c[4];
+		uint8_t c[4];
 	} color;
 
 	// Assign Color
@@ -558,16 +462,11 @@ void OBS_content::OBS_content_setBackgroundColor(
 	return;
 }
 
-void OBS_content::OBS_content_setOutlineColor(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void OBS_content::OBS_content_setOutlineColor(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
-	union
-	{
+	union {
 		uint32_t rgba;
-		uint8_t  c[4];
+		uint8_t c[4];
 	} color;
 
 	// Assign Color
@@ -599,16 +498,11 @@ void OBS_content::OBS_content_setOutlineColor(
 	return;
 }
 
-void OBS_content::OBS_content_setCropOutlineColor(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void OBS_content::OBS_content_setCropOutlineColor(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
-	union
-	{
+	union {
 		uint32_t rgba;
-		uint8_t  c[4];
+		uint8_t c[4];
 	} color;
 
 	// Assign Color
@@ -617,8 +511,7 @@ void OBS_content::OBS_content_setCropOutlineColor(
 	color.c[2] = (uint8_t)(args[3].value_union.ui32);
 	if (args[4].value_union.ui32 != NULL) {
 		color.c[3] = (uint8_t)(args[4].value_union.ui32);
-	}
-	else
+	} else
 		color.c[3] = 255;
 
 	// Find Display
@@ -635,11 +528,7 @@ void OBS_content::OBS_content_setCropOutlineColor(
 	return;
 }
 
-void OBS_content::OBS_content_setShouldDrawUI(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void OBS_content::OBS_content_setShouldDrawUI(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
 	// Find Display
 	auto it = displays.find(args[0].value_str);
@@ -654,11 +543,7 @@ void OBS_content::OBS_content_setShouldDrawUI(
 	AUTO_DEBUG;
 }
 
-void OBS_content::OBS_content_getDisplayPreviewOffset(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void OBS_content::OBS_content_getDisplayPreviewOffset(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
 	auto value = displays.find(args[0].value_str);
 	if (value == displays.end()) {
@@ -667,7 +552,7 @@ void OBS_content::OBS_content_getDisplayPreviewOffset(
 		return;
 	}
 
-	OBS::Display* display = value->second;
+	OBS::Display *display = value->second;
 
 	auto offset = display->GetPreviewOffset();
 
@@ -677,11 +562,7 @@ void OBS_content::OBS_content_getDisplayPreviewOffset(
 	AUTO_DEBUG;
 }
 
-void OBS_content::OBS_content_getDisplayPreviewSize(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void OBS_content::OBS_content_getDisplayPreviewSize(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
 	auto value = displays.find(args[0].value_str);
 	if (value == displays.end()) {
@@ -690,7 +571,7 @@ void OBS_content::OBS_content_getDisplayPreviewSize(
 		return;
 	}
 
-	OBS::Display* display = value->second;
+	OBS::Display *display = value->second;
 
 	auto size = display->GetPreviewSize();
 
@@ -700,11 +581,7 @@ void OBS_content::OBS_content_getDisplayPreviewSize(
 	AUTO_DEBUG;
 }
 
-void OBS_content::OBS_content_setDrawGuideLines(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void OBS_content::OBS_content_setDrawGuideLines(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
 	// Find Display
 	auto it = displays.find(args[0].value_str);
@@ -718,11 +595,7 @@ void OBS_content::OBS_content_setDrawGuideLines(
 	AUTO_DEBUG;
 }
 
-void OBS_content::OBS_content_setDrawRotationHandle(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void OBS_content::OBS_content_setDrawRotationHandle(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
 	// Find Display
 	auto it = displays.find(args[0].value_str);
@@ -736,11 +609,7 @@ void OBS_content::OBS_content_setDrawRotationHandle(
 	AUTO_DEBUG;
 }
 
-void OBS_content::OBS_content_createIOSurface(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void OBS_content::OBS_content_createIOSurface(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
 #ifdef __APPLE__
 	// Find Display
@@ -754,10 +623,7 @@ void OBS_content::OBS_content_createIOSurface(
 		return;
 	}
 
-	uint32_t surfaceID =
-		obs_display_create_iosurface(it->second->m_display, 
-			it->second->GetSize().first,
-			it->second->GetSize().second);
+	uint32_t surfaceID = obs_display_create_iosurface(it->second->m_display, it->second->GetSize().first, it->second->GetSize().second);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value((uint32_t)surfaceID));

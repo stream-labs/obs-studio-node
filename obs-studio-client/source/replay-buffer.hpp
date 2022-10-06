@@ -21,38 +21,29 @@
 #include "worker-signals.hpp"
 #include "file-output.hpp"
 
-namespace osn
-{
-    class ReplayBuffer :
-        public WorkerSignals,
-        public FileOutput
-    {
-        public:
-        ReplayBuffer(): WorkerSignals(), FileOutput() {};
+namespace osn {
+class ReplayBuffer : public WorkerSignals, public FileOutput {
+public:
+	ReplayBuffer() : WorkerSignals(), FileOutput(){};
 
-        protected:
-        Napi::Function signalHandler;
-        std::string className;
+protected:
+	Napi::Function signalHandler;
+	std::string className;
 
-        Napi::Value GetDuration(const Napi::CallbackInfo& info);
-        void SetDuration(
-            const Napi::CallbackInfo& info, const Napi::Value& value);
-        Napi::Value GetPrefix(const Napi::CallbackInfo& info);
-        void SetPrefix(
-            const Napi::CallbackInfo& info, const Napi::Value& value);
-        Napi::Value GetSuffix(const Napi::CallbackInfo& info);
-        void SetSuffix(
-            const Napi::CallbackInfo& info, const Napi::Value& value);
-        Napi::Value GetUsesStream(const Napi::CallbackInfo& info);
-        void SetUsesStream(
-            const Napi::CallbackInfo& info, const Napi::Value& value);
-        Napi::Value GetSignalHandler(const Napi::CallbackInfo& info);
-        void SetSignalHandler(
-            const Napi::CallbackInfo& info, const Napi::Value& value);
-        
-        void Start(const Napi::CallbackInfo& info);
-        void Stop(const Napi::CallbackInfo& info);
+	Napi::Value GetDuration(const Napi::CallbackInfo &info);
+	void SetDuration(const Napi::CallbackInfo &info, const Napi::Value &value);
+	Napi::Value GetPrefix(const Napi::CallbackInfo &info);
+	void SetPrefix(const Napi::CallbackInfo &info, const Napi::Value &value);
+	Napi::Value GetSuffix(const Napi::CallbackInfo &info);
+	void SetSuffix(const Napi::CallbackInfo &info, const Napi::Value &value);
+	Napi::Value GetUsesStream(const Napi::CallbackInfo &info);
+	void SetUsesStream(const Napi::CallbackInfo &info, const Napi::Value &value);
+	Napi::Value GetSignalHandler(const Napi::CallbackInfo &info);
+	void SetSignalHandler(const Napi::CallbackInfo &info, const Napi::Value &value);
 
-        void Save(const Napi::CallbackInfo& info);
-    };
+	void Start(const Napi::CallbackInfo &info);
+	void Stop(const Napi::CallbackInfo &info);
+
+	void Save(const Napi::CallbackInfo &info);
+};
 }

@@ -26,7 +26,7 @@
 
 std::mutex mtx;
 
-osn::Volmeter::Manager& osn::Volmeter::Manager::GetInstance()
+osn::Volmeter::Manager &osn::Volmeter::Manager::GetInstance()
 {
 	static Manager _inst;
 	return _inst;
@@ -44,45 +44,35 @@ osn::Volmeter::~Volmeter()
 	obs_volmeter_destroy(self);
 }
 
-void osn::Volmeter::Register(ipc::server& srv)
+void osn::Volmeter::Register(ipc::server &srv)
 {
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Volmeter");
 	cls->register_function(std::make_shared<ipc::function>("Create", std::vector<ipc::type>{ipc::type::Int32}, Create));
-	cls->register_function(
-	    std::make_shared<ipc::function>("Destroy", std::vector<ipc::type>{ipc::type::UInt64}, Destroy));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "Attach", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64}, Attach));
-	cls->register_function(
-	    std::make_shared<ipc::function>("Detach", std::vector<ipc::type>{ipc::type::UInt64}, Detach));
-	cls->register_function(
-	    std::make_shared<ipc::function>("AddCallback", std::vector<ipc::type>{ipc::type::UInt64}, AddCallback));
-	cls->register_function(
-	    std::make_shared<ipc::function>("RemoveCallback", std::vector<ipc::type>{ipc::type::UInt64}, RemoveCallback));
+	cls->register_function(std::make_shared<ipc::function>("Destroy", std::vector<ipc::type>{ipc::type::UInt64}, Destroy));
+	cls->register_function(std::make_shared<ipc::function>("Attach", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64}, Attach));
+	cls->register_function(std::make_shared<ipc::function>("Detach", std::vector<ipc::type>{ipc::type::UInt64}, Detach));
+	cls->register_function(std::make_shared<ipc::function>("AddCallback", std::vector<ipc::type>{ipc::type::UInt64}, AddCallback));
+	cls->register_function(std::make_shared<ipc::function>("RemoveCallback", std::vector<ipc::type>{ipc::type::UInt64}, RemoveCallback));
 	cls->register_function(std::make_shared<ipc::function>("Query", std::vector<ipc::type>{ipc::type::UInt64}, Query));
 	srv.register_collection(cls);
 }
 
 void osn::Volmeter::ClearVolmeters()
 {
-    Manager::GetInstance().for_each([](const std::shared_ptr<osn::Volmeter>& volmeter)
-    {
-        if (volmeter->id2) {
-            obs_volmeter_remove_callback(volmeter->self, OBSCallback, volmeter->id2);
-            delete volmeter->id2;
-            volmeter->id2 = nullptr;
-        }
-    });
+	Manager::GetInstance().for_each([](const std::shared_ptr<osn::Volmeter> &volmeter) {
+		if (volmeter->id2) {
+			obs_volmeter_remove_callback(volmeter->self, OBSCallback, volmeter->id2);
+			delete volmeter->id2;
+			volmeter->id2 = nullptr;
+		}
+	});
 
-    Manager::GetInstance().clear();
+	Manager::GetInstance().clear();
 }
 
-void osn::Volmeter::Create(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void osn::Volmeter::Create(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
-	obs_fader_type            type = (obs_fader_type)args[0].value_union.i32;
+	obs_fader_type type = (obs_fader_type)args[0].value_union.i32;
 	std::shared_ptr<Volmeter> meter;
 
 	std::unique_lock<std::mutex> ulock(mtx);
@@ -104,11 +94,7 @@ void osn::Volmeter::Create(
 	AUTO_DEBUG;
 }
 
-void osn::Volmeter::Destroy(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void osn::Volmeter::Destroy(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
 	auto uid = args[0].value_union.ui64;
 
@@ -129,13 +115,9 @@ void osn::Volmeter::Destroy(
 	AUTO_DEBUG;
 }
 
-void osn::Volmeter::Attach(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void osn::Volmeter::Attach(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
-	auto uid_fader  = args[0].value_union.ui64;
+	auto uid_fader = args[0].value_union.ui64;
 	auto uid_source = args[1].value_union.ui64;
 
 	std::unique_lock<std::mutex> ulock(mtx);
@@ -159,11 +141,7 @@ void osn::Volmeter::Attach(
 	AUTO_DEBUG;
 }
 
-void osn::Volmeter::Detach(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void osn::Volmeter::Detach(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
 	auto uid = args[0].value_union.ui64;
 
@@ -180,13 +158,9 @@ void osn::Volmeter::Detach(
 	AUTO_DEBUG;
 }
 
-void osn::Volmeter::AddCallback(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void osn::Volmeter::AddCallback(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
-	auto uid   = args[0].value_union.ui64;
+	auto uid = args[0].value_union.ui64;
 	std::unique_lock<std::mutex> ulock(mtx);
 	auto meter = Manager::GetInstance().find(uid);
 	if (!meter) {
@@ -195,7 +169,7 @@ void osn::Volmeter::AddCallback(
 
 	meter->callback_count++;
 	if (meter->callback_count == 1) {
-		meter->id2  = new uint64_t;
+		meter->id2 = new uint64_t;
 		*meter->id2 = meter->id;
 		obs_volmeter_add_callback(meter->self, OBSCallback, meter->id2);
 	}
@@ -205,13 +179,9 @@ void osn::Volmeter::AddCallback(
 	AUTO_DEBUG;
 }
 
-void osn::Volmeter::RemoveCallback(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void osn::Volmeter::RemoveCallback(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
-	auto uid   = args[0].value_union.ui64;
+	auto uid = args[0].value_union.ui64;
 	std::unique_lock<std::mutex> ulock(mtx);
 	auto meter = Manager::GetInstance().find(uid);
 	if (!meter) {
@@ -230,13 +200,9 @@ void osn::Volmeter::RemoveCallback(
 	AUTO_DEBUG;
 }
 
-void osn::Volmeter::Query(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void osn::Volmeter::Query(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
-	auto uid   = args[0].value_union.ui64;
+	auto uid = args[0].value_union.ui64;
 	std::unique_lock<std::mutex> ulockMutex(mtx);
 	auto meter = Manager::GetInstance().find(uid);
 	if (!meter) {
@@ -253,7 +219,6 @@ void osn::Volmeter::Query(
 			meter->current_data.resetData();
 		}
 	}
-	
 
 	rval.push_back(ipc::value(meter->current_data.ch));
 
@@ -268,14 +233,10 @@ void osn::Volmeter::Query(
 	AUTO_DEBUG;
 }
 
-void osn::Volmeter::OBSCallback(
-    void*       param,
-    const float magnitude[MAX_AUDIO_CHANNELS],
-    const float peak[MAX_AUDIO_CHANNELS],
-    const float input_peak[MAX_AUDIO_CHANNELS])
+void osn::Volmeter::OBSCallback(void *param, const float magnitude[MAX_AUDIO_CHANNELS], const float peak[MAX_AUDIO_CHANNELS], const float input_peak[MAX_AUDIO_CHANNELS])
 {
 	std::unique_lock<std::mutex> ulockMutex(mtx);
-	auto meter = Manager::GetInstance().find(*reinterpret_cast<uint64_t*>(param));
+	auto meter = Manager::GetInstance().find(*reinterpret_cast<uint64_t *>(param));
 	if (!meter) {
 		return;
 	}
@@ -288,8 +249,8 @@ void osn::Volmeter::OBSCallback(
 	meter->current_data.lastUpdateTime = GetTime();
 	meter->current_data.ch = obs_volmeter_get_nr_channels(meter->self);
 	for (size_t ch = 0; ch < MAX_AUDIO_CHANNELS; ch++) {
-		meter->current_data.magnitude[ch]  = MAKE_FLOAT_SANE(magnitude[ch]);
-		meter->current_data.peak[ch]       = MAKE_FLOAT_SANE(peak[ch]);
+		meter->current_data.magnitude[ch] = MAKE_FLOAT_SANE(magnitude[ch]);
+		meter->current_data.peak[ch] = MAKE_FLOAT_SANE(peak[ch]);
 		meter->current_data.input_peak[ch] = MAKE_FLOAT_SANE(input_peak[ch]);
 	}
 
@@ -298,7 +259,7 @@ void osn::Volmeter::OBSCallback(
 
 std::chrono::milliseconds osn::Volmeter::GetTime()
 {
-	auto currentTime   = std::chrono::high_resolution_clock::now();
+	auto currentTime = std::chrono::high_resolution_clock::now();
 	auto currentTimeMs = std::chrono::time_point_cast<std::chrono::milliseconds>(currentTime);
 	return currentTimeMs.time_since_epoch();
 }
@@ -314,7 +275,7 @@ bool osn::Volmeter::CheckIdle(std::chrono::milliseconds currentTime, std::chrono
 	return false;
 }
 
-void osn::Volmeter::getAudioData(uint64_t id, std::vector<ipc::value>& rval)
+void osn::Volmeter::getAudioData(uint64_t id, std::vector<ipc::value> &rval)
 {
 	std::unique_lock<std::mutex> ulockMutex(mtx);
 
@@ -322,7 +283,7 @@ void osn::Volmeter::getAudioData(uint64_t id, std::vector<ipc::value>& rval)
 	if (!meter) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Invalid Meter reference.");
 	}
-	
+
 	std::unique_lock<std::mutex> ulock(meter->current_data_mtx);
 
 	rval.push_back(ipc::value(meter->current_data.ch));

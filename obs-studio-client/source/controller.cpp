@@ -26,7 +26,7 @@
 #include "shared.hpp"
 #include "utility.hpp"
 
-static std::string serverBinaryPath  = "";
+static std::string serverBinaryPath = "";
 static std::string serverWorkingPath = "";
 std::wstring utfWorkingDir = L"";
 
@@ -34,15 +34,14 @@ std::wstring utfWorkingDir = L"";
 #define OSN_VERSION "DEVMODE_VERSION"
 #endif
 
-#define GET_OSN_VERSION \
-[]() { \
-const char *__CHECK_EMPTY = OSN_VERSION; \
-if (strlen(__CHECK_EMPTY) < 3) { \
-    return "DEVMODE_VERSION"; \
-}  \
-return OSN_VERSION; \
-}()
-
+#define GET_OSN_VERSION                                  \
+	[]() {                                           \
+		const char *__CHECK_EMPTY = OSN_VERSION; \
+		if (strlen(__CHECK_EMPTY) < 3) {         \
+			return "DEVMODE_VERSION";        \
+		}                                        \
+		return OSN_VERSION;                      \
+	}()
 
 #ifdef _WIN32
 #include <direct.h>
@@ -60,10 +59,10 @@ extern char **environ;
 using namespace ipc;
 
 #ifdef _WIN32
-ProcessInfo spawn(const std::string& program, const std::string& commandLine, const std::string& workingDirectory)
+ProcessInfo spawn(const std::string &program, const std::string &commandLine, const std::string &workingDirectory)
 {
 	PROCESS_INFORMATION m_win32_processInformation = {0};
-	STARTUPINFOW        m_win32_startupInfo        = {0};
+	STARTUPINFOW m_win32_startupInfo = {0};
 
 	const std::wstring utfProgram(from_utf8_to_utf16_wide(program.c_str()));
 
@@ -71,32 +70,21 @@ ProcessInfo spawn(const std::string& program, const std::string& commandLine, co
 
 	utfWorkingDir = std::wstring(from_utf8_to_utf16_wide(workingDirectory.c_str()));
 
-	BOOL success = CreateProcessW(
-	    utfProgram.c_str(),
-	    /* Note that C++11 says this is fine since an
+	BOOL success = CreateProcessW(utfProgram.c_str(),
+				      /* Note that C++11 says this is fine since an
 		 * std::string is guaranteed to be null-terminated. */
-	    &utfCommandLine[0],
-	    NULL,
-	    NULL,
-	    FALSE,
-	    CREATE_NO_WINDOW | DETACHED_PROCESS,
-	    NULL,
-	    utfWorkingDir.empty() ? NULL : utfWorkingDir.c_str(),
-	    &m_win32_startupInfo,
-	    &m_win32_processInformation);
+				      &utfCommandLine[0], NULL, NULL, FALSE, CREATE_NO_WINDOW | DETACHED_PROCESS, NULL, utfWorkingDir.empty() ? NULL : utfWorkingDir.c_str(), &m_win32_startupInfo, &m_win32_processInformation);
 
 	if (!success)
 		return {};
 
-	return ProcessInfo(
-	    reinterpret_cast<uint64_t>(m_win32_processInformation.hProcess),
-	    static_cast<uint64_t>(m_win32_processInformation.dwProcessId));
+	return ProcessInfo(reinterpret_cast<uint64_t>(m_win32_processInformation.hProcess), static_cast<uint64_t>(m_win32_processInformation.dwProcessId));
 }
 
 ProcessInfo open_process(uint64_t handle)
 {
 	ProcessInfo pi;
-	DWORD       flags = PROCESS_QUERY_INFORMATION | PROCESS_TERMINATE | PROCESS_VM_READ;
+	DWORD flags = PROCESS_QUERY_INFORMATION | PROCESS_TERMINATE | PROCESS_VM_READ;
 
 	pi.handle = (uint64_t)OpenProcess(flags, false, (DWORD)handle);
 	return pi;
@@ -112,12 +100,12 @@ bool close_process(ProcessInfo pi)
  * name of a module because it's a C-string */
 std::string get_process_name(ProcessInfo pi)
 {
-	LPWSTR  lpBuffer       = NULL;
-	DWORD   dwBufferLength = 256;
-	HANDLE  hProcess       = (HANDLE)pi.handle;
+	LPWSTR lpBuffer = NULL;
+	DWORD dwBufferLength = 256;
+	HANDLE hProcess = (HANDLE)pi.handle;
 	HMODULE hModule;
-	DWORD   unused1;
-	BOOL    bSuccess;
+	DWORD unused1;
+	BOOL bSuccess;
 
 	/* We rely on undocumented behavior here where
 	 * enumerating a process' modules will provide
@@ -154,13 +142,13 @@ std::string get_process_name(ProcessInfo pi)
 	return {};
 }
 
-bool is_process_alive(ProcessInfo& pinfo)
+bool is_process_alive(ProcessInfo &pinfo)
 {
 	DWORD status;
 
 	if (GetExitCodeProcess(reinterpret_cast<HANDLE>(pinfo.handle), &status)) {
 		if (status == static_cast<uint64_t>(ProcessInfo::ExitCode::STILL_RUNNING)) {
-			return true;	
+			return true;
 		}
 		pinfo.exit_code = status;
 		return false;
@@ -170,14 +158,14 @@ bool is_process_alive(ProcessInfo& pinfo)
 	return false;
 }
 
-bool kill(ProcessInfo pinfo, uint32_t code, uint32_t& exitcode)
+bool kill(ProcessInfo pinfo, uint32_t code, uint32_t &exitcode)
 {
 	return TerminateProcess(reinterpret_cast<HANDLE>(pinfo.handle), code);
 }
 
 std::string get_working_directory()
 {
-	DWORD        dwRequiredSize = GetCurrentDirectoryW(0, NULL);
+	DWORD dwRequiredSize = GetCurrentDirectoryW(0, NULL);
 	std::wstring lpBuffer(dwRequiredSize, wchar_t());
 
 	GetCurrentDirectoryW(dwRequiredSize, &lpBuffer[0]);
@@ -188,7 +176,7 @@ std::string get_working_directory()
 std::string get_temp_directory()
 {
 	constexpr DWORD tmp_size = MAX_PATH + 1;
-	std::wstring    tmp(tmp_size, wchar_t());
+	std::wstring tmp(tmp_size, wchar_t());
 	GetTempPathW(tmp_size, &tmp[0]);
 
 	/* Here we resize an in-use string and then re-use it.
@@ -205,21 +193,20 @@ std::string get_temp_directory()
 	return from_utf16_wide_to_utf8(tmp.data());
 }
 
-std::fstream open_file(std::string& file_path, std::fstream::openmode mode)
+std::fstream open_file(std::string &file_path, std::fstream::openmode mode)
 {
 	return std::fstream(from_utf8_to_utf16_wide(file_path.c_str()), mode);
 }
 
-static void check_pid_file(std::string& pid_path)
+static void check_pid_file(std::string &pid_path)
 {
 	std::fstream::openmode mode = std::fstream::in | std::fstream::binary;
 
 	std::fstream pid_file(open_file(pid_path, mode));
 
-	union
-	{
+	union {
 		uint64_t pid;
-		char     pid_char[sizeof(uint64_t)];
+		char pid_char[sizeof(uint64_t)];
 	};
 
 	if (!pid_file)
@@ -243,7 +230,7 @@ static void check_pid_file(std::string& pid_path)
 	close_process(pi);
 }
 
-static void write_pid_file(std::string& pid_path, uint64_t pid)
+static void write_pid_file(std::string &pid_path, uint64_t pid)
 {
 	std::fstream::openmode mode = std::fstream::out | std::fstream::binary | std::fstream::trunc;
 
@@ -252,7 +239,7 @@ static void write_pid_file(std::string& pid_path, uint64_t pid)
 	if (!pid_file)
 		return;
 
-	pid_file.write(reinterpret_cast<char*>(&pid), sizeof(pid));
+	pid_file.write(reinterpret_cast<char *>(&pid), sizeof(pid));
 }
 
 #endif
@@ -261,7 +248,7 @@ Controller::Controller() {}
 
 Controller::~Controller() {}
 
-std::shared_ptr<ipc::client> Controller::host(const std::string& uri)
+std::shared_ptr<ipc::client> Controller::host(const std::string &uri)
 {
 	if (m_isServer)
 		return nullptr;
@@ -270,7 +257,7 @@ std::shared_ptr<ipc::client> Controller::host(const std::string& uri)
 
 	std::stringstream commandLine;
 	commandLine << "\"" << serverBinaryPath << "\""
-	            << " " << uri << " " << version;
+		    << " " << uri << " " << version;
 
 	std::string workingDirectory;
 
@@ -305,43 +292,41 @@ std::shared_ptr<ipc::client> Controller::host(const std::string& uri)
 	}
 #else
 	g_util_osx->setServerWorkingDirectoryPath(workingDirectory);
-    pid_t pids[2048];
-    int bytes = proc_listpids(PROC_ALL_PIDS, 0, pids, sizeof(pids));
-    int n_proc = bytes / sizeof(pids[0]);
-    for (int i = 0; i < n_proc; i++) {
-        struct proc_bsdinfo proc;
-        int st = proc_pidinfo(pids[i], PROC_PIDTBSDINFO, 0,
-                             &proc, PROC_PIDTBSDINFO_SIZE);
-        if (st == PROC_PIDTBSDINFO_SIZE) {
-            if (strcmp("obs64", proc.pbi_name) == 0) {
-                if (pids[i] != 0)
-                    kill(pids[i], SIGKILL);
-            }
-        }
-    }
+	pid_t pids[2048];
+	int bytes = proc_listpids(PROC_ALL_PIDS, 0, pids, sizeof(pids));
+	int n_proc = bytes / sizeof(pids[0]);
+	for (int i = 0; i < n_proc; i++) {
+		struct proc_bsdinfo proc;
+		int st = proc_pidinfo(pids[i], PROC_PIDTBSDINFO, 0, &proc, PROC_PIDTBSDINFO_SIZE);
+		if (st == PROC_PIDTBSDINFO_SIZE) {
+			if (strcmp("obs64", proc.pbi_name) == 0) {
+				if (pids[i] != 0)
+					kill(pids[i], SIGKILL);
+			}
+		}
+	}
 
-    pid_t pid;
-    std::vector<char> uri_str(uri.c_str(), uri.c_str() + uri.size() + 1);
-    char *argv[] = {"obs64", uri_str.data(), (char*)version.c_str(), (char*)serverBinaryPath.c_str(), NULL};
-    remove(uri.c_str());
+	pid_t pid;
+	std::vector<char> uri_str(uri.c_str(), uri.c_str() + uri.size() + 1);
+	char *argv[] = {"obs64", uri_str.data(), (char *)version.c_str(), (char *)serverBinaryPath.c_str(), NULL};
+	remove(uri.c_str());
 
-	int ret  = posix_spawnp(&pid, serverBinaryPath.c_str(), NULL, NULL, argv, environ);
-    // Connect
-    std::shared_ptr<ipc::client> cl = connect(uri);
-    if (!cl) { // Assume the server broke or was not allowed to run.
-        disconnect();
-        uint32_t exitcode;
-        kill(pid, SIGKILL);
-        return nullptr;
-    }
+	int ret = posix_spawnp(&pid, serverBinaryPath.c_str(), NULL, NULL, argv, environ);
+	// Connect
+	std::shared_ptr<ipc::client> cl = connect(uri);
+	if (!cl) { // Assume the server broke or was not allowed to run.
+		disconnect();
+		uint32_t exitcode;
+		kill(pid, SIGKILL);
+		return nullptr;
+	}
 #endif
-    
+
 	m_isServer = true;
 	return m_connection;
 }
 
-std::shared_ptr<ipc::client> Controller::connect(
-    const std::string& uri)
+std::shared_ptr<ipc::client> Controller::connect(const std::string &uri)
 {
 	procId.exit_code = 0;
 	if (m_isServer)
@@ -396,20 +381,22 @@ void Controller::disconnect()
 	m_connection = nullptr;
 }
 
-DWORD Controller::GetExitCode() {
+DWORD Controller::GetExitCode()
+{
 	return procId.exit_code;
 }
- 
+
 std::shared_ptr<ipc::client> Controller::GetConnection()
 {
 	return m_connection;
 }
 
-Napi::Value js_setServerPath(const Napi::CallbackInfo& info)
+Napi::Value js_setServerPath(const Napi::CallbackInfo &info)
 {
 	if (info.Length() == 0) {
 		Napi::Error::New(info.Env(), "Too few arguments, usage: setServerPath(<string> binaryPath[, <string> workingDirectoryPath = "
-		    "get_working_directory()]).").ThrowAsJavaScriptException();
+					     "get_working_directory()]).")
+			.ThrowAsJavaScriptException();
 		return info.Env().Undefined();
 	} else if (info.Length() > 2) {
 		Napi::Error::New(info.Env(), "Too many arguments.").ThrowAsJavaScriptException();
@@ -438,7 +425,7 @@ Napi::Value js_setServerPath(const Napi::CallbackInfo& info)
 	return info.Env().Undefined();
 }
 
-Napi::Value js_connect(const Napi::CallbackInfo& info)
+Napi::Value js_connect(const Napi::CallbackInfo &info)
 {
 	if (info.Length() == 0) {
 		Napi::Error::New(info.Env(), "Too few arguments, usage: connect(<string> uri).").ThrowAsJavaScriptException();
@@ -452,8 +439,8 @@ Napi::Value js_connect(const Napi::CallbackInfo& info)
 	}
 
 	std::string uri = info[0].ToString().Utf8Value();
-	auto        cl  = Controller::GetInstance().connect(uri);
-	DWORD        exit_code = Controller::GetInstance().GetExitCode();
+	auto cl = Controller::GetInstance().connect(uri);
+	DWORD exit_code = Controller::GetInstance().GetExitCode();
 
 #ifdef WIN32
 	if (exit_code == STATUS_DLL_NOT_FOUND)
@@ -463,7 +450,7 @@ Napi::Value js_connect(const Napi::CallbackInfo& info)
 	return Napi::Number::New(info.Env(), exit_code);
 }
 
-Napi::Value js_host(const Napi::CallbackInfo& info)
+Napi::Value js_host(const Napi::CallbackInfo &info)
 {
 	if (info.Length() == 0) {
 		Napi::Error::New(info.Env(), "Too few arguments, usage: host(uri).").ThrowAsJavaScriptException();
@@ -477,8 +464,8 @@ Napi::Value js_host(const Napi::CallbackInfo& info)
 	}
 
 	std::string uri = info[0].ToString().Utf8Value();
-	auto        cl  = Controller::GetInstance().host(uri);
-	DWORD       exit_code = Controller::GetInstance().GetExitCode();
+	auto cl = Controller::GetInstance().host(uri);
+	DWORD exit_code = Controller::GetInstance().GetExitCode();
 
 #ifdef WIN32
 	if (exit_code == STATUS_DLL_NOT_FOUND)
@@ -488,7 +475,7 @@ Napi::Value js_host(const Napi::CallbackInfo& info)
 	return Napi::Number::New(info.Env(), exit_code);
 }
 
-Napi::Value js_disconnect(const Napi::CallbackInfo& info)
+Napi::Value js_disconnect(const Napi::CallbackInfo &info)
 {
 	Controller::GetInstance().disconnect();
 	return info.Env().Undefined();

@@ -24,50 +24,40 @@
 #include "osn-source.hpp"
 #include "shared.hpp"
 
-void osn::Filter::Register(ipc::server& srv)
+void osn::Filter::Register(ipc::server &srv)
 {
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Filter");
 	cls->register_function(std::make_shared<ipc::function>("Types", std::vector<ipc::type>{}, Types));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "Create", std::vector<ipc::type>{ipc::type::String, ipc::type::String}, Create));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "Create", std::vector<ipc::type>{ipc::type::String, ipc::type::String, ipc::type::String}, Create));
+	cls->register_function(std::make_shared<ipc::function>("Create", std::vector<ipc::type>{ipc::type::String, ipc::type::String}, Create));
+	cls->register_function(std::make_shared<ipc::function>("Create", std::vector<ipc::type>{ipc::type::String, ipc::type::String, ipc::type::String}, Create));
 	srv.register_collection(cls);
 }
 
-void osn::Filter::Types(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void osn::Filter::Types(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	const char* typeId = nullptr;
+	const char *typeId = nullptr;
 	for (size_t idx = 0; obs_enum_filter_types(idx, &typeId); idx++) {
 		rval.push_back(ipc::value(typeId ? typeId : ""));
 	}
 	AUTO_DEBUG;
 }
 
-void osn::Filter::Create(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void osn::Filter::Create(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
 	std::string sourceId, name;
-	obs_data_t* settings = nullptr;
+	obs_data_t *settings = nullptr;
 
 	switch (args.size()) {
 	case 3:
 		settings = obs_data_create_from_json(args[2].value_str.c_str());
 	case 2:
-		name     = args[1].value_str;
+		name = args[1].value_str;
 		sourceId = args[0].value_str;
 		break;
 	}
 
-	obs_source_t* source = obs_source_create_private(sourceId.c_str(), name.c_str(), settings);
+	obs_source_t *source = obs_source_create_private(sourceId.c_str(), name.c_str(), settings);
 	if (!source) {
 		PRETTY_ERROR_RETURN(ErrorCode::Error, "Failed to create filter.");
 	}

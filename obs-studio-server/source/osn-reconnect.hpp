@@ -21,79 +21,48 @@
 #include <obs.h>
 #include "utility.hpp"
 
-namespace osn
-{
-    class Reconnect
-    {
-        public:
-        Reconnect() {
-            enabled = true;
-            retryDelay = 10;
-            maxRetries = 20;
-        }
-        ~Reconnect() {}
+namespace osn {
+class Reconnect {
+public:
+	Reconnect()
+	{
+		enabled = true;
+		retryDelay = 10;
+		maxRetries = 20;
+	}
+	~Reconnect() {}
 
-        public:
-        bool enabled;
-        uint32_t retryDelay;
-        uint32_t maxRetries;
-    };
+public:
+	bool enabled;
+	uint32_t retryDelay;
+	uint32_t maxRetries;
+};
 
-    class IReconnect
-    {
-        public:
-        class Manager : public utility::unique_object_manager<Reconnect>
-        {
-            friend class std::shared_ptr<Manager>;
+class IReconnect {
+public:
+	class Manager : public utility::unique_object_manager<Reconnect> {
+		friend class std::shared_ptr<Manager>;
 
-            protected:
-            Manager() {}
-            ~Manager() {}
+	protected:
+		Manager() {}
+		~Manager() {}
 
-            public:
-            Manager(Manager const&) = delete;
-            Manager operator=(Manager const&) = delete;
+	public:
+		Manager(Manager const &) = delete;
+		Manager operator=(Manager const &) = delete;
 
-            public:
-            static Manager& GetInstance();
-        };
+	public:
+		static Manager &GetInstance();
+	};
 
-        static void Register(ipc::server&);
+	static void Register(ipc::server &);
 
-        static void Create(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-        static void GetEnabled(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-        static void SetEnabled(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-        static void GetRetryDelay(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-        static void SetRetryDelay(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-        static void GetMaxRetries(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-        static void SetMaxRetries(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
-    };
+	static void Create(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void GetEnabled(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void SetEnabled(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void GetRetryDelay(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void SetRetryDelay(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void GetMaxRetries(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void SetMaxRetries(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+};
 }

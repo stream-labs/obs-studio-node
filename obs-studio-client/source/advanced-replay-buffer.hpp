@@ -20,31 +20,24 @@
 #include <napi.h>
 #include "replay-buffer.hpp"
 
-namespace osn
-{
-    class AdvancedReplayBuffer :
-        public Napi::ObjectWrap<osn::AdvancedReplayBuffer>,
-        public osn::ReplayBuffer
-    {
-        public:
-        static Napi::FunctionReference constructor;
-        static Napi::Object Init(Napi::Env env, Napi::Object exports);
-        AdvancedReplayBuffer(const Napi::CallbackInfo& info);
+namespace osn {
+class AdvancedReplayBuffer : public Napi::ObjectWrap<osn::AdvancedReplayBuffer>, public osn::ReplayBuffer {
+public:
+	static Napi::FunctionReference constructor;
+	static Napi::Object Init(Napi::Env env, Napi::Object exports);
+	AdvancedReplayBuffer(const Napi::CallbackInfo &info);
 
-        static Napi::Value Create(const Napi::CallbackInfo& info);
-        static void Destroy(const Napi::CallbackInfo& info);
+	static Napi::Value Create(const Napi::CallbackInfo &info);
+	static void Destroy(const Napi::CallbackInfo &info);
 
-        Napi::Value GetMixer(const Napi::CallbackInfo& info);
-        void SetMixer(const Napi::CallbackInfo& info, const Napi::Value& value);
+	Napi::Value GetMixer(const Napi::CallbackInfo &info);
+	void SetMixer(const Napi::CallbackInfo &info, const Napi::Value &value);
 
-        static Napi::Value GetLegacySettings(const Napi::CallbackInfo& info);
-        static void SetLegacySettings(const Napi::CallbackInfo& info,
-            const Napi::Value& value);
-        Napi::Value GetStreaming(const Napi::CallbackInfo& info);
-        void SetStreaming(
-            const Napi::CallbackInfo& info, const Napi::Value& value);
-        Napi::Value GetRecording(const Napi::CallbackInfo& info);
-        void SetRecording(
-            const Napi::CallbackInfo& info, const Napi::Value& value);
-    };
+	static Napi::Value GetLegacySettings(const Napi::CallbackInfo &info);
+	static void SetLegacySettings(const Napi::CallbackInfo &info, const Napi::Value &value);
+	Napi::Value GetStreaming(const Napi::CallbackInfo &info);
+	void SetStreaming(const Napi::CallbackInfo &info, const Napi::Value &value);
+	Napi::Value GetRecording(const Napi::CallbackInfo &info);
+	void SetRecording(const Napi::CallbackInfo &info, const Napi::Value &value);
+};
 }
