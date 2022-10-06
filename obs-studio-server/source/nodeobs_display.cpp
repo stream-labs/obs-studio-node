@@ -165,24 +165,26 @@ void OBS::Display::SystemWorker()
 
 			BOOL enabled = FALSE;
 			DwmIsCompositionEnabled(&enabled);
-			DWORD windowStyle;
+			DWORD windowStyle = WS_VISIBLE;
+			DWORD windowEXStyle = 0;
 
 			if (IsWindows8OrGreater() || !enabled) {
-				windowStyle = WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOPMOST;
-			} else {
-				windowStyle = WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOPMOST | WS_EX_COMPOSITED;
+				windowEXStyle = WS_EX_LAYERED;
 			}
 
+			windowStyle |= this->m_renderAtBottom ? WS_CHILD : WS_POPUP;
+			windowEXStyle |= WS_EX_TRANSPARENT;
+
 			HWND newWindow = CreateWindowEx(
-			    windowStyle,
+			    windowEXStyle,
 			    TEXT("Win32DisplayClass"),
 			    TEXT("SlobsChildWindowPreview"),
-			    WS_VISIBLE | WS_POPUP | WS_CHILD,
+			    windowStyle,
 			    0,
 			    0,
 			    question->width,
 			    question->height,
-			    NULL,
+			    question->parentWindow,
 			    NULL,
 			    NULL,
 			    this);
@@ -191,11 +193,9 @@ void OBS::Display::SystemWorker()
 				answer->success = false;
 				HandleWin32ErrorMessage(GetLastError());
 			} else {
-				if (IsWindows8OrGreater() || !enabled) {
-					SetLayeredWindowAttributes(newWindow, 0, 255, LWA_ALPHA);
-				}
-
-				SetParent(newWindow, question->parentWindow);
+				SetLayeredWindowAttributes(newWindow, 0, 255, LWA_ALPHA);
+				if (!this->m_renderAtBottom)
+					SetParent(newWindow, question->parentWindow);
 				answer->windowHandle = newWindow;
 				answer->success      = true;
 			}
@@ -462,7 +462,7 @@ OBS::Display::Display()
 	UpdatePreviewArea();
 }
 
-OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode) : Display()
+OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode, bool renderAtBottom) : Display()
 {
 #ifdef _WIN32
 	CreateWindowMessageQuestion question;
@@ -504,13 +504,14 @@ OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode)
 	}
 
 	m_renderingMode = mode;
+	m_renderAtBottom = renderAtBottom;
 
 	obs_display_add_draw_callback(m_display, DisplayCallback, this);
 	m_displayMtx.unlock();
 }
 
-OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode, std::string sourceName)
-    : Display(windowHandle, mode)
+OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode, std::string sourceName, bool renderAtBottom)
+    : Display(windowHandle, mode, renderAtBottom)
 {
 	m_source = obs_get_source_by_name(sourceName.c_str());
 	obs_source_inc_showing(m_source);
@@ -592,6 +593,19 @@ OBS::Display::~Display()
 #endif
 }
 
+#if defined(_WIN32)
+static BOOL CALLBACK EnumChromeWindowsProc(HWND hwnd, LPARAM lParam)
+{
+	char buf[256];
+	if (GetClassNameA(hwnd, buf, sizeof(buf) / sizeof(*buf)) &&
+			strcmp(buf, "Win32DisplayClass") != 0) {
+		OBS::Display *display = reinterpret_cast<OBS::Display*>(lParam);
+		display->m_intermediateChrome = hwnd;
+	}
+	return TRUE;
+}
+#endif
+
 void OBS::Display::SetPosition(uint32_t x, uint32_t y)
 {
 #if defined(_WIN32)
@@ -607,7 +621,16 @@ void OBS::Display::SetPosition(uint32_t x, uint32_t y)
 		    obs_source_get_name(m_source), x, y, m_ourWindow);
 	}
 
-	SetWindowPos( m_ourWindow, NULL, m_position.first, m_position.second, m_gsInitData.cx, m_gsInitData.cy, SWP_NOCOPYBITS | SWP_NOSIZE | SWP_NOACTIVATE);
+	RECT rect_parent, rect_intermediate;
+	GetWindowRect(m_parentWindow, &rect_parent);
+	(void)EnumChildWindows(m_parentWindow, EnumChromeWindowsProc, reinterpret_cast<LPARAM>(this));
+	if (!m_intermediateChrome)
+		return;
+	GetWindowRect(m_intermediateChrome, &rect_intermediate);
+
+	uint32_t offset_y = rect_intermediate.top - rect_parent.top;
+
+	SetWindowPos( m_ourWindow, this->m_renderAtBottom ? HWND_BOTTOM : NULL, m_position.first, m_position.second + offset_y, m_gsInitData.cx, m_gsInitData.cy, SWP_NOCOPYBITS | SWP_NOSIZE | SWP_NOACTIVATE);
 #endif
 }
 

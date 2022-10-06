@@ -61,10 +61,12 @@ namespace OBS
 		static void SetDayTheme(bool dayTheme);
 
 		Display(uint64_t windowHandle,
-		    enum obs_video_rendering_mode mode);       // Create a Main Preview one
+		    enum obs_video_rendering_mode mode, // Create a Main Preview one
+			bool renderAtBottom);
 		Display(uint64_t windowHandle,
 		    enum obs_video_rendering_mode mode,
-		    std::string                   sourceName); // Create a Source-Specific one
+		    std::string                   sourceName, // Create a Source-Specific one
+			bool renderAtBottom);
 		~Display();
 
 		void                          SetPosition(uint32_t x, uint32_t y);
@@ -167,12 +169,15 @@ namespace OBS
 		vec4 m_rotationHandleColorVec4;
 
 		bool     m_shouldDrawUI     = true;
+		bool     m_renderAtBottom   = false;
 
 		enum obs_video_rendering_mode m_renderingMode = OBS_MAIN_VIDEO_RENDERING;
 
 #if defined(_WIN32)
+		public:
 		HWND              m_ourWindow;
 		HWND              m_parentWindow;
+		HWND              m_intermediateChrome;
 		static bool       DisplayWndClassRegistered;
 		static WNDCLASSEX DisplayWndClassObj;
 		static ATOM       DisplayWndClassAtom;

@@ -80,12 +80,22 @@ Napi::Value display::OBS_content_createDisplay(const Napi::CallbackInfo& info)
 	std::string key = info[1].ToString().Utf8Value();
 	int32_t mode = info[2].ToNumber().Int32Value();
 
+	bool renderAtBottom = false;
+
+	if (info.Length() > 3)
+		renderAtBottom = info[3].ToBoolean().Value();
+
 	auto conn = GetConnection(info);
 	if (!conn)
 		return info.Env().Undefined();
  
-	conn->call("Display", "OBS_content_createDisplay", {ipc::value((uint64_t)windowHandle), ipc::value(key), ipc::value(mode)});
-
+	conn->call("Display", "OBS_content_createDisplay",
+		{
+			ipc::value((uint64_t)windowHandle),
+			ipc::value(key),
+			ipc::value(mode),
+			ipc::value(renderAtBottom)
+		});
 	return info.Env().Undefined();
 }
 
@@ -158,12 +168,22 @@ Napi::Value display::OBS_content_createSourcePreviewDisplay(const Napi::Callback
 	std::string sourceName = info[1].ToString().Utf8Value();
 	std::string key = info[2].ToString().Utf8Value();
 
+	bool renderAtBottom = false;
+
+	if (info.Length() > 3)
+		renderAtBottom = info[3].ToBoolean().Value();
+
 	auto conn = GetConnection(info);
 	if (!conn)
 		return info.Env().Undefined();
 
 	conn->call("Display", "OBS_content_createSourcePreviewDisplay",
-	    {ipc::value((uint64_t)windowHandle), ipc::value(sourceName), ipc::value(key)});
+		{
+			ipc::value((uint64_t)windowHandle),
+			ipc::value(sourceName),
+			ipc::value(key),
+			ipc::value(renderAtBottom)
+		});
 
 	return info.Env().Undefined();
 }
