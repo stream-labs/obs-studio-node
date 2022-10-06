@@ -17,6 +17,8 @@ export const enum EOBSOutputSignal {
     Writing = 'writing',
     Wrote = 'wrote',
     WriteError = 'writing_error',
+    Pause = 'pause',
+    Unpause = 'unpause',
 }
 
 export const enum EOBSInputTypes {
