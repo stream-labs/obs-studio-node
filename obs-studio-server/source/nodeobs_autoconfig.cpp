@@ -213,6 +213,8 @@ class TestMode
 	inline void SetVideo(int cx, int cy, int fps_num, int fps_den)
 	{
 		obs_video_info video = {0};
+		video.base_width    = 1280;
+		video.base_height   = 720;
 		video.output_width  = (uint32_t)cx;
 		video.output_height = (uint32_t)cy;
 		video.fps_num       = (uint32_t)fps_num;
@@ -644,7 +646,9 @@ void autoConfig::TestBandwidthThread(void)
 	obs_video_info* ovi = obs_create_video_info();
 	
 	obs_video_info video = {0};
-	video.output_width  = 128;
+	video.base_width     = 1280;
+	video.base_height    = 720;
+	video.output_width   = 128;
 	video.output_height  = 128;
 	video.fps_num        = 60;
 	video.fps_den        = 1;
@@ -1123,6 +1127,8 @@ bool autoConfig::TestSoftwareEncoding()
 	int            i     = 0;
 	int            count = 1;
 
+	obs_video_info* ovi     = obs_create_video_info();
+
 	auto testRes = [&](long double div, int fps_num, int fps_den, bool force) {
 		int per = ++i * 100 / count;
 
@@ -1150,16 +1156,18 @@ bool autoConfig::TestSoftwareEncoding()
 		if (!force && rate > maxDataRate)
 			return true;
 
-		obs_video_info * ovi = obs_create_video_info();
+		obs_video_info  video = {0};
+		video.base_width      = 1280;
+		video.base_height     = 720;
+		video.output_width     = cx;
+		video.output_height    = cy;
+		video.fps_num          = fps_num;
+		video.fps_den          = fps_den;
+		video.initialized     = true;
+		obs_set_video_info(ovi, &video);
 
-		ovi->output_width = (uint32_t)cx;
-		ovi->output_height = (uint32_t)cy;
-		ovi->fps_num       = fps_num;
-		ovi->fps_den       = fps_den;
-		ovi->initialized   = true;
-		obs_reset_video();
 
-		obs_encoder_set_video_mix(vencoder, obs_video_mix_get(0, OBS_MAIN_VIDEO_RENDERING));
+		obs_encoder_set_video_mix(vencoder, obs_video_mix_get(ovi, OBS_MAIN_VIDEO_RENDERING));
 		obs_encoder_set_audio(aencoder, obs_get_audio());
 		obs_encoder_update(vencoder, vencoder_settings);
 
@@ -1264,6 +1272,7 @@ bool autoConfig::TestSoftwareEncoding()
 	obs_output_release(output);
 	obs_encoder_release(vencoder);
 	obs_encoder_release(aencoder);
+	obs_remove_video_info(ovi);
 
 	softwareTested = true;
 	return true;
@@ -1419,14 +1428,16 @@ bool autoConfig::CheckSettings(void)
 		return false;
 	}
 
-	obs_video_info* ovi = obs_create_video_info();
-	
-	ovi->output_width = (uint32_t)idealResolutionCX;
-	ovi->output_height = (uint32_t)idealResolutionCY;
-	ovi->fps_num       = idealFPSNum;
-	ovi->fps_den       = 1;
-	ovi->initialized  = true;
-	obs_reset_video();
+	obs_video_info* ovi   = obs_create_video_info();
+	obs_video_info  video = {0};
+	video.base_width      = 1280;
+	video.base_height     = 720;
+	video.output_width    = (uint32_t)idealResolutionCX;
+	video.output_height   = (uint32_t)idealResolutionCY;
+	video.fps_num         = idealFPSNum;
+	video.fps_den         = 1;
+	video.initialized     = true;
+	obs_set_video_info(ovi, &video);
 
 	OBSEncoder vencoder = obs_video_encoder_create(GetEncoderId(streamingEncoder), "test_encoder", nullptr, nullptr);
 	OBSEncoder aencoder = obs_audio_encoder_create("ffmpeg_aac", "test_aac", nullptr, 0, nullptr);
@@ -1460,7 +1471,7 @@ bool autoConfig::CheckSettings(void)
 	/* -----------------------------------*/
 	/* connect encoders/services/outputs  */
 
-	obs_encoder_set_video_mix(vencoder, obs_video_mix_get(0, OBS_MAIN_VIDEO_RENDERING));
+	obs_encoder_set_video_mix(vencoder, obs_video_mix_get(ovi, OBS_MAIN_VIDEO_RENDERING));
 	obs_encoder_set_audio(aencoder, obs_get_audio());
 
 	obs_output_set_video_encoder(output, vencoder);
@@ -1471,7 +1482,7 @@ bool autoConfig::CheckSettings(void)
 	/* -----------------------------------*/
 	/* connect signals                    */
 	bool success = true;
-	
+
 	auto on_started = [&]() {
 		std::unique_lock<std::mutex> lock(m);
 		success = true;
@@ -1501,25 +1512,26 @@ bool autoConfig::CheckSettings(void)
 	signal_handler_connect(sh, "stop", pre_on_stopped, &on_stopped);
 
 	std::unique_lock<std::mutex> ul(m);
-	if (cancel)
-		return false;
+	if (!cancel) {
+		/* -----------------------------------*/
+		/* start and wait to stop             */
 
-	/* -----------------------------------*/
-	/* start and wait to stop             */
-	
-	if (!obs_output_start(output)) {
-		return false;
+		if (!obs_output_start(output)) {
+		} else {
+			cv.wait_for(ul, std::chrono::seconds(4));
+
+			obs_output_stop(output);
+			cv.wait(ul);
+		}
+	} else {
+		success = false;
 	}
 
-	cv.wait_for(ul, std::chrono::seconds(4));
-	
-	obs_output_stop(output);
-	cv.wait(ul);
-	
 	obs_output_release(output);
 	obs_encoder_release(vencoder);
 	obs_encoder_release(aencoder);
 	obs_service_release(service);
+	obs_remove_video_info(ovi);
 
 	return success;
 }
