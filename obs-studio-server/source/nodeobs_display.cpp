@@ -407,8 +407,9 @@ OBS::Display::Display()
 	UpdatePreviewArea();
 }
 
-OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode) : Display()
+OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode, bool renderAtBottom) : Display()
 {
+	m_renderAtBottom = renderAtBottom;
 #ifdef _WIN32
 	CreateWindowMessageQuestion question;
 	CreateWindowMessageAnswer answer;
@@ -450,7 +451,8 @@ OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode)
 	m_displayMtx.unlock();
 }
 
-OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode, std::string sourceName) : Display(windowHandle, mode)
+OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode, std::string sourceName, bool renderAtBottom)
+	: Display(windowHandle, mode, renderAtBottom)
 {
 	m_source = obs_get_source_by_name(sourceName.c_str());
 	obs_source_inc_showing(m_source);
@@ -539,8 +541,9 @@ void OBS::Display::SetPosition(uint32_t x, uint32_t y)
 		std::string msg = "<" + std::string(__FUNCTION__) + "> Adjusting display position for source %s to %ldx%ld. hwnd %d";
 		blog(LOG_DEBUG, msg.c_str(), obs_source_get_name(m_source), x, y, m_ourWindow);
 	}
-
-	SetWindowPos(m_ourWindow, NULL, m_position.first, m_position.second, m_gsInitData.cx, m_gsInitData.cy, SWP_NOCOPYBITS | SWP_NOSIZE | SWP_NOACTIVATE);
+	
+	HWND insertAfter = (m_renderAtBottom) ? HWND_BOTTOM : NULL;
+	SetWindowPos(m_ourWindow, insertAfter, m_position.first, m_position.second, m_gsInitData.cx, m_gsInitData.cy, SWP_NOCOPYBITS | SWP_NOSIZE | SWP_NOACTIVATE);
 #endif
 }
 

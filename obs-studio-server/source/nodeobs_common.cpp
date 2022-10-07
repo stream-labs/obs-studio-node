@@ -157,7 +157,7 @@ void OBS_content::Register(ipc::server &srv)
 
 	cls->register_function(std::make_shared<ipc::function>("OBS_content_setDayTheme", std::vector<ipc::type>{ipc::type::UInt32}, OBS_content_setDayTheme));
 
-	cls->register_function(std::make_shared<ipc::function>("OBS_content_createDisplay", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String, ipc::type::Int32}, OBS_content_createDisplay));
+	cls->register_function(std::make_shared<ipc::function>("OBS_content_createDisplay", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String, ipc::type::Int32, ipc::type::UInt32}, OBS_content_createDisplay));
 
 	cls->register_function(std::make_shared<ipc::function>("OBS_content_destroyDisplay", std::vector<ipc::type>{ipc::type::String}, OBS_content_destroyDisplay));
 
@@ -165,7 +165,7 @@ void OBS_content::Register(ipc::server &srv)
 
 	cls->register_function(std::make_shared<ipc::function>("OBS_content_getDisplayPreviewSize", std::vector<ipc::type>{ipc::type::String}, OBS_content_getDisplayPreviewSize));
 
-	cls->register_function(std::make_shared<ipc::function>("OBS_content_createSourcePreviewDisplay", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String, ipc::type::String}, OBS_content_createSourcePreviewDisplay));
+	cls->register_function(std::make_shared<ipc::function>("OBS_content_createSourcePreviewDisplay", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String, ipc::type::String, ipc::type::UInt32}, OBS_content_createSourcePreviewDisplay));
 
 	cls->register_function(std::make_shared<ipc::function>("OBS_content_resizeDisplay", std::vector<ipc::type>{ipc::type::String, ipc::type::UInt32, ipc::type::UInt32}, OBS_content_resizeDisplay));
 
@@ -244,7 +244,7 @@ void OBS_content::OBS_content_createDisplay(void *data, const int64_t id, const 
 	}
 
 #ifdef WIN32
-	displays.insert_or_assign(args[1].value_str, new OBS::Display(windowHandle, mode));
+	displays.insert_or_assign(args[1].value_str, new OBS::Display(windowHandle, mode, args[3].value_union.ui32));
 	if (!IsWindows8OrGreater()) {
 		BOOL enabled = FALSE;
 		DwmIsCompositionEnabled(&enabled);
@@ -253,7 +253,7 @@ void OBS_content::OBS_content_createDisplay(void *data, const int64_t id, const 
 		}
 	}
 #else
-	OBS::Display *display = new OBS::Display(windowHandle, mode);
+	OBS::Display *display = new OBS::Display(windowHandle, mode, args[3].value_union.i32);
 	displays.insert_or_assign(args[1].value_str, display);
 #endif
 
@@ -328,7 +328,7 @@ void OBS_content::OBS_content_createSourcePreviewDisplay(void *data, const int64
 		return;
 	}
 
-	OBS::Display *display = new OBS::Display(windowHandle, OBS_MAIN_VIDEO_RENDERING, args[1].value_str);
+	OBS::Display *display = new OBS::Display(windowHandle, OBS_MAIN_VIDEO_RENDERING, args[1].value_str, args[3].value_union.ui32);
 	displays.insert_or_assign(args[2].value_str, display);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
