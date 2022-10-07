@@ -656,6 +656,7 @@ void autoConfig::TestBandwidthThread(void)
 	video.base_height    = 720;
 	video.output_width   = 128;
 	video.output_height  = 128;
+	video.output_format  = VIDEO_FORMAT_NV12;
 	video.fps_num        = 60;
 	video.fps_den        = 1;
 	video.initialized    = true;
@@ -1182,6 +1183,7 @@ bool autoConfig::TestSoftwareEncoding()
 		video.base_height     = 720;
 		video.output_width     = cx;
 		video.output_height    = cy;
+		video.output_format    = VIDEO_FORMAT_NV12;
 		video.fps_num          = fps_num;
 		video.fps_den          = fps_den;
 		video.initialized     = true;
@@ -1463,6 +1465,7 @@ bool autoConfig::CheckSettings(void)
 	video.base_height     = 720;
 	video.output_width    = (uint32_t)idealResolutionCX;
 	video.output_height   = (uint32_t)idealResolutionCY;
+	video.output_format   = VIDEO_FORMAT_NV12;
 	video.fps_num         = idealFPSNum;
 	video.fps_den         = 1;
 	video.initialized     = true;
