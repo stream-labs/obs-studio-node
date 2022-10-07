@@ -45,6 +45,8 @@ obs_encoder_t* videoRecordingEncoder         = nullptr;
 obs_service_t* service                       = nullptr;
 obs_encoder_t* streamArchiveEncVod           = nullptr;
 
+obs_video_info* base_canvas					 = nullptr;
+
 obs_encoder_t* aacTracks[MAX_AUDIO_MIXES];
 std::string    aacEncodersID[MAX_AUDIO_MIXES];
 
@@ -496,11 +498,12 @@ int OBS_service::resetVideoContext(bool reload, bool retryWithDefaultConf)
 int OBS_service::doResetVideoContext(obs_video_info* ovi)
 {
 	try {
-		// obs_reset_video may change some parameters. For example,
-		// ovi->output_width &= 0xFFFFFFFC;
-		// ovi->output_height &= 0xFFFFFFFE;
-		obs_video_info* canvas = obs_create_video_info();
-		return obs_set_video_info(canvas, ovi);
+		if (!base_canvas) 
+			base_canvas = obs_create_video_info();
+
+		int ret = obs_set_video_info(base_canvas, ovi);
+
+		return ret;
 	} catch (const char* error) {
 		blog(LOG_ERROR, error);
 		return OBS_VIDEO_FAIL;
@@ -524,7 +527,7 @@ static inline enum video_colorspace GetVideoColorSpaceFromName(const char *name)
 
 obs_video_info OBS_service::prepareOBSVideoInfo(bool reload, bool defaultConf)
 {
-	obs_video_info ovi = {};
+	obs_video_info ovi = {0};
 #ifdef _WIN32
 	ovi.graphics_module = "libobs-d3d11.dll";
 #else
@@ -2748,7 +2751,7 @@ void OBS_service::OBS_service_createVirtualWebcam(
 	if (name.empty())
 		return;
 
-	struct obs_video_info ovi;
+	struct obs_video_info ovi = {0};
 	obs_get_video_info(&ovi);
 
 	obs_data_t *settings = obs_data_create();

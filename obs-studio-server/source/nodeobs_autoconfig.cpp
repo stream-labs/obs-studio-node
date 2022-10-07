@@ -582,7 +582,8 @@ int EvaluateBandwidth(
 	}
 
 	uint64_t t_start = os_gettime_ns();
-
+	
+	//wait for start signal from output
 	cv.wait_for(ul, std::chrono::seconds(10));
 	if (stopped)
 		return -1;
@@ -604,6 +605,7 @@ int EvaluateBandwidth(
 		std::this_thread::sleep_for(std::chrono::milliseconds(500));
 	}
 
+	//wait for stop signal from output
 	cv.wait(ul);
 
 	uint64_t total_time  = os_gettime_ns() - t_start;
@@ -623,6 +625,10 @@ int EvaluateBandwidth(
 
 	server.ms = obs_output_get_connect_time_ms(output);
 	success   = true;
+	
+	//wait for deactivate signal from output
+	cv.wait(ul);
+
 	return 0;
 }
 
@@ -645,7 +651,7 @@ void autoConfig::TestBandwidthThread(void)
 
 	obs_video_info* ovi = obs_create_video_info();
 	
-	obs_video_info video = {0};
+	obs_video_info video =  *ovi;
 	video.base_width     = 1280;
 	video.base_height    = 720;
 	video.output_width   = 128;
@@ -783,16 +789,17 @@ void autoConfig::TestBandwidthThread(void)
 
 	obs_encoder_update(vencoder, vencoder_settings);
 	obs_encoder_update(aencoder, aencoder_settings);
-	obs_output_update(output, output_settings);
-
-	/* -----------------------------------*/
-	/* connect encoders/services/outputs  */
 
 	obs_encoder_set_video_mix(vencoder, obs_video_mix_get(ovi, OBS_MAIN_VIDEO_RENDERING));
 	obs_encoder_set_audio(aencoder, obs_get_audio());
 
+	/* -----------------------------------*/
+	/* connect encoders/services/outputs  */
+
 	obs_output_set_video_encoder(output, vencoder);
 	obs_output_set_audio_encoder(output, aencoder, 0);
+
+	obs_output_update(output, output_settings);
 
 	obs_output_set_service(output, service);
 
@@ -819,8 +826,13 @@ void autoConfig::TestBandwidthThread(void)
 		}
 	};
 
+	auto on_deactivate = [&]() {
+		cv.notify_one();
+	};
+
 	using on_started_t = decltype(on_started);
 	using on_stopped_t = decltype(on_stopped);
+	using on_deactivate_t = decltype(on_deactivate);
 
 	auto pre_on_started = [](void* data, calldata_t*) {
 		on_started_t& on_started = *reinterpret_cast<on_started_t*>(data);
@@ -832,9 +844,15 @@ void autoConfig::TestBandwidthThread(void)
 		on_stopped();
 	};
 
+	auto pre_on_deactivate = [](void* data, calldata_t*) {
+		on_deactivate_t& on_deactivate = *reinterpret_cast<on_deactivate_t*>(data);
+		on_deactivate();
+	};
+
 	signal_handler* sh = obs_output_get_signal_handler(output);
 	signal_handler_connect(sh, "start", pre_on_started, &on_started);
 	signal_handler_connect(sh, "stop", pre_on_stopped, &on_stopped);
+	signal_handler_connect(sh, "deactivate", pre_on_deactivate, &on_deactivate);
 
 	/* -----------------------------------*/
 	/* test servers                       */
@@ -898,7 +916,10 @@ void autoConfig::TestBandwidthThread(void)
 	obs_encoder_release(vencoder);
 	obs_encoder_release(aencoder);
 	obs_service_release(service);
-	obs_remove_video_info(ovi);
+	int ret = obs_remove_video_info(ovi);
+	if (ret != OBS_VIDEO_SUCCESS) {
+		blog(LOG_ERROR, "[VIDEO_CANVAS] failed to remove video canvas %08X", ovi);
+	}
 
 	if(!gotError) { 
 		eventsMutex.lock();
@@ -1156,7 +1177,7 @@ bool autoConfig::TestSoftwareEncoding()
 		if (!force && rate > maxDataRate)
 			return true;
 
-		obs_video_info  video = {0};
+		obs_video_info  video = *ovi;
 		video.base_width      = 1280;
 		video.base_height     = 720;
 		video.output_width     = cx;
@@ -1164,14 +1185,18 @@ bool autoConfig::TestSoftwareEncoding()
 		video.fps_num          = fps_num;
 		video.fps_den          = fps_den;
 		video.initialized     = true;
-		obs_set_video_info(ovi, &video);
+		int ret = obs_set_video_info(ovi, &video);
+		if (ret != OBS_VIDEO_SUCCESS) {
+			blog(LOG_ERROR, "[VIDEO_CANVAS] Failed to update video info %08X", ovi);
+		}
 
-
-		obs_encoder_set_video_mix(vencoder, obs_video_mix_get(ovi, OBS_MAIN_VIDEO_RENDERING));
 		obs_encoder_set_audio(aencoder, obs_get_audio());
+		
 		obs_encoder_update(vencoder, vencoder_settings);
-
-		obs_output_set_media(output, obs_video_mix_get(0, OBS_MAIN_VIDEO_RENDERING), obs_get_audio());
+		obs_encoder_set_video_mix(vencoder, obs_video_mix_get(ovi, OBS_MAIN_VIDEO_RENDERING));
+		
+		obs_output_set_audio_encoder(output, aencoder, 0);
+		obs_output_set_video_encoder(output, vencoder);
 
 		std::unique_lock<std::mutex> ul(m);
 		if (cancel)
@@ -1272,7 +1297,11 @@ bool autoConfig::TestSoftwareEncoding()
 	obs_output_release(output);
 	obs_encoder_release(vencoder);
 	obs_encoder_release(aencoder);
-	obs_remove_video_info(ovi);
+
+	int ret = obs_remove_video_info(ovi);
+	if (ret != OBS_VIDEO_SUCCESS) {
+		blog(LOG_ERROR, "[VIDEO_CANVAS] Failed to remove video info after TestSoftwareEncoding, %08X", ovi);
+	}
 
 	softwareTested = true;
 	return true;
@@ -1429,7 +1458,7 @@ bool autoConfig::CheckSettings(void)
 	}
 
 	obs_video_info* ovi   = obs_create_video_info();
-	obs_video_info  video = {0};
+	obs_video_info  video = *ovi;
 	video.base_width      = 1280;
 	video.base_height     = 720;
 	video.output_width    = (uint32_t)idealResolutionCX;
@@ -1466,16 +1495,17 @@ bool autoConfig::CheckSettings(void)
 
 	obs_encoder_update(vencoder, vencoder_settings);
 	obs_encoder_update(aencoder, aencoder_settings);
-	obs_output_update(output, output_settings);
-
-	/* -----------------------------------*/
-	/* connect encoders/services/outputs  */
 
 	obs_encoder_set_video_mix(vencoder, obs_video_mix_get(ovi, OBS_MAIN_VIDEO_RENDERING));
 	obs_encoder_set_audio(aencoder, obs_get_audio());
 
+	/* -----------------------------------*/
+	/* connect encoders/services/outputs  */
+
 	obs_output_set_video_encoder(output, vencoder);
 	obs_output_set_audio_encoder(output, aencoder, 0);
+
+	obs_output_update(output, output_settings);
 
 	obs_output_set_service(output, service);
 
@@ -1494,8 +1524,11 @@ bool autoConfig::CheckSettings(void)
 		cv.notify_one();
 	};
 
-	using on_started_t = decltype(on_started);
-	using on_stopped_t = decltype(on_stopped);
+	auto on_deactivate = [&]() { cv.notify_one(); };
+
+	using on_started_t    = decltype(on_started);
+	using on_stopped_t    = decltype(on_stopped);
+	using on_deactivate_t = decltype(on_deactivate);
 
 	auto pre_on_started = [](void* data, calldata_t*) {
 		on_started_t& on_started = *reinterpret_cast<on_started_t*>(data);
@@ -1507,9 +1540,15 @@ bool autoConfig::CheckSettings(void)
 		on_stopped();
 	};
 
+	auto pre_on_deactivate = [](void* data, calldata_t*) {
+		on_deactivate_t& on_deactivate = *reinterpret_cast<on_deactivate_t*>(data);
+		on_deactivate();
+	};
+
 	signal_handler* sh = obs_output_get_signal_handler(output);
 	signal_handler_connect(sh, "start", pre_on_started, &on_started);
 	signal_handler_connect(sh, "stop", pre_on_stopped, &on_stopped);
+	signal_handler_connect(sh, "deactivate", pre_on_deactivate, &on_deactivate);
 
 	std::unique_lock<std::mutex> ul(m);
 	if (!cancel) {
@@ -1521,6 +1560,9 @@ bool autoConfig::CheckSettings(void)
 			cv.wait_for(ul, std::chrono::seconds(4));
 
 			obs_output_stop(output);
+			//wait for the output to stop
+			cv.wait(ul);
+			//wait for the output to deactivate
 			cv.wait(ul);
 		}
 	} else {
@@ -1531,8 +1573,11 @@ bool autoConfig::CheckSettings(void)
 	obs_encoder_release(vencoder);
 	obs_encoder_release(aencoder);
 	obs_service_release(service);
-	obs_remove_video_info(ovi);
 
+	int ret = obs_remove_video_info(ovi);
+	if (ret != OBS_VIDEO_SUCCESS) {
+		blog(LOG_ERROR, "[VIDEO_CANVAS] Failed to remove video info after CheckSettings, %08X", ovi);
+	}
 	return success;
 }
 

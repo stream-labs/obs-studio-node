@@ -273,7 +273,7 @@ void osn::Video::SetVideoContext(
     }
     
  	obs_video_info* canvas = osn::Video::Manager::GetInstance().find(args[11].value_union.ui64);
-	obs_video_info  video  = {0};
+	obs_video_info  video  = *canvas;
 
 #ifdef _WIN32
     video.graphics_module = "libobs-d3d11.dll";
@@ -287,6 +287,9 @@ void osn::Video::SetVideoContext(
 	video.base_height   = args[3].value_union.ui32;
 	video.output_width  = args[4].value_union.ui32;
 	video.output_height = args[5].value_union.ui32;
+	
+    video.output_width &= 0xFFFFFFFC;
+	video.output_height &= 0xFFFFFFFE;
 
     video.output_format  = (video_format)args[6].value_union.ui32;
 	video.colorspace     = (video_colorspace)args[7].value_union.ui32;
