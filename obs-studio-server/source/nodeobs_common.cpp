@@ -283,7 +283,7 @@ void OBS_content::OBS_content_createDisplay(
 		mode = OBS_RECORDING_VIDEO_RENDERING;
 		break;
 	}
-	obs_video_info* canvas = osn::Video::Manager::GetInstance().find(args[3].value_union.ui64);
+	obs_video_info* canvas = args[3].value_union.ui64 ? osn::Video::Manager::GetInstance().find(args[3].value_union.ui64) : nullptr;
 #ifdef WIN32
 	displays.insert_or_assign(args[1].value_str, new OBS::Display(windowHandle, mode, canvas));
 	if (!IsWindows8OrGreater()) {

@@ -68,13 +68,18 @@ Napi::Value display::OBS_content_createDisplay(const Napi::CallbackInfo& info)
 
 	std::string key = info[1].ToString().Utf8Value();
 	int32_t mode = info[2].ToNumber().Int32Value();
-	osn::Video* video = Napi::ObjectWrap<osn::Video>::Unwrap(info[3].ToObject());
+	osn::Video* video = nullptr;
+	uint64_t canvasId = 0;	
+	if (info.Length() >= 4) {
+		video    = Napi::ObjectWrap<osn::Video>::Unwrap(info[3].ToObject());
+		canvasId = video->canvasId;
+	}
 
 	auto conn = GetConnection(info);
 	if (!conn)
 		return info.Env().Undefined();
  
-	conn->call("Display", "OBS_content_createDisplay", {ipc::value((uint64_t)windowHandle), ipc::value(key), ipc::value(mode), ipc::value(video->canvasId)});
+	conn->call("Display", "OBS_content_createDisplay", {ipc::value((uint64_t)windowHandle), ipc::value(key), ipc::value(mode), ipc::value(canvasId)});
 
 	return info.Env().Undefined();
 }

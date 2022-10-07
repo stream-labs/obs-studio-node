@@ -414,7 +414,12 @@ OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode,
 	}
 
 	m_renderingMode = mode;
-	this->canvas    = canvas;
+	if (!canvas) {
+		this->canvas = new obs_video_info;
+		obs_get_video_info_by_index(0, this->canvas);
+	} else {
+		this->canvas = canvas;
+	}
 
 	obs_display_add_draw_callback(m_display, DisplayCallback, this);
 	m_displayMtx.unlock();

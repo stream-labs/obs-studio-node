@@ -336,8 +336,11 @@ void osn::Scene::AddSource(
 		obs_sceneitem_set_blending_mode(item, (enum obs_blending_type)args[15].value_union.ui32);
 		obs_sceneitem_set_blending_method(item, (enum obs_blending_method)args[16].value_union.ui32);
 		
-		obs_video_info * canvas = osn::Video::Manager::GetInstance().find(args[17].value_union.ui64);
-		obs_sceneitem_set_canvas(item, canvas);
+		if (args.size() >= 18) {
+			obs_video_info* canvas = osn::Video::Manager::GetInstance().find(args[17].value_union.ui64);
+			if (canvas)
+				obs_sceneitem_set_canvas(item, canvas);
+		}
 	}
 
 	obs_sceneitem_addref(item);
