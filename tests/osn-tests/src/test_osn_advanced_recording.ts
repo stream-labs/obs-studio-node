@@ -45,9 +45,8 @@ describe(testName, () => {
 
     // Shutdown OBS process
     after(async function() {
-        // Releasing user got from pool
         context.destroy();
-
+        // Releasing user got from pool
         await obs.releaseUser();
 
         obs.shutdown();
@@ -132,7 +131,7 @@ describe(testName, () => {
         osn.AdvancedRecordingFactory.destroy(recording);
     });
 
-    it('Start recording - Stream', async () => {
+    it('Start advanced recording - Stream', async () => {
         const recording = osn.AdvancedRecordingFactory.create();
         recording.path = path.join(path.normalize(__dirname), '..', 'osnData');
         recording.format = ERecordingFormat.MP4;
@@ -262,7 +261,7 @@ describe(testName, () => {
         osn.AdvancedStreamingFactory.destroy(stream);
     });
 
-    it('Start recording - Custom encoders', async () => {
+    it('Start advanced recording - Custom encoders', async () => {
         const recording = osn.AdvancedRecordingFactory.create();
         recording.path = path.join(path.normalize(__dirname), '..', 'osnData');
         recording.format = ERecordingFormat.MP4;
@@ -331,7 +330,7 @@ describe(testName, () => {
         osn.AdvancedRecordingFactory.destroy(recording);
     });
 
-    it('Start recording - Dual Output', async () => {
+    it('Start advanced recording - Dual Output', async () => {
         const secondContext = osn.VideoFactory.create();
 
         const secondVideoInfo: osn.IVideoInfo = {

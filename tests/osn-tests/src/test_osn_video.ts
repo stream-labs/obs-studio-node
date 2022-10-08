@@ -49,6 +49,7 @@ describe(testName, () => {
         // Checking if skipped frames was returned properly
         expect(skippedFrames).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.VideoSkippedFrames));
         expect(skippedFrames).to.equal(0, GetErrorMessage(ETestErrorMsg.VideoSkippedFramesWrongValue));
+        context.destroy();
     });
 
     it('Get total frames value', () => {
@@ -59,6 +60,7 @@ describe(testName, () => {
         // Checking if total frames was returned properly
         expect(totalFrames).to.not.equal(undefined,  GetErrorMessage(ETestErrorMsg.VideoTotalFrames));
         expect(totalFrames).to.equal(0,  GetErrorMessage(ETestErrorMsg.VideoTotalFramesWrongValue));
+        context.destroy();
     });
 
     it('Create and set video context', () => {
@@ -80,6 +82,7 @@ describe(testName, () => {
         context.video = newVideoContext;
 
         const currentVideo = context.video;
+        console.log(currentVideo);
         expect(currentVideo.fpsNum).to.equal(120, GetErrorMessage(ETestErrorMsg.VideoSetFPSNum));
         expect(currentVideo.fpsDen).to.equal(2, GetErrorMessage(ETestErrorMsg.VideoSetFPSDen));
         expect(currentVideo.baseWidth).to.equal(3840, GetErrorMessage(ETestErrorMsg.VideoSetBaseWidth));
@@ -91,7 +94,6 @@ describe(testName, () => {
         expect(currentVideo.range).to.equal(osn.ERangeType.Full, GetErrorMessage(ETestErrorMsg.VideoSetRange));
         expect(currentVideo.scaleType).to.equal(osn.EScaleType.Lanczos, GetErrorMessage(ETestErrorMsg.VideoSetScaleType));
         context.destroy();
-
     });
 
     it('Create and set second video context', () => {
