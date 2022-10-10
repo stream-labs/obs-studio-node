@@ -233,7 +233,8 @@ void osn::Volmeter::Query(void *data, const int64_t id, const std::vector<ipc::v
 	AUTO_DEBUG;
 }
 
-void osn::Volmeter::OBSCallback(void *param, const float magnitude[MAX_AUDIO_CHANNELS], const float peak[MAX_AUDIO_CHANNELS], const float input_peak[MAX_AUDIO_CHANNELS])
+void osn::Volmeter::OBSCallback(void *param, const float magnitude[MAX_AUDIO_CHANNELS], const float peak[MAX_AUDIO_CHANNELS],
+				const float input_peak[MAX_AUDIO_CHANNELS])
 {
 	std::unique_lock<std::mutex> ulockMutex(mtx);
 	auto meter = Manager::GetInstance().find(*reinterpret_cast<uint64_t *>(param));

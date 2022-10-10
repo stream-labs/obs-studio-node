@@ -31,7 +31,8 @@ void osn::IDelay::Register(ipc::server &srv)
 	cls->register_function(std::make_shared<ipc::function>("GetDelaySec", std::vector<ipc::type>{ipc::type::UInt64}, GetDelaySec));
 	cls->register_function(std::make_shared<ipc::function>("SetDelaySec", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32}, SetDelaySec));
 	cls->register_function(std::make_shared<ipc::function>("GetPreserveDelay", std::vector<ipc::type>{ipc::type::UInt64}, GetPreserveDelay));
-	cls->register_function(std::make_shared<ipc::function>("SetPreserveDelay", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32}, SetPreserveDelay));
+	cls->register_function(
+		std::make_shared<ipc::function>("SetPreserveDelay", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32}, SetPreserveDelay));
 
 	srv.register_collection(cls);
 }

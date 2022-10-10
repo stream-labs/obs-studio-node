@@ -27,9 +27,11 @@ void osn::Audio::Register(ipc::server &srv)
 {
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Audio");
 	cls->register_function(std::make_shared<ipc::function>("GetAudioContext", std::vector<ipc::type>{}, GetAudioContext));
-	cls->register_function(std::make_shared<ipc::function>("SetAudioContext", std::vector<ipc::type>{ipc::type::UInt32, ipc::type::UInt32}, SetAudioContext));
+	cls->register_function(
+		std::make_shared<ipc::function>("SetAudioContext", std::vector<ipc::type>{ipc::type::UInt32, ipc::type::UInt32}, SetAudioContext));
 	cls->register_function(std::make_shared<ipc::function>("GetLegacySettings", std::vector<ipc::type>{}, GetLegacySettings));
-	cls->register_function(std::make_shared<ipc::function>("SetLegacySettings", std::vector<ipc::type>{ipc::type::UInt32, ipc::type::UInt32}, SetLegacySettings));
+	cls->register_function(
+		std::make_shared<ipc::function>("SetLegacySettings", std::vector<ipc::type>{ipc::type::UInt32, ipc::type::UInt32}, SetLegacySettings));
 	srv.register_collection(cls);
 }
 

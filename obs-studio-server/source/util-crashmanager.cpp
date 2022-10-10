@@ -223,8 +223,9 @@ nlohmann::json RequestProcessList()
 						SIZE_T totalProcessMemory = pmc.PagefileUsage + pmc.WorkingSetSize;
 						if (totalProcessMemory > 1024 * 1024 * 32) {
 							result.push_back({std::to_string(processID),
-									  std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t>().to_bytes(szProcessName) + std::string(", ") +
-										  std::to_string(totalProcessMemory / 1024 / 1024) + std::string("Mb")});
+									  std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t>().to_bytes(szProcessName) +
+										  std::string(", ") + std::to_string(totalProcessMemory / 1024 / 1024) +
+										  std::string("Mb")});
 
 							reported_processes_count++;
 						} else {
@@ -245,8 +246,9 @@ nlohmann::json RequestProcessList()
 			break;
 		}
 	}
-	result.push_back({std::string("0"), std::string("Total:") + std::to_string(cProcesses) + std::string(", Skipped:") + std::to_string(skipped_processes_count) +
-						    std::string(", Unprocessd:") + std::to_string(unprocessed_processes_count)});
+	result.push_back({std::string("0"), std::string("Total:") + std::to_string(cProcesses) + std::string(", Skipped:") +
+						    std::to_string(skipped_processes_count) + std::string(", Unprocessd:") +
+						    std::to_string(unprocessed_processes_count)});
 
 	return result;
 #else
@@ -613,8 +615,10 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 	systemResources.push_back({"Leaks", std::to_string(bnum_allocs())});
 	systemResources.push_back({"Total RAM", PrettyBytes(totalPhysMem)});
 
-	systemResources.push_back({"Total used RAM", PrettyBytes(physMemUsed) + " - percentage: " + std::to_string(double(physMemUsed * 100) / double(totalPhysMem)) + "%"});
-	systemResources.push_back({"OBS64 RAM", PrettyBytes(physMemUsedByMe) + " - percentage: " + std::to_string(double(physMemUsedByMe * 100) / double(totalPhysMem)) + "%"});
+	systemResources.push_back(
+		{"Total used RAM", PrettyBytes(physMemUsed) + " - percentage: " + std::to_string(double(physMemUsed * 100) / double(totalPhysMem)) + "%"});
+	systemResources.push_back(
+		{"OBS64 RAM", PrettyBytes(physMemUsedByMe) + " - percentage: " + std::to_string(double(physMemUsedByMe * 100) / double(totalPhysMem)) + "%"});
 	systemResources.push_back({"Commit charge", PrettyBytes(commitMemTotal) + " of " + PrettyBytes(commitMemLimit)});
 	systemResources.push_back({"CPU usage", std::to_string(int(totalCPUUsed)) + "%"});
 	annotations.insert({{"System Resources", systemResources.dump(4)}});
@@ -1172,8 +1176,8 @@ void util::CrashManager::ProcessPostServerCall(std::string cname, std::string fn
 	if (args.size() == 0) {
 		AddWarning(std::string("No return params on method ") + fname + std::string(" for class ") + cname);
 	} else if ((ErrorCode)args[0].value_union.ui64 != ErrorCode::Ok) {
-		AddWarning(std::string("Server call returned error number ") + std::to_string(args[0].value_union.ui64) + " on method " + fname + std::string(" for class ") +
-			   cname);
+		AddWarning(std::string("Server call returned error number ") + std::to_string(args[0].value_union.ui64) + " on method " + fname +
+			   std::string(" for class ") + cname);
 	}
 }
 

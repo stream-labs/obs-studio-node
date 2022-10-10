@@ -448,7 +448,8 @@ Napi::Object osn::ISource::CallHandler(const Napi::CallbackInfo &info, uint64_t 
 		return result;
 	}
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Source", "CallHandler", {ipc::value(id), ipc::value(fuction_name), ipc::value(fuction_input)});
+	std::vector<ipc::value> response =
+		conn->call_synchronous_helper("Source", "CallHandler", {ipc::value(id), ipc::value(fuction_name), ipc::value(fuction_input)});
 
 	if (!ValidateResponse(info, response)) {
 		Napi::TypeError::New(info.Env(), "Invalid IPC Response").ThrowAsJavaScriptException();

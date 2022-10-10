@@ -409,7 +409,8 @@ Napi::Value service::OBS_service_isVirtualCamPluginInstalled(const Napi::Callbac
 	TCHAR buf[TOTALBYTES] = {0};
 	DWORD dwBufSize = sizeof(buf);
 	if (error == ERROR_SUCCESS) {
-		error = RegOpenKeyEx(HKEY_CLASSES_ROOT, L"CLSID\\{27B05C2D-93DC-474A-A5DA-9BBA34CB2A9C}\\InprocServer32", 0, KEY_READ | KEY_QUERY_VALUE, &OpenResult);
+		error = RegOpenKeyEx(HKEY_CLASSES_ROOT, L"CLSID\\{27B05C2D-93DC-474A-A5DA-9BBA34CB2A9C}\\InprocServer32", 0, KEY_READ | KEY_QUERY_VALUE,
+				     &OpenResult);
 		if (error == ERROR_SUCCESS && OpenResult) {
 			dwRet = RegQueryValueExW(OpenResult, TEXT(""), NULL, NULL, (LPBYTE)buf, &dwBufSize);
 			if (dwRet == ERROR_SUCCESS && buf) {
@@ -452,5 +453,6 @@ void service::Init(Napi::Env env, Napi::Object exports)
 	exports.Set(Napi::String::New(env, "OBS_service_stopVirtualWebcam"), Napi::Function::New(env, service::OBS_service_stopVirtualWebcam));
 	exports.Set(Napi::String::New(env, "OBS_service_installVirtualCamPlugin"), Napi::Function::New(env, service::OBS_service_installVirtualCamPlugin));
 	exports.Set(Napi::String::New(env, "OBS_service_uninstallVirtualCamPlugin"), Napi::Function::New(env, service::OBS_service_uninstallVirtualCamPlugin));
-	exports.Set(Napi::String::New(env, "OBS_service_isVirtualCamPluginInstalled"), Napi::Function::New(env, service::OBS_service_isVirtualCamPluginInstalled));
+	exports.Set(Napi::String::New(env, "OBS_service_isVirtualCamPluginInstalled"),
+		    Napi::Function::New(env, service::OBS_service_isVirtualCamPluginInstalled));
 }

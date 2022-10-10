@@ -142,7 +142,8 @@ void OBS_API::Register(ipc::server &srv)
 	cls->register_function(std::make_shared<ipc::function>("SetWorkingDirectory", std::vector<ipc::type>{ipc::type::String}, SetWorkingDirectory));
 	cls->register_function(std::make_shared<ipc::function>("StopCrashHandler", std::vector<ipc::type>{}, StopCrashHandler));
 	cls->register_function(std::make_shared<ipc::function>("OBS_API_QueryHotkeys", std::vector<ipc::type>{}, QueryHotkeys));
-	cls->register_function(std::make_shared<ipc::function>("OBS_API_ProcessHotkeyStatus", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32}, ProcessHotkeyStatus));
+	cls->register_function(std::make_shared<ipc::function>("OBS_API_ProcessHotkeyStatus", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32},
+							       ProcessHotkeyStatus));
 	cls->register_function(std::make_shared<ipc::function>("SetUsername", std::vector<ipc::type>{ipc::type::String}, SetUsername));
 	cls->register_function(std::make_shared<ipc::function>("SetBrowserAcceleration", std::vector<ipc::type>{ipc::type::UInt32}, SetBrowserAcceleration));
 	cls->register_function(std::make_shared<ipc::function>("GetBrowserAcceleration", std::vector<ipc::type>{}, GetBrowserAcceleration));
@@ -162,7 +163,8 @@ void OBS_API::Register(ipc::server &srv)
 	cls->register_function(std::make_shared<ipc::function>("GetHdrNominalPeakLevelLegacy", std::vector<ipc::type>{}, GetHdrNominalPeakLevelLegacy));
 	cls->register_function(std::make_shared<ipc::function>("GetLowLatencyAudioBuffering", std::vector<ipc::type>{}, GetLowLatencyAudioBuffering));
 	cls->register_function(std::make_shared<ipc::function>("SetLowLatencyAudioBuffering", std::vector<ipc::type>{}, SetLowLatencyAudioBuffering));
-	cls->register_function(std::make_shared<ipc::function>("GetLowLatencyAudioBufferingLegacy", std::vector<ipc::type>{}, GetLowLatencyAudioBufferingLegacy));
+	cls->register_function(
+		std::make_shared<ipc::function>("GetLowLatencyAudioBufferingLegacy", std::vector<ipc::type>{}, GetLowLatencyAudioBufferingLegacy));
 
 	srv.register_collection(cls);
 	g_server = &srv;
@@ -221,8 +223,8 @@ static std::string GenerateTimeDateFilename(const char *extension)
 	struct tm *cur_time;
 
 	cur_time = localtime(&now);
-	snprintf(file, sizeof(file), "%d-%02d-%02d %02d-%02d-%02d.%s", cur_time->tm_year + 1900, cur_time->tm_mon + 1, cur_time->tm_mday, cur_time->tm_hour, cur_time->tm_min,
-		 cur_time->tm_sec, extension);
+	snprintf(file, sizeof(file), "%d-%02d-%02d %02d-%02d-%02d.%s", cur_time->tm_year + 1900, cur_time->tm_mon + 1, cur_time->tm_mday, cur_time->tm_hour,
+		 cur_time->tm_min, cur_time->tm_sec, extension);
 
 	return std::string(file);
 }
@@ -481,11 +483,13 @@ static void node_obs_log(int log_level, const char *msg, va_list args, void *par
 	std::array<char, 160> timebuf{};
 	static const std::string_view timeformat("[%.3d:%.2d:%.2d:%.2d.%.3d.%.3d.%.3d][%*s][%*s]");
 #ifdef WIN32
-	int length = sprintf_s(timebuf.data(), timebuf.size(), timeformat.data(), days.count(), hours.count(), minutes.count(), seconds.count(), milliseconds.count(),
-			       microseconds.count(), nanoseconds.count(), thread_id.length(), thread_id.c_str(), levelname.length(), levelname.data());
+	int length = sprintf_s(timebuf.data(), timebuf.size(), timeformat.data(), days.count(), hours.count(), minutes.count(), seconds.count(),
+			       milliseconds.count(), microseconds.count(), nanoseconds.count(), thread_id.length(), thread_id.c_str(), levelname.length(),
+			       levelname.data());
 #else
-	int length = snprintf(timebuf.data(), timebuf.size(), timeformat.data(), days.count(), hours.count(), minutes.count(), seconds.count(), milliseconds.count(),
-			      microseconds.count(), nanoseconds.count(), thread_id.length(), thread_id.c_str(), levelname.length(), levelname.data());
+	int length = snprintf(timebuf.data(), timebuf.size(), timeformat.data(), days.count(), hours.count(), minutes.count(), seconds.count(),
+			      milliseconds.count(), microseconds.count(), nanoseconds.count(), thread_id.length(), thread_id.c_str(), levelname.length(),
+			      levelname.data());
 #endif
 	if (length < 0)
 		return;
@@ -612,8 +616,8 @@ std::vector<char> registerMemoryDump(void)
 
 	// Buffer
 	std::vector<char> buffer;
-	buffer.resize(sizeof(action) + sizeof(pid) + sizeof(int) + eventName_Start_Size + sizeof(int) + eventName_Fail_Size + sizeof(int) + eventName_Success_Size + sizeof(int) +
-		      dumpPathSize + sizeof(int) + dumpNameSize);
+	buffer.resize(sizeof(action) + sizeof(pid) + sizeof(int) + eventName_Start_Size + sizeof(int) + eventName_Fail_Size + sizeof(int) +
+		      eventName_Success_Size + sizeof(int) + dumpPathSize + sizeof(int) + dumpNameSize);
 	uint32_t offset = 0;
 
 	//@uint32_t - pid
@@ -771,7 +775,8 @@ static bool checkIfDebugLogsEnabled(const std::string &appdata)
 void addModulePaths()
 {
 #if defined(_WIN32)
-	obs_add_module_path(std::string(g_moduleDirectory + "/obs-plugins/64bit").c_str(), std::string(g_moduleDirectory + "/data/obs-plugins/%module%").c_str());
+	obs_add_module_path(std::string(g_moduleDirectory + "/obs-plugins/64bit").c_str(),
+			    std::string(g_moduleDirectory + "/data/obs-plugins/%module%").c_str());
 	obs_add_module_path(std::string(slobs_plugin + "/obs-plugins/64bit").c_str(), std::string(slobs_plugin + "/data/obs-plugins/%module%").c_str());
 #elif defined(__APPLE__)
 
@@ -1623,8 +1628,9 @@ void OBS_API::destroyOBS_API(void)
 	// If there are some sources here it's because it ended unexpectedly, this represents a
 	// problem since obs doesn't handle releasing leaked sources very well. The best we can
 	// do is to insert a try-catch block and disable the crash handler to avoid false positives
-	if (osn::Source::Manager::GetInstance().size() > 0 || osn::Scene::Manager::GetInstance().size() > 0 || osn::SceneItem::Manager::GetInstance().size() > 0 ||
-	    osn::Transition::Manager::GetInstance().size() > 0 || osn::Filter::Manager::GetInstance().size() > 0 || osn::Input::Manager::GetInstance().size() > 0) {
+	if (osn::Source::Manager::GetInstance().size() > 0 || osn::Scene::Manager::GetInstance().size() > 0 ||
+	    osn::SceneItem::Manager::GetInstance().size() > 0 || osn::Transition::Manager::GetInstance().size() > 0 ||
+	    osn::Filter::Manager::GetInstance().size() > 0 || osn::Input::Manager::GetInstance().size() > 0) {
 
 		for (int i = 0; i < MAX_CHANNELS; i++)
 			obs_set_output_source(i, nullptr);
@@ -1923,7 +1929,8 @@ static BOOL CALLBACK MonitorEnumProc(HMONITOR hMonitor, HDC hdcMonitor, LPRECT l
 	if (GetMonitorInfo(hMonitor, &info)) {
 		std::vector<std::pair<uint32_t, uint32_t>> *resolutions = reinterpret_cast<std::vector<std::pair<uint32_t, uint32_t>> *>(dwData);
 
-		resolutions->push_back(std::make_pair(std::abs(info.rcMonitor.left - info.rcMonitor.right), std::abs(info.rcMonitor.top - info.rcMonitor.bottom)));
+		resolutions->push_back(
+			std::make_pair(std::abs(info.rcMonitor.left - info.rcMonitor.right), std::abs(info.rcMonitor.top - info.rcMonitor.bottom)));
 	}
 	return true;
 }

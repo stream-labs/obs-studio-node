@@ -24,15 +24,16 @@ Napi::FunctionReference osn::AudioTrack::constructor;
 Napi::Object osn::AudioTrack::Init(Napi::Env env, Napi::Object exports)
 {
 	Napi::HandleScope scope(env);
-	Napi::Function func = DefineClass(env, "AudioTrack",
-					  {StaticMethod("create", &osn::AudioTrack::Create), StaticAccessor("audioTracks", &osn::AudioTrack::GetAudioTracks, nullptr),
-					   StaticAccessor("audioBitrates", &osn::AudioTrack::GetAudioBitrates, nullptr), StaticMethod("getAtIndex", &osn::AudioTrack::GetAtIndex),
-					   StaticMethod("setAtIndex", &osn::AudioTrack::SetAtIndex),
+	Napi::Function func =
+		DefineClass(env, "AudioTrack",
+			    {StaticMethod("create", &osn::AudioTrack::Create), StaticAccessor("audioTracks", &osn::AudioTrack::GetAudioTracks, nullptr),
+			     StaticAccessor("audioBitrates", &osn::AudioTrack::GetAudioBitrates, nullptr),
+			     StaticMethod("getAtIndex", &osn::AudioTrack::GetAtIndex), StaticMethod("setAtIndex", &osn::AudioTrack::SetAtIndex),
 
-					   InstanceAccessor("bitrate", &osn::AudioTrack::GetBitrate, &osn::AudioTrack::SetBitrate),
-					   InstanceAccessor("name", &osn::AudioTrack::GetName, &osn::AudioTrack::SetName),
-					   StaticMethod("importLegacySettings", &osn::AudioTrack::ImportLegacySettings),
-					   StaticMethod("saveLegacySettings", &osn::AudioTrack::SaveLegacySettings)});
+			     InstanceAccessor("bitrate", &osn::AudioTrack::GetBitrate, &osn::AudioTrack::SetBitrate),
+			     InstanceAccessor("name", &osn::AudioTrack::GetName, &osn::AudioTrack::SetName),
+			     StaticMethod("importLegacySettings", &osn::AudioTrack::ImportLegacySettings),
+			     StaticMethod("saveLegacySettings", &osn::AudioTrack::SaveLegacySettings)});
 
 	exports.Set("AudioTrack", func);
 	osn::AudioTrack::constructor = Napi::Persistent(func);

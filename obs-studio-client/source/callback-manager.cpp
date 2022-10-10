@@ -149,8 +149,8 @@ void globalCallback::worker()
 		}
 
 		{
-			std::vector<ipc::value> response =
-				conn->call_synchronous_helper("CallbackManager", "GlobalQuery", {ipc::value((uint64_t)volmeters_ids.size()), ipc::value(volmeters_ids)});
+			std::vector<ipc::value> response = conn->call_synchronous_helper(
+				"CallbackManager", "GlobalQuery", {ipc::value((uint64_t)volmeters_ids.size()), ipc::value(volmeters_ids)});
 			if (!response.size() || (response.size() == 1)) {
 				goto do_sleep;
 			}

@@ -29,7 +29,8 @@ void osn::Filter::Register(ipc::server &srv)
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Filter");
 	cls->register_function(std::make_shared<ipc::function>("Types", std::vector<ipc::type>{}, Types));
 	cls->register_function(std::make_shared<ipc::function>("Create", std::vector<ipc::type>{ipc::type::String, ipc::type::String}, Create));
-	cls->register_function(std::make_shared<ipc::function>("Create", std::vector<ipc::type>{ipc::type::String, ipc::type::String, ipc::type::String}, Create));
+	cls->register_function(
+		std::make_shared<ipc::function>("Create", std::vector<ipc::type>{ipc::type::String, ipc::type::String, ipc::type::String}, Create));
 	srv.register_collection(cls);
 }
 

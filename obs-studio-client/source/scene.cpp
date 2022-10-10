@@ -218,8 +218,8 @@ Napi::Value osn::Scene::Duplicate(const Napi::CallbackInfo &info)
 	if (!conn)
 		return info.Env().Undefined();
 
-	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("Scene", "Duplicate", std::vector<ipc::value>{ipc::value(this->sourceId), ipc::value(name), ipc::value(duplicate_type)});
+	std::vector<ipc::value> response = conn->call_synchronous_helper(
+		"Scene", "Duplicate", std::vector<ipc::value>{ipc::value(this->sourceId), ipc::value(name), ipc::value(duplicate_type)});
 
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
@@ -447,7 +447,8 @@ Napi::Value osn::Scene::OrderItems(const Napi::CallbackInfo &info)
 	if (!conn)
 		return info.Env().Undefined();
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Scene", "OrderItems", std::vector<ipc::value>{ipc::value(this->sourceId), ipc::value(order_char)});
+	std::vector<ipc::value> response =
+		conn->call_synchronous_helper("Scene", "OrderItems", std::vector<ipc::value>{ipc::value(this->sourceId), ipc::value(order_char)});
 
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
@@ -474,7 +475,8 @@ Napi::Value osn::Scene::GetItemAtIndex(const Napi::CallbackInfo &info)
 	if (!conn)
 		return info.Env().Undefined();
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Scene", "GetItem", std::vector<ipc::value>{ipc::value(this->sourceId), ipc::value(index)});
+	std::vector<ipc::value> response =
+		conn->call_synchronous_helper("Scene", "GetItem", std::vector<ipc::value>{ipc::value(this->sourceId), ipc::value(index)});
 
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
@@ -547,8 +549,8 @@ Napi::Value osn::Scene::GetItemsInRange(const Napi::CallbackInfo &info)
 	if (!conn)
 		return info.Env().Undefined();
 
-	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("Scene", "GetItemsInRange", std::vector<ipc::value>{ipc::value(this->sourceId), ipc::value(from), ipc::value(to)});
+	std::vector<ipc::value> response = conn->call_synchronous_helper("Scene", "GetItemsInRange",
+									 std::vector<ipc::value>{ipc::value(this->sourceId), ipc::value(from), ipc::value(to)});
 
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();

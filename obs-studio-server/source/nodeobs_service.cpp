@@ -84,17 +84,21 @@ void OBS_service::Register(ipc::server &srv)
 	cls->register_function(std::make_shared<ipc::function>("OBS_service_startStreaming", std::vector<ipc::type>{}, OBS_service_startStreaming));
 	cls->register_function(std::make_shared<ipc::function>("OBS_service_startRecording", std::vector<ipc::type>{}, OBS_service_startRecording));
 	cls->register_function(std::make_shared<ipc::function>("OBS_service_startReplayBuffer", std::vector<ipc::type>{}, OBS_service_startReplayBuffer));
-	cls->register_function(std::make_shared<ipc::function>("OBS_service_stopStreaming", std::vector<ipc::type>{ipc::type::Int32}, OBS_service_stopStreaming));
+	cls->register_function(
+		std::make_shared<ipc::function>("OBS_service_stopStreaming", std::vector<ipc::type>{ipc::type::Int32}, OBS_service_stopStreaming));
 	cls->register_function(std::make_shared<ipc::function>("OBS_service_stopRecording", std::vector<ipc::type>{}, OBS_service_stopRecording));
-	cls->register_function(std::make_shared<ipc::function>("OBS_service_stopReplayBuffer", std::vector<ipc::type>{ipc::type::Int32}, OBS_service_stopReplayBuffer));
+	cls->register_function(
+		std::make_shared<ipc::function>("OBS_service_stopReplayBuffer", std::vector<ipc::type>{ipc::type::Int32}, OBS_service_stopReplayBuffer));
 	cls->register_function(std::make_shared<ipc::function>("OBS_service_connectOutputSignals", std::vector<ipc::type>{}, OBS_service_connectOutputSignals));
 	cls->register_function(std::make_shared<ipc::function>("Query", std::vector<ipc::type>{}, Query));
-	cls->register_function(std::make_shared<ipc::function>("OBS_service_processReplayBufferHotkey", std::vector<ipc::type>{}, OBS_service_processReplayBufferHotkey));
+	cls->register_function(
+		std::make_shared<ipc::function>("OBS_service_processReplayBufferHotkey", std::vector<ipc::type>{}, OBS_service_processReplayBufferHotkey));
 	cls->register_function(std::make_shared<ipc::function>("OBS_service_splitFile", std::vector<ipc::type>{}, OBS_service_splitFile));
 	cls->register_function(std::make_shared<ipc::function>("OBS_service_getLastReplay", std::vector<ipc::type>{}, OBS_service_getLastReplay));
 	cls->register_function(std::make_shared<ipc::function>("OBS_service_getLastRecording", std::vector<ipc::type>{}, OBS_service_getLastRecording));
 
-	cls->register_function(std::make_shared<ipc::function>("OBS_service_createVirtualWebcam", std::vector<ipc::type>{ipc::type::String}, OBS_service_createVirtualWebcam));
+	cls->register_function(
+		std::make_shared<ipc::function>("OBS_service_createVirtualWebcam", std::vector<ipc::type>{ipc::type::String}, OBS_service_createVirtualWebcam));
 	cls->register_function(std::make_shared<ipc::function>("OBS_service_removeVirtualWebcam", std::vector<ipc::type>{}, OBS_service_removeVirtualWebcam));
 	cls->register_function(std::make_shared<ipc::function>("OBS_service_startVirtualWebcam", std::vector<ipc::type>{}, OBS_service_startVirtualWebcam));
 	cls->register_function(std::make_shared<ipc::function>("OBS_service_stopVirtualWebcan", std::vector<ipc::type>{}, OBS_service_stopVirtualWebcan));
@@ -581,12 +585,14 @@ obs_video_info OBS_service::prepareOBSVideoInfo(bool reload, bool defaultConf)
 
 static void copyDefaultUIntToUserBasicConfig(const char *section, const char *name)
 {
-	config_set_uint(ConfigManager::getInstance().getBasic(), section, name, config_get_default_uint(ConfigManager::getInstance().getBasic(), section, name));
+	config_set_uint(ConfigManager::getInstance().getBasic(), section, name,
+			config_get_default_uint(ConfigManager::getInstance().getBasic(), section, name));
 }
 
 static void copyDefaultStringToUserBasicConfig(const char *section, const char *name)
 {
-	config_set_string(ConfigManager::getInstance().getBasic(), section, name, config_get_default_string(ConfigManager::getInstance().getBasic(), section, name));
+	config_set_string(ConfigManager::getInstance().getBasic(), section, name,
+			  config_get_default_string(ConfigManager::getInstance().getBasic(), section, name));
 }
 
 void OBS_service::keepFallbackVideoConfig(const obs_video_info &ovi)
@@ -1296,7 +1302,8 @@ bool OBS_service::startRecording(void)
 		LoadRecordingPreset_Lossless();
 		ffmpegOutput = true;
 	} else {
-		if (!(obs_get_multiple_rendering() && obs_get_replay_buffer_rendering_mode() == OBS_RECORDING_REPLAY_BUFFER_RENDERING && isReplayBufferActive)) {
+		if (!(obs_get_multiple_rendering() && obs_get_replay_buffer_rendering_mode() == OBS_RECORDING_REPLAY_BUFFER_RENDERING &&
+		      isReplayBufferActive)) {
 			useStreamEncoder = updateRecordingEncoders(isSimpleMode);
 		}
 	}
@@ -1818,9 +1825,11 @@ void OBS_service::updateFfmpegOutput(bool isSimpleMode, obs_output_t *output)
 		if (config_get_bool(ConfigManager::getInstance().getBasic(), "AdvOut", "RecSplitFile")) {
 			const char *splitFileType = config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "RecSplitFileType");
 			if (strcmp(splitFileType, "Time") == 0)
-				obs_data_set_int(settings, "max_time_sec", config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "RecSplitFileTime") * 60);
+				obs_data_set_int(settings, "max_time_sec",
+						 config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "RecSplitFileTime") * 60);
 			else if (strcmp(splitFileType, "Size") == 0)
-				obs_data_set_int(settings, "max_size_mb", config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "RecSplitFileSize"));
+				obs_data_set_int(settings, "max_size_mb",
+						 config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "RecSplitFileSize"));
 
 			obs_data_set_string(settings, "directory", path);
 			obs_data_set_string(settings, "format", fileNameFormat);
@@ -1829,7 +1838,8 @@ void OBS_service::updateFfmpegOutput(bool isSimpleMode, obs_output_t *output)
 			obs_data_set_bool(settings, "allow_overwrite", overwriteIfExists);
 			obs_data_set_bool(settings, "split_file", true);
 
-			obs_data_set_bool(settings, "reset_timestamps", config_get_bool(ConfigManager::getInstance().getBasic(), "AdvOut", "RecSplitFileResetTimestamps"));
+			obs_data_set_bool(settings, "reset_timestamps",
+					  config_get_bool(ConfigManager::getInstance().getBasic(), "AdvOut", "RecSplitFileResetTimestamps"));
 		}
 
 		obs_output_update(output, settings);
@@ -2150,13 +2160,15 @@ void OBS_service::updateVideoRecordingEncoderSettings()
 	bool ultra_hq = (videoQuality == "HQ");
 	int crf = CalcCRF(ultra_hq ? 16 : 23);
 
-	if (videoEncoder.compare(SIMPLE_ENCODER_X264) == 0 || videoEncoder.compare(ADVANCED_ENCODER_X264) == 0 || videoEncoder.compare(SIMPLE_ENCODER_X264_LOWCPU) == 0) {
+	if (videoEncoder.compare(SIMPLE_ENCODER_X264) == 0 || videoEncoder.compare(ADVANCED_ENCODER_X264) == 0 ||
+	    videoEncoder.compare(SIMPLE_ENCODER_X264_LOWCPU) == 0) {
 		UpdateRecordingSettings_x264_crf(crf);
 
 	} else if (videoEncoder.compare(SIMPLE_ENCODER_QSV) == 0 || videoEncoder.compare(ADVANCED_ENCODER_QSV) == 0) {
 		UpdateRecordingSettings_qsv11(crf);
 
-	} else if (videoEncoder.compare(SIMPLE_ENCODER_AMD) == 0 || videoEncoder.compare(SIMPLE_ENCODER_AMD_HEVC) == 0 || videoEncoder.compare(ADVANCED_ENCODER_AMD) == 0) {
+	} else if (videoEncoder.compare(SIMPLE_ENCODER_AMD) == 0 || videoEncoder.compare(SIMPLE_ENCODER_AMD_HEVC) == 0 ||
+		   videoEncoder.compare(ADVANCED_ENCODER_AMD) == 0) {
 		UpdateRecordingSettings_amd_cqp(crf);
 
 	} else if (videoEncoder.compare(SIMPLE_ENCODER_NVENC) == 0 || videoEncoder.compare(ADVANCED_ENCODER_NVENC) == 0) {
@@ -2420,7 +2432,8 @@ void OBS_service::connectOutputSignals(void)
 
 		// Connect streaming output
 		for (int i = 0; i < streamingSignals.size(); i++) {
-			signal_handler_connect(streamingOutputSignalHandler, streamingSignals.at(i).getSignal().c_str(), JSCallbackOutputSignal, &(streamingSignals.at(i)));
+			signal_handler_connect(streamingOutputSignalHandler, streamingSignals.at(i).getSignal().c_str(), JSCallbackOutputSignal,
+					       &(streamingSignals.at(i)));
 		}
 	}
 
@@ -2429,7 +2442,8 @@ void OBS_service::connectOutputSignals(void)
 
 		// Connect recording output
 		for (int i = 0; i < recordingSignals.size(); i++) {
-			signal_handler_connect(recordingOutputSignalHandler, recordingSignals.at(i).getSignal().c_str(), JSCallbackOutputSignal, &(recordingSignals.at(i)));
+			signal_handler_connect(recordingOutputSignalHandler, recordingSignals.at(i).getSignal().c_str(), JSCallbackOutputSignal,
+					       &(recordingSignals.at(i)));
 		}
 	}
 
@@ -2696,7 +2710,8 @@ bool OBS_service::startTwitchSoundtrackAudio(void)
 	obs_source_release(desktopSource2);
 
 	if (!streamArchiveEncST) {
-		streamArchiveEncST = obs_audio_encoder_create("ffmpeg_aac", "Soundtrack by Twitch Archive Encoder", nullptr, kSoundtrackArchiveTrackIdx, nullptr);
+		streamArchiveEncST =
+			obs_audio_encoder_create("ffmpeg_aac", "Soundtrack by Twitch Archive Encoder", nullptr, kSoundtrackArchiveTrackIdx, nullptr);
 		obs_encoder_set_audio(streamArchiveEncST, obs_get_audio());
 	}
 
@@ -2793,7 +2808,8 @@ void OBS_service::setupVodTrack(bool isSimpleMode)
 
 	if (vodTrackEnabled && streamTrack != vodTrackIndex) {
 		std::string id;
-		if (createAudioEncoder(&streamArchiveEncVod, id, isSimpleMode ? GetSimpleAudioBitrate() : GetAdvancedAudioBitrate(vodTrackIndex), ARCHIVE_NAME, vodTrackIndex)) {
+		if (createAudioEncoder(&streamArchiveEncVod, id, isSimpleMode ? GetSimpleAudioBitrate() : GetAdvancedAudioBitrate(vodTrackIndex), ARCHIVE_NAME,
+				       vodTrackIndex)) {
 			obs_encoder_set_audio(streamArchiveEncVod, obs_get_audio());
 			obs_output_set_audio_encoder(streamingOutput, streamArchiveEncVod, 1);
 		}

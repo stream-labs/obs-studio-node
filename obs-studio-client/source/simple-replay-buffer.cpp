@@ -27,31 +27,32 @@ Napi::FunctionReference osn::SimpleReplayBuffer::constructor;
 Napi::Object osn::SimpleReplayBuffer::Init(Napi::Env env, Napi::Object exports)
 {
 	Napi::HandleScope scope(env);
-	Napi::Function func = DefineClass(env, "SimpleReplayBuffer",
-					  {StaticMethod("create", &osn::SimpleReplayBuffer::Create),
-					   StaticMethod("destroy", &osn::SimpleReplayBuffer::Destroy),
+	Napi::Function func =
+		DefineClass(env, "SimpleReplayBuffer",
+			    {StaticMethod("create", &osn::SimpleReplayBuffer::Create),
+			     StaticMethod("destroy", &osn::SimpleReplayBuffer::Destroy),
 
-					   InstanceAccessor("path", &osn::SimpleReplayBuffer::GetPath, &osn::SimpleReplayBuffer::SetPath),
-					   InstanceAccessor("format", &osn::SimpleReplayBuffer::GetFormat, &osn::SimpleReplayBuffer::SetFormat),
-					   InstanceAccessor("muxerSettings", &osn::SimpleReplayBuffer::GetMuxerSettings, &osn::SimpleReplayBuffer::SetMuxerSettings),
-					   InstanceAccessor("fileFormat", &osn::SimpleReplayBuffer::GetFileFormat, &osn::SimpleReplayBuffer::SetFileFormat),
-					   InstanceAccessor("overwrite", &osn::SimpleReplayBuffer::GetOverwrite, &osn::SimpleReplayBuffer::SetOverwrite),
-					   InstanceAccessor("noSpace", &osn::SimpleReplayBuffer::GetNoSpace, &osn::SimpleReplayBuffer::SetNoSpace),
-					   InstanceAccessor("duration", &osn::SimpleReplayBuffer::GetDuration, &osn::SimpleReplayBuffer::SetDuration),
-					   InstanceAccessor("prefix", &osn::SimpleReplayBuffer::GetPrefix, &osn::SimpleReplayBuffer::SetPrefix),
-					   InstanceAccessor("suffix", &osn::SimpleReplayBuffer::GetSuffix, &osn::SimpleReplayBuffer::SetSuffix),
-					   InstanceAccessor("signalHandler", &osn::SimpleReplayBuffer::GetSignalHandler, &osn::SimpleReplayBuffer::SetSignalHandler),
-					   InstanceAccessor("usesStream", &osn::SimpleReplayBuffer::GetUsesStream, &osn::SimpleReplayBuffer::SetUsesStream),
-					   InstanceAccessor("streaming", &osn::SimpleReplayBuffer::GetStreaming, &osn::SimpleReplayBuffer::SetStreaming),
-					   InstanceAccessor("recording", &osn::SimpleReplayBuffer::GetRecording, &osn::SimpleReplayBuffer::SetRecording),
+			     InstanceAccessor("path", &osn::SimpleReplayBuffer::GetPath, &osn::SimpleReplayBuffer::SetPath),
+			     InstanceAccessor("format", &osn::SimpleReplayBuffer::GetFormat, &osn::SimpleReplayBuffer::SetFormat),
+			     InstanceAccessor("muxerSettings", &osn::SimpleReplayBuffer::GetMuxerSettings, &osn::SimpleReplayBuffer::SetMuxerSettings),
+			     InstanceAccessor("fileFormat", &osn::SimpleReplayBuffer::GetFileFormat, &osn::SimpleReplayBuffer::SetFileFormat),
+			     InstanceAccessor("overwrite", &osn::SimpleReplayBuffer::GetOverwrite, &osn::SimpleReplayBuffer::SetOverwrite),
+			     InstanceAccessor("noSpace", &osn::SimpleReplayBuffer::GetNoSpace, &osn::SimpleReplayBuffer::SetNoSpace),
+			     InstanceAccessor("duration", &osn::SimpleReplayBuffer::GetDuration, &osn::SimpleReplayBuffer::SetDuration),
+			     InstanceAccessor("prefix", &osn::SimpleReplayBuffer::GetPrefix, &osn::SimpleReplayBuffer::SetPrefix),
+			     InstanceAccessor("suffix", &osn::SimpleReplayBuffer::GetSuffix, &osn::SimpleReplayBuffer::SetSuffix),
+			     InstanceAccessor("signalHandler", &osn::SimpleReplayBuffer::GetSignalHandler, &osn::SimpleReplayBuffer::SetSignalHandler),
+			     InstanceAccessor("usesStream", &osn::SimpleReplayBuffer::GetUsesStream, &osn::SimpleReplayBuffer::SetUsesStream),
+			     InstanceAccessor("streaming", &osn::SimpleReplayBuffer::GetStreaming, &osn::SimpleReplayBuffer::SetStreaming),
+			     InstanceAccessor("recording", &osn::SimpleReplayBuffer::GetRecording, &osn::SimpleReplayBuffer::SetRecording),
 
-					   InstanceMethod("start", &osn::SimpleReplayBuffer::Start),
-					   InstanceMethod("stop", &osn::SimpleReplayBuffer::Stop),
+			     InstanceMethod("start", &osn::SimpleReplayBuffer::Start),
+			     InstanceMethod("stop", &osn::SimpleReplayBuffer::Stop),
 
-					   InstanceMethod("save", &osn::SimpleReplayBuffer::Save),
-					   InstanceMethod("lastFile", &osn::SimpleReplayBuffer::GetLastFile),
+			     InstanceMethod("save", &osn::SimpleReplayBuffer::Save),
+			     InstanceMethod("lastFile", &osn::SimpleReplayBuffer::GetLastFile),
 
-					   StaticAccessor("legacySettings", &osn::SimpleReplayBuffer::GetLegacySettings, &osn::SimpleReplayBuffer::SetLegacySettings)});
+			     StaticAccessor("legacySettings", &osn::SimpleReplayBuffer::GetLegacySettings, &osn::SimpleReplayBuffer::SetLegacySettings)});
 
 	exports.Set("SimpleReplayBuffer", func);
 	osn::SimpleReplayBuffer::constructor = Napi::Persistent(func);

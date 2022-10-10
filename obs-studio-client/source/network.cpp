@@ -24,16 +24,17 @@ Napi::FunctionReference osn::Network::constructor;
 Napi::Object osn::Network::Init(Napi::Env env, Napi::Object exports)
 {
 	Napi::HandleScope scope(env);
-	Napi::Function func = DefineClass(env, "Network",
-					  {
-						  StaticMethod("create", &osn::Network::Create),
+	Napi::Function func =
+		DefineClass(env, "Network",
+			    {
+				    StaticMethod("create", &osn::Network::Create),
 
-						  InstanceAccessor("bindIP", &osn::Network::GetBindIP, &osn::Network::SetBindIP),
-						  InstanceAccessor("networkInterfaces", &osn::Network::GetNetworkInterfaces, nullptr),
-						  InstanceAccessor("enableDynamicBitrate", &osn::Network::GetEnableDynamicBitrate, &osn::Network::SetEnableDynamicBitrate),
-						  InstanceAccessor("enableOptimizations", &osn::Network::GetEnableOptimizations, &osn::Network::SetEnableOptimizations),
-						  InstanceAccessor("enableLowLatency", &osn::Network::GetEnableLowLatency, &osn::Network::SetEnableLowLatency),
-					  });
+				    InstanceAccessor("bindIP", &osn::Network::GetBindIP, &osn::Network::SetBindIP),
+				    InstanceAccessor("networkInterfaces", &osn::Network::GetNetworkInterfaces, nullptr),
+				    InstanceAccessor("enableDynamicBitrate", &osn::Network::GetEnableDynamicBitrate, &osn::Network::SetEnableDynamicBitrate),
+				    InstanceAccessor("enableOptimizations", &osn::Network::GetEnableOptimizations, &osn::Network::SetEnableOptimizations),
+				    InstanceAccessor("enableLowLatency", &osn::Network::GetEnableLowLatency, &osn::Network::SetEnableLowLatency),
+			    });
 
 	exports.Set("Network", func);
 	osn::Network::constructor = Napi::Persistent(func);

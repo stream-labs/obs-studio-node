@@ -49,8 +49,8 @@ Napi::Value api::OBS_API_initAPI(const Napi::CallbackInfo &info)
 
 	conn->set_freez_callback(ipc_freez_callback, path);
 
-	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("API", "OBS_API_initAPI", {ipc::value(path), ipc::value(language), ipc::value(version), ipc::value(crashserverurl)});
+	std::vector<ipc::value> response = conn->call_synchronous_helper(
+		"API", "OBS_API_initAPI", {ipc::value(path), ipc::value(language), ipc::value(version), ipc::value(crashserverurl)});
 
 	// The API init method will return a response error + graphical error
 	// If there is a problem with the IPC the number of responses here will be zero so we must validate the

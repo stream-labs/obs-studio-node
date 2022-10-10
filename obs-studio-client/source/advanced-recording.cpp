@@ -25,38 +25,38 @@ Napi::FunctionReference osn::AdvancedRecording::constructor;
 Napi::Object osn::AdvancedRecording::Init(Napi::Env env, Napi::Object exports)
 {
 	Napi::HandleScope scope(env);
-	Napi::Function func =
-		DefineClass(env, "AdvancedRecording",
-			    {StaticMethod("create", &osn::AdvancedRecording::Create),
-			     StaticMethod("destroy", &osn::AdvancedRecording::Destroy),
+	Napi::Function func = DefineClass(
+		env, "AdvancedRecording",
+		{StaticMethod("create", &osn::AdvancedRecording::Create),
+		 StaticMethod("destroy", &osn::AdvancedRecording::Destroy),
 
-			     InstanceAccessor("path", &osn::AdvancedRecording::GetPath, &osn::AdvancedRecording::SetPath),
-			     InstanceAccessor("format", &osn::AdvancedRecording::GetFormat, &osn::AdvancedRecording::SetFormat),
-			     InstanceAccessor("muxerSettings", &osn::AdvancedRecording::GetMuxerSettings, &osn::AdvancedRecording::SetMuxerSettings),
-			     InstanceAccessor("fileFormat", &osn::AdvancedRecording::GetFileFormat, &osn::AdvancedRecording::SetFileFormat),
-			     InstanceAccessor("overwrite", &osn::AdvancedRecording::GetOverwrite, &osn::AdvancedRecording::SetOverwrite),
-			     InstanceAccessor("noSpace", &osn::AdvancedRecording::GetNoSpace, &osn::AdvancedRecording::SetNoSpace),
+		 InstanceAccessor("path", &osn::AdvancedRecording::GetPath, &osn::AdvancedRecording::SetPath),
+		 InstanceAccessor("format", &osn::AdvancedRecording::GetFormat, &osn::AdvancedRecording::SetFormat),
+		 InstanceAccessor("muxerSettings", &osn::AdvancedRecording::GetMuxerSettings, &osn::AdvancedRecording::SetMuxerSettings),
+		 InstanceAccessor("fileFormat", &osn::AdvancedRecording::GetFileFormat, &osn::AdvancedRecording::SetFileFormat),
+		 InstanceAccessor("overwrite", &osn::AdvancedRecording::GetOverwrite, &osn::AdvancedRecording::SetOverwrite),
+		 InstanceAccessor("noSpace", &osn::AdvancedRecording::GetNoSpace, &osn::AdvancedRecording::SetNoSpace),
 
-			     InstanceAccessor("videoEncoder", &osn::AdvancedRecording::GetVideoEncoder, &osn::AdvancedRecording::SetVideoEncoder),
-			     InstanceAccessor("signalHandler", &osn::AdvancedRecording::GetSignalHandler, &osn::AdvancedRecording::SetSignalHandler),
-			     InstanceAccessor("mixer", &osn::AdvancedRecording::GetMixer, &osn::AdvancedRecording::SetMixer),
-			     InstanceAccessor("rescaling", &osn::AdvancedRecording::GetRescaling, &osn::AdvancedRecording::SetRescaling),
-			     InstanceAccessor("outputWidth", &osn::AdvancedRecording::GetOutputWidth, &osn::AdvancedRecording::SetOutputWidth),
-			     InstanceAccessor("outputHeight", &osn::AdvancedRecording::GetOutputHeight, &osn::AdvancedRecording::SetOutputHeight),
-			     InstanceAccessor("useStreamEncoders", &osn::AdvancedRecording::GetUseStreamEncoders, &osn::AdvancedRecording::SetUseStreamEncoders),
-			     InstanceAccessor("enableFileSplit", &osn::AdvancedRecording::GetEnableFileSplit, &osn::AdvancedRecording::SetEnableFileSplit),
-			     InstanceAccessor("splitType", &osn::AdvancedRecording::GetSplitType, &osn::AdvancedRecording::SetSplitType),
-			     InstanceAccessor("splitTime", &osn::AdvancedRecording::GetSplitTime, &osn::AdvancedRecording::SetSplitTime),
-			     InstanceAccessor("splitSize", &osn::AdvancedRecording::GetSplitSize, &osn::AdvancedRecording::SetSplitSize),
-			     InstanceAccessor("fileResetTimestamps", &osn::AdvancedRecording::GetFileResetTimestamps, &osn::AdvancedRecording::SetFileResetTimestamps),
+		 InstanceAccessor("videoEncoder", &osn::AdvancedRecording::GetVideoEncoder, &osn::AdvancedRecording::SetVideoEncoder),
+		 InstanceAccessor("signalHandler", &osn::AdvancedRecording::GetSignalHandler, &osn::AdvancedRecording::SetSignalHandler),
+		 InstanceAccessor("mixer", &osn::AdvancedRecording::GetMixer, &osn::AdvancedRecording::SetMixer),
+		 InstanceAccessor("rescaling", &osn::AdvancedRecording::GetRescaling, &osn::AdvancedRecording::SetRescaling),
+		 InstanceAccessor("outputWidth", &osn::AdvancedRecording::GetOutputWidth, &osn::AdvancedRecording::SetOutputWidth),
+		 InstanceAccessor("outputHeight", &osn::AdvancedRecording::GetOutputHeight, &osn::AdvancedRecording::SetOutputHeight),
+		 InstanceAccessor("useStreamEncoders", &osn::AdvancedRecording::GetUseStreamEncoders, &osn::AdvancedRecording::SetUseStreamEncoders),
+		 InstanceAccessor("enableFileSplit", &osn::AdvancedRecording::GetEnableFileSplit, &osn::AdvancedRecording::SetEnableFileSplit),
+		 InstanceAccessor("splitType", &osn::AdvancedRecording::GetSplitType, &osn::AdvancedRecording::SetSplitType),
+		 InstanceAccessor("splitTime", &osn::AdvancedRecording::GetSplitTime, &osn::AdvancedRecording::SetSplitTime),
+		 InstanceAccessor("splitSize", &osn::AdvancedRecording::GetSplitSize, &osn::AdvancedRecording::SetSplitSize),
+		 InstanceAccessor("fileResetTimestamps", &osn::AdvancedRecording::GetFileResetTimestamps, &osn::AdvancedRecording::SetFileResetTimestamps),
 
-			     InstanceMethod("start", &osn::AdvancedRecording::Start),
-			     InstanceMethod("stop", &osn::AdvancedRecording::Stop),
-			     InstanceMethod("splitFile", &osn::AdvancedRecording::SplitFile),
+		 InstanceMethod("start", &osn::AdvancedRecording::Start),
+		 InstanceMethod("stop", &osn::AdvancedRecording::Stop),
+		 InstanceMethod("splitFile", &osn::AdvancedRecording::SplitFile),
 
-			     StaticAccessor("legacySettings", &osn::AdvancedRecording::GetLegacySettings, &osn::AdvancedRecording::SetLegacySettings),
-			     InstanceMethod("lastFile", &osn::AdvancedRecording::GetLastFile),
-			     InstanceAccessor("streaming", &osn::AdvancedRecording::GetStreaming, &osn::AdvancedRecording::SetStreaming)});
+		 StaticAccessor("legacySettings", &osn::AdvancedRecording::GetLegacySettings, &osn::AdvancedRecording::SetLegacySettings),
+		 InstanceMethod("lastFile", &osn::AdvancedRecording::GetLastFile),
+		 InstanceAccessor("streaming", &osn::AdvancedRecording::GetStreaming, &osn::AdvancedRecording::SetStreaming)});
 
 	exports.Set("AdvancedRecording", func);
 	osn::AdvancedRecording::constructor = Napi::Persistent(func);

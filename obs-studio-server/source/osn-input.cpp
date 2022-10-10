@@ -30,17 +30,20 @@ void osn::Input::Register(ipc::server &srv)
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Input");
 	cls->register_function(std::make_shared<ipc::function>("Types", std::vector<ipc::type>{}, Types));
 	cls->register_function(std::make_shared<ipc::function>("Create", std::vector<ipc::type>{ipc::type::String, ipc::type::String}, Create));
-	cls->register_function(std::make_shared<ipc::function>("Create", std::vector<ipc::type>{ipc::type::String, ipc::type::String, ipc::type::String}, Create));
 	cls->register_function(
-		std::make_shared<ipc::function>("Create", std::vector<ipc::type>{ipc::type::String, ipc::type::String, ipc::type::String, ipc::type::String}, Create));
+		std::make_shared<ipc::function>("Create", std::vector<ipc::type>{ipc::type::String, ipc::type::String, ipc::type::String}, Create));
+	cls->register_function(std::make_shared<ipc::function>(
+		"Create", std::vector<ipc::type>{ipc::type::String, ipc::type::String, ipc::type::String, ipc::type::String}, Create));
 	cls->register_function(std::make_shared<ipc::function>("CreatePrivate", std::vector<ipc::type>{ipc::type::String, ipc::type::String}, CreatePrivate));
-	cls->register_function(std::make_shared<ipc::function>("CreatePrivate", std::vector<ipc::type>{ipc::type::String, ipc::type::String, ipc::type::String}, CreatePrivate));
+	cls->register_function(std::make_shared<ipc::function>("CreatePrivate", std::vector<ipc::type>{ipc::type::String, ipc::type::String, ipc::type::String},
+							       CreatePrivate));
 	cls->register_function(std::make_shared<ipc::function>("FromName", std::vector<ipc::type>{ipc::type::String}, FromName));
 	cls->register_function(std::make_shared<ipc::function>("GetPublicSources", std::vector<ipc::type>{}, GetPublicSources));
 
 	cls->register_function(std::make_shared<ipc::function>("Duplicate", std::vector<ipc::type>{ipc::type::UInt64}, Duplicate));
 	cls->register_function(std::make_shared<ipc::function>("Duplicate", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String}, Duplicate));
-	cls->register_function(std::make_shared<ipc::function>("Duplicate", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String, ipc::type::Int32}, Duplicate));
+	cls->register_function(
+		std::make_shared<ipc::function>("Duplicate", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String, ipc::type::Int32}, Duplicate));
 	cls->register_function(std::make_shared<ipc::function>("GetActive", std::vector<ipc::type>{ipc::type::UInt64}, GetActive));
 	cls->register_function(std::make_shared<ipc::function>("GetShowing", std::vector<ipc::type>{ipc::type::UInt64}, GetShowing));
 	cls->register_function(std::make_shared<ipc::function>("GetWidth", std::vector<ipc::type>{ipc::type::UInt64}, GetWidth));
@@ -52,16 +55,21 @@ void osn::Input::Register(ipc::server &srv)
 	cls->register_function(std::make_shared<ipc::function>("GetAudioMixers", std::vector<ipc::type>{ipc::type::UInt64}, GetAudioMixers));
 	cls->register_function(std::make_shared<ipc::function>("SetAudioMixers", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32}, SetAudioMixers));
 	cls->register_function(std::make_shared<ipc::function>("GetMonitoringType", std::vector<ipc::type>{ipc::type::UInt64}, GetMonitoringType));
-	cls->register_function(std::make_shared<ipc::function>("SetMonitoringType", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32}, SetMonitoringType));
-	cls->register_function(std::make_shared<ipc::function>("GetDeInterlaceFieldOrder", std::vector<ipc::type>{ipc::type::UInt64}, GetDeInterlaceFieldOrder));
-	cls->register_function(std::make_shared<ipc::function>("SetDeInterlaceFieldOrder", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32}, SetDeInterlaceFieldOrder));
+	cls->register_function(
+		std::make_shared<ipc::function>("SetMonitoringType", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32}, SetMonitoringType));
+	cls->register_function(
+		std::make_shared<ipc::function>("GetDeInterlaceFieldOrder", std::vector<ipc::type>{ipc::type::UInt64}, GetDeInterlaceFieldOrder));
+	cls->register_function(std::make_shared<ipc::function>("SetDeInterlaceFieldOrder", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32},
+							       SetDeInterlaceFieldOrder));
 	cls->register_function(std::make_shared<ipc::function>("GetDeInterlaceMode", std::vector<ipc::type>{ipc::type::UInt64}, GetDeInterlaceMode));
-	cls->register_function(std::make_shared<ipc::function>("SetDeInterlaceMode", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32}, SetDeInterlaceMode));
+	cls->register_function(
+		std::make_shared<ipc::function>("SetDeInterlaceMode", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32}, SetDeInterlaceMode));
 
 	cls->register_function(std::make_shared<ipc::function>("GetFilters", std::vector<ipc::type>{ipc::type::UInt64}, GetFilters));
 	cls->register_function(std::make_shared<ipc::function>("AddFilter", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64}, AddFilter));
 	cls->register_function(std::make_shared<ipc::function>("RemoveFilter", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64}, RemoveFilter));
-	cls->register_function(std::make_shared<ipc::function>("MoveFilter", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64, ipc::type::UInt32}, MoveFilter));
+	cls->register_function(
+		std::make_shared<ipc::function>("MoveFilter", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64, ipc::type::UInt32}, MoveFilter));
 	cls->register_function(std::make_shared<ipc::function>("FindFilter", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String}, FindFilter));
 	cls->register_function(std::make_shared<ipc::function>("CopyFiltersTo", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64}, CopyFiltersTo));
 
