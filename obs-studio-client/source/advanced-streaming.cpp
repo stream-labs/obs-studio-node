@@ -28,22 +28,28 @@ Napi::FunctionReference osn::AdvancedStreaming::constructor;
 Napi::Object osn::AdvancedStreaming::Init(Napi::Env env, Napi::Object exports)
 {
 	Napi::HandleScope scope(env);
-	Napi::Function func =
-		DefineClass(env, "AdvancedStreaming",
-			    {StaticMethod("create", &osn::AdvancedStreaming::Create), StaticMethod("destroy", &osn::AdvancedStreaming::Destroy),
+	Napi::Function func = DefineClass(
+		env, "AdvancedStreaming",
+		{StaticMethod("create", &osn::AdvancedStreaming::Create), StaticMethod("destroy", &osn::AdvancedStreaming::Destroy),
 
-			     InstanceAccessor("videoEncoder", &osn::AdvancedStreaming::GetVideoEncoder, &osn::AdvancedStreaming::SetVideoEncoder), InstanceAccessor("service", &osn::AdvancedStreaming::GetService, &osn::AdvancedStreaming::SetService),
-			     InstanceAccessor("enforceServiceBitrate", &osn::AdvancedStreaming::GetEnforceServiceBirate, &osn::AdvancedStreaming::SetEnforceServiceBirate), InstanceAccessor("enableTwitchVOD", &osn::AdvancedStreaming::GetEnableTwitchVOD, &osn::AdvancedStreaming::SetEnableTwitchVOD),
-			     InstanceAccessor("signalHandler", &osn::AdvancedStreaming::GetSignalHandler, &osn::AdvancedStreaming::SetSignalHandler), InstanceAccessor("delay", &osn::AdvancedStreaming::GetDelay, &osn::AdvancedStreaming::SetDelay),
-			     InstanceAccessor("reconnect", &osn::AdvancedStreaming::GetReconnect, &osn::AdvancedStreaming::SetReconnect), InstanceAccessor("network", &osn::AdvancedStreaming::GetNetwork, &osn::AdvancedStreaming::SetNetwork),
+		 InstanceAccessor("videoEncoder", &osn::AdvancedStreaming::GetVideoEncoder, &osn::AdvancedStreaming::SetVideoEncoder),
+		 InstanceAccessor("service", &osn::AdvancedStreaming::GetService, &osn::AdvancedStreaming::SetService),
+		 InstanceAccessor("enforceServiceBitrate", &osn::AdvancedStreaming::GetEnforceServiceBirate, &osn::AdvancedStreaming::SetEnforceServiceBirate),
+		 InstanceAccessor("enableTwitchVOD", &osn::AdvancedStreaming::GetEnableTwitchVOD, &osn::AdvancedStreaming::SetEnableTwitchVOD),
+		 InstanceAccessor("signalHandler", &osn::AdvancedStreaming::GetSignalHandler, &osn::AdvancedStreaming::SetSignalHandler),
+		 InstanceAccessor("delay", &osn::AdvancedStreaming::GetDelay, &osn::AdvancedStreaming::SetDelay),
+		 InstanceAccessor("reconnect", &osn::AdvancedStreaming::GetReconnect, &osn::AdvancedStreaming::SetReconnect),
+		 InstanceAccessor("network", &osn::AdvancedStreaming::GetNetwork, &osn::AdvancedStreaming::SetNetwork),
 
-			     InstanceAccessor("audioTrack", &osn::AdvancedStreaming::GetAudioTrack, &osn::AdvancedStreaming::SetAudioTrack), InstanceAccessor("twitchTrack", &osn::AdvancedStreaming::GetTwitchTrack, &osn::AdvancedStreaming::SetTwitchTrack),
-			     InstanceAccessor("rescaling", &osn::AdvancedStreaming::GetRescaling, &osn::AdvancedStreaming::SetRescaling), InstanceAccessor("outputWidth", &osn::AdvancedStreaming::GetOutputWidth, &osn::AdvancedStreaming::SetOutputWidth),
-			     InstanceAccessor("outputHeight", &osn::AdvancedStreaming::GetOutputHeight, &osn::AdvancedStreaming::SetOutputHeight),
+		 InstanceAccessor("audioTrack", &osn::AdvancedStreaming::GetAudioTrack, &osn::AdvancedStreaming::SetAudioTrack),
+		 InstanceAccessor("twitchTrack", &osn::AdvancedStreaming::GetTwitchTrack, &osn::AdvancedStreaming::SetTwitchTrack),
+		 InstanceAccessor("rescaling", &osn::AdvancedStreaming::GetRescaling, &osn::AdvancedStreaming::SetRescaling),
+		 InstanceAccessor("outputWidth", &osn::AdvancedStreaming::GetOutputWidth, &osn::AdvancedStreaming::SetOutputWidth),
+		 InstanceAccessor("outputHeight", &osn::AdvancedStreaming::GetOutputHeight, &osn::AdvancedStreaming::SetOutputHeight),
 
-			     InstanceMethod("start", &osn::AdvancedStreaming::Start), InstanceMethod("stop", &osn::AdvancedStreaming::Stop),
+		 InstanceMethod("start", &osn::AdvancedStreaming::Start), InstanceMethod("stop", &osn::AdvancedStreaming::Stop),
 
-			     StaticAccessor("legacySettings", &osn::AdvancedStreaming::GetLegacySettings, &osn::AdvancedStreaming::SetLegacySettings)});
+		 StaticAccessor("legacySettings", &osn::AdvancedStreaming::GetLegacySettings, &osn::AdvancedStreaming::SetLegacySettings)});
 
 	exports.Set("AdvancedStreaming", func);
 	osn::AdvancedStreaming::constructor = Napi::Persistent(func);

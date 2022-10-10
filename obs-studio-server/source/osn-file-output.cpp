@@ -28,7 +28,8 @@ void osn::IFileOutput::Register(ipc::server &srv)
 	cls->register_function(std::make_shared<ipc::function>("GetFormat", std::vector<ipc::type>{ipc::type::UInt64}, GetFormat));
 	cls->register_function(std::make_shared<ipc::function>("SetFormat", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String}, SetFormat));
 	cls->register_function(std::make_shared<ipc::function>("GetMuxerSettings", std::vector<ipc::type>{ipc::type::UInt64}, GetMuxerSettings));
-	cls->register_function(std::make_shared<ipc::function>("SetMuxerSettings", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String}, SetMuxerSettings));
+	cls->register_function(
+		std::make_shared<ipc::function>("SetMuxerSettings", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String}, SetMuxerSettings));
 	cls->register_function(std::make_shared<ipc::function>("GetFileFormat", std::vector<ipc::type>{ipc::type::UInt64}, GetFileFormat));
 	cls->register_function(std::make_shared<ipc::function>("SetFileFormat", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32}, SetFileFormat));
 	cls->register_function(std::make_shared<ipc::function>("GetOverwrite", std::vector<ipc::type>{ipc::type::UInt64}, GetOverwrite));

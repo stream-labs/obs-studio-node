@@ -29,11 +29,14 @@ void osn::INetwork::Register(ipc::server &srv)
 	cls->register_function(std::make_shared<ipc::function>("SetBindIP", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32}, SetBindIP));
 	cls->register_function(std::make_shared<ipc::function>("GetNetworkInterfaces", std::vector<ipc::type>{}, GetNetworkInterfaces));
 	cls->register_function(std::make_shared<ipc::function>("GetEnableDynamicBitrate", std::vector<ipc::type>{ipc::type::UInt64}, GetEnableDynamicBitrate));
-	cls->register_function(std::make_shared<ipc::function>("SetEnableDynamicBitrate", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32}, SetEnableDynamicBitrate));
+	cls->register_function(std::make_shared<ipc::function>("SetEnableDynamicBitrate", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32},
+							       SetEnableDynamicBitrate));
 	cls->register_function(std::make_shared<ipc::function>("GetEnableOptimizations", std::vector<ipc::type>{ipc::type::UInt64}, GetEnableOptimizations));
-	cls->register_function(std::make_shared<ipc::function>("SetEnableOptimizations", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32}, SetEnableOptimizations));
+	cls->register_function(std::make_shared<ipc::function>("SetEnableOptimizations", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32},
+							       SetEnableOptimizations));
 	cls->register_function(std::make_shared<ipc::function>("GetEnableLowLatency", std::vector<ipc::type>{ipc::type::UInt64}, GetEnableLowLatency));
-	cls->register_function(std::make_shared<ipc::function>("SetEnableLowLatency", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32}, SetEnableLowLatency));
+	cls->register_function(
+		std::make_shared<ipc::function>("SetEnableLowLatency", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32}, SetEnableLowLatency));
 
 	srv.register_collection(cls);
 }

@@ -23,7 +23,8 @@
 void osn::VideoEncoder::Register(ipc::server &srv)
 {
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("VideoEncoder");
-	cls->register_function(std::make_shared<ipc::function>("Create", std::vector<ipc::type>{ipc::type::String, ipc::type::String, ipc::type::String}, Create));
+	cls->register_function(
+		std::make_shared<ipc::function>("Create", std::vector<ipc::type>{ipc::type::String, ipc::type::String, ipc::type::String}, Create));
 	cls->register_function(std::make_shared<ipc::function>("GetTypes", std::vector<ipc::type>{}, GeTypes));
 	cls->register_function(std::make_shared<ipc::function>("GetName", std::vector<ipc::type>{ipc::type::UInt64}, GetName));
 	cls->register_function(std::make_shared<ipc::function>("SetName", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String}, SetName));

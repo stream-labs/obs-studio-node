@@ -33,10 +33,16 @@ void osn::Video::Register(ipc::server &srv)
 
 	cls->register_function(std::make_shared<ipc::function>("GetVideoContext", std::vector<ipc::type>{}, GetVideoContext));
 	cls->register_function(std::make_shared<ipc::function>(
-		"SetVideoContext", std::vector<ipc::type>{ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32}, SetVideoContext));
+		"SetVideoContext",
+		std::vector<ipc::type>{ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32,
+				       ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32},
+		SetVideoContext));
 	cls->register_function(std::make_shared<ipc::function>("GetLegacySettings", std::vector<ipc::type>{}, GetLegacySettings));
 	cls->register_function(std::make_shared<ipc::function>(
-		"SetLegacySettings", std::vector<ipc::type>{ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32}, SetLegacySettings));
+		"SetLegacySettings",
+		std::vector<ipc::type>{ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32,
+				       ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32},
+		SetLegacySettings));
 	srv.register_collection(cls);
 }
 

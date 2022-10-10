@@ -126,7 +126,8 @@ class TestMode {
 	static void render_rand(void *, uint32_t cx, uint32_t cy)
 	{
 		gs_effect_t *solid = obs_get_base_effect(OBS_EFFECT_SOLID);
-		gs_eparam_t *randomvals[3] = {gs_effect_get_param_by_name(solid, "randomvals1"), gs_effect_get_param_by_name(solid, "randomvals2"), gs_effect_get_param_by_name(solid, "randomvals3")};
+		gs_eparam_t *randomvals[3] = {gs_effect_get_param_by_name(solid, "randomvals1"), gs_effect_get_param_by_name(solid, "randomvals2"),
+					      gs_effect_get_param_by_name(solid, "randomvals3")};
 
 		struct vec4 r;
 
@@ -178,7 +179,8 @@ void autoConfig::Register(ipc::server &srv)
 {
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("AutoConfig");
 
-	cls->register_function(std::make_shared<ipc::function>("InitializeAutoConfig", std::vector<ipc::type>{ipc::type::String, ipc::type::String}, autoConfig::InitializeAutoConfig));
+	cls->register_function(std::make_shared<ipc::function>("InitializeAutoConfig", std::vector<ipc::type>{ipc::type::String, ipc::type::String},
+							       autoConfig::InitializeAutoConfig));
 	cls->register_function(std::make_shared<ipc::function>("StartBandwidthTest", std::vector<ipc::type>{}, autoConfig::StartBandwidthTest));
 	cls->register_function(std::make_shared<ipc::function>("StartStreamEncoderTest", std::vector<ipc::type>{}, autoConfig::StartStreamEncoderTest));
 	cls->register_function(std::make_shared<ipc::function>("StartRecordingEncoderTest", std::vector<ipc::type>{}, autoConfig::StartRecordingEncoderTest));
@@ -249,7 +251,8 @@ bool autoConfig::CanTestServer(const char *server)
 		return true;
 
 	if (serviceSelected == Service::Twitch) {
-		if (astrcmp_n(server, "NA:", 3) == 0 || astrcmp_n(server, "US West:", 8) == 0 || astrcmp_n(server, "US East:", 8) == 0 || astrcmp_n(server, "US Central:", 11) == 0) {
+		if (astrcmp_n(server, "NA:", 3) == 0 || astrcmp_n(server, "US West:", 8) == 0 || astrcmp_n(server, "US East:", 8) == 0 ||
+		    astrcmp_n(server, "US Central:", 11) == 0) {
 			return regionNA;
 		} else if (astrcmp_n(server, "South America:", 14) == 0) {
 			return regionSA;
@@ -436,7 +439,8 @@ void autoConfig::StartSetDefaultSettings(void *data, const int64_t id, const std
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 }
 
-int EvaluateBandwidth(ServerInfo &server, bool &connected, bool &stopped, bool &success, bool &errorOnStop, OBSData &service_settings, OBSService &service, OBSOutput &output, OBSData &vencoder_settings)
+int EvaluateBandwidth(ServerInfo &server, bool &connected, bool &stopped, bool &success, bool &errorOnStop, OBSData &service_settings, OBSService &service,
+		      OBSOutput &output, OBSData &vencoder_settings)
 {
 	// auto &server = servers[i];
 

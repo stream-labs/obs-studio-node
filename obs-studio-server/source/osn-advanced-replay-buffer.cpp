@@ -65,7 +65,8 @@ void osn::IAdvancedReplayBuffer::Create(void *data, const int64_t id, const std:
 
 void osn::IAdvancedReplayBuffer::Destroy(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
-	AdvancedReplayBuffer *replayBuffer = static_cast<AdvancedReplayBuffer *>(osn::IAdvancedReplayBuffer::Manager::GetInstance().find(args[0].value_union.ui64));
+	AdvancedReplayBuffer *replayBuffer =
+		static_cast<AdvancedReplayBuffer *>(osn::IAdvancedReplayBuffer::Manager::GetInstance().find(args[0].value_union.ui64));
 	if (!replayBuffer) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Replay buffer reference is not valid.");
 	}
@@ -242,7 +243,8 @@ void osn::IAdvancedReplayBuffer::GetLegacySettings(void *data, const int64_t id,
 
 void osn::IAdvancedReplayBuffer::SetLegacySettings(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
-	AdvancedReplayBuffer *replayBuffer = static_cast<AdvancedReplayBuffer *>(osn::IAdvancedReplayBuffer::Manager::GetInstance().find(args[0].value_union.ui64));
+	AdvancedReplayBuffer *replayBuffer =
+		static_cast<AdvancedReplayBuffer *>(osn::IAdvancedReplayBuffer::Manager::GetInstance().find(args[0].value_union.ui64));
 	if (!replayBuffer) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Replay buffer reference is not valid.");
 	}

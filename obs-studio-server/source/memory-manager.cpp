@@ -93,7 +93,8 @@ bool MemoryManager::shouldCacheSource(source_info *si)
 	bool enable_caching = OBS_API::getMediaFileCaching();
 	bool showing = obs_source_showing(si->source);
 
-	bool is_small = obs_data_get_bool(settings, "caching") ? current_cached_size < allowed_cached_size : current_cached_size + si->size < allowed_cached_size;
+	bool is_small = obs_data_get_bool(settings, "caching") ? current_cached_size < allowed_cached_size
+							       : current_cached_size + si->size < allowed_cached_size;
 
 	if (!showing && !obs_data_get_bool(settings, "close_when_inactive"))
 		showing = true;

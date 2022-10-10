@@ -30,9 +30,11 @@ void osn::ISimpleRecording::Register(ipc::server &srv)
 	cls->register_function(std::make_shared<ipc::function>("Create", std::vector<ipc::type>{}, Create));
 	cls->register_function(std::make_shared<ipc::function>("Destroy", std::vector<ipc::type>{ipc::type::UInt64}, Destroy));
 	cls->register_function(std::make_shared<ipc::function>("GetVideoEncoder", std::vector<ipc::type>{ipc::type::UInt64}, GetVideoEncoder));
-	cls->register_function(std::make_shared<ipc::function>("SetVideoEncoder", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64}, SetVideoEncoder));
+	cls->register_function(
+		std::make_shared<ipc::function>("SetVideoEncoder", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64}, SetVideoEncoder));
 	cls->register_function(std::make_shared<ipc::function>("GetAudioEncoder", std::vector<ipc::type>{ipc::type::UInt64}, GetAudioEncoder));
-	cls->register_function(std::make_shared<ipc::function>("SetAudioEncoder", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64}, SetAudioEncoder));
+	cls->register_function(
+		std::make_shared<ipc::function>("SetAudioEncoder", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64}, SetAudioEncoder));
 	cls->register_function(std::make_shared<ipc::function>("GetQuality", std::vector<ipc::type>{ipc::type::UInt64}, GetQuality));
 	cls->register_function(std::make_shared<ipc::function>("SetQuality", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32}, SetQuality));
 	cls->register_function(std::make_shared<ipc::function>("Start", std::vector<ipc::type>{ipc::type::UInt64}, Start));
@@ -46,7 +48,8 @@ void osn::ISimpleRecording::Register(ipc::server &srv)
 	cls->register_function(std::make_shared<ipc::function>("SetStreaming", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64}, SetStreaming));
 	cls->register_function(std::make_shared<ipc::function>("SplitFile", std::vector<ipc::type>{ipc::type::UInt64}, SplitFile));
 	cls->register_function(std::make_shared<ipc::function>("GetEnableFileSplit", std::vector<ipc::type>{ipc::type::UInt64}, GetEnableFileSplit));
-	cls->register_function(std::make_shared<ipc::function>("SetEnableFileSplit", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32}, SetEnableFileSplit));
+	cls->register_function(
+		std::make_shared<ipc::function>("SetEnableFileSplit", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32}, SetEnableFileSplit));
 	cls->register_function(std::make_shared<ipc::function>("GetSplitType", std::vector<ipc::type>{ipc::type::UInt64}, GetSplitType));
 	cls->register_function(std::make_shared<ipc::function>("SetSplitType", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32}, SetSplitType));
 	cls->register_function(std::make_shared<ipc::function>("GetSplitTime", std::vector<ipc::type>{ipc::type::UInt64}, GetSplitTime));
@@ -54,7 +57,8 @@ void osn::ISimpleRecording::Register(ipc::server &srv)
 	cls->register_function(std::make_shared<ipc::function>("GetSplitSize", std::vector<ipc::type>{ipc::type::UInt64}, GetSplitSize));
 	cls->register_function(std::make_shared<ipc::function>("SetSplitSize", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32}, SetSplitSize));
 	cls->register_function(std::make_shared<ipc::function>("GetFileResetTimestamps", std::vector<ipc::type>{ipc::type::UInt64}, GetFileResetTimestamps));
-	cls->register_function(std::make_shared<ipc::function>("SetFileResetTimestamps", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32}, SetFileResetTimestamps));
+	cls->register_function(std::make_shared<ipc::function>("SetFileResetTimestamps", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32},
+							       SetFileResetTimestamps));
 
 	srv.register_collection(cls);
 }
@@ -284,7 +288,8 @@ static void UpdateRecordingSettings_crf(enum osn::RecQuality quality, osn::Simpl
 		settings = UpdateRecordingSettings_qsv11(CalcCRF(crf), recording->videoEncoder);
 	} else if (id.compare(SIMPLE_ENCODER_AMD) == 0 || id.compare(SIMPLE_ENCODER_AMD_HEVC) == 0 || id.compare(ADVANCED_ENCODER_AMD) == 0) {
 		settings = UpdateRecordingSettings_amd_cqp(CalcCRF(crf));
-	} else if (id.compare(APPLE_SOFTWARE_VIDEO_ENCODER) == 0 || id.compare(APPLE_HARDWARE_VIDEO_ENCODER) == 0 || id.compare(APPLE_HARDWARE_VIDEO_ENCODER_M1) == 0) {
+	} else if (id.compare(APPLE_SOFTWARE_VIDEO_ENCODER) == 0 || id.compare(APPLE_HARDWARE_VIDEO_ENCODER) == 0 ||
+		   id.compare(APPLE_HARDWARE_VIDEO_ENCODER_M1) == 0) {
 		/* These are magic numbers. 0 - 100, more is better. */
 		UpdateRecordingSettings_apple(ultra_hq ? 70 : 50);
 	} else {

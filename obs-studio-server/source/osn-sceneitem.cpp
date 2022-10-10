@@ -32,27 +32,34 @@ void osn::SceneItem::Register(ipc::server &srv)
 	cls->register_function(std::make_shared<ipc::function>("IsSelected", std::vector<ipc::type>{ipc::type::UInt64}, IsSelected));
 	cls->register_function(std::make_shared<ipc::function>("SetSelected", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32}, SetSelected));
 	cls->register_function(std::make_shared<ipc::function>("IsStreamVisible", std::vector<ipc::type>{ipc::type::UInt64}, IsStreamVisible));
-	cls->register_function(std::make_shared<ipc::function>("SetStreamVisible", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32}, SetStreamVisible));
+	cls->register_function(
+		std::make_shared<ipc::function>("SetStreamVisible", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32}, SetStreamVisible));
 	cls->register_function(std::make_shared<ipc::function>("IsRecordingVisible", std::vector<ipc::type>{ipc::type::UInt64}, IsRecordingVisible));
-	cls->register_function(std::make_shared<ipc::function>("SetRecordingVisible", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32}, SetRecordingVisible));
+	cls->register_function(
+		std::make_shared<ipc::function>("SetRecordingVisible", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32}, SetRecordingVisible));
 	cls->register_function(std::make_shared<ipc::function>("GetPosition", std::vector<ipc::type>{ipc::type::UInt64}, GetPosition));
-	cls->register_function(std::make_shared<ipc::function>("SetPosition", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Float, ipc::type::Float}, SetPosition));
+	cls->register_function(
+		std::make_shared<ipc::function>("SetPosition", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Float, ipc::type::Float}, SetPosition));
 	cls->register_function(std::make_shared<ipc::function>("GetRotation", std::vector<ipc::type>{ipc::type::UInt64}, GetRotation));
 	cls->register_function(std::make_shared<ipc::function>("SetRotation", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Float}, SetRotation));
 	cls->register_function(std::make_shared<ipc::function>("GetScale", std::vector<ipc::type>{ipc::type::UInt64}, GetScale));
-	cls->register_function(std::make_shared<ipc::function>("SetScale", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Float, ipc::type::Float}, SetScale));
+	cls->register_function(
+		std::make_shared<ipc::function>("SetScale", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Float, ipc::type::Float}, SetScale));
 	cls->register_function(std::make_shared<ipc::function>("GetScaleFilter", std::vector<ipc::type>{ipc::type::UInt64}, GetScaleFilter));
 	cls->register_function(std::make_shared<ipc::function>("SetScaleFilter", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32}, SetScaleFilter));
 	cls->register_function(std::make_shared<ipc::function>("GetAlignment", std::vector<ipc::type>{ipc::type::UInt64}, GetAlignment));
 	cls->register_function(std::make_shared<ipc::function>("SetAlignment", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32}, SetAlignment));
 	cls->register_function(std::make_shared<ipc::function>("GetBounds", std::vector<ipc::type>{ipc::type::UInt64}, GetBounds));
-	cls->register_function(std::make_shared<ipc::function>("SetBounds", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Float, ipc::type::Float}, SetBounds));
+	cls->register_function(
+		std::make_shared<ipc::function>("SetBounds", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Float, ipc::type::Float}, SetBounds));
 	cls->register_function(std::make_shared<ipc::function>("GetBoundsAlignment", std::vector<ipc::type>{ipc::type::UInt64}, GetBoundsAlignment));
-	cls->register_function(std::make_shared<ipc::function>("SetBoundsAlignment", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32}, SetBoundsAlignment));
+	cls->register_function(
+		std::make_shared<ipc::function>("SetBoundsAlignment", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32}, SetBoundsAlignment));
 	cls->register_function(std::make_shared<ipc::function>("GetBoundsType", std::vector<ipc::type>{ipc::type::UInt64}, GetBoundsType));
 	cls->register_function(std::make_shared<ipc::function>("SetBoundsType", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32}, SetBoundsType));
 	cls->register_function(std::make_shared<ipc::function>("GetCrop", std::vector<ipc::type>{ipc::type::UInt64}, GetCrop));
-	cls->register_function(std::make_shared<ipc::function>("SetCrop", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32, ipc::type::Int32, ipc::type::Int32, ipc::type::Int32}, SetCrop));
+	cls->register_function(std::make_shared<ipc::function>(
+		"SetCrop", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32, ipc::type::Int32, ipc::type::Int32, ipc::type::Int32}, SetCrop));
 	cls->register_function(std::make_shared<ipc::function>("GetId", std::vector<ipc::type>{ipc::type::UInt64}, GetId));
 	cls->register_function(std::make_shared<ipc::function>("MoveUp", std::vector<ipc::type>{ipc::type::UInt64}, MoveUp));
 	cls->register_function(std::make_shared<ipc::function>("MoveDown", std::vector<ipc::type>{ipc::type::UInt64}, MoveDown));
@@ -62,9 +69,11 @@ void osn::SceneItem::Register(ipc::server &srv)
 	cls->register_function(std::make_shared<ipc::function>("DeferUpdateBegin", std::vector<ipc::type>{ipc::type::UInt64}, DeferUpdateBegin));
 	cls->register_function(std::make_shared<ipc::function>("DeferUpdateEnd", std::vector<ipc::type>{ipc::type::UInt64}, DeferUpdateEnd));
 	cls->register_function(std::make_shared<ipc::function>("GetBlendingMethod", std::vector<ipc::type>{ipc::type::UInt64}, GetBlendingMethod));
-	cls->register_function(std::make_shared<ipc::function>("SetBlendingMethod", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32}, SetBlendingMethod));
+	cls->register_function(
+		std::make_shared<ipc::function>("SetBlendingMethod", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32}, SetBlendingMethod));
 	cls->register_function(std::make_shared<ipc::function>("GetBlendingMode", std::vector<ipc::type>{ipc::type::UInt64}, GetBlendingMode));
-	cls->register_function(std::make_shared<ipc::function>("SetBlendingMode", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32}, SetBlendingMode));
+	cls->register_function(
+		std::make_shared<ipc::function>("SetBlendingMode", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32}, SetBlendingMode));
 	srv.register_collection(cls);
 }
 
