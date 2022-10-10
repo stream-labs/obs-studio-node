@@ -233,12 +233,14 @@ bool OBS_service::resetAudioContext(bool reload)
 
 static uint64_t basicConfigGetUInt(const char *section, const char *name, bool defaultConf)
 {
-	return (defaultConf) ? config_get_default_uint(ConfigManager::getInstance().getBasic(), section, name) : config_get_uint(ConfigManager::getInstance().getBasic(), section, name);
+	return (defaultConf) ? config_get_default_uint(ConfigManager::getInstance().getBasic(), section, name)
+			     : config_get_uint(ConfigManager::getInstance().getBasic(), section, name);
 }
 
 static const char *basicConfigGetString(const char *section, const char *name, bool defaultConf)
 {
-	return (defaultConf) ? config_get_default_string(ConfigManager::getInstance().getBasic(), section, name) : config_get_string(ConfigManager::getInstance().getBasic(), section, name);
+	return (defaultConf) ? config_get_default_string(ConfigManager::getInstance().getBasic(), section, name)
+			     : config_get_string(ConfigManager::getInstance().getBasic(), section, name);
 }
 
 static inline enum video_format GetVideoFormatFromName(const char *name)
@@ -734,7 +736,8 @@ char *os_generate_formatted_filename(const char *extension, bool space, const ch
 	static const char *spec[][2] = {
 		{"%CCYY", "%Y"}, {"%YY", "%y"}, {"%MM", "%m"}, {"%DD", "%d"}, {"%hh", "%H"}, {"%mm", "%M"}, {"%ss", "%S"}, {"%%", "%%"},
 
-		{"%a", ""},      {"%A", ""},    {"%b", ""},    {"%B", ""},    {"%d", ""},    {"%H", ""},    {"%I", ""},    {"%m", ""},   {"%M", ""}, {"%p", ""}, {"%S", ""}, {"%y", ""}, {"%Y", ""}, {"%z", ""}, {"%Z", ""},
+		{"%a", ""},      {"%A", ""},    {"%b", ""},    {"%B", ""},    {"%d", ""},    {"%H", ""},    {"%I", ""},    {"%m", ""},
+		{"%M", ""},      {"%p", ""},    {"%S", ""},    {"%y", ""},    {"%Y", ""},    {"%z", ""},    {"%Z", ""},
 	};
 
 	char convert[128] = {0};
@@ -1689,7 +1692,8 @@ void OBS_service::updateVideoStreamingEncoder(bool isSimpleMode)
 			obs_encoder_set_preferred_video_format(videoStreamingEncoder, VIDEO_FORMAT_NV12);
 		}
 
-		if (strcmp(encoder, APPLE_SOFTWARE_VIDEO_ENCODER) == 0 || strcmp(encoder, APPLE_HARDWARE_VIDEO_ENCODER) == 0 || strcmp(encoder, APPLE_HARDWARE_VIDEO_ENCODER_M1) == 0) {
+		if (strcmp(encoder, APPLE_SOFTWARE_VIDEO_ENCODER) == 0 || strcmp(encoder, APPLE_HARDWARE_VIDEO_ENCODER) == 0 ||
+		    strcmp(encoder, APPLE_HARDWARE_VIDEO_ENCODER_M1) == 0) {
 			const char *profile = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "Profile");
 			if (profile)
 				obs_data_set_string(h264Settings, "profile", profile);
@@ -2161,7 +2165,8 @@ void OBS_service::updateVideoRecordingEncoderSettings()
 		UpdateRecordingSettings_nvenc(crf);
 	} else if (videoEncoder.compare(SIMPLE_ENCODER_NVENC_HEVC) == 0) {
 		UpdateRecordingSettings_nvenc_hevc(crf);
-	} else if (videoEncoder.compare(APPLE_SOFTWARE_VIDEO_ENCODER) == 0 || videoEncoder.compare(APPLE_HARDWARE_VIDEO_ENCODER) == 0 || videoEncoder.compare(APPLE_HARDWARE_VIDEO_ENCODER_M1) == 0) {
+	} else if (videoEncoder.compare(APPLE_SOFTWARE_VIDEO_ENCODER) == 0 || videoEncoder.compare(APPLE_HARDWARE_VIDEO_ENCODER) == 0 ||
+		   videoEncoder.compare(APPLE_HARDWARE_VIDEO_ENCODER_M1) == 0) {
 		/* These are magic numbers. 0 - 100, more is better. */
 		UpdateRecordingSettings_apple(ultra_hq ? 70 : 50);
 	}
@@ -2433,7 +2438,8 @@ void OBS_service::connectOutputSignals(void)
 
 		// Connect replay buffer output
 		for (int i = 0; i < replayBufferSignals.size(); i++) {
-			signal_handler_connect(replayBufferOutputSignalHandler, replayBufferSignals.at(i).getSignal().c_str(), JSCallbackOutputSignal, &(replayBufferSignals.at(i)));
+			signal_handler_connect(replayBufferOutputSignalHandler, replayBufferSignals.at(i).getSignal().c_str(), JSCallbackOutputSignal,
+					       &(replayBufferSignals.at(i)));
 		}
 	}
 }

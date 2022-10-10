@@ -507,7 +507,8 @@ void osn::ISource::SendMouseClick(const Napi::CallbackInfo &info, uint64_t id)
 	uint32_t x = mouse_event_obj.Get("x").ToNumber().Uint32Value();
 	uint32_t y = mouse_event_obj.Get("y").ToNumber().Uint32Value();
 
-	conn->call("Source", "SendMouseClick", {ipc::value(id), ipc::value(modifiers), ipc::value(x), ipc::value(y), ipc::value(type), ipc::value(mouse_up), ipc::value(click_count)});
+	conn->call("Source", "SendMouseClick",
+		   {ipc::value(id), ipc::value(modifiers), ipc::value(x), ipc::value(y), ipc::value(type), ipc::value(mouse_up), ipc::value(click_count)});
 }
 
 void osn::ISource::SendMouseMove(const Napi::CallbackInfo &info, uint64_t id)
@@ -568,5 +569,7 @@ void osn::ISource::SendKeyClick(const Napi::CallbackInfo &info, uint64_t id)
 	uint32_t native_vkey = key_event_obj.Get("nativeVkey").ToNumber().Uint32Value();
 	std::string text = key_event_obj.Get("text").ToString().Utf8Value();
 
-	conn->call("Source", "SendKeyClick", {ipc::value(id), ipc::value(modifiers), ipc::value(text), ipc::value(native_modifiers), ipc::value(native_scancode), ipc::value(native_vkey), ipc::value((int32_t)key_up)});
+	conn->call("Source", "SendKeyClick",
+		   {ipc::value(id), ipc::value(modifiers), ipc::value(text), ipc::value(native_modifiers), ipc::value(native_scancode), ipc::value(native_vkey),
+		    ipc::value((int32_t)key_up)});
 }

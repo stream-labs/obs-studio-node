@@ -29,19 +29,26 @@ Napi::FunctionReference osn::SimpleStreaming::constructor;
 Napi::Object osn::SimpleStreaming::Init(Napi::Env env, Napi::Object exports)
 {
 	Napi::HandleScope scope(env);
-	Napi::Function func = DefineClass(env, "SimpleStreaming",
-					  {StaticMethod("create", &osn::SimpleStreaming::Create), StaticMethod("destroy", &osn::SimpleStreaming::Destroy),
+	Napi::Function func =
+		DefineClass(env, "SimpleStreaming",
+			    {StaticMethod("create", &osn::SimpleStreaming::Create), StaticMethod("destroy", &osn::SimpleStreaming::Destroy),
 
-					   InstanceAccessor("videoEncoder", &osn::SimpleStreaming::GetVideoEncoder, &osn::SimpleStreaming::SetVideoEncoder), InstanceAccessor("audioEncoder", &osn::SimpleStreaming::GetAudioEncoder, &osn::SimpleStreaming::SetAudioEncoder),
-					   InstanceAccessor("service", &osn::SimpleStreaming::GetService, &osn::SimpleStreaming::SetService), InstanceAccessor("enforceServiceBitrate", &osn::SimpleStreaming::GetEnforceServiceBirate, &osn::SimpleStreaming::SetEnforceServiceBirate),
-					   InstanceAccessor("enableTwitchVOD", &osn::SimpleStreaming::GetEnableTwitchVOD, &osn::SimpleStreaming::SetEnableTwitchVOD), InstanceAccessor("audioEncoder", &osn::SimpleStreaming::GetAudioEncoder, &osn::SimpleStreaming::SetAudioEncoder),
-					   InstanceAccessor("useAdvanced", &osn::SimpleStreaming::GetUseAdvanced, &osn::SimpleStreaming::SetUseAdvanced), InstanceAccessor("customEncSettings", &osn::SimpleStreaming::GetCustomEncSettings, &osn::SimpleStreaming::SetCustomEncSettings),
-					   InstanceAccessor("signalHandler", &osn::SimpleStreaming::GetSignalHandler, &osn::SimpleStreaming::SetSignalHandler), InstanceAccessor("delay", &osn::SimpleStreaming::GetDelay, &osn::SimpleStreaming::SetDelay),
-					   InstanceAccessor("reconnect", &osn::SimpleStreaming::GetReconnect, &osn::SimpleStreaming::SetReconnect), InstanceAccessor("network", &osn::SimpleStreaming::GetNetwork, &osn::SimpleStreaming::SetNetwork),
+			     InstanceAccessor("videoEncoder", &osn::SimpleStreaming::GetVideoEncoder, &osn::SimpleStreaming::SetVideoEncoder),
+			     InstanceAccessor("audioEncoder", &osn::SimpleStreaming::GetAudioEncoder, &osn::SimpleStreaming::SetAudioEncoder),
+			     InstanceAccessor("service", &osn::SimpleStreaming::GetService, &osn::SimpleStreaming::SetService),
+			     InstanceAccessor("enforceServiceBitrate", &osn::SimpleStreaming::GetEnforceServiceBirate, &osn::SimpleStreaming::SetEnforceServiceBirate),
+			     InstanceAccessor("enableTwitchVOD", &osn::SimpleStreaming::GetEnableTwitchVOD, &osn::SimpleStreaming::SetEnableTwitchVOD),
+			     InstanceAccessor("audioEncoder", &osn::SimpleStreaming::GetAudioEncoder, &osn::SimpleStreaming::SetAudioEncoder),
+			     InstanceAccessor("useAdvanced", &osn::SimpleStreaming::GetUseAdvanced, &osn::SimpleStreaming::SetUseAdvanced),
+			     InstanceAccessor("customEncSettings", &osn::SimpleStreaming::GetCustomEncSettings, &osn::SimpleStreaming::SetCustomEncSettings),
+			     InstanceAccessor("signalHandler", &osn::SimpleStreaming::GetSignalHandler, &osn::SimpleStreaming::SetSignalHandler),
+			     InstanceAccessor("delay", &osn::SimpleStreaming::GetDelay, &osn::SimpleStreaming::SetDelay),
+			     InstanceAccessor("reconnect", &osn::SimpleStreaming::GetReconnect, &osn::SimpleStreaming::SetReconnect),
+			     InstanceAccessor("network", &osn::SimpleStreaming::GetNetwork, &osn::SimpleStreaming::SetNetwork),
 
-					   InstanceMethod("start", &osn::SimpleStreaming::Start), InstanceMethod("stop", &osn::SimpleStreaming::Stop),
+			     InstanceMethod("start", &osn::SimpleStreaming::Start), InstanceMethod("stop", &osn::SimpleStreaming::Stop),
 
-					   StaticAccessor("legacySettings", &osn::SimpleStreaming::GetLegacySettings, &osn::SimpleStreaming::SetLegacySettings)});
+			     StaticAccessor("legacySettings", &osn::SimpleStreaming::GetLegacySettings, &osn::SimpleStreaming::SetLegacySettings)});
 
 	exports.Set("SimpleStreaming", func);
 	osn::SimpleStreaming::constructor = Napi::Persistent(func);

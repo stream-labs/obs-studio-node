@@ -55,7 +55,8 @@ void OBS_settings::Register(ipc::server &srv)
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Settings");
 
 	cls->register_function(std::make_shared<ipc::function>("OBS_settings_getSettings", std::vector<ipc::type>{ipc::type::String}, OBS_settings_getSettings));
-	cls->register_function(std::make_shared<ipc::function>("OBS_settings_saveSettings", std::vector<ipc::type>{ipc::type::String, ipc::type::UInt32, ipc::type::UInt32, ipc::type::Binary}, OBS_settings_saveSettings));
+	cls->register_function(std::make_shared<ipc::function>(
+		"OBS_settings_saveSettings", std::vector<ipc::type>{ipc::type::String, ipc::type::UInt32, ipc::type::UInt32, ipc::type::Binary}, OBS_settings_saveSettings));
 	cls->register_function(std::make_shared<ipc::function>("OBS_settings_getInputAudioDevices", std::vector<ipc::type>{}, OBS_settings_getInputAudioDevices));
 	cls->register_function(std::make_shared<ipc::function>("OBS_settings_getOutputAudioDevices", std::vector<ipc::type>{}, OBS_settings_getOutputAudioDevices));
 	cls->register_function(std::make_shared<ipc::function>("OBS_settings_getVideoDevices", std::vector<ipc::type>{}, OBS_settings_getVideoDevices));
@@ -97,7 +98,8 @@ void UpdateAudioSettings(bool saveOnlyIfLimitApplied)
 		if (settings.paramsCount != 2)
 			continue;
 
-		if (settings.params[0].name.compare("Track1Bitrate") == 0 || settings.params[0].name.compare("Track2Bitrate") == 0 || settings.params[0].name.compare("Track3Bitrate") == 0 || settings.params[0].name.compare("Track4Bitrate") == 0 ||
+		if (settings.params[0].name.compare("Track1Bitrate") == 0 || settings.params[0].name.compare("Track2Bitrate") == 0 ||
+		    settings.params[0].name.compare("Track3Bitrate") == 0 || settings.params[0].name.compare("Track4Bitrate") == 0 ||
 		    settings.params[0].name.compare("Track5Bitrate") == 0 || settings.params[0].name.compare("Track6Bitrate") == 0) {
 			std::string valueStr(settings.params[0].currentValue.begin(), settings.params[0].currentValue.end());
 
@@ -243,7 +245,8 @@ void OBS_settings::OBS_settings_saveSettings(void *data, const int64_t id, const
 	AUTO_DEBUG;
 }
 
-SubCategory OBS_settings::serializeSettingsData(const std::string &nameSubCategory, std::vector<std::vector<std::pair<std::string, ipc::value>>> &entries, config_t *config, const std::string &section, bool isVisible, bool isEnabled)
+SubCategory OBS_settings::serializeSettingsData(const std::string &nameSubCategory, std::vector<std::vector<std::pair<std::string, ipc::value>>> &entries, config_t *config,
+						const std::string &section, bool isVisible, bool isEnabled)
 {
 	SubCategory sc;
 
@@ -271,7 +274,8 @@ SubCategory OBS_settings::serializeSettingsData(const std::string &nameSubCatego
 			param.sizeOfCurrentValue = strlen(currentValue);
 			entries.at(i).erase(entries.at(i).begin() + 7);
 		} else {
-			if (param.type.compare("OBS_PROPERTY_LIST") == 0 || param.type.compare("OBS_PROPERTY_PATH") == 0 || param.type.compare("OBS_PROPERTY_EDIT_PATH") == 0 || param.type.compare("OBS_PROPERTY_EDIT_TEXT") == 0) {
+			if (param.type.compare("OBS_PROPERTY_LIST") == 0 || param.type.compare("OBS_PROPERTY_PATH") == 0 || param.type.compare("OBS_PROPERTY_EDIT_PATH") == 0 ||
+			    param.type.compare("OBS_PROPERTY_EDIT_TEXT") == 0) {
 				const char *currentValue = config_get_string(config, section.c_str(), param.name.c_str());
 
 				if (currentValue != NULL) {
@@ -1310,7 +1314,8 @@ void OBS_settings::getSimpleOutputSettings(std::vector<SubCategory> *outputSetti
 			defaultPreset = "balanced";
 			// preset = curAMDPreset;
 			entries.push_back(preset);
-		} else if (strcmp(encoder, APPLE_SOFTWARE_VIDEO_ENCODER) == 0 || strcmp(encoder, APPLE_HARDWARE_VIDEO_ENCODER) == 0 || strcmp(encoder, APPLE_HARDWARE_VIDEO_ENCODER_M1) == 0) {
+		} else if (strcmp(encoder, APPLE_SOFTWARE_VIDEO_ENCODER) == 0 || strcmp(encoder, APPLE_HARDWARE_VIDEO_ENCODER) == 0 ||
+			   strcmp(encoder, APPLE_HARDWARE_VIDEO_ENCODER_M1) == 0) {
 			preset.push_back(std::make_pair("name", ipc::value("Profile")));
 			preset.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
 			preset.push_back(std::make_pair("description", ipc::value("")));
@@ -1450,7 +1455,8 @@ void OBS_settings::getSimpleOutputSettings(std::vector<SubCategory> *outputSetti
 	getReplayBufferSettings(outputSettings, config, false, isCategoryEnabled);
 }
 
-void OBS_settings::getEncoderSettings(const obs_encoder_t *encoder, obs_data_t *settings, std::vector<Parameter> *subCategoryParameters, int index, bool isCategoryEnabled, bool recordEncoder)
+void OBS_settings::getEncoderSettings(const obs_encoder_t *encoder, obs_data_t *settings, std::vector<Parameter> *subCategoryParameters, int index, bool isCategoryEnabled,
+				      bool recordEncoder)
 {
 	obs_properties_t *encoderProperties = obs_encoder_properties(encoder);
 	obs_property_t *property = obs_properties_first(encoderProperties);
@@ -2139,7 +2145,8 @@ void OBS_settings::getStandardRecordingSettings(SubCategory *subCategoryParamete
 
 	// Audio Track : list
 
-	std::string recTracksDesc = std::string("Audio Track") + (IsMultitrackAudioSupported(recFormatCurrentValue) ? "" : " (Format FLV does not support multiple audio tracks per recording)");
+	std::string recTracksDesc =
+		std::string("Audio Track") + (IsMultitrackAudioSupported(recFormatCurrentValue) ? "" : " (Format FLV does not support multiple audio tracks per recording)");
 
 	Parameter recTracks;
 	recTracks.name = "RecTracks";
@@ -2857,7 +2864,8 @@ void OBS_settings::saveAdvancedOutputStreamingSettings(std::vector<SubCategory> 
 		std::string name = param.name;
 		std::string type = param.type;
 
-		if (type.compare("OBS_PROPERTY_EDIT_TEXT") == 0 || type.compare("OBS_PROPERTY_PATH") == 0 || type.compare("OBS_PROPERTY_TEXT") == 0 || type.compare("OBS_INPUT_RESOLUTION_LIST") == 0) {
+		if (type.compare("OBS_PROPERTY_EDIT_TEXT") == 0 || type.compare("OBS_PROPERTY_PATH") == 0 || type.compare("OBS_PROPERTY_TEXT") == 0 ||
+		    type.compare("OBS_INPUT_RESOLUTION_LIST") == 0) {
 			std::string value(param.currentValue.data(), param.currentValue.size());
 			if (i < indexEncoderSettings) {
 				config_set_string(ConfigManager::getInstance().getBasic(), section.c_str(), name.c_str(), value.c_str());
@@ -2997,7 +3005,8 @@ void OBS_settings::saveAdvancedOutputRecordingSettings(std::vector<SubCategory> 
 			}
 		}
 
-		if (type.compare("OBS_PROPERTY_EDIT_TEXT") == 0 || type.compare("OBS_PROPERTY_PATH") == 0 || type.compare("OBS_PROPERTY_TEXT") == 0 || type.compare("OBS_INPUT_RESOLUTION_LIST") == 0) {
+		if (type.compare("OBS_PROPERTY_EDIT_TEXT") == 0 || type.compare("OBS_PROPERTY_PATH") == 0 || type.compare("OBS_PROPERTY_TEXT") == 0 ||
+		    type.compare("OBS_INPUT_RESOLUTION_LIST") == 0) {
 			if (i < indexEncoderSettings) {
 				std::string value(param.currentValue.data(), param.currentValue.size());
 				config_set_string(ConfigManager::getInstance().getBasic(), section.c_str(), name.c_str(), value.c_str());
@@ -3309,7 +3318,10 @@ std::vector<SubCategory> OBS_settings::getVideoSettings()
 
 		std::pair<std::string, std::string> newBaseResolution = std::make_pair(baseResolutionString.c_str(), baseResolutionString.c_str());
 
-		std::vector<std::pair<std::string, ipc::value>>::iterator it = std::find_if(baseResolution.begin(), baseResolution.end(), [&baseResolutionString](const std::pair<std::string, ipc::value> value) { return (value.second.value_str.compare(baseResolutionString) == 0); });
+		std::vector<std::pair<std::string, ipc::value>>::iterator it =
+			std::find_if(baseResolution.begin(), baseResolution.end(), [&baseResolutionString](const std::pair<std::string, ipc::value> value) {
+				return (value.second.value_str.compare(baseResolutionString) == 0);
+			});
 
 		if (baseResolution.size() == 7 || it == baseResolution.end()) {
 			baseResolution.push_back(newBaseResolution);
@@ -3320,7 +3332,9 @@ std::vector<SubCategory> OBS_settings::getVideoSettings()
 	std::pair<std::string, std::string> newBaseResolution = std::make_pair("currentValue", baseResolutionString);
 
 	//Check if the current resolution is in the available ones
-	std::vector<std::pair<std::string, ipc::value>>::iterator it = std::find_if(baseResolution.begin(), baseResolution.end(), [&baseResolutionString](const std::pair<std::string, ipc::value> value) { return (value.second.value_str.compare(baseResolutionString) == 0); });
+	std::vector<std::pair<std::string, ipc::value>>::iterator it =
+		std::find_if(baseResolution.begin(), baseResolution.end(),
+			     [&baseResolutionString](const std::pair<std::string, ipc::value> value) { return (value.second.value_str.compare(baseResolutionString) == 0); });
 
 	if (it == baseResolution.end()) {
 		baseResolution.push_back(std::make_pair(baseResolutionString, ipc::value(baseResolutionString)));
@@ -4131,7 +4145,8 @@ void OBS_settings::saveGenericSettings(std::vector<SubCategory> genericSettings,
 			std::string type = param.type;
 			std::string subType = param.subType;
 
-			if (type.compare("OBS_PROPERTY_EDIT_TEXT") == 0 || type.compare("OBS_PROPERTY_PATH") == 0 || type.compare("OBS_PROPERTY_TEXT") == 0 || type.compare("OBS_INPUT_RESOLUTION_LIST") == 0) {
+			if (type.compare("OBS_PROPERTY_EDIT_TEXT") == 0 || type.compare("OBS_PROPERTY_PATH") == 0 || type.compare("OBS_PROPERTY_TEXT") == 0 ||
+			    type.compare("OBS_INPUT_RESOLUTION_LIST") == 0) {
 				std::string value(param.currentValue.data(), param.currentValue.size());
 				config_set_string(config, section.c_str(), name.c_str(), value.c_str());
 			} else if (type.compare("OBS_PROPERTY_INT") == 0) {
@@ -4171,13 +4186,16 @@ void OBS_settings::saveGenericSettings(std::vector<SubCategory> genericSettings,
 							std::vector<std::pair<std::string, std::string>> monitoringDevice;
 
 							auto enum_devices = [](void *param, const char *name, const char *id) {
-								std::vector<std::pair<std::string, std::string>> *monitoringDevice = (std::vector<std::pair<std::string, std::string>> *)param;
+								std::vector<std::pair<std::string, std::string>> *monitoringDevice =
+									(std::vector<std::pair<std::string, std::string>> *)param;
 								monitoringDevice->push_back(std::make_pair(name, id));
 								return true;
 							};
 							obs_enum_audio_monitoring_devices(enum_devices, &monitoringDevice);
 
-							std::vector<std::pair<std::string, std::string>>::iterator it = std::find_if(monitoringDevice.begin(), monitoringDevice.end(), [&value](const std::pair<std::string, std::string> device) { return (device.first.compare(value) == 0); });
+							std::vector<std::pair<std::string, std::string>>::iterator it = std::find_if(
+								monitoringDevice.begin(), monitoringDevice.end(),
+								[&value](const std::pair<std::string, std::string> device) { return (device.first.compare(value) == 0); });
 
 							if (it != monitoringDevice.end()) {
 								monDevName = it->first;

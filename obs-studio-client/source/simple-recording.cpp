@@ -30,36 +30,37 @@ Napi::FunctionReference osn::SimpleRecording::constructor;
 Napi::Object osn::SimpleRecording::Init(Napi::Env env, Napi::Object exports)
 {
 	Napi::HandleScope scope(env);
-	Napi::Function func = DefineClass(env, "SimpleRecording",
-					  {
-						  StaticMethod("create", &osn::SimpleRecording::Create),
-						  StaticMethod("destroy", &osn::SimpleRecording::Destroy),
+	Napi::Function func =
+		DefineClass(env, "SimpleRecording",
+			    {
+				    StaticMethod("create", &osn::SimpleRecording::Create),
+				    StaticMethod("destroy", &osn::SimpleRecording::Destroy),
 
-						  InstanceAccessor("path", &osn::SimpleRecording::GetPath, &osn::SimpleRecording::SetPath),
-						  InstanceAccessor("format", &osn::SimpleRecording::GetFormat, &osn::SimpleRecording::SetFormat),
-						  InstanceAccessor("muxerSettings", &osn::SimpleRecording::GetMuxerSettings, &osn::SimpleRecording::SetMuxerSettings),
-						  InstanceAccessor("videoEncoder", &osn::SimpleRecording::GetVideoEncoder, &osn::SimpleRecording::SetVideoEncoder),
-						  InstanceAccessor("signalHandler", &osn::SimpleRecording::GetSignalHandler, &osn::SimpleRecording::SetSignalHandler),
-						  InstanceAccessor("quality", &osn::SimpleRecording::GetQuality, &osn::SimpleRecording::SetQuality),
-						  InstanceAccessor("audioEncoder", &osn::SimpleRecording::GetAudioEncoder, &osn::SimpleRecording::SetAudioEncoder),
-						  InstanceAccessor("fileFormat", &osn::SimpleRecording::GetFileFormat, &osn::SimpleRecording::SetFileFormat),
-						  InstanceAccessor("overwrite", &osn::SimpleRecording::GetOverwrite, &osn::SimpleRecording::SetOverwrite),
-						  InstanceAccessor("noSpace", &osn::SimpleRecording::GetNoSpace, &osn::SimpleRecording::SetNoSpace),
-						  InstanceAccessor("lowCPU", &osn::SimpleRecording::GetLowCPU, &osn::SimpleRecording::SetLowCPU),
-						  InstanceAccessor("streaming", &osn::SimpleRecording::GetStreaming, &osn::SimpleRecording::SetStreaming),
-						  InstanceAccessor("enableFileSplit", &osn::SimpleRecording::GetEnableFileSplit, &osn::SimpleRecording::SetEnableFileSplit),
-						  InstanceAccessor("splitType", &osn::SimpleRecording::GetSplitType, &osn::SimpleRecording::SetSplitType),
-						  InstanceAccessor("splitTime", &osn::SimpleRecording::GetSplitTime, &osn::SimpleRecording::SetSplitTime),
-						  InstanceAccessor("splitSize", &osn::SimpleRecording::GetSplitSize, &osn::SimpleRecording::SetSplitSize),
-						  InstanceAccessor("fileResetTimestamps", &osn::SimpleRecording::GetFileResetTimestamps, &osn::SimpleRecording::SetFileResetTimestamps),
+				    InstanceAccessor("path", &osn::SimpleRecording::GetPath, &osn::SimpleRecording::SetPath),
+				    InstanceAccessor("format", &osn::SimpleRecording::GetFormat, &osn::SimpleRecording::SetFormat),
+				    InstanceAccessor("muxerSettings", &osn::SimpleRecording::GetMuxerSettings, &osn::SimpleRecording::SetMuxerSettings),
+				    InstanceAccessor("videoEncoder", &osn::SimpleRecording::GetVideoEncoder, &osn::SimpleRecording::SetVideoEncoder),
+				    InstanceAccessor("signalHandler", &osn::SimpleRecording::GetSignalHandler, &osn::SimpleRecording::SetSignalHandler),
+				    InstanceAccessor("quality", &osn::SimpleRecording::GetQuality, &osn::SimpleRecording::SetQuality),
+				    InstanceAccessor("audioEncoder", &osn::SimpleRecording::GetAudioEncoder, &osn::SimpleRecording::SetAudioEncoder),
+				    InstanceAccessor("fileFormat", &osn::SimpleRecording::GetFileFormat, &osn::SimpleRecording::SetFileFormat),
+				    InstanceAccessor("overwrite", &osn::SimpleRecording::GetOverwrite, &osn::SimpleRecording::SetOverwrite),
+				    InstanceAccessor("noSpace", &osn::SimpleRecording::GetNoSpace, &osn::SimpleRecording::SetNoSpace),
+				    InstanceAccessor("lowCPU", &osn::SimpleRecording::GetLowCPU, &osn::SimpleRecording::SetLowCPU),
+				    InstanceAccessor("streaming", &osn::SimpleRecording::GetStreaming, &osn::SimpleRecording::SetStreaming),
+				    InstanceAccessor("enableFileSplit", &osn::SimpleRecording::GetEnableFileSplit, &osn::SimpleRecording::SetEnableFileSplit),
+				    InstanceAccessor("splitType", &osn::SimpleRecording::GetSplitType, &osn::SimpleRecording::SetSplitType),
+				    InstanceAccessor("splitTime", &osn::SimpleRecording::GetSplitTime, &osn::SimpleRecording::SetSplitTime),
+				    InstanceAccessor("splitSize", &osn::SimpleRecording::GetSplitSize, &osn::SimpleRecording::SetSplitSize),
+				    InstanceAccessor("fileResetTimestamps", &osn::SimpleRecording::GetFileResetTimestamps, &osn::SimpleRecording::SetFileResetTimestamps),
 
-						  InstanceMethod("start", &osn::SimpleRecording::Start),
-						  InstanceMethod("stop", &osn::SimpleRecording::Stop),
-						  InstanceMethod("splitFile", &osn::SimpleRecording::SplitFile),
+				    InstanceMethod("start", &osn::SimpleRecording::Start),
+				    InstanceMethod("stop", &osn::SimpleRecording::Stop),
+				    InstanceMethod("splitFile", &osn::SimpleRecording::SplitFile),
 
-						  StaticAccessor("legacySettings", &osn::SimpleRecording::GetLegacySettings, &osn::SimpleRecording::SetLegacySettings),
-						  InstanceMethod("lastFile", &osn::SimpleRecording::GetLastFile),
-					  });
+				    StaticAccessor("legacySettings", &osn::SimpleRecording::GetLegacySettings, &osn::SimpleRecording::SetLegacySettings),
+				    InstanceMethod("lastFile", &osn::SimpleRecording::GetLastFile),
+			    });
 
 	exports.Set("SimpleRecording", func);
 	osn::SimpleRecording::constructor = Napi::Persistent(func);

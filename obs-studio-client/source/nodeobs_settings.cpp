@@ -151,7 +151,8 @@ Napi::Value settings::OBS_settings_getSettings(const Napi::CallbackInfo &info)
 	Napi::Array array = Napi::Array::New(info.Env());
 	Napi::Object settings = Napi::Object::New(info.Env());
 
-	std::vector<settings::SubCategory> categorySettings = serializeCategory(uint32_t(response[1].value_union.ui64), uint32_t(response[2].value_union.ui64), response[3].value_bin);
+	std::vector<settings::SubCategory> categorySettings =
+		serializeCategory(uint32_t(response[1].value_union.ui64), uint32_t(response[2].value_union.ui64), response[3].value_bin);
 
 	for (int i = 0; i < categorySettings.size(); i++) {
 		Napi::Object subCategory = Napi::Object::New(info.Env());
@@ -167,7 +168,8 @@ Napi::Value settings::OBS_settings_getSettings(const Napi::CallbackInfo &info)
 			parameter.Set("subType", Napi::String::New(info.Env(), params.at(j).subType));
 
 			if (params.at(j).currentValue.size() > 0) {
-				if (params.at(j).type.compare("OBS_PROPERTY_EDIT_TEXT") == 0 || params.at(j).type.compare("OBS_PROPERTY_PATH") == 0 || params.at(j).type.compare("OBS_PROPERTY_TEXT") == 0 || params.at(j).type.compare("OBS_INPUT_RESOLUTION_LIST") == 0) {
+				if (params.at(j).type.compare("OBS_PROPERTY_EDIT_TEXT") == 0 || params.at(j).type.compare("OBS_PROPERTY_PATH") == 0 ||
+				    params.at(j).type.compare("OBS_PROPERTY_TEXT") == 0 || params.at(j).type.compare("OBS_INPUT_RESOLUTION_LIST") == 0) {
 
 					std::string value(params.at(j).currentValue.begin(), params.at(j).currentValue.end());
 					parameter.Set("currentValue", Napi::String::New(info.Env(), value));
@@ -309,7 +311,8 @@ std::vector<char> deserializeCategory(uint32_t *subCategoriesCount, uint32_t *si
 			param.type = parameterObject.Get("type").ToString().Utf8Value();
 			param.subType = parameterObject.Get("subType").ToString().Utf8Value();
 
-			if (param.type.compare("OBS_PROPERTY_EDIT_TEXT") == 0 || param.type.compare("OBS_PROPERTY_PATH") == 0 || param.type.compare("OBS_PROPERTY_TEXT") == 0 || param.type.compare("OBS_INPUT_RESOLUTION_LIST") == 0) {
+			if (param.type.compare("OBS_PROPERTY_EDIT_TEXT") == 0 || param.type.compare("OBS_PROPERTY_PATH") == 0 || param.type.compare("OBS_PROPERTY_TEXT") == 0 ||
+			    param.type.compare("OBS_INPUT_RESOLUTION_LIST") == 0) {
 				std::string value = parameterObject.Get("currentValue").ToString().Utf8Value();
 
 				param.sizeOfCurrentValue = value.length();
@@ -392,7 +395,8 @@ void settings::OBS_settings_saveSettings(const Napi::CallbackInfo &info)
 	if (!conn)
 		return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Settings", "OBS_settings_saveSettings", {ipc::value(category), ipc::value(subCategoriesCount), ipc::value(sizeStruct), ipc::value(buffer)});
+	std::vector<ipc::value> response = conn->call_synchronous_helper("Settings", "OBS_settings_saveSettings",
+									 {ipc::value(category), ipc::value(subCategoriesCount), ipc::value(sizeStruct), ipc::value(buffer)});
 
 	if (!ValidateResponse(info, response))
 		return;

@@ -41,7 +41,8 @@ struct Parameter {
 		std::vector<char> buffer;
 		uint32_t indexBuffer = 0;
 
-		size_t sizeStruct = name.length() + description.length() + type.length() + subType.length() + sizeof(uint64_t) * 7 + sizeof(bool) * 3 + sizeof(double) * 3 + sizeOfCurrentValue + sizeOfValues;
+		size_t sizeStruct = name.length() + description.length() + type.length() + subType.length() + sizeof(uint64_t) * 7 + sizeof(bool) * 3 + sizeof(double) * 3 +
+				    sizeOfCurrentValue + sizeOfValues;
 		buffer.resize(sizeStruct);
 
 		*reinterpret_cast<uint64_t *>(buffer.data() + indexBuffer) = name.length();

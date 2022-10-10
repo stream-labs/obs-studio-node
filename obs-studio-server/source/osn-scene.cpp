@@ -38,8 +38,10 @@ void osn::Scene::Register(ipc::server &srv)
 	cls->register_function(std::make_shared<ipc::function>("AddSource", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64}, AddSource));
 
 	cls->register_function(std::make_shared<ipc::function>("AddSourceWithTransform",
-							       std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64, ipc::type::Double, ipc::type::Double, ipc::type::Int32, ipc::type::Double, ipc::type::Double, ipc::type::Double, ipc::type::Int64, ipc::type::Int64, ipc::type::Int64,
-										      ipc::type::Int64, ipc::type::Int32, ipc::type::Int32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32},
+							       std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64, ipc::type::Double, ipc::type::Double, ipc::type::Int32,
+										      ipc::type::Double, ipc::type::Double, ipc::type::Double, ipc::type::Int64, ipc::type::Int64,
+										      ipc::type::Int64, ipc::type::Int64, ipc::type::Int32, ipc::type::Int32, ipc::type::UInt32,
+										      ipc::type::UInt32, ipc::type::UInt32},
 							       AddSource));
 
 	cls->register_function(std::make_shared<ipc::function>("FindItemByName", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String}, FindItemByName));

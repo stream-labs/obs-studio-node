@@ -33,16 +33,18 @@
 
 // Napi::Error::New(info.Env(), "Too few arguments, usage: host(uri).").ThrowAsJavaScriptException();
 
-#define ASSERT_INFO_LENGTH_AT_LEAST(info, length)                                                                                                                                                                                                                 \
-	if ((info).Length() < length) {                                                                                                                                                                                                                           \
-		Napi::Error::New(info.Env(), FIELD_NAME(info, std::string(__FUNCTION_NAME__) + ": Unexpected number of arguments, got " + std::to_string((info).Length()) + std::string(" but expected at least ") + std::to_string(length) + std::string("."))); \
-		return;                                                                                                                                                                                                                                           \
+#define ASSERT_INFO_LENGTH_AT_LEAST(info, length)                                                                                                                           \
+	if ((info).Length() < length) {                                                                                                                                     \
+		Napi::Error::New(info.Env(), FIELD_NAME(info, std::string(__FUNCTION_NAME__) + ": Unexpected number of arguments, got " + std::to_string((info).Length()) + \
+								      std::string(" but expected at least ") + std::to_string(length) + std::string(".")));                 \
+		return;                                                                                                                                                     \
 	}
 
-#define ASSERT_INFO_LENGTH(info, length)                                                                                                                                                                                                                         \
-	if ((info).Length() != (length)) {                                                                                                                                                                                                                       \
-		Napi::Error::New(info.Env(), FIELD_NAME(info, std::string(__FUNCTION_NAME__) + ": Unexpected number of arguments, got " + std::to_string((info).Length()) + std::string(" but expected exactly ") + std::to_string(length) + std::string("."))); \
-		return;                                                                                                                                                                                                                                          \
+#define ASSERT_INFO_LENGTH(info, length)                                                                                                                                    \
+	if ((info).Length() != (length)) {                                                                                                                                  \
+		Napi::Error::New(info.Env(), FIELD_NAME(info, std::string(__FUNCTION_NAME__) + ": Unexpected number of arguments, got " + std::to_string((info).Length()) + \
+								      std::string(" but expected exactly ") + std::to_string(length) + std::string(".")));                  \
+		return;                                                                                                                                                     \
 	}
 
 #define ASSERT_GET_OBJECT_FIELD(object, field, var)                                                                    \

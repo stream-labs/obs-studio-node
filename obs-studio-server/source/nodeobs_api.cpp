@@ -135,7 +135,8 @@ void OBS_API::Register(ipc::server &srv)
 {
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("API");
 
-	cls->register_function(std::make_shared<ipc::function>("OBS_API_initAPI", std::vector<ipc::type>{ipc::type::String, ipc::type::String, ipc::type::String, ipc::type::String}, OBS_API_initAPI));
+	cls->register_function(std::make_shared<ipc::function>(
+		"OBS_API_initAPI", std::vector<ipc::type>{ipc::type::String, ipc::type::String, ipc::type::String, ipc::type::String}, OBS_API_initAPI));
 	cls->register_function(std::make_shared<ipc::function>("OBS_API_destroyOBS_API", std::vector<ipc::type>{}, OBS_API_destroyOBS_API));
 	cls->register_function(std::make_shared<ipc::function>("OBS_API_getPerformanceStatistics", std::vector<ipc::type>{}, OBS_API_getPerformanceStatistics));
 	cls->register_function(std::make_shared<ipc::function>("SetWorkingDirectory", std::vector<ipc::type>{ipc::type::String}, SetWorkingDirectory));
@@ -220,7 +221,8 @@ static std::string GenerateTimeDateFilename(const char *extension)
 	struct tm *cur_time;
 
 	cur_time = localtime(&now);
-	snprintf(file, sizeof(file), "%d-%02d-%02d %02d-%02d-%02d.%s", cur_time->tm_year + 1900, cur_time->tm_mon + 1, cur_time->tm_mday, cur_time->tm_hour, cur_time->tm_min, cur_time->tm_sec, extension);
+	snprintf(file, sizeof(file), "%d-%02d-%02d %02d-%02d-%02d.%s", cur_time->tm_year + 1900, cur_time->tm_mon + 1, cur_time->tm_mday, cur_time->tm_hour, cur_time->tm_min,
+		 cur_time->tm_sec, extension);
 
 	return std::string(file);
 }
@@ -479,9 +481,11 @@ static void node_obs_log(int log_level, const char *msg, va_list args, void *par
 	std::array<char, 160> timebuf{};
 	static const std::string_view timeformat("[%.3d:%.2d:%.2d:%.2d.%.3d.%.3d.%.3d][%*s][%*s]");
 #ifdef WIN32
-	int length = sprintf_s(timebuf.data(), timebuf.size(), timeformat.data(), days.count(), hours.count(), minutes.count(), seconds.count(), milliseconds.count(), microseconds.count(), nanoseconds.count(), thread_id.length(), thread_id.c_str(), levelname.length(), levelname.data());
+	int length = sprintf_s(timebuf.data(), timebuf.size(), timeformat.data(), days.count(), hours.count(), minutes.count(), seconds.count(), milliseconds.count(),
+			       microseconds.count(), nanoseconds.count(), thread_id.length(), thread_id.c_str(), levelname.length(), levelname.data());
 #else
-	int length = snprintf(timebuf.data(), timebuf.size(), timeformat.data(), days.count(), hours.count(), minutes.count(), seconds.count(), milliseconds.count(), microseconds.count(), nanoseconds.count(), thread_id.length(), thread_id.c_str(), levelname.length(), levelname.data());
+	int length = snprintf(timebuf.data(), timebuf.size(), timeformat.data(), days.count(), hours.count(), minutes.count(), seconds.count(), milliseconds.count(),
+			      microseconds.count(), nanoseconds.count(), thread_id.length(), thread_id.c_str(), levelname.length(), levelname.data());
 #endif
 	if (length < 0)
 		return;
@@ -608,7 +612,8 @@ std::vector<char> registerMemoryDump(void)
 
 	// Buffer
 	std::vector<char> buffer;
-	buffer.resize(sizeof(action) + sizeof(pid) + sizeof(int) + eventName_Start_Size + sizeof(int) + eventName_Fail_Size + sizeof(int) + eventName_Success_Size + sizeof(int) + dumpPathSize + sizeof(int) + dumpNameSize);
+	buffer.resize(sizeof(action) + sizeof(pid) + sizeof(int) + eventName_Start_Size + sizeof(int) + eventName_Fail_Size + sizeof(int) + eventName_Success_Size + sizeof(int) +
+		      dumpPathSize + sizeof(int) + dumpNameSize);
 	uint32_t offset = 0;
 
 	//@uint32_t - pid
@@ -1294,7 +1299,8 @@ bool prepareTerminationPipe()
 
 	Pipe.oOverlap.hEvent = hEvents;
 
-	Pipe.hPipeInst = CreateNamedPipe(lpszPipename, PIPE_ACCESS_DUPLEX | FILE_FLAG_OVERLAPPED, PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT, 1, BUFFSIZE * sizeof(TCHAR), BUFFSIZE * sizeof(TCHAR), 5000, NULL);
+	Pipe.hPipeInst = CreateNamedPipe(lpszPipename, PIPE_ACCESS_DUPLEX | FILE_FLAG_OVERLAPPED, PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT, 1,
+					 BUFFSIZE * sizeof(TCHAR), BUFFSIZE * sizeof(TCHAR), 5000, NULL);
 
 	if (Pipe.hPipeInst == INVALID_HANDLE_VALUE) {
 		CloseHandle(hEvents);
@@ -1617,8 +1623,8 @@ void OBS_API::destroyOBS_API(void)
 	// If there are some sources here it's because it ended unexpectedly, this represents a
 	// problem since obs doesn't handle releasing leaked sources very well. The best we can
 	// do is to insert a try-catch block and disable the crash handler to avoid false positives
-	if (osn::Source::Manager::GetInstance().size() > 0 || osn::Scene::Manager::GetInstance().size() > 0 || osn::SceneItem::Manager::GetInstance().size() > 0 || osn::Transition::Manager::GetInstance().size() > 0 || osn::Filter::Manager::GetInstance().size() > 0 ||
-	    osn::Input::Manager::GetInstance().size() > 0) {
+	if (osn::Source::Manager::GetInstance().size() > 0 || osn::Scene::Manager::GetInstance().size() > 0 || osn::SceneItem::Manager::GetInstance().size() > 0 ||
+	    osn::Transition::Manager::GetInstance().size() > 0 || osn::Filter::Manager::GetInstance().size() > 0 || osn::Input::Manager::GetInstance().size() > 0) {
 
 		for (int i = 0; i < MAX_CHANNELS; i++)
 			obs_set_output_source(i, nullptr);

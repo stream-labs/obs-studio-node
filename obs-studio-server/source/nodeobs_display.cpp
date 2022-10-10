@@ -137,7 +137,8 @@ void OBS::Display::SystemWorker()
 				windowStyle = WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOPMOST | WS_EX_COMPOSITED;
 			}
 
-			HWND newWindow = CreateWindowEx(windowStyle, TEXT("Win32DisplayClass"), TEXT("SlobsChildWindowPreview"), WS_VISIBLE | WS_POPUP | WS_CHILD, 0, 0, question->width, question->height, NULL, NULL, NULL, this);
+			HWND newWindow = CreateWindowEx(windowStyle, TEXT("Win32DisplayClass"), TEXT("SlobsChildWindowPreview"), WS_VISIBLE | WS_POPUP | WS_CHILD, 0, 0,
+							question->width, question->height, NULL, NULL, NULL, this);
 
 			if (!newWindow) {
 				answer->success = false;
@@ -194,7 +195,8 @@ void OBS::Display::SystemWorker()
 static vec4 ConvertColorToVec4(uint32_t color)
 {
 	vec4 colorVec4;
-	vec4_set(&colorVec4, static_cast<float>(color & 0xFF) / 255.0f, static_cast<float>((color & 0xFF00) >> 8) / 255.0f, static_cast<float>((color & 0xFF0000) >> 16) / 255.0f, static_cast<float>((color & 0xFF000000) >> 24) / 255.0f);
+	vec4_set(&colorVec4, static_cast<float>(color & 0xFF) / 255.0f, static_cast<float>((color & 0xFF00) >> 8) / 255.0f, static_cast<float>((color & 0xFF0000) >> 16) / 255.0f,
+		 static_cast<float>((color & 0xFF000000) >> 24) / 255.0f);
 	return colorVec4;
 }
 
@@ -416,7 +418,8 @@ OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode)
 	question.parentWindow = (HWND)windowHandle;
 	question.width = m_gsInitData.cx;
 	question.height = m_gsInitData.cy;
-	while (!PostThreadMessage(GetThreadId(worker.native_handle()), (UINT)SystemWorkerMessage::CreateWindow, reinterpret_cast<intptr_t>(&question), reinterpret_cast<intptr_t>(&answer))) {
+	while (!PostThreadMessage(GetThreadId(worker.native_handle()), (UINT)SystemWorkerMessage::CreateWindow, reinterpret_cast<intptr_t>(&question),
+				  reinterpret_cast<intptr_t>(&answer))) {
 		Sleep(0);
 	}
 
@@ -507,7 +510,8 @@ OBS::Display::~Display()
 	DestroyWindowMessageAnswer answer;
 
 	question.window = m_ourWindow;
-	PostThreadMessage(GetThreadId(worker.native_handle()), (UINT)SystemWorkerMessage::DestroyWindow, reinterpret_cast<intptr_t>(&question), reinterpret_cast<intptr_t>(&answer));
+	PostThreadMessage(GetThreadId(worker.native_handle()), (UINT)SystemWorkerMessage::DestroyWindow, reinterpret_cast<intptr_t>(&question),
+			  reinterpret_cast<intptr_t>(&answer));
 
 	if (!answer.try_wait()) {
 		while (!answer.wait()) {
@@ -1522,7 +1526,8 @@ void OBS::Display::UpdatePreviewArea()
 	if (sourceH == 0)
 		sourceH = 1;
 
-	RecalculateApectRatioConstrainedSize(m_gsInitData.cx, m_gsInitData.cy, sourceW, sourceH, m_previewOffset.first, m_previewOffset.second, m_previewSize.first, m_previewSize.second);
+	RecalculateApectRatioConstrainedSize(m_gsInitData.cx, m_gsInitData.cy, sourceW, sourceH, m_previewOffset.first, m_previewOffset.second, m_previewSize.first,
+					     m_previewSize.second);
 
 	offsetX = m_paddingSize;
 	offsetY = float_t(offsetX) * float_t(sourceH) / float_t(sourceW);

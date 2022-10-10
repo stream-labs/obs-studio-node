@@ -399,7 +399,8 @@ void osn::IAdvancedStreaming::Start(void *data, const int64_t id, const std::vec
 	if (!streaming->delay) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Invalid delay.");
 	}
-	obs_output_set_delay(streaming->output, streaming->delay->enabled ? uint32_t(streaming->delay->delaySec) : 0, streaming->delay->preserveDelay ? OBS_OUTPUT_DELAY_PRESERVE : 0);
+	obs_output_set_delay(streaming->output, streaming->delay->enabled ? uint32_t(streaming->delay->delaySec) : 0,
+			     streaming->delay->preserveDelay ? OBS_OUTPUT_DELAY_PRESERVE : 0);
 
 	if (!streaming->reconnect) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Invalid reconnect.");

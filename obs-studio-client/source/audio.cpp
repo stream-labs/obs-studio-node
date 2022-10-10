@@ -24,7 +24,9 @@ Napi::FunctionReference osn::Audio::constructor;
 Napi::Object osn::Audio::Init(Napi::Env env, Napi::Object exports)
 {
 	Napi::HandleScope scope(env);
-	Napi::Function func = DefineClass(env, "Audio", {StaticAccessor("audioContext", &osn::Audio::GetAudioContext, &osn::Audio::SetAudioContext), StaticAccessor("legacySettings", &osn::Audio::GetLegacySettings, &osn::Audio::SetLegacySettings)});
+	Napi::Function func = DefineClass(env, "Audio",
+					  {StaticAccessor("audioContext", &osn::Audio::GetAudioContext, &osn::Audio::SetAudioContext),
+					   StaticAccessor("legacySettings", &osn::Audio::GetLegacySettings, &osn::Audio::SetLegacySettings)});
 	exports.Set("Audio", func);
 	osn::Audio::constructor = Napi::Persistent(func);
 	osn::Audio::constructor.SuppressDestruct();
