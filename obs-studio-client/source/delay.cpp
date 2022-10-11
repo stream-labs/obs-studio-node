@@ -21,148 +21,120 @@
 
 Napi::FunctionReference osn::Delay::constructor;
 
-Napi::Object osn::Delay::Init(Napi::Env env, Napi::Object exports) {
-    Napi::HandleScope scope(env);
-    Napi::Function func =
-        DefineClass(env,
-        "Delay",
-        {
-            StaticMethod("create", &osn::Delay::Create),
+Napi::Object osn::Delay::Init(Napi::Env env, Napi::Object exports)
+{
+	Napi::HandleScope scope(env);
+	Napi::Function func = DefineClass(env, "Delay",
+					  {
+						  StaticMethod("create", &osn::Delay::Create),
 
-            InstanceAccessor(
-                "enabled",
-                &osn::Delay::GetEnabled,
-                &osn::Delay::SetEnabled),
-            InstanceAccessor(
-                "delaySec",
-                &osn::Delay::GetDelaySec,
-                &osn::Delay::SetDelaySec),
-            InstanceAccessor(
-                "preserveDelay",
-                &osn::Delay::GetPreserveDelay,
-                &osn::Delay::SetPreserveDelay),
-        });
+						  InstanceAccessor("enabled", &osn::Delay::GetEnabled, &osn::Delay::SetEnabled),
+						  InstanceAccessor("delaySec", &osn::Delay::GetDelaySec, &osn::Delay::SetDelaySec),
+						  InstanceAccessor("preserveDelay", &osn::Delay::GetPreserveDelay, &osn::Delay::SetPreserveDelay),
+					  });
 
-    exports.Set("Delay", func);
-    osn::Delay::constructor = Napi::Persistent(func);
-    osn::Delay::constructor.SuppressDestruct();
+	exports.Set("Delay", func);
+	osn::Delay::constructor = Napi::Persistent(func);
+	osn::Delay::constructor.SuppressDestruct();
 
-    return exports;
+	return exports;
 }
 
-osn::Delay::Delay(const Napi::CallbackInfo& info)
-    : Napi::ObjectWrap<osn::Delay>(info) {
-    Napi::Env env = info.Env();
-    Napi::HandleScope scope(env);
-    int length = info.Length();
+osn::Delay::Delay(const Napi::CallbackInfo &info) : Napi::ObjectWrap<osn::Delay>(info)
+{
+	Napi::Env env = info.Env();
+	Napi::HandleScope scope(env);
+	int length = info.Length();
 
-    if (length <= 0 || !info[0].IsNumber()) {
-        Napi::TypeError::New(env, "Number expected").ThrowAsJavaScriptException();
-        return;
-    }
+	if (length <= 0 || !info[0].IsNumber()) {
+		Napi::TypeError::New(env, "Number expected").ThrowAsJavaScriptException();
+		return;
+	}
 
-    this->uid = (uint64_t)info[0].ToNumber().Int64Value();
+	this->uid = (uint64_t)info[0].ToNumber().Int64Value();
 }
 
-Napi::Value osn::Delay::Create(const Napi::CallbackInfo& info) {
-    auto conn = GetConnection(info);
-    if (!conn)
-        return info.Env().Undefined();
+Napi::Value osn::Delay::Create(const Napi::CallbackInfo &info)
+{
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
 
-    std::vector<ipc::value> response =
-        conn->call_synchronous_helper("Delay", "Create", {});
+	std::vector<ipc::value> response = conn->call_synchronous_helper("Delay", "Create", {});
 
-    if (!ValidateResponse(info, response))
-        return info.Env().Undefined();
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
 
-    auto instance =
-        osn::Delay::constructor.New({
-            Napi::Number::New(info.Env(), response[1].value_union.ui64)
-        });
+	auto instance = osn::Delay::constructor.New({Napi::Number::New(info.Env(), response[1].value_union.ui64)});
 
-    return instance;
+	return instance;
 }
 
-Napi::Value osn::Delay::GetEnabled(const Napi::CallbackInfo& info) {
-    auto conn = GetConnection(info);
-    if (!conn)
-        return info.Env().Undefined();
+Napi::Value osn::Delay::GetEnabled(const Napi::CallbackInfo &info)
+{
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
 
-    std::vector<ipc::value> response =
-        conn->call_synchronous_helper(
-            "Delay",
-            "GetEnabled",
-            {ipc::value(this->uid)});
+	std::vector<ipc::value> response = conn->call_synchronous_helper("Delay", "GetEnabled", {ipc::value(this->uid)});
 
-    if (!ValidateResponse(info, response))
-        return info.Env().Undefined();
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
 
-    return Napi::Boolean::New(info.Env(), response[1].value_union.ui32);
+	return Napi::Boolean::New(info.Env(), response[1].value_union.ui32);
 }
 
-void osn::Delay::SetEnabled(const Napi::CallbackInfo& info, const Napi::Value& value) {
-    auto conn = GetConnection(info);
-    if (!conn)
-        return;
+void osn::Delay::SetEnabled(const Napi::CallbackInfo &info, const Napi::Value &value)
+{
+	auto conn = GetConnection(info);
+	if (!conn)
+		return;
 
-    conn->call_synchronous_helper(
-        "Delay",
-        "SetEnabled",
-        {ipc::value(this->uid), ipc::value(value.ToBoolean().Value())});
+	conn->call_synchronous_helper("Delay", "SetEnabled", {ipc::value(this->uid), ipc::value(value.ToBoolean().Value())});
 }
 
-Napi::Value osn::Delay::GetDelaySec(const Napi::CallbackInfo& info) {
-    auto conn = GetConnection(info);
-    if (!conn)
-        return info.Env().Undefined();
+Napi::Value osn::Delay::GetDelaySec(const Napi::CallbackInfo &info)
+{
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
 
-    std::vector<ipc::value> response =
-        conn->call_synchronous_helper(
-            "Delay",
-            "GetDelaySec",
-            {ipc::value(this->uid)});
+	std::vector<ipc::value> response = conn->call_synchronous_helper("Delay", "GetDelaySec", {ipc::value(this->uid)});
 
-    if (!ValidateResponse(info, response))
-        return info.Env().Undefined();
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
 
-    return Napi::Number::New(info.Env(), response[1].value_union.ui32);
+	return Napi::Number::New(info.Env(), response[1].value_union.ui32);
 }
 
-void osn::Delay::SetDelaySec(const Napi::CallbackInfo& info, const Napi::Value& value) {
-    auto conn = GetConnection(info);
-    if (!conn)
-        return;
+void osn::Delay::SetDelaySec(const Napi::CallbackInfo &info, const Napi::Value &value)
+{
+	auto conn = GetConnection(info);
+	if (!conn)
+		return;
 
-    conn->call_synchronous_helper(
-        "Delay",
-        "SetDelaySec",
-        {ipc::value(this->uid), ipc::value(value.ToNumber().Uint32Value())});
+	conn->call_synchronous_helper("Delay", "SetDelaySec", {ipc::value(this->uid), ipc::value(value.ToNumber().Uint32Value())});
 }
 
-Napi::Value osn::Delay::GetPreserveDelay(const Napi::CallbackInfo& info) {
-    auto conn = GetConnection(info);
-    if (!conn)
-        return info.Env().Undefined();
+Napi::Value osn::Delay::GetPreserveDelay(const Napi::CallbackInfo &info)
+{
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
 
-    std::vector<ipc::value> response =
-        conn->call_synchronous_helper(
-            "Delay",
-            "GetPreserveDelay",
-            {ipc::value(this->uid)});
+	std::vector<ipc::value> response = conn->call_synchronous_helper("Delay", "GetPreserveDelay", {ipc::value(this->uid)});
 
-    if (!ValidateResponse(info, response))
-        return info.Env().Undefined();
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
 
-    return Napi::Boolean::New(info.Env(), response[1].value_union.ui32);
+	return Napi::Boolean::New(info.Env(), response[1].value_union.ui32);
 }
 
-void osn::Delay::SetPreserveDelay(const Napi::CallbackInfo& info, const Napi::Value& value) {
-    auto conn = GetConnection(info);
-    if (!conn)
-        return;
+void osn::Delay::SetPreserveDelay(const Napi::CallbackInfo &info, const Napi::Value &value)
+{
+	auto conn = GetConnection(info);
+	if (!conn)
+		return;
 
-    conn->call_synchronous_helper(
-        "Delay",
-        "SetPreserveDelay",
-        {ipc::value(this->uid), ipc::value(value.ToBoolean().Value())});
+	conn->call_synchronous_helper("Delay", "SetPreserveDelay", {ipc::value(this->uid), ipc::value(value.ToBoolean().Value())});
 }

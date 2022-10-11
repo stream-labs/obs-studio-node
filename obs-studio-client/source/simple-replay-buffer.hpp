@@ -20,29 +20,21 @@
 #include <napi.h>
 #include "replay-buffer.hpp"
 
-namespace osn
-{
-    class SimpleReplayBuffer :
-        public Napi::ObjectWrap<osn::SimpleReplayBuffer>,
-        public osn::ReplayBuffer
-    {
-        public:
-        static Napi::FunctionReference constructor;
-        static Napi::Object Init(Napi::Env env, Napi::Object exports);
-        SimpleReplayBuffer(const Napi::CallbackInfo& info);
+namespace osn {
+class SimpleReplayBuffer : public Napi::ObjectWrap<osn::SimpleReplayBuffer>, public osn::ReplayBuffer {
+public:
+	static Napi::FunctionReference constructor;
+	static Napi::Object Init(Napi::Env env, Napi::Object exports);
+	SimpleReplayBuffer(const Napi::CallbackInfo &info);
 
-        static Napi::Value Create(const Napi::CallbackInfo& info);
-        static void Destroy(const Napi::CallbackInfo& info);
+	static Napi::Value Create(const Napi::CallbackInfo &info);
+	static void Destroy(const Napi::CallbackInfo &info);
 
-        static Napi::Value GetLegacySettings(
-            const Napi::CallbackInfo& info);
-        static void SetLegacySettings(const Napi::CallbackInfo& info,
-            const Napi::Value& value);
-        Napi::Value GetStreaming(const Napi::CallbackInfo& info);
-        void SetStreaming(
-            const Napi::CallbackInfo& info, const Napi::Value& value);
-        Napi::Value GetRecording(const Napi::CallbackInfo& info);
-        void SetRecording(
-            const Napi::CallbackInfo& info, const Napi::Value& value);
-    };
+	static Napi::Value GetLegacySettings(const Napi::CallbackInfo &info);
+	static void SetLegacySettings(const Napi::CallbackInfo &info, const Napi::Value &value);
+	Napi::Value GetStreaming(const Napi::CallbackInfo &info);
+	void SetStreaming(const Napi::CallbackInfo &info, const Napi::Value &value);
+	Napi::Value GetRecording(const Napi::CallbackInfo &info);
+	void SetRecording(const Napi::CallbackInfo &info, const Napi::Value &value);
+};
 }

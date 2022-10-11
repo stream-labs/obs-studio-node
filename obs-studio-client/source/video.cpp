@@ -23,139 +23,128 @@
 #include "utility-v8.hpp"
 #include "utility.hpp"
 
-
 Napi::FunctionReference osn::Video::constructor;
 
-Napi::Object osn::Video::Init(Napi::Env env, Napi::Object exports) {
+Napi::Object osn::Video::Init(Napi::Env env, Napi::Object exports)
+{
 	Napi::HandleScope scope(env);
-	Napi::Function func =
-		DefineClass(env,
-		"Video",
-		{
-			StaticMethod("create", &osn::Video::Create),
-	        InstanceMethod("destroy", &osn::Video::Destroy),
+	Napi::Function func = DefineClass(env, "Video",
+					  {
+						  StaticMethod("create", &osn::Video::Create),
+						  InstanceMethod("destroy", &osn::Video::Destroy),
 
-			InstanceAccessor("video", &osn::Video::get, &osn::Video::set),
-	        InstanceAccessor("legacySettings",&osn::Video::GetLegacySettings, &osn::Video::SetLegacySettings),
+						  InstanceAccessor("video", &osn::Video::get, &osn::Video::set),
+						  InstanceAccessor("legacySettings", &osn::Video::GetLegacySettings, &osn::Video::SetLegacySettings),
 
-			InstanceAccessor("skippedFrames", &osn::Video::GetSkippedFrames, nullptr),
-			InstanceAccessor("encodedFrames", &osn::Video::GetEncodedFrames, nullptr),
-		});
+						  InstanceAccessor("skippedFrames", &osn::Video::GetSkippedFrames, nullptr),
+						  InstanceAccessor("encodedFrames", &osn::Video::GetEncodedFrames, nullptr),
+					  });
 	exports.Set("Video", func);
 	osn::Video::constructor = Napi::Persistent(func);
 	osn::Video::constructor.SuppressDestruct();
 	return exports;
 }
 
-osn::Video::Video(const Napi::CallbackInfo& info)
-    : Napi::ObjectWrap<osn::Video>(info) {
-    Napi::Env env = info.Env();
-    Napi::HandleScope scope(env);
-	
-    this->canvasId = (uint64_t)info[0].ToNumber().Int64Value();
-}
-
-Napi::Value osn::Video::GetSkippedFrames(const Napi::CallbackInfo& info)
+osn::Video::Video(const Napi::CallbackInfo &info) : Napi::ObjectWrap<osn::Video>(info)
 {
-    auto conn = GetConnection(info);
-    if (!conn)
-        return info.Env().Undefined();
+	Napi::Env env = info.Env();
+	Napi::HandleScope scope(env);
 
-    std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Video", "GetSkippedFrames", {ipc::value((uint64_t)(this->canvasId))});
-
-    if (!ValidateResponse(info, response))
-        return info.Env().Undefined();
-
-    return Napi::Number::New(info.Env(), response[1].value_union.ui32);
+	this->canvasId = (uint64_t)info[0].ToNumber().Int64Value();
 }
 
-Napi::Value osn::Video::GetEncodedFrames(const Napi::CallbackInfo& info)
-{
-    auto conn = GetConnection(info);
-    if (!conn)
-        return info.Env().Undefined();
-
-    std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Video", "GetTotalFrames", {ipc::value((uint64_t)(this->canvasId))});
-
-    if (!ValidateResponse(info, response))
-        return info.Env().Undefined();
-
-    return Napi::Number::New(info.Env(), response[1].value_union.ui32);
-}
-
-Napi::Value osn::Video::Create(const Napi::CallbackInfo& info)
+Napi::Value osn::Video::GetSkippedFrames(const Napi::CallbackInfo &info)
 {
 	auto conn = GetConnection(info);
 	if (!conn)
 		return info.Env().Undefined();
 
-	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("Video", "AddVideoContext", {});
+	std::vector<ipc::value> response = conn->call_synchronous_helper("Video", "GetSkippedFrames", {ipc::value((uint64_t)(this->canvasId))});
 
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
 
-    auto instance =
-        osn::Video::constructor.New({Napi::Number::New(info.Env(), response[1].value_union.ui64)});
+	return Napi::Number::New(info.Env(), response[1].value_union.ui32);
+}
+
+Napi::Value osn::Video::GetEncodedFrames(const Napi::CallbackInfo &info)
+{
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
+
+	std::vector<ipc::value> response = conn->call_synchronous_helper("Video", "GetTotalFrames", {ipc::value((uint64_t)(this->canvasId))});
+
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
+
+	return Napi::Number::New(info.Env(), response[1].value_union.ui32);
+}
+
+Napi::Value osn::Video::Create(const Napi::CallbackInfo &info)
+{
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
+
+	std::vector<ipc::value> response = conn->call_synchronous_helper("Video", "AddVideoContext", {});
+
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
+
+	auto instance = osn::Video::constructor.New({Napi::Number::New(info.Env(), response[1].value_union.ui64)});
 
 	return instance;
 }
 
-void osn::Video::Destroy(const Napi::CallbackInfo& info)
+void osn::Video::Destroy(const Napi::CallbackInfo &info)
 {
 	auto conn = GetConnection(info);
 	if (!conn)
 		return;
 
-	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("Video", "RemoveVideoContext", {ipc::value((uint64_t)(this->canvasId))});
+	std::vector<ipc::value> response = conn->call_synchronous_helper("Video", "RemoveVideoContext", {ipc::value((uint64_t)(this->canvasId))});
 
 	return;
 }
 
-inline void CreateVideo(
-    const Napi::CallbackInfo& info,const std::vector<ipc::value>& response,
-    Napi::Object& video, uint32_t index)
+inline void CreateVideo(const Napi::CallbackInfo &info, const std::vector<ipc::value> &response, Napi::Object &video, uint32_t index)
 {
-    video.Set("fpsNum", response[index++].value_union.ui32);
-    video.Set("fpsDen", response[index++].value_union.ui32);
-    video.Set("baseWidth", response[index++].value_union.ui32);
-    video.Set("baseHeight", response[index++].value_union.ui32);
-    video.Set("outputWidth", response[index++].value_union.ui32);
-    video.Set("outputHeight", response[index++].value_union.ui32);
-    video.Set("outputFormat", response[index++].value_union.ui32);
-    video.Set("colorspace", response[index++].value_union.ui32);
-    video.Set("range", response[index++].value_union.ui32);
-    video.Set("scaleType", response[index++].value_union.ui32);
-    video.Set("fpsType", response[index++].value_union.ui32);
+	video.Set("fpsNum", response[index++].value_union.ui32);
+	video.Set("fpsDen", response[index++].value_union.ui32);
+	video.Set("baseWidth", response[index++].value_union.ui32);
+	video.Set("baseHeight", response[index++].value_union.ui32);
+	video.Set("outputWidth", response[index++].value_union.ui32);
+	video.Set("outputHeight", response[index++].value_union.ui32);
+	video.Set("outputFormat", response[index++].value_union.ui32);
+	video.Set("colorspace", response[index++].value_union.ui32);
+	video.Set("range", response[index++].value_union.ui32);
+	video.Set("scaleType", response[index++].value_union.ui32);
+	video.Set("fpsType", response[index++].value_union.ui32);
 }
 
-inline void SerializeVideoData(
-    const Napi::Object& video, std::vector<ipc::value>& args)
+inline void SerializeVideoData(const Napi::Object &video, std::vector<ipc::value> &args)
 {
-    args.push_back(video.Get("fpsNum").ToNumber().Uint32Value());
-    args.push_back(video.Get("fpsDen").ToNumber().Uint32Value());
-    args.push_back(video.Get("baseWidth").ToNumber().Uint32Value());
-    args.push_back(video.Get("baseHeight").ToNumber().Uint32Value());
-    args.push_back(video.Get("outputWidth").ToNumber().Uint32Value());
-    args.push_back(video.Get("outputHeight").ToNumber().Uint32Value());
-    args.push_back(video.Get("outputFormat").ToNumber().Uint32Value());
-    args.push_back(video.Get("colorspace").ToNumber().Uint32Value());
-    args.push_back(video.Get("range").ToNumber().Uint32Value());
-    args.push_back(video.Get("scaleType").ToNumber().Uint32Value());
-    args.push_back(video.Get("fpsType").ToNumber().Uint32Value());
+	args.push_back(video.Get("fpsNum").ToNumber().Uint32Value());
+	args.push_back(video.Get("fpsDen").ToNumber().Uint32Value());
+	args.push_back(video.Get("baseWidth").ToNumber().Uint32Value());
+	args.push_back(video.Get("baseHeight").ToNumber().Uint32Value());
+	args.push_back(video.Get("outputWidth").ToNumber().Uint32Value());
+	args.push_back(video.Get("outputHeight").ToNumber().Uint32Value());
+	args.push_back(video.Get("outputFormat").ToNumber().Uint32Value());
+	args.push_back(video.Get("colorspace").ToNumber().Uint32Value());
+	args.push_back(video.Get("range").ToNumber().Uint32Value());
+	args.push_back(video.Get("scaleType").ToNumber().Uint32Value());
+	args.push_back(video.Get("fpsType").ToNumber().Uint32Value());
 }
 
-Napi::Value osn::Video::get(const Napi::CallbackInfo& info)
+Napi::Value osn::Video::get(const Napi::CallbackInfo &info)
 {
 	auto conn = GetConnection(info);
 	if (!conn)
 		return info.Env().Undefined();
 
-	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("Video", "GetVideoContext", {ipc::value((uint64_t)this->canvasId)});
+	std::vector<ipc::value> response = conn->call_synchronous_helper("Video", "GetVideoContext", {ipc::value((uint64_t)this->canvasId)});
 
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
@@ -163,70 +152,63 @@ Napi::Value osn::Video::get(const Napi::CallbackInfo& info)
 	if (response.size() != 11)
 		return info.Env().Undefined();
 
-    Napi::Object video = Napi::Object::New(info.Env());
-    CreateVideo(info, response, video, 1);
-    return video;
+	Napi::Object video = Napi::Object::New(info.Env());
+	CreateVideo(info, response, video, 1);
+	return video;
 }
 
-void osn::Video::set(const Napi::CallbackInfo& info, const Napi::Value &value)
+void osn::Video::set(const Napi::CallbackInfo &info, const Napi::Value &value)
 {
 	Napi::Object video = value.ToObject();
 	if (!video || video.IsUndefined()) {
-		Napi::Error::New(
-			info.Env(),
-			"The video context object passed is invalid.").ThrowAsJavaScriptException();
+		Napi::Error::New(info.Env(), "The video context object passed is invalid.").ThrowAsJavaScriptException();
 		return;
 	}
- 
+
 	auto conn = GetConnection(info);
 	if (!conn)
 		return;
-    
+
 	std::vector<ipc::value> args;
-    SerializeVideoData(video, args);
-	
-    args.push_back(this->canvasId);
+	SerializeVideoData(video, args);
 
-	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("Video", "SetVideoContext", args);
+	args.push_back(this->canvasId);
+
+	std::vector<ipc::value> response = conn->call_synchronous_helper("Video", "SetVideoContext", args);
 }
 
-Napi::Value osn::Video::GetLegacySettings(const Napi::CallbackInfo& info)
+Napi::Value osn::Video::GetLegacySettings(const Napi::CallbackInfo &info)
 {
-    auto conn = GetConnection(info);
-    if (!conn)
-        return info.Env().Undefined();
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
 
-    std::vector<ipc::value> response =
-        conn->call_synchronous_helper("Video", "GetLegacySettings", {});
+	std::vector<ipc::value> response = conn->call_synchronous_helper("Video", "GetLegacySettings", {});
 
-    if (!ValidateResponse(info, response))
-        return info.Env().Undefined();
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
 
-    if (response.size() != 12)
-        return info.Env().Undefined();
+	if (response.size() != 12)
+		return info.Env().Undefined();
 
-    Napi::Object video = Napi::Object::New(info.Env());
-    CreateVideo(info, response, video, 1);
-    return video;
+	Napi::Object video = Napi::Object::New(info.Env());
+	CreateVideo(info, response, video, 1);
+	return video;
 }
 
-void osn::Video::SetLegacySettings(
-    const Napi::CallbackInfo& info, const Napi::Value &value)
+void osn::Video::SetLegacySettings(const Napi::CallbackInfo &info, const Napi::Value &value)
 {
-    Napi::Object video = value.ToObject();
-    if (!video || video.IsUndefined()) {
-        Napi::Error::New(
-            info.Env(),
-            "The video context object passed is invalid.").ThrowAsJavaScriptException();
-        return;
-    }
+	Napi::Object video = value.ToObject();
+	if (!video || video.IsUndefined()) {
+		Napi::Error::New(info.Env(), "The video context object passed is invalid.").ThrowAsJavaScriptException();
+		return;
+	}
 
-    auto conn = GetConnection(info);
-    if (!conn)
-        return;
+	auto conn = GetConnection(info);
+	if (!conn)
+		return;
 
-    std::vector<ipc::value> args;
-    SerializeVideoData(video, args);
-    conn->call("Video", "SetLegacySettings", args);
+	std::vector<ipc::value> args;
+	SerializeVideoData(video, args);
+	conn->call("Video", "SetLegacySettings", args);
 }

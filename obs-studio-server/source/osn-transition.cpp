@@ -24,55 +24,38 @@
 #include "osn-source.hpp"
 #include "shared.hpp"
 
-void osn::Transition::Register(ipc::server& srv)
+void osn::Transition::Register(ipc::server &srv)
 {
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Transition");
 	cls->register_function(std::make_shared<ipc::function>("Types", std::vector<ipc::type>{}, Types));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "Create", std::vector<ipc::type>{ipc::type::String, ipc::type::String}, Create));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "Create", std::vector<ipc::type>{ipc::type::String, ipc::type::String, ipc::type::String}, Create));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "Create",
-	    std::vector<ipc::type>{ipc::type::String, ipc::type::String, ipc::type::String, ipc::type::String},
-	    Create));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "CreatePrivate", std::vector<ipc::type>{ipc::type::String, ipc::type::String}, CreatePrivate));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "CreatePrivate",
-	    std::vector<ipc::type>{ipc::type::String, ipc::type::String, ipc::type::String},
-	    CreatePrivate));
+	cls->register_function(std::make_shared<ipc::function>("Create", std::vector<ipc::type>{ipc::type::String, ipc::type::String}, Create));
 	cls->register_function(
-	    std::make_shared<ipc::function>("FromName", std::vector<ipc::type>{ipc::type::UInt64}, FromName));
-	cls->register_function(
-	    std::make_shared<ipc::function>("GetActiveSource", std::vector<ipc::type>{ipc::type::UInt64}, GetActiveSource));
+		std::make_shared<ipc::function>("Create", std::vector<ipc::type>{ipc::type::String, ipc::type::String, ipc::type::String}, Create));
+	cls->register_function(std::make_shared<ipc::function>(
+		"Create", std::vector<ipc::type>{ipc::type::String, ipc::type::String, ipc::type::String, ipc::type::String}, Create));
+	cls->register_function(std::make_shared<ipc::function>("CreatePrivate", std::vector<ipc::type>{ipc::type::String, ipc::type::String}, CreatePrivate));
+	cls->register_function(std::make_shared<ipc::function>("CreatePrivate", std::vector<ipc::type>{ipc::type::String, ipc::type::String, ipc::type::String},
+							       CreatePrivate));
+	cls->register_function(std::make_shared<ipc::function>("FromName", std::vector<ipc::type>{ipc::type::UInt64}, FromName));
+	cls->register_function(std::make_shared<ipc::function>("GetActiveSource", std::vector<ipc::type>{ipc::type::UInt64}, GetActiveSource));
 	cls->register_function(std::make_shared<ipc::function>("Clear", std::vector<ipc::type>{ipc::type::UInt64}, Clear));
+	cls->register_function(std::make_shared<ipc::function>("Set", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64}, Set));
 	cls->register_function(
-	    std::make_shared<ipc::function>("Set", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64}, Set));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "Start", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32, ipc::type::UInt64}, Start));
+		std::make_shared<ipc::function>("Start", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32, ipc::type::UInt64}, Start));
 	srv.register_collection(cls);
 }
 
-void osn::Transition::Types(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void osn::Transition::Types(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	const char* typeId = nullptr;
+	const char *typeId = nullptr;
 	for (size_t idx = 0; obs_enum_transition_types(idx, &typeId); idx++) {
 		rval.push_back(ipc::value(typeId ? typeId : ""));
 	}
 	AUTO_DEBUG;
 }
 
-void osn::Transition::Create(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void osn::Transition::Create(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
 	std::string sourceId, name;
 	obs_data_t *settings = nullptr, *hotkeys = nullptr;
@@ -83,12 +66,12 @@ void osn::Transition::Create(
 	case 3:
 		settings = obs_data_create_from_json(args[2].value_str.c_str());
 	case 2:
-		name     = args[1].value_str;
+		name = args[1].value_str;
 		sourceId = args[0].value_str;
 		break;
 	}
 
-	obs_source_t* source = obs_source_create(sourceId.c_str(), name.c_str(), settings, hotkeys);
+	obs_source_t *source = obs_source_create(sourceId.c_str(), name.c_str(), settings, hotkeys);
 	if (!source) {
 		PRETTY_ERROR_RETURN(ErrorCode::Error, "Failed to create transition.");
 	}
@@ -105,25 +88,21 @@ void osn::Transition::Create(
 	AUTO_DEBUG;
 }
 
-void osn::Transition::CreatePrivate(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void osn::Transition::CreatePrivate(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
 	std::string sourceId, name;
-	obs_data_t* settings = nullptr;
+	obs_data_t *settings = nullptr;
 
 	switch (args.size()) {
 	case 3:
 		settings = obs_data_create_from_json(args[2].value_str.c_str());
 	case 2:
-		name     = args[1].value_str;
+		name = args[1].value_str;
 		sourceId = args[0].value_str;
 		break;
 	}
 
-	obs_source_t* source = obs_source_create_private(sourceId.c_str(), name.c_str(), settings);
+	obs_source_t *source = obs_source_create_private(sourceId.c_str(), name.c_str(), settings);
 	if (!source) {
 		PRETTY_ERROR_RETURN(ErrorCode::Error, "Failed to create transition.");
 	}
@@ -141,13 +120,9 @@ void osn::Transition::CreatePrivate(
 	AUTO_DEBUG;
 }
 
-void osn::Transition::FromName(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void osn::Transition::FromName(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
-	obs_source_t* source = obs_get_source_by_name(args[0].value_str.c_str());
+	obs_source_t *source = obs_get_source_by_name(args[0].value_str.c_str());
 	if (!source) {
 		PRETTY_ERROR_RETURN(ErrorCode::NotFound, "Named transition could not be found.");
 	}
@@ -164,24 +139,20 @@ void osn::Transition::FromName(
 	AUTO_DEBUG;
 }
 
-void osn::Transition::GetActiveSource(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void osn::Transition::GetActiveSource(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
 	uint64_t uid = -1;
 
 	// Attempt to find the source asked to load.
-	obs_source_t* transition = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_source_t *transition = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!transition) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Transition reference is not valid.");
 	}
 
-	obs_source_type type   = OBS_SOURCE_TYPE_INPUT;
-	obs_source_t*   source = obs_transition_get_active_source(transition);
+	obs_source_type type = OBS_SOURCE_TYPE_INPUT;
+	obs_source_t *source = obs_transition_get_active_source(transition);
 	if (source) {
-		uid  = osn::Source::Manager::GetInstance().find(source);
+		uid = osn::Source::Manager::GetInstance().find(source);
 		type = obs_source_get_type(source);
 		obs_source_release(source);
 	}
@@ -196,14 +167,10 @@ void osn::Transition::GetActiveSource(
 	AUTO_DEBUG;
 }
 
-void osn::Transition::Clear(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void osn::Transition::Clear(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
 	// Attempt to find the source asked to load.
-	obs_source_t* transition = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_source_t *transition = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!transition) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Transition reference is not valid.");
 	}
@@ -214,19 +181,15 @@ void osn::Transition::Clear(
 	AUTO_DEBUG;
 }
 
-void osn::Transition::Set(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void osn::Transition::Set(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
 	// Attempt to find the source asked to load.
-	obs_source_t* transition = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_source_t *transition = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!transition) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Transition reference is not valid.");
 	}
 
-	obs_source_t* source = osn::Source::Manager::GetInstance().find(args[1].value_union.ui64);
+	obs_source_t *source = osn::Source::Manager::GetInstance().find(args[1].value_union.ui64);
 	if (!source) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
@@ -237,19 +200,15 @@ void osn::Transition::Set(
 	AUTO_DEBUG;
 }
 
-void osn::Transition::Start(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void osn::Transition::Start(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
 	// Attempt to find the source asked to load.
-	obs_source_t* transition = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_source_t *transition = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
 	if (!transition) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Transition reference is not valid.");
 	}
 
-	obs_source_t* source = osn::Source::Manager::GetInstance().find(args[2].value_union.ui64);
+	obs_source_t *source = osn::Source::Manager::GetInstance().find(args[2].value_union.ui64);
 	if (!source) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}

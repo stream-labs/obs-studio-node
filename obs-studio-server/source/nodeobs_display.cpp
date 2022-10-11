@@ -36,18 +36,11 @@ extern std::string currentScene; /* defined in OBS_content.cpp */
 static const uint32_t grayPaddingArea = 10ul;
 std::mutex OBS::Display::m_displayMtx;
 
-static void RecalculateApectRatioConstrainedSize(
-    uint32_t  origW,
-    uint32_t  origH,
-    uint32_t  sourceW,
-    uint32_t  sourceH,
-    int32_t&  outX,
-    int32_t&  outY,
-    uint32_t& outW,
-    uint32_t& outH)
+static void RecalculateApectRatioConstrainedSize(uint32_t origW, uint32_t origH, uint32_t sourceW, uint32_t sourceH, int32_t &outX, int32_t &outY,
+						 uint32_t &outW, uint32_t &outH)
 {
 	double_t sourceAR = double_t(sourceW) / double_t(sourceH);
-	double_t origAR   = double_t(origW) / double_t(origH);
+	double_t origAR = double_t(origW) / double_t(origH);
 	if (origAR > sourceAR) {
 		outW = uint32_t(double_t(origH) * sourceAR);
 		outH = origH;
@@ -60,77 +53,50 @@ static void RecalculateApectRatioConstrainedSize(
 }
 
 #ifdef _WIN32
-enum class SystemWorkerMessage : uint32_t
-{
-	CreateWindow  = WM_USER + 0,
+enum class SystemWorkerMessage : uint32_t {
+	CreateWindow = WM_USER + 0,
 	DestroyWindow = WM_USER + 1,
-	StopThread    = WM_USER + 2,
+	StopThread = WM_USER + 2,
 };
 
-struct message_answer
-{
-	HANDLE      event;
-	bool        called  = false;
-	bool        success = false;
-	DWORD       errorCode;
+struct message_answer {
+	HANDLE event;
+	bool called = false;
+	bool success = false;
+	DWORD errorCode;
 	std::string errorMessage;
 
-	message_answer()
-	{
-		event = CreateSemaphore(NULL, 0, INT32_MAX, NULL);
-	}
-	~message_answer()
-	{
-		CloseHandle(event);
-	}
+	message_answer() { event = CreateSemaphore(NULL, 0, INT32_MAX, NULL); }
+	~message_answer() { CloseHandle(event); }
 
-	bool wait()
-	{
-		return WaitForSingleObject(event, 1) == WAIT_OBJECT_0;
-	}
+	bool wait() { return WaitForSingleObject(event, 1) == WAIT_OBJECT_0; }
 
-	bool try_wait()
-	{
-		return WaitForSingleObject(event, 0) == WAIT_OBJECT_0;
-	}
+	bool try_wait() { return WaitForSingleObject(event, 0) == WAIT_OBJECT_0; }
 
-	void signal()
-	{
-		ReleaseSemaphore(event, 1, NULL);
-	}
+	void signal() { ReleaseSemaphore(event, 1, NULL); }
 };
 
-struct CreateWindowMessageQuestion
-{
-	HWND     parentWindow;
+struct CreateWindowMessageQuestion {
+	HWND parentWindow;
 	uint32_t width, height;
 };
 
-struct CreateWindowMessageAnswer : message_answer
-{
+struct CreateWindowMessageAnswer : message_answer {
 	HWND windowHandle;
 };
 
-struct DestroyWindowMessageQuestion
-{
+struct DestroyWindowMessageQuestion {
 	HWND window;
 };
 
-struct DestroyWindowMessageAnswer : message_answer
-{};
+struct DestroyWindowMessageAnswer : message_answer {};
 
 static void HandleWin32ErrorMessage(DWORD errorCode)
 {
-	LPSTR lpErrorStr     = nullptr;
+	LPSTR lpErrorStr = nullptr;
 	DWORD dwErrorStrSize = 16;
-	DWORD dwErrorStrLen  = FormatMessageA(
-        FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
-        NULL,
-        errorCode,
-        LANG_USER_DEFAULT,
-        lpErrorStr,
-        dwErrorStrSize,
-        NULL);
+	DWORD dwErrorStrLen = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, errorCode, LANG_USER_DEFAULT, lpErrorStr,
+					     dwErrorStrSize, NULL);
 	std::string exceptionMessage("Unexpected WinAPI error: " + std::string(lpErrorStr, dwErrorStrLen));
 	LocalFree(lpErrorStr);
 	throw std::system_error(errorCode, std::system_category(), exceptionMessage);
@@ -159,8 +125,8 @@ void OBS::Display::SystemWorker()
 
 		switch ((SystemWorkerMessage)message.message) {
 		case SystemWorkerMessage::CreateWindow: {
-			CreateWindowMessageQuestion* question = reinterpret_cast<CreateWindowMessageQuestion*>(message.wParam);
-			CreateWindowMessageAnswer*   answer   = reinterpret_cast<CreateWindowMessageAnswer*>(message.lParam);
+			CreateWindowMessageQuestion *question = reinterpret_cast<CreateWindowMessageQuestion *>(message.wParam);
+			CreateWindowMessageAnswer *answer = reinterpret_cast<CreateWindowMessageAnswer *>(message.lParam);
 
 			BOOL enabled = FALSE;
 			DwmIsCompositionEnabled(&enabled);
@@ -172,19 +138,8 @@ void OBS::Display::SystemWorker()
 				windowStyle = WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOPMOST | WS_EX_COMPOSITED;
 			}
 
-			HWND newWindow = CreateWindowEx(
-			    windowStyle,
-			    TEXT("Win32DisplayClass"),
-			    TEXT("SlobsChildWindowPreview"),
-			    WS_VISIBLE | WS_POPUP | WS_CHILD,
-			    0,
-			    0,
-			    question->width,
-			    question->height,
-			    NULL,
-			    NULL,
-			    NULL,
-			    this);
+			HWND newWindow = CreateWindowEx(windowStyle, TEXT("Win32DisplayClass"), TEXT("SlobsChildWindowPreview"),
+							WS_VISIBLE | WS_POPUP | WS_CHILD, 0, 0, question->width, question->height, NULL, NULL, NULL, this);
 
 			if (!newWindow) {
 				answer->success = false;
@@ -196,7 +151,7 @@ void OBS::Display::SystemWorker()
 
 				SetParent(newWindow, question->parentWindow);
 				answer->windowHandle = newWindow;
-				answer->success      = true;
+				answer->success = true;
 			}
 
 			answer->called = true;
@@ -204,14 +159,14 @@ void OBS::Display::SystemWorker()
 			break;
 		}
 		case SystemWorkerMessage::DestroyWindow: {
-			DestroyWindowMessageQuestion* question = reinterpret_cast<DestroyWindowMessageQuestion*>(message.wParam);
-			DestroyWindowMessageAnswer*   answer   = reinterpret_cast<DestroyWindowMessageAnswer*>(message.lParam);
+			DestroyWindowMessageQuestion *question = reinterpret_cast<DestroyWindowMessageQuestion *>(message.wParam);
+			DestroyWindowMessageAnswer *answer = reinterpret_cast<DestroyWindowMessageAnswer *>(message.lParam);
 
 			if (!DestroyWindow(question->window)) {
 				auto error = GetLastError();
 
 				// We check for error 1400 because if this display is a projector, it is attached to a HTML DOM, so
-				// we cannot directly control its destruction since the HTML will probably do this concurrently, 
+				// we cannot directly control its destruction since the HTML will probably do this concurrently,
 				// the DestroyWindow is allows to fail on this case, a better solution here woul be checking if this
 				// display is really a projector and do not attempt to destroy it (let the HTML do it for us).
 				if (error != 1400) {
@@ -249,16 +204,16 @@ OBS::Display::Display()
 #ifdef WIN32
 	worker = std::thread(std::bind(&OBS::Display::SystemWorker, this));
 #endif
-	m_gsInitData.adapter         = 0;
-	m_gsInitData.cx              = 0;
-	m_gsInitData.cy              = 0;
-	m_gsInitData.format          = GS_BGRA;
-	m_gsInitData.zsformat        = GS_ZS_NONE;
+	m_gsInitData.adapter = 0;
+	m_gsInitData.cx = 0;
+	m_gsInitData.cy = 0;
+	m_gsInitData.format = GS_BGRA;
+	m_gsInitData.zsformat = GS_ZS_NONE;
 	m_gsInitData.num_backbuffers = 1;
-	m_display                    = nullptr;
-	m_source                     = nullptr;
-	m_position.first             = 0;
-	m_position.second            = 0;
+	m_display = nullptr;
+	m_source = nullptr;
+	m_position.first = 0;
+	m_position.second = 0;
 
 	obs_enter_graphics();
 	m_gsSolidEffect = obs_get_base_effect(OBS_EFFECT_SOLID);
@@ -270,19 +225,19 @@ OBS::Display::Display()
 	vec3_set(v.position, 0, 0, 0);
 	vec4_set(v.uv[0], 0, 0, 0, 0);
 	*v.color = 0xFFFFFFFF;
-	v        = m_boxLine->At(1);
+	v = m_boxLine->At(1);
 	vec3_set(v.position, 1, 0, 0);
 	vec4_set(v.uv[0], 1, 0, 0, 0);
 	*v.color = 0xFFFFFFFF;
-	v        = m_boxLine->At(2);
+	v = m_boxLine->At(2);
 	vec3_set(v.position, 1, 1, 0);
 	vec4_set(v.uv[0], 1, 1, 0, 0);
 	*v.color = 0xFFFFFFFF;
-	v        = m_boxLine->At(3);
+	v = m_boxLine->At(3);
 	vec3_set(v.position, 0, 1, 0);
 	vec4_set(v.uv[0], 0, 1, 0, 0);
 	*v.color = 0xFFFFFFFF;
-	v        = m_boxLine->At(4);
+	v = m_boxLine->At(4);
 	vec3_set(v.position, 0, 0, 0);
 	vec4_set(v.uv[0], 0, 0, 0, 0);
 	*v.color = 0xFFFFFFFF;
@@ -294,15 +249,15 @@ OBS::Display::Display()
 	vec3_set(v.position, 0, 0, 0);
 	vec4_set(v.uv[0], 0, 0, 0, 0);
 	*v.color = 0xFFFFFFFF;
-	v        = m_boxTris->At(1);
+	v = m_boxTris->At(1);
 	vec3_set(v.position, 1, 0, 0);
 	vec4_set(v.uv[0], 1, 0, 0, 0);
 	*v.color = 0xFFFFFFFF;
-	v        = m_boxTris->At(2);
+	v = m_boxTris->At(2);
 	vec3_set(v.position, 0, 1, 0);
 	vec4_set(v.uv[0], 0, 1, 0, 0);
 	*v.color = 0xFFFFFFFF;
-	v        = m_boxTris->At(3);
+	v = m_boxTris->At(3);
 	vec3_set(v.position, 1, 1, 0);
 	vec4_set(v.uv[0], 1, 1, 0, 0);
 	*v.color = 0xFFFFFFFF;
@@ -356,8 +311,8 @@ OBS::Display::Display()
 
 	// Text
 	m_textVertices = new GS::VertexBuffer(65535);
-	m_textEffect   = obs_get_base_effect(OBS_EFFECT_DEFAULT);
-	m_textTexture  = gs_texture_create_from_file((g_moduleDirectory + "/resources/roboto.png").c_str());
+	m_textEffect = obs_get_base_effect(OBS_EFFECT_DEFAULT);
+	m_textTexture = gs_texture_create_from_file((g_moduleDirectory + "/resources/roboto.png").c_str());
 	if (!m_textTexture) {
 		throw std::runtime_error("couldn't load roboto font");
 	}
@@ -372,20 +327,17 @@ OBS::Display::Display()
 	m_drawRotationHandle = false;
 }
 
-OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode, obs_video_info* canvas) : Display()
+OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode, obs_video_info *canvas) : Display()
 {
 #ifdef _WIN32
 	CreateWindowMessageQuestion question;
-	CreateWindowMessageAnswer   answer;
+	CreateWindowMessageAnswer answer;
 
 	question.parentWindow = (HWND)windowHandle;
-	question.width        = m_gsInitData.cx;
-	question.height       = m_gsInitData.cy;
-	while (!PostThreadMessage(
-	    GetThreadId(worker.native_handle()),
-	    (UINT)SystemWorkerMessage::CreateWindow,
-	    reinterpret_cast<intptr_t>(&question),
-	    reinterpret_cast<intptr_t>(&answer))) {
+	question.width = m_gsInitData.cx;
+	question.height = m_gsInitData.cy;
+	while (!PostThreadMessage(GetThreadId(worker.native_handle()), (UINT)SystemWorkerMessage::CreateWindow, reinterpret_cast<intptr_t>(&question),
+				  reinterpret_cast<intptr_t>(&answer))) {
 		Sleep(0);
 	}
 
@@ -401,13 +353,13 @@ OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode,
 		throw std::system_error(answer.errorCode, std::system_category(), answer.errorMessage);
 	}
 
-	m_ourWindow              = answer.windowHandle;
-	m_parentWindow           = reinterpret_cast<HWND>(windowHandle);
-	m_gsInitData.window.hwnd = reinterpret_cast<void*>(m_ourWindow);
+	m_ourWindow = answer.windowHandle;
+	m_parentWindow = reinterpret_cast<HWND>(windowHandle);
+	m_gsInitData.window.hwnd = reinterpret_cast<void *>(m_ourWindow);
 #endif
 	m_displayMtx.lock();
 	m_display = obs_display_create(&m_gsInitData, 0x0);
-	
+
 	if (!m_display) {
 		blog(LOG_INFO, "Failed to create the display");
 		throw std::runtime_error("unable to create display");
@@ -423,16 +375,12 @@ OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode,
 
 	obs_display_add_draw_callback(m_display, DisplayCallback, this);
 	m_displayMtx.unlock();
-	
+
 	UpdatePreviewArea();
 }
 
-OBS::Display::Display(
-    uint64_t                      windowHandle,
-    enum obs_video_rendering_mode mode,
-    std::string                   sourceName,
-    obs_video_info*               canvas)
-    : Display(windowHandle, mode, canvas)
+OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode, std::string sourceName, obs_video_info *canvas)
+	: Display(windowHandle, mode, canvas)
 {
 	m_source = obs_get_source_by_name(sourceName.c_str());
 	obs_source_inc_showing(m_source);
@@ -469,14 +417,11 @@ OBS::Display::~Display()
 
 #ifdef _WIN32
 	DestroyWindowMessageQuestion question;
-	DestroyWindowMessageAnswer   answer;
+	DestroyWindowMessageAnswer answer;
 
 	question.window = m_ourWindow;
-	PostThreadMessage(
-	    GetThreadId(worker.native_handle()),
-	    (UINT)SystemWorkerMessage::DestroyWindow,
-	    reinterpret_cast<intptr_t>(&question),
-	    reinterpret_cast<intptr_t>(&answer));
+	PostThreadMessage(GetThreadId(worker.native_handle()), (UINT)SystemWorkerMessage::DestroyWindow, reinterpret_cast<intptr_t>(&question),
+			  reinterpret_cast<intptr_t>(&answer));
 
 	if (!answer.try_wait()) {
 		while (!answer.wait()) {
@@ -501,18 +446,15 @@ void OBS::Display::SetPosition(uint32_t x, uint32_t y)
 {
 #if defined(_WIN32)
 	// Store new position.
-	m_position.first  = x;
+	m_position.first = x;
 	m_position.second = y;
 
 	if (m_source != NULL) {
-       std::string msg = "<" + std::string(__FUNCTION__) + "> Adjusting display position for source %s to %ldx%ld. hwnd %d";
-		blog(
-		    LOG_DEBUG,
-		    msg.c_str(),
-		    obs_source_get_name(m_source), x, y, m_ourWindow);
+		std::string msg = "<" + std::string(__FUNCTION__) + "> Adjusting display position for source %s to %ldx%ld. hwnd %d";
+		blog(LOG_DEBUG, msg.c_str(), obs_source_get_name(m_source), x, y, m_ourWindow);
 	}
 
-	SetWindowPos( m_ourWindow, NULL, m_position.first, m_position.second, m_gsInitData.cx, m_gsInitData.cy, SWP_NOCOPYBITS | SWP_NOSIZE | SWP_NOACTIVATE);
+	SetWindowPos(m_ourWindow, NULL, m_position.first, m_position.second, m_gsInitData.cx, m_gsInitData.cy, SWP_NOCOPYBITS | SWP_NOSIZE | SWP_NOACTIVATE);
 #endif
 }
 
@@ -524,10 +466,9 @@ std::pair<uint32_t, uint32_t> OBS::Display::GetPosition()
 bool isNewerThanWindows7()
 {
 #ifdef WIN32
-	static bool versionIsHigherThan7 = false; 
-	static bool versionIsChecked = false; 
-	if( !versionIsChecked )
-	{
+	static bool versionIsHigherThan7 = false;
+	static bool versionIsChecked = false;
+	if (!versionIsChecked) {
 		OSVERSIONINFO osvi;
 		BOOL bIsWindowsXPorLater;
 
@@ -536,16 +477,13 @@ bool isNewerThanWindows7()
 
 		GetVersionEx(&osvi);
 
-		versionIsHigherThan7 = 
-		( (osvi.dwMajorVersion > 6 ) ||
-		( (osvi.dwMajorVersion == 6) && 
-		(osvi.dwMinorVersion > 1) ));
+		versionIsHigherThan7 = ((osvi.dwMajorVersion > 6) || ((osvi.dwMajorVersion == 6) && (osvi.dwMinorVersion > 1)));
 
 		versionIsChecked = true;
 	}
 	return versionIsHigherThan7;
 #else
-    return false;
+	return false;
 #endif
 }
 
@@ -553,10 +491,9 @@ void OBS::Display::setSizeCall(int step)
 {
 	int use_x, use_y;
 	int use_width, use_height;
-	const float presizes[] = {1 ,1.05, 1.25, 1.5, 2.0 , 3.0};
+	const float presizes[] = {1, 1.05, 1.25, 1.5, 2.0, 3.0};
 
-	switch( step ) 
-	{
+	switch (step) {
 	case -1:
 		use_width = m_gsInitData.cx;
 		use_height = m_gsInitData.cy;
@@ -564,8 +501,8 @@ void OBS::Display::setSizeCall(int step)
 		use_y = m_position.second;
 		break;
 	case 0:
-		use_width = m_gsInitData.cx-2;
-		use_height = m_gsInitData.cy-2;
+		use_width = m_gsInitData.cx - 2;
+		use_height = m_gsInitData.cy - 2;
 		use_x = m_position.first + 1;
 		use_y = m_position.second + 1;
 		break;
@@ -574,52 +511,45 @@ void OBS::Display::setSizeCall(int step)
 	case 3:
 	case 4:
 	case 5:
-		use_width = float(m_gsInitData.cx)/presizes[step];
-		use_height = float(m_gsInitData.cy)/presizes[step];
-		use_x = m_position.first + (m_gsInitData.cx-use_width)/2;
-		use_y = m_position.second + (m_gsInitData.cy-use_height)/2;
+		use_width = float(m_gsInitData.cx) / presizes[step];
+		use_height = float(m_gsInitData.cy) / presizes[step];
+		use_x = m_position.first + (m_gsInitData.cx - use_width) / 2;
+		use_y = m_position.second + (m_gsInitData.cy - use_height) / 2;
 		break;
 	}
-	
+
 	BOOL ret = true;
 	// Resize Window
 #if defined(_WIN32)
-	if(step > 0)
-	{
-		ret = SetWindowPos( m_ourWindow, NULL, use_x, use_y, use_width, use_height, SWP_NOCOPYBITS | SWP_NOACTIVATE | SWP_NOZORDER | SWP_HIDEWINDOW);
+	if (step > 0) {
+		ret = SetWindowPos(m_ourWindow, NULL, use_x, use_y, use_width, use_height, SWP_NOCOPYBITS | SWP_NOACTIVATE | SWP_NOZORDER | SWP_HIDEWINDOW);
 	} else {
-		ret = SetWindowPos( m_ourWindow, NULL, use_x, use_y, use_width, use_height, SWP_NOCOPYBITS | SWP_NOACTIVATE | SWP_NOZORDER | SWP_SHOWWINDOW);
-		if(ret)
-			RedrawWindow( m_ourWindow, NULL, NULL, RDW_ERASE | RDW_INVALIDATE);
+		ret = SetWindowPos(m_ourWindow, NULL, use_x, use_y, use_width, use_height, SWP_NOCOPYBITS | SWP_NOACTIVATE | SWP_NOZORDER | SWP_SHOWWINDOW);
+		if (ret)
+			RedrawWindow(m_ourWindow, NULL, NULL, RDW_ERASE | RDW_INVALIDATE);
 	}
 #elif defined(__APPLE__)
 #elif defined(__linux__) || defined(__FreeBSD__)
 #endif
 
-	if(step >= 0 && ret)
-	{
+	if (step >= 0 && ret) {
 		std::this_thread::sleep_for(std::chrono::milliseconds(100));
-		std::thread{&OBS::Display::setSizeCall, this, step -1 }.detach();
+		std::thread{&OBS::Display::setSizeCall, this, step - 1}.detach();
 	}
 };
-
 
 void OBS::Display::SetSize(uint32_t width, uint32_t height)
 {
 #ifdef WIN32
 	if (m_source != NULL) {
-       std::string msg = "<" + std::string(__FUNCTION__) + "> Adjusting display size for source %s to %ldx%ld. hwnd %d";
-		blog(
-			LOG_DEBUG,
-			msg.c_str(),
-			obs_source_get_name(m_source), width, height, m_ourWindow);
+		std::string msg = "<" + std::string(__FUNCTION__) + "> Adjusting display size for source %s to %ldx%ld. hwnd %d";
+		blog(LOG_DEBUG, msg.c_str(), obs_source_get_name(m_source), width, height, m_ourWindow);
 	}
 
 	m_gsInitData.cx = width;
 	m_gsInitData.cy = height;
 
-	if(width == 0 || height == 0 || isNewerThanWindows7())
-	{
+	if (width == 0 || height == 0 || isNewerThanWindows7()) {
 		setSizeCall(-1);
 	} else {
 		setSizeCall(4);
@@ -702,8 +632,7 @@ void OBS::Display::SetRotationHandleColor(uint8_t r, uint8_t g, uint8_t b, uint8
 	m_rotationHandleColor = a << 24 | b << 16 | g << 8 | r;
 }
 
-static void
-    DrawGlyph(GS::VertexBuffer* vb, float_t x, float_t y, float_t scale, float_t depth, char glyph, uint32_t color)
+static void DrawGlyph(GS::VertexBuffer *vb, float_t x, float_t y, float_t scale, float_t depth, char glyph, uint32_t color)
 {
 	float uvX = 0, uvY = 0, uvO = 1.0 / 4.0;
 	switch (glyph) {
@@ -761,7 +690,7 @@ static void
 	}
 
 	GS::Vertex v(nullptr, nullptr, nullptr, nullptr, nullptr);
-	size_t     bs = vb->Size();
+	size_t bs = vb->Size();
 	vb->Resize(uint32_t(bs + 6));
 
 	// Top Left
@@ -802,7 +731,7 @@ inline bool CloseFloat(float a, float b, float epsilon = 0.01)
 	return abs(a - b) <= epsilon;
 }
 
-inline void DrawOutline(OBS::Display* dp, matrix4& mtx, obs_transform_info& info)
+inline void DrawOutline(OBS::Display *dp, matrix4 &mtx, obs_transform_info &info)
 {
 	gs_matrix_push();
 	gs_matrix_set(&mtx);
@@ -810,7 +739,7 @@ inline void DrawOutline(OBS::Display* dp, matrix4& mtx, obs_transform_info& info
 	gs_matrix_pop();
 }
 
-inline void DrawBoxAt(OBS::Display* dp, float_t x, float_t y, matrix4& mtx)
+inline void DrawBoxAt(OBS::Display *dp, float_t x, float_t y, matrix4 &mtx)
 {
 	gs_matrix_push();
 
@@ -823,16 +752,13 @@ inline void DrawBoxAt(OBS::Display* dp, float_t x, float_t y, matrix4& mtx)
 
 	gs_matrix_translate(&pos);
 	gs_matrix_translate(&offset);
-	gs_matrix_scale3f(
-	    HANDLE_DIAMETER * dp->m_previewToWorldScale.x,
-		HANDLE_DIAMETER * dp->m_previewToWorldScale.y,
-		1.0f);
+	gs_matrix_scale3f(HANDLE_DIAMETER * dp->m_previewToWorldScale.x, HANDLE_DIAMETER * dp->m_previewToWorldScale.y, 1.0f);
 
 	gs_draw(GS_LINESTRIP, 0, 0);
 	gs_matrix_pop();
 }
 
-inline void DrawSquareAt(OBS::Display* dp, float_t x, float_t y, matrix4& mtx)
+inline void DrawSquareAt(OBS::Display *dp, float_t x, float_t y, matrix4 &mtx)
 {
 	gs_matrix_push();
 
@@ -845,20 +771,17 @@ inline void DrawSquareAt(OBS::Display* dp, float_t x, float_t y, matrix4& mtx)
 
 	gs_matrix_translate(&pos);
 	gs_matrix_translate(&offset);
-	gs_matrix_scale3f(
-	    HANDLE_DIAMETER * dp->m_previewToWorldScale.x,
-		HANDLE_DIAMETER * dp->m_previewToWorldScale.y,
-		1.0f);
+	gs_matrix_scale3f(HANDLE_DIAMETER * dp->m_previewToWorldScale.x, HANDLE_DIAMETER * dp->m_previewToWorldScale.y, 1.0f);
 
 	gs_draw(GS_TRISTRIP, 0, 0);
 	gs_matrix_pop();
 }
 
-inline void DrawGuideline(OBS::Display* dp, bool rot45, float_t x, float_t y, matrix4& mtx)
+inline void DrawGuideline(OBS::Display *dp, bool rot45, float_t x, float_t y, matrix4 &mtx)
 {
 	gs_rect rect;
-	rect.x  = dp->GetPreviewOffset().first;
-	rect.y  = dp->GetPreviewOffset().second;
+	rect.x = dp->GetPreviewOffset().first;
+	rect.y = dp->GetPreviewOffset().second;
 	rect.cx = dp->GetPreviewSize().first;
 	rect.cy = dp->GetPreviewSize().second;
 
@@ -913,7 +836,7 @@ inline void DrawGuideline(OBS::Display* dp, bool rot45, float_t x, float_t y, ma
 	gs_set_scissor_rect(nullptr);
 }
 
-void OBS::Display::DrawRotationHandle(float rot, matrix4& mtx)
+void OBS::Display::DrawRotationHandle(float rot, matrix4 &mtx)
 {
 	struct vec3 pos;
 	vec3_set(&pos, 0.5f, 0.0f, 0.0f);
@@ -939,34 +862,30 @@ void OBS::Display::DrawRotationHandle(float rot, matrix4& mtx)
 	gs_matrix_pop();
 }
 
-static void ConvertColorToEffectParam(uint32_t color, gs_eparam_t* dst)
+static void ConvertColorToEffectParam(uint32_t color, gs_eparam_t *dst)
 {
 	vec4 colorVec;
-	vec4_set(
-		&colorVec,
-		(color & 0xFF) / 255.0f,
-		((color & 0xFF00) >> 8) / 255.0f,
-		((color & 0xFF0000) >> 16) / 255.0f,
-		((color & 0xFF000000) >> 24) / 255.0f);
+	vec4_set(&colorVec, (color & 0xFF) / 255.0f, ((color & 0xFF00) >> 8) / 255.0f, ((color & 0xFF0000) >> 16) / 255.0f,
+		 ((color & 0xFF000000) >> 24) / 255.0f);
 	gs_effect_set_vec4(dst, &colorVec);
 }
 
-bool OBS::Display::DrawSelectedSource(obs_scene_t* scene, obs_sceneitem_t* item, void* param)
+bool OBS::Display::DrawSelectedSource(obs_scene_t *scene, obs_sceneitem_t *item, void *param)
 {
 	// This is partially code from OBS Studio. See window-basic-preview.cpp in obs-studio for copyright/license.
 	if (obs_sceneitem_locked(item))
 		return true;
 
-	obs_source_t* itemSource  = obs_sceneitem_get_source(item);
-	uint32_t      flags       = obs_source_get_output_flags(itemSource);
-	bool          isOnlyAudio = (flags & OBS_SOURCE_VIDEO) == 0;
+	obs_source_t *itemSource = obs_sceneitem_get_source(item);
+	uint32_t flags = obs_source_get_output_flags(itemSource);
+	bool isOnlyAudio = (flags & OBS_SOURCE_VIDEO) == 0;
 
-	obs_source_t* sceneSource = obs_scene_get_source(scene);
+	obs_source_t *sceneSource = obs_scene_get_source(scene);
 
-	uint32_t sceneWidth  = obs_source_get_width(sceneSource);
+	uint32_t sceneWidth = obs_source_get_width(sceneSource);
 	uint32_t sceneHeight = obs_source_get_height(sceneSource);
-	uint32_t itemWidth   = obs_source_get_width(itemSource);
-	uint32_t itemHeight  = obs_source_get_height(itemSource);
+	uint32_t itemWidth = obs_source_get_width(itemSource);
+	uint32_t itemHeight = obs_source_get_height(itemSource);
 
 	if (!obs_sceneitem_selected(item) || isOnlyAudio || ((itemWidth <= 0) && (itemHeight <= 0)))
 		return true;
@@ -978,12 +897,12 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t* scene, obs_sceneitem_t* item,
 
 	{
 		vec3 bounds[] = {
-		    {{{0.f, 0.f, 0.f}}},
-		    {{{1.f, 0.f, 0.f}}},
-		    {{{0.f, 1.f, 0.f}}},
-		    {{{1.f, 1.f, 0.f}}},
+			{{{0.f, 0.f, 0.f}}},
+			{{{1.f, 0.f, 0.f}}},
+			{{{0.f, 1.f, 0.f}}},
+			{{{1.f, 1.f, 0.f}}},
 		};
-		bool visible = std::all_of(std::begin(bounds), std::end(bounds), [&](const vec3& b) {
+		bool visible = std::all_of(std::begin(bounds), std::end(bounds), [&](const vec3 &b) {
 			vec3 pos;
 			vec3_transform(&pos, &b, &boxTransform);
 			vec3_transform(&pos, &pos, &invBoxTransform);
@@ -994,11 +913,11 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t* scene, obs_sceneitem_t* item,
 			return true;
 	}
 
-	OBS::Display* dp = reinterpret_cast<OBS::Display*>(param);
+	OBS::Display *dp = reinterpret_cast<OBS::Display *>(param);
 
-	vec4         color;
-	gs_effect_t* solid       = obs_get_base_effect(OBS_EFFECT_SOLID);
-	gs_eparam_t* solid_color = gs_effect_get_param_by_name(solid, "color");
+	vec4 color;
+	gs_effect_t *solid = obs_get_base_effect(OBS_EFFECT_SOLID);
+	gs_eparam_t *solid_color = gs_effect_get_param_by_name(solid, "color");
 
 	float rot = obs_sceneitem_get_rot(item);
 	bool rot45 = (rot == 45.0f || rot == 135.0f || rot == 225.0f || rot == 315.0f);
@@ -1007,22 +926,14 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t* scene, obs_sceneitem_t* item,
 	obs_sceneitem_get_info(item, &info);
 
 	gs_load_vertexbuffer(dp->m_boxLine->Update(false));
-	vec4_set(
-	    &color,
-	    (dp->m_outlineColor & 0xFF) / 255.0f,
-	    ((dp->m_outlineColor & 0xFF00) >> 8) / 255.0f,
-	    ((dp->m_outlineColor & 0xFF0000) >> 16) / 255.0f,
-	    ((dp->m_outlineColor & 0xFF000000) >> 24) / 255.0f);
+	vec4_set(&color, (dp->m_outlineColor & 0xFF) / 255.0f, ((dp->m_outlineColor & 0xFF00) >> 8) / 255.0f, ((dp->m_outlineColor & 0xFF0000) >> 16) / 255.0f,
+		 ((dp->m_outlineColor & 0xFF000000) >> 24) / 255.0f);
 	gs_effect_set_vec4(solid_color, &color);
 	DrawOutline(dp, boxTransform, info);
 
 	if (dp->m_drawGuideLines) {
-		vec4_set(
-		    &color,
-		    (dp->m_guidelineColor & 0xFF) / 255.0f,
-		    ((dp->m_guidelineColor & 0xFF00) >> 8) / 255.0f,
-		    ((dp->m_guidelineColor & 0xFF0000) >> 16) / 255.0f,
-		    ((dp->m_guidelineColor & 0xFF000000) >> 24) / 255.0f);
+		vec4_set(&color, (dp->m_guidelineColor & 0xFF) / 255.0f, ((dp->m_guidelineColor & 0xFF00) >> 8) / 255.0f,
+			 ((dp->m_guidelineColor & 0xFF0000) >> 16) / 255.0f, ((dp->m_guidelineColor & 0xFF000000) >> 24) / 255.0f);
 		gs_effect_set_vec4(solid_color, &color);
 		DrawGuideline(dp, rot45, 0.5, 0, boxTransform);
 		DrawGuideline(dp, rot45, 0.5, 1, boxTransform);
@@ -1058,7 +969,7 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t* scene, obs_sceneitem_t* item,
 		}
 
 		std::vector<char> buf(8);
-		float_t           pt = 8 * dp->m_previewToWorldScale.y;
+		float_t pt = 8 * dp->m_previewToWorldScale.y;
 		for (size_t n = 0; n < 4; n++) {
 			bool isIn = (edge[n].x >= 0) && (edge[n].x < sceneWidth) && (edge[n].y >= 0) && (edge[n].y < sceneHeight);
 
@@ -1069,10 +980,10 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t* scene, obs_sceneitem_t* item,
 
 			if (rot45) {
 				alignLeft = {-1, -0.2, 0};
-				alignTop  = {0.2, -1, 0};
+				alignTop = {0.2, -1, 0};
 			} else {
 				alignLeft = {-1, 0, 0};
-				alignTop  = {0, -1, 0};
+				alignTop = {0, -1, 0};
 			}
 
 			vec3 temp;
@@ -1082,73 +993,49 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t* scene, obs_sceneitem_t* item,
 			if (left > 0.707f) { // LEFT
 				float_t dist = edge[n].x;
 				if (dist > (pt * 4)) {
-					size_t  len    = (size_t)snprintf(buf.data(), buf.size(), "%ld px", (uint32_t)dist);
+					size_t len = (size_t)snprintf(buf.data(), buf.size(), "%ld px", (uint32_t)dist);
 					float_t offset = float((pt * len) / 2.0);
 
 					for (size_t p = 0; p < len; p++) {
 						char v = buf.data()[p];
-						DrawGlyph(
-						    dp->m_textVertices,
-						    (edge[n].x / 2) - offset + (p * pt),
-						    edge[n].y - pt * 2,
-						    pt,
-						    0,
-						    v,
-						    dp->m_guidelineColor);
+						DrawGlyph(dp->m_textVertices, (edge[n].x / 2) - offset + (p * pt), edge[n].y - pt * 2, pt, 0, v,
+							  dp->m_guidelineColor);
 					}
 				}
 			} else if (left < -0.707f) { // RIGHT
 				float_t dist = sceneWidth - edge[n].x;
 				if (dist > (pt * 4)) {
-					size_t  len    = (size_t)snprintf(buf.data(), buf.size(), "%ld px", (uint32_t)dist);
+					size_t len = (size_t)snprintf(buf.data(), buf.size(), "%ld px", (uint32_t)dist);
 					float_t offset = float((pt * len) / 2.0);
 
 					for (size_t p = 0; p < len; p++) {
 						char v = buf.data()[p];
-						DrawGlyph(
-						    dp->m_textVertices,
-						    edge[n].x + (dist / 2) - offset + (p * pt),
-						    edge[n].y - pt * 2,
-						    pt,
-						    0,
-						    v,
-						    dp->m_guidelineColor);
+						DrawGlyph(dp->m_textVertices, edge[n].x + (dist / 2) - offset + (p * pt), edge[n].y - pt * 2, pt, 0, v,
+							  dp->m_guidelineColor);
 					}
 				}
 			} else if (top > 0.707f) { // UP
 				float_t dist = edge[n].y;
 				if (dist > pt) {
-					size_t  len    = (size_t)snprintf(buf.data(), buf.size(), "%ld px", (uint32_t)dist);
+					size_t len = (size_t)snprintf(buf.data(), buf.size(), "%ld px", (uint32_t)dist);
 					float_t offset = float((pt * len) / 2.0);
 
 					for (size_t p = 0; p < len; p++) {
 						char v = buf.data()[p];
-						DrawGlyph(
-						    dp->m_textVertices,
-						    edge[n].x + (p * pt) + 15,
-						    edge[n].y - (dist / 2) - pt,
-						    pt,
-						    0,
-						    v,
-						    dp->m_guidelineColor);
+						DrawGlyph(dp->m_textVertices, edge[n].x + (p * pt) + 15, edge[n].y - (dist / 2) - pt, pt, 0, v,
+							  dp->m_guidelineColor);
 					}
 				}
 			} else if (top < -0.707f) { // DOWN
 				float_t dist = sceneHeight - edge[n].y;
 				if (dist > (pt * 4)) {
-					size_t  len    = (size_t)snprintf(buf.data(), buf.size(), "%ld px", (uint32_t)dist);
+					size_t len = (size_t)snprintf(buf.data(), buf.size(), "%ld px", (uint32_t)dist);
 					float_t offset = float((pt * len) / 2.0);
 
 					for (size_t p = 0; p < len; p++) {
 						char v = buf.data()[p];
-						DrawGlyph(
-						    dp->m_textVertices,
-						    edge[n].x + (p * pt) + 15,
-						    edge[n].y + (dist / 2) - pt,
-						    pt,
-						    0,
-						    v,
-						    dp->m_guidelineColor);
+						DrawGlyph(dp->m_textVertices, edge[n].x + (p * pt) + 15, edge[n].y + (dist / 2) - pt, pt, 0, v,
+							  dp->m_guidelineColor);
 					}
 				}
 			}
@@ -1161,12 +1048,8 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t* scene, obs_sceneitem_t* item,
 	}
 
 	gs_load_vertexbuffer(dp->m_boxTris->Update(false));
-	vec4_set(
-		&color,
-		(dp->m_resizeInnerColor & 0xFF) / 255.0f,
-		((dp->m_resizeInnerColor & 0xFF00) >> 8) / 255.0f,
-		((dp->m_resizeInnerColor & 0xFF0000) >> 16) / 255.0f,
-		((dp->m_resizeInnerColor & 0xFF000000) >> 24) / 255.0f);
+	vec4_set(&color, (dp->m_resizeInnerColor & 0xFF) / 255.0f, ((dp->m_resizeInnerColor & 0xFF00) >> 8) / 255.0f,
+		 ((dp->m_resizeInnerColor & 0xFF0000) >> 16) / 255.0f, ((dp->m_resizeInnerColor & 0xFF000000) >> 24) / 255.0f);
 	gs_effect_set_vec4(solid_color, &color);
 	DrawSquareAt(dp, 0, 0, boxTransform);
 	DrawSquareAt(dp, 1, 0, boxTransform);
@@ -1178,12 +1061,8 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t* scene, obs_sceneitem_t* item,
 	DrawSquareAt(dp, 1, 0.5, boxTransform);
 
 	gs_load_vertexbuffer(dp->m_boxLine->Update(false));
-	vec4_set(
-		&color,
-		(dp->m_resizeOuterColor & 0xFF) / 255.0f,
-		((dp->m_resizeOuterColor & 0xFF00) >> 8) / 255.0f,
-		((dp->m_resizeOuterColor & 0xFF0000) >> 16) / 255.0f,
-		((dp->m_resizeOuterColor & 0xFF000000) >> 24) / 255.0f);
+	vec4_set(&color, (dp->m_resizeOuterColor & 0xFF) / 255.0f, ((dp->m_resizeOuterColor & 0xFF00) >> 8) / 255.0f,
+		 ((dp->m_resizeOuterColor & 0xFF0000) >> 16) / 255.0f, ((dp->m_resizeOuterColor & 0xFF000000) >> 24) / 255.0f);
 	gs_effect_set_vec4(solid_color, &color);
 	DrawBoxAt(dp, 0, 0, boxTransform);
 	DrawBoxAt(dp, 1, 0, boxTransform);
@@ -1197,13 +1076,13 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t* scene, obs_sceneitem_t* item,
 	return true;
 }
 
-void OBS::Display::DisplayCallback(void* displayPtr, uint32_t cx, uint32_t cy)
+void OBS::Display::DisplayCallback(void *displayPtr, uint32_t cx, uint32_t cy)
 {
-	Display*        dp          = static_cast<Display*>(displayPtr);
-	gs_effect_t*    solid       = obs_get_base_effect(OBS_EFFECT_SOLID);
-	gs_eparam_t*    solid_color = gs_effect_get_param_by_name(solid, "color");
-	gs_technique_t* solid_tech  = gs_effect_get_technique(solid, "Solid");
-	vec4            color;
+	Display *dp = static_cast<Display *>(displayPtr);
+	gs_effect_t *solid = obs_get_base_effect(OBS_EFFECT_SOLID);
+	gs_eparam_t *solid_color = gs_effect_get_param_by_name(solid, "color");
+	gs_technique_t *solid_tech = gs_effect_get_technique(solid, "Solid");
+	vec4 color;
 
 	dp->UpdatePreviewArea();
 
@@ -1231,11 +1110,7 @@ void OBS::Display::DisplayCallback(void* displayPtr, uint32_t cx, uint32_t cy)
 
 	gs_ortho(0.0f, float(sourceW), 0.0f, float(sourceH), -100.0f, 100.0f);
 
-	gs_set_viewport(
-		dp->m_previewOffset.first,
-		dp->m_previewOffset.second,
-		dp->m_previewSize.first,
-		dp->m_previewSize.second);
+	gs_set_viewport(dp->m_previewOffset.first, dp->m_previewOffset.second, dp->m_previewSize.first, dp->m_previewSize.second);
 
 	// Padding
 	vec4_set(&color, dp->m_paddingColor[0], dp->m_paddingColor[1], dp->m_paddingColor[2], dp->m_paddingColor[3]);
@@ -1243,12 +1118,8 @@ void OBS::Display::DisplayCallback(void* displayPtr, uint32_t cx, uint32_t cy)
 
 	// Background
 	if (dp->m_boxTris) {
-		vec4_set(
-		    &color,
-		    ((dp->m_backgroundColor & 0xFF)) / 255.0f,
-		    ((dp->m_backgroundColor & 0xFF00) >> 8) / 255.0f,
-		    ((dp->m_backgroundColor & 0xFF0000) >> 16) / 255.0f,
-		    ((dp->m_backgroundColor & 0xFF000000) >> 24) / 255.0f);
+		vec4_set(&color, ((dp->m_backgroundColor & 0xFF)) / 255.0f, ((dp->m_backgroundColor & 0xFF00) >> 8) / 255.0f,
+			 ((dp->m_backgroundColor & 0xFF0000) >> 16) / 255.0f, ((dp->m_backgroundColor & 0xFF000000) >> 24) / 255.0f);
 		gs_effect_set_vec4(solid_color, &color);
 
 		gs_technique_begin(solid_tech);
@@ -1268,15 +1139,14 @@ void OBS::Display::DisplayCallback(void* displayPtr, uint32_t cx, uint32_t cy)
 	}
 
 	// Source Rendering
-	obs_source_t* source = NULL;
+	obs_source_t *source = NULL;
 	if (dp->m_source) {
 		/* If the the source is a transition it means this display 
 		 * is for Studio Mode and that the scene it contains is a 
 		 * duplicate of the current scene, apply selective recording
 		 * layer rendering if it is enabled */
-		if (obs_get_multiple_rendering() &&
-			obs_source_get_type(dp->m_source) == OBS_SOURCE_TYPE_TRANSITION)
-				obs_set_video_rendering_mode(dp->m_renderingMode);
+		if (obs_get_multiple_rendering() && obs_source_get_type(dp->m_source) == OBS_SOURCE_TYPE_TRANSITION)
+			obs_set_video_rendering_mode(dp->m_renderingMode);
 
 		obs_source_video_render(dp->m_source);
 		/* If we want to draw guidelines, we need a scene,
@@ -1294,8 +1164,8 @@ void OBS::Display::DisplayCallback(void* displayPtr, uint32_t cx, uint32_t cy)
 		/* Here we assume that channel 0 holds the primary transition.
 		* We also assume that the active source within that transition is
 		* the scene that we need */
-		obs_source_t* transition = obs_get_output_source(0);
-		source                   = obs_transition_get_active_source(transition);
+		obs_source_t *transition = obs_get_output_source(0);
+		source = obs_transition_get_active_source(transition);
 		obs_source_release(transition);
 	}
 
@@ -1309,7 +1179,7 @@ void OBS::Display::DisplayCallback(void* displayPtr, uint32_t cx, uint32_t cy)
 		gs_ortho(tlCorner.x, brCorner.x, tlCorner.y, brCorner.y, -100.0f, 100.0f);
 		gs_reset_viewport();
 
-		obs_scene_t* scene = obs_scene_from_source(source);
+		obs_scene_t *scene = obs_scene_from_source(source);
 
 		/* This should work for both individual sources 
 		 * that are actually scenes and our main transition scene */
@@ -1327,7 +1197,7 @@ void OBS::Display::DisplayCallback(void* displayPtr, uint32_t cx, uint32_t cy)
 
 			// Text Rendering
 			if (dp->m_textVertices->Size() > 0) {
-				gs_vertbuffer_t* vb = dp->m_textVertices->Update();
+				gs_vertbuffer_t *vb = dp->m_textVertices->Update();
 				while (gs_effect_loop(dp->m_textEffect, "Draw")) {
 					gs_effect_set_texture(gs_effect_get_param_by_name(dp->m_textEffect, "image"), dp->m_textTexture);
 					gs_load_vertexbuffer(vb);
@@ -1345,7 +1215,7 @@ void OBS::Display::DisplayCallback(void* displayPtr, uint32_t cx, uint32_t cy)
 
 void OBS::Display::UpdatePreviewArea()
 {
-	int32_t  offsetX = 0, offsetY = 0;
+	int32_t offsetX = 0, offsetY = 0;
 	uint32_t sourceW, sourceH;
 	if (m_source) {
 		sourceW = obs_source_get_width(m_source);
@@ -1360,16 +1230,8 @@ void OBS::Display::UpdatePreviewArea()
 	if (sourceH == 0)
 		sourceH = 1;
 
-	RecalculateApectRatioConstrainedSize(
-	    m_gsInitData.cx,
-	    m_gsInitData.cy,
-	    sourceW,
-	    sourceH,
-	    m_previewOffset.first,
-	    m_previewOffset.second,
-	    m_previewSize.first,
-	    m_previewSize.second);
-
+	RecalculateApectRatioConstrainedSize(m_gsInitData.cx, m_gsInitData.cy, sourceW, sourceH, m_previewOffset.first, m_previewOffset.second,
+					     m_previewSize.first, m_previewSize.second);
 
 	offsetX = m_paddingSize;
 	offsetY = float_t(offsetX) * float_t(sourceH) / float_t(sourceW);
@@ -1405,18 +1267,17 @@ void OBS::Display::DisplayWndClass()
 		return;
 
 	DisplayWndClassObj.cbSize = sizeof(WNDCLASSEX);
-	DisplayWndClassObj.style  = CS_OWNDC | CS_NOCLOSE | CS_HREDRAW
-	                           | CS_VREDRAW; // CS_DBLCLKS | CS_HREDRAW | CS_NOCLOSE | CS_VREDRAW | CS_OWNDC;
-	DisplayWndClassObj.lpfnWndProc   = DisplayWndProc;
-	DisplayWndClassObj.cbClsExtra    = 0;
-	DisplayWndClassObj.cbWndExtra    = 0;
-	DisplayWndClassObj.hInstance     = NULL; // HINST_THISCOMPONENT;
-	DisplayWndClassObj.hIcon         = NULL;
-	DisplayWndClassObj.hCursor       = NULL;
+	DisplayWndClassObj.style = CS_OWNDC | CS_NOCLOSE | CS_HREDRAW | CS_VREDRAW; // CS_DBLCLKS | CS_HREDRAW | CS_NOCLOSE | CS_VREDRAW | CS_OWNDC;
+	DisplayWndClassObj.lpfnWndProc = DisplayWndProc;
+	DisplayWndClassObj.cbClsExtra = 0;
+	DisplayWndClassObj.cbWndExtra = 0;
+	DisplayWndClassObj.hInstance = NULL; // HINST_THISCOMPONENT;
+	DisplayWndClassObj.hIcon = NULL;
+	DisplayWndClassObj.hCursor = NULL;
 	DisplayWndClassObj.hbrBackground = NULL;
-	DisplayWndClassObj.lpszMenuName  = NULL;
+	DisplayWndClassObj.lpszMenuName = NULL;
 	DisplayWndClassObj.lpszClassName = TEXT("Win32DisplayClass");
-	DisplayWndClassObj.hIconSm       = NULL;
+	DisplayWndClassObj.hIconSm = NULL;
 
 	DisplayWndClassAtom = RegisterClassEx(&DisplayWndClassObj);
 	if (DisplayWndClassAtom == NULL) {
@@ -1428,7 +1289,7 @@ void OBS::Display::DisplayWndClass()
 
 LRESULT CALLBACK OBS::Display::DisplayWndProc(_In_ HWND hwnd, _In_ UINT uMsg, _In_ WPARAM wParam, _In_ LPARAM lParam)
 {
-	OBS::Display* self = nullptr;
+	OBS::Display *self = nullptr;
 	switch (uMsg) {
 	case WM_NCHITTEST:
 		return HTTRANSPARENT;

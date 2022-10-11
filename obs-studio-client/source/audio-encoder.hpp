@@ -20,23 +20,21 @@
 #include <napi.h>
 #include <thread>
 
-namespace osn
-{
-    class AudioEncoder : public Napi::ObjectWrap<osn::AudioEncoder>
-    {
-        public:
-        uint64_t uid;
+namespace osn {
+class AudioEncoder : public Napi::ObjectWrap<osn::AudioEncoder> {
+public:
+	uint64_t uid;
 
-        public:
-        static Napi::FunctionReference constructor;
-        static Napi::Object Init(Napi::Env env, Napi::Object exports);
-        AudioEncoder(const Napi::CallbackInfo& info);
+public:
+	static Napi::FunctionReference constructor;
+	static Napi::Object Init(Napi::Env env, Napi::Object exports);
+	AudioEncoder(const Napi::CallbackInfo &info);
 
-        static Napi::Value Create(const Napi::CallbackInfo& info);
+	static Napi::Value Create(const Napi::CallbackInfo &info);
 
-        Napi::Value GetName(const Napi::CallbackInfo& info);
-        void SetName(const Napi::CallbackInfo& info, const Napi::Value &value);
-        Napi::Value GetBitrate(const Napi::CallbackInfo& info);
-        void SetBitrate(const Napi::CallbackInfo& info, const Napi::Value &value);
-    };
+	Napi::Value GetName(const Napi::CallbackInfo &info);
+	void SetName(const Napi::CallbackInfo &info, const Napi::Value &value);
+	Napi::Value GetBitrate(const Napi::CallbackInfo &info);
+	void SetBitrate(const Napi::CallbackInfo &info, const Napi::Value &value);
+};
 }

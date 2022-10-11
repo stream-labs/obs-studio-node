@@ -19,31 +19,28 @@
 #pragma once
 #include <napi.h>
 
-namespace osn
-{
-    class AudioTrack :
-        public Napi::ObjectWrap<osn::AudioTrack>
-    {
-        public:
-        uint64_t uid;
+namespace osn {
+class AudioTrack : public Napi::ObjectWrap<osn::AudioTrack> {
+public:
+	uint64_t uid;
 
-        static Napi::FunctionReference constructor;
-        static Napi::Object Init(Napi::Env env, Napi::Object exports);
-        AudioTrack(const Napi::CallbackInfo& info);
+	static Napi::FunctionReference constructor;
+	static Napi::Object Init(Napi::Env env, Napi::Object exports);
+	AudioTrack(const Napi::CallbackInfo &info);
 
-        static Napi::Value Create(const Napi::CallbackInfo& info);
+	static Napi::Value Create(const Napi::CallbackInfo &info);
 
-        static Napi::Value GetAudioTracks(const Napi::CallbackInfo& info);
-        static Napi::Value GetAudioBitrates(const Napi::CallbackInfo& info);
-        static Napi::Value GetAtIndex(const Napi::CallbackInfo& info);
-        static void SetAtIndex(const Napi::CallbackInfo& info);
+	static Napi::Value GetAudioTracks(const Napi::CallbackInfo &info);
+	static Napi::Value GetAudioBitrates(const Napi::CallbackInfo &info);
+	static Napi::Value GetAtIndex(const Napi::CallbackInfo &info);
+	static void SetAtIndex(const Napi::CallbackInfo &info);
 
-        Napi::Value GetBitrate(const Napi::CallbackInfo& info);
-        void SetBitrate(const Napi::CallbackInfo& info, const Napi::Value& value);
-        Napi::Value GetName(const Napi::CallbackInfo& info);
-        void SetName(const Napi::CallbackInfo& info, const Napi::Value& value);
+	Napi::Value GetBitrate(const Napi::CallbackInfo &info);
+	void SetBitrate(const Napi::CallbackInfo &info, const Napi::Value &value);
+	Napi::Value GetName(const Napi::CallbackInfo &info);
+	void SetName(const Napi::CallbackInfo &info, const Napi::Value &value);
 
-        static void ImportLegacySettings(const Napi::CallbackInfo& info);
-        static void SaveLegacySettings(const Napi::CallbackInfo& info);
-    };
+	static void ImportLegacySettings(const Napi::CallbackInfo &info);
+	static void SaveLegacySettings(const Napi::CallbackInfo &info);
+};
 }

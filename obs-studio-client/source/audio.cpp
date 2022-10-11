@@ -21,118 +21,104 @@
 
 Napi::FunctionReference osn::Audio::constructor;
 
-Napi::Object osn::Audio::Init(Napi::Env env, Napi::Object exports) {
-    Napi::HandleScope scope(env);
-    Napi::Function func =
-        DefineClass(env,
-        "Audio",
-        {
-            StaticAccessor("audioContext",
-                &osn::Audio::GetAudioContext, &osn::Audio::SetAudioContext),
-            StaticAccessor("legacySettings",
-                &osn::Audio::GetLegacySettings, &osn::Audio::SetLegacySettings)
-        });
-    exports.Set("Audio", func);
-    osn::Audio::constructor = Napi::Persistent(func);
-    osn::Audio::constructor.SuppressDestruct();
-    return exports;
-}
-
-osn::Audio::Audio(const Napi::CallbackInfo& info)
-    : Napi::ObjectWrap<osn::Audio>(info) {
-    Napi::Env env = info.Env();
-    Napi::HandleScope scope(env);
-}
-
-inline void CreateAudio(
-    const Napi::CallbackInfo& info,const std::vector<ipc::value>& response,
-    Napi::Object& audio, uint32_t index)
+Napi::Object osn::Audio::Init(Napi::Env env, Napi::Object exports)
 {
-    audio.Set("sampleRate", response[index++].value_union.ui32);
-    audio.Set("speakers", response[index++].value_union.ui32);
+	Napi::HandleScope scope(env);
+	Napi::Function func = DefineClass(env, "Audio",
+					  {StaticAccessor("audioContext", &osn::Audio::GetAudioContext, &osn::Audio::SetAudioContext),
+					   StaticAccessor("legacySettings", &osn::Audio::GetLegacySettings, &osn::Audio::SetLegacySettings)});
+	exports.Set("Audio", func);
+	osn::Audio::constructor = Napi::Persistent(func);
+	osn::Audio::constructor.SuppressDestruct();
+	return exports;
 }
 
-inline void SerializeAudioData(
-    const Napi::Object& audio, std::vector<ipc::value>& args)
+osn::Audio::Audio(const Napi::CallbackInfo &info) : Napi::ObjectWrap<osn::Audio>(info)
 {
-    args.push_back(audio.Get("sampleRate").ToNumber().Uint32Value());
-    args.push_back(audio.Get("speakers").ToNumber().Uint32Value());
+	Napi::Env env = info.Env();
+	Napi::HandleScope scope(env);
 }
 
-Napi::Value osn::Audio::GetAudioContext(const Napi::CallbackInfo& info)
+inline void CreateAudio(const Napi::CallbackInfo &info, const std::vector<ipc::value> &response, Napi::Object &audio, uint32_t index)
 {
-    auto conn = GetConnection(info);
-    if (!conn)
-        return info.Env().Undefined();
-
-    std::vector<ipc::value> response =
-        conn->call_synchronous_helper("Audio", "GetAudioContext", {});
-
-    if (!ValidateResponse(info, response))
-        return info.Env().Undefined();
-
-    if (response.size() != 3)
-        return info.Env().Undefined();
-
-    Napi::Object audio = Napi::Object::New(info.Env());
-    CreateAudio(info, response, audio, 1);
-    return audio;
+	audio.Set("sampleRate", response[index++].value_union.ui32);
+	audio.Set("speakers", response[index++].value_union.ui32);
 }
 
-void osn::Audio::SetAudioContext(const Napi::CallbackInfo& info, const Napi::Value &value)
+inline void SerializeAudioData(const Napi::Object &audio, std::vector<ipc::value> &args)
 {
-    Napi::Object audio = value.ToObject();
-    if (!audio || !audio.IsObject()) {
-        Napi::Error::New(
-            info.Env(),
-            "The audio context object passed is invalid.").ThrowAsJavaScriptException();
-        return;
-    }
-
-    auto conn = GetConnection(info);
-    if (!conn)
-        return;
-
-    std::vector<ipc::value> args;
-    SerializeAudioData(audio, args);
-    conn->call("Audio", "SetAudioContext", args);
+	args.push_back(audio.Get("sampleRate").ToNumber().Uint32Value());
+	args.push_back(audio.Get("speakers").ToNumber().Uint32Value());
 }
 
-Napi::Value osn::Audio::GetLegacySettings(const Napi::CallbackInfo& info)
+Napi::Value osn::Audio::GetAudioContext(const Napi::CallbackInfo &info)
 {
-    auto conn = GetConnection(info);
-    if (!conn)
-        return info.Env().Undefined();
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
 
-    std::vector<ipc::value> response =
-        conn->call_synchronous_helper("Audio", "GetLegacySettings", {});
+	std::vector<ipc::value> response = conn->call_synchronous_helper("Audio", "GetAudioContext", {});
 
-    if (!ValidateResponse(info, response))
-        return info.Env().Undefined();
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
 
-    if (response.size() != 3)
-        return info.Env().Undefined();
+	if (response.size() != 3)
+		return info.Env().Undefined();
 
-    Napi::Object audio = Napi::Object::New(info.Env());
-    CreateAudio(info, response, audio, 1);
-    return audio;
+	Napi::Object audio = Napi::Object::New(info.Env());
+	CreateAudio(info, response, audio, 1);
+	return audio;
 }
 
-void osn::Audio::SetLegacySettings(const Napi::CallbackInfo& info, const Napi::Value &value)
+void osn::Audio::SetAudioContext(const Napi::CallbackInfo &info, const Napi::Value &value)
 {
-    Napi::Object audio = value.ToObject();
-    if (!audio || !audio.IsObject()) {
-        Napi::Error::New(
-            info.Env(),
-            "The audio context object passed is invalid.").ThrowAsJavaScriptException();
-        return;
-    }
+	Napi::Object audio = value.ToObject();
+	if (!audio || !audio.IsObject()) {
+		Napi::Error::New(info.Env(), "The audio context object passed is invalid.").ThrowAsJavaScriptException();
+		return;
+	}
 
-    auto conn = GetConnection(info);
-    if (!conn)
-        return;
+	auto conn = GetConnection(info);
+	if (!conn)
+		return;
 
-    std::vector<ipc::value> args;
-    SerializeAudioData(audio, args);
-    conn->call("Audio", "SetLegacySettings", args);
+	std::vector<ipc::value> args;
+	SerializeAudioData(audio, args);
+	conn->call("Audio", "SetAudioContext", args);
+}
+
+Napi::Value osn::Audio::GetLegacySettings(const Napi::CallbackInfo &info)
+{
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
+
+	std::vector<ipc::value> response = conn->call_synchronous_helper("Audio", "GetLegacySettings", {});
+
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
+
+	if (response.size() != 3)
+		return info.Env().Undefined();
+
+	Napi::Object audio = Napi::Object::New(info.Env());
+	CreateAudio(info, response, audio, 1);
+	return audio;
+}
+
+void osn::Audio::SetLegacySettings(const Napi::CallbackInfo &info, const Napi::Value &value)
+{
+	Napi::Object audio = value.ToObject();
+	if (!audio || !audio.IsObject()) {
+		Napi::Error::New(info.Env(), "The audio context object passed is invalid.").ThrowAsJavaScriptException();
+		return;
+	}
+
+	auto conn = GetConnection(info);
+	if (!conn)
+		return;
+
+	std::vector<ipc::value> args;
+	SerializeAudioData(audio, args);
+	conn->call("Audio", "SetLegacySettings", args);
 }

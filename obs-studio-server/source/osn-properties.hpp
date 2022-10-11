@@ -19,16 +19,12 @@
 #pragma once
 #include <ipc-server.hpp>
 
-namespace osn
-{
-	class Properties
-	{
-		public:
-		static void Register(ipc::server& srv);
+namespace osn {
+class Properties {
+public:
+	static void Register(ipc::server &srv);
 
-		static void
-		    Modified(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void
-		    Clicked(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-	};
+	static void Modified(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void Clicked(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+};
 } // namespace osn

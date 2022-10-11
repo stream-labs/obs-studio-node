@@ -19,26 +19,23 @@
 #pragma once
 #include <napi.h>
 
-namespace osn
-{
-    class Delay :
-        public Napi::ObjectWrap<osn::Delay>
-    {
-        public:
-        uint64_t uid;        
+namespace osn {
+class Delay : public Napi::ObjectWrap<osn::Delay> {
+public:
+	uint64_t uid;
 
-        public:
-        static Napi::FunctionReference constructor;
-        static Napi::Object Init(Napi::Env env, Napi::Object exports);
-        Delay(const Napi::CallbackInfo& info);
+public:
+	static Napi::FunctionReference constructor;
+	static Napi::Object Init(Napi::Env env, Napi::Object exports);
+	Delay(const Napi::CallbackInfo &info);
 
-        static Napi::Value Create(const Napi::CallbackInfo& info);
+	static Napi::Value Create(const Napi::CallbackInfo &info);
 
-        Napi::Value GetEnabled(const Napi::CallbackInfo& info);
-        void SetEnabled(const Napi::CallbackInfo& info, const Napi::Value& value);
-        Napi::Value GetDelaySec(const Napi::CallbackInfo& info);
-        void SetDelaySec(const Napi::CallbackInfo& info, const Napi::Value& value);
-        Napi::Value GetPreserveDelay(const Napi::CallbackInfo& info);
-        void SetPreserveDelay(const Napi::CallbackInfo& info, const Napi::Value& value);
-    };
+	Napi::Value GetEnabled(const Napi::CallbackInfo &info);
+	void SetEnabled(const Napi::CallbackInfo &info, const Napi::Value &value);
+	Napi::Value GetDelaySec(const Napi::CallbackInfo &info);
+	void SetDelaySec(const Napi::CallbackInfo &info, const Napi::Value &value);
+	Napi::Value GetPreserveDelay(const Napi::CallbackInfo &info);
+	void SetPreserveDelay(const Napi::CallbackInfo &info, const Napi::Value &value);
+};
 }

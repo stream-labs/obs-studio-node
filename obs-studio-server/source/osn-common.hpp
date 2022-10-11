@@ -21,8 +21,7 @@
 #include <obs.h>
 #include <vector>
 
-namespace osn
-{
-	namespace common
-	{}
+namespace osn {
+namespace common {
+}
 } // namespace osn

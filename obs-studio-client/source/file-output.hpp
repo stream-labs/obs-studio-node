@@ -20,31 +20,28 @@
 #include <napi.h>
 #include "worker-signals.hpp"
 
-namespace osn
-{
-    class FileOutput
-    {
-        public:
-        uint64_t uid;
-        FileOutput() {};
+namespace osn {
+class FileOutput {
+public:
+	uint64_t uid;
+	FileOutput(){};
 
-        protected:
+protected:
+	Napi::Value GetPath(const Napi::CallbackInfo &info);
+	void SetPath(const Napi::CallbackInfo &info, const Napi::Value &value);
+	Napi::Value GetCanvas(const Napi::CallbackInfo &info);
+	void SetCanvas(const Napi::CallbackInfo &info, const Napi::Value &value);
+	Napi::Value GetFormat(const Napi::CallbackInfo &info);
+	void SetFormat(const Napi::CallbackInfo &info, const Napi::Value &value);
+	Napi::Value GetFileFormat(const Napi::CallbackInfo &info);
+	void SetFileFormat(const Napi::CallbackInfo &info, const Napi::Value &value);
+	Napi::Value GetOverwrite(const Napi::CallbackInfo &info);
+	void SetOverwrite(const Napi::CallbackInfo &info, const Napi::Value &value);
+	Napi::Value GetNoSpace(const Napi::CallbackInfo &info);
+	void SetNoSpace(const Napi::CallbackInfo &info, const Napi::Value &value);
+	Napi::Value GetMuxerSettings(const Napi::CallbackInfo &info);
+	void SetMuxerSettings(const Napi::CallbackInfo &info, const Napi::Value &value);
 
-        Napi::Value GetPath(const Napi::CallbackInfo& info);
-		void SetPath(const Napi::CallbackInfo& info, const Napi::Value& value);
-		Napi::Value GetCanvas(const Napi::CallbackInfo& info);
-		void SetCanvas(const Napi::CallbackInfo& info, const Napi::Value& value);
-		Napi::Value GetFormat(const Napi::CallbackInfo& info);
-        void SetFormat(const Napi::CallbackInfo& info, const Napi::Value& value);
-        Napi::Value GetFileFormat(const Napi::CallbackInfo& info);
-        void SetFileFormat(const Napi::CallbackInfo& info, const Napi::Value& value);
-        Napi::Value GetOverwrite(const Napi::CallbackInfo& info);
-        void SetOverwrite(const Napi::CallbackInfo& info, const Napi::Value& value);
-        Napi::Value GetNoSpace(const Napi::CallbackInfo& info);
-        void SetNoSpace(const Napi::CallbackInfo& info, const Napi::Value& value);
-        Napi::Value GetMuxerSettings(const Napi::CallbackInfo& info);
-        void SetMuxerSettings(const Napi::CallbackInfo& info, const Napi::Value& value);
-
-        Napi::Value GetLastFile(const Napi::CallbackInfo& info);
-    };
+	Napi::Value GetLastFile(const Napi::CallbackInfo &info);
+};
 }

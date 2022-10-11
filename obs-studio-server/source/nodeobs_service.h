@@ -73,147 +73,59 @@
 
 #define MAX_AUDIO_MIXES 6
 
-class SignalInfo
-{
-	private:
+class SignalInfo {
+private:
 	std::string m_outputType;
 	std::string m_signal;
-	int         m_code;
+	int m_code;
 	std::string m_errorMessage;
 
-	public:
+public:
 	SignalInfo(){};
 	SignalInfo(std::string outputType, std::string signal)
 	{
-		m_outputType   = outputType;
-		m_signal       = signal;
-		m_code         = 0;
+		m_outputType = outputType;
+		m_signal = signal;
+		m_code = 0;
 		m_errorMessage = "";
 	}
-	std::string getOutputType(void)
-	{
-		return m_outputType;
-	};
-	std::string getSignal(void)
-	{
-		return m_signal;
-	};
+	std::string getOutputType(void) { return m_outputType; };
+	std::string getSignal(void) { return m_signal; };
 
-	int getCode(void)
-	{
-		return m_code;
-	};
-	void setCode(int code)
-	{
-		m_code = code;
-	};
-	std::string getErrorMessage(void)
-	{
-		return m_errorMessage;
-	};
-	void setErrorMessage(std::string errorMessage)
-	{
-		m_errorMessage = errorMessage;
-	};
+	int getCode(void) { return m_code; };
+	void setCode(int code) { m_code = code; };
+	std::string getErrorMessage(void) { return m_errorMessage; };
+	void setErrorMessage(std::string errorMessage) { m_errorMessage = errorMessage; };
 };
 
-class OBS_service
-{
-	public:
+class OBS_service {
+public:
 	OBS_service();
 	~OBS_service();
 
-	static void Register(ipc::server&);
+	static void Register(ipc::server &);
 
-	static void OBS_service_resetAudioContext(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	static void OBS_service_resetVideoContext(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	static void OBS_service_startStreaming(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	static void OBS_service_startRecording(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	static void OBS_service_startReplayBuffer(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	static void OBS_service_stopStreaming(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	static void OBS_service_stopRecording(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	static void OBS_service_stopReplayBuffer(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	static void OBS_service_connectOutputSignals(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	static void OBS_service_processReplayBufferHotkey(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	static void OBS_service_getLastReplay(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	static void OBS_service_getLastRecording(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	static void OBS_service_splitFile(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	static void Query(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
+	static void OBS_service_resetAudioContext(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void OBS_service_resetVideoContext(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void OBS_service_startStreaming(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void OBS_service_startRecording(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void OBS_service_startReplayBuffer(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void OBS_service_stopStreaming(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void OBS_service_stopRecording(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void OBS_service_stopReplayBuffer(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void OBS_service_connectOutputSignals(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void OBS_service_processReplayBufferHotkey(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void OBS_service_getLastReplay(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void OBS_service_getLastRecording(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void OBS_service_splitFile(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void Query(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
 
-	static void OBS_service_createVirtualWebcam(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	static void OBS_service_removeVirtualWebcam(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	static void OBS_service_startVirtualWebcam(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	static void OBS_service_stopVirtualWebcan(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
+	static void OBS_service_createVirtualWebcam(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void OBS_service_removeVirtualWebcam(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void OBS_service_startVirtualWebcam(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void OBS_service_stopVirtualWebcan(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
 
-	private:
+private:
 	static bool startStreaming(void);
 	static void stopStreaming(bool forceStop);
 	static bool startRecording(void);
@@ -223,57 +135,57 @@ class OBS_service
 
 	static void releaseStreamingOutput(void);
 
-	static void LoadRecordingPreset_h264(const char* encoder);
+	static void LoadRecordingPreset_h264(const char *encoder);
 	static void LoadRecordingPreset_Lossless(void);
 	// static void LoadRecordingPreset(void);
 
 	static void UpdateRecordingSettings_x264_crf(int crf);
 	static void UpdateRecordingSettings_qsv11(int crf);
 	static void UpdateRecordingSettings_nvenc(int cqp);
-	static void UpdateStreamingSettings_amd(obs_data_t* settings, int bitrate);
+	static void UpdateStreamingSettings_amd(obs_data_t *settings, int bitrate);
 	static void UpdateRecordingSettings_amd_cqp(int cqp);
 	static void updateVideoRecordingEncoderSettings(void);
 
-	public:
+public:
 	// Service
-	static bool           createService();
-	static obs_service_t* getService(void);
-	static void           setService(obs_service_t* newService);
-	static void           saveService(void);
-	static void           updateService(void);
+	static bool createService();
+	static obs_service_t *getService(void);
+	static void setService(obs_service_t *newService);
+	static void saveService(void);
+	static void updateService(void);
 
 	// Encoders
-	static bool           createAudioEncoder(obs_encoder_t** audioEncoder, std::string& id, int bitrate, const char* name, size_t idx);
-	static bool           createVideoStreamingEncoder();
-	static void           createSimpleAudioStreamingEncoder();
-	static bool           createVideoRecordingEncoder();
-	static obs_encoder_t* getStreamingEncoder(void);
-	static void           setStreamingEncoder(obs_encoder_t* encoder);
-	static obs_encoder_t* getRecordingEncoder(void);
-	static void           setRecordingEncoder(obs_encoder_t* encoder);
-	static obs_encoder_t* getAudioSimpleStreamingEncoder(void);
-	static void           setAudioSimpleStreamingEncoder(obs_encoder_t* encoder);
-	static obs_encoder_t* getAudioSimpleRecordingEncoder(void);
-	static void           setAudioSimpleRecordingEncoder(obs_encoder_t* encoder);
-	static obs_encoder_t* getAudioAdvancedStreamingEncoder(void);
-	static void           setAudioAdvancedStreamingEncoder(obs_encoder_t* encoder);
-	static void           setupAudioEncoder(void);
-	static void           clearAudioEncoder(void);
-	static obs_encoder_t* getArchiveEncoder(void);
+	static bool createAudioEncoder(obs_encoder_t **audioEncoder, std::string &id, int bitrate, const char *name, size_t idx);
+	static bool createVideoStreamingEncoder();
+	static void createSimpleAudioStreamingEncoder();
+	static bool createVideoRecordingEncoder();
+	static obs_encoder_t *getStreamingEncoder(void);
+	static void setStreamingEncoder(obs_encoder_t *encoder);
+	static obs_encoder_t *getRecordingEncoder(void);
+	static void setRecordingEncoder(obs_encoder_t *encoder);
+	static obs_encoder_t *getAudioSimpleStreamingEncoder(void);
+	static void setAudioSimpleStreamingEncoder(obs_encoder_t *encoder);
+	static obs_encoder_t *getAudioSimpleRecordingEncoder(void);
+	static void setAudioSimpleRecordingEncoder(obs_encoder_t *encoder);
+	static obs_encoder_t *getAudioAdvancedStreamingEncoder(void);
+	static void setAudioAdvancedStreamingEncoder(obs_encoder_t *encoder);
+	static void setupAudioEncoder(void);
+	static void clearAudioEncoder(void);
+	static obs_encoder_t *getArchiveEncoder(void);
 
 	// Outputs
-	static bool          createStreamingOutput(void);
-	static bool          createRecordingOutput(void);
-	static void          createReplayBufferOutput(void);
-	static obs_output_t* getStreamingOutput(void);
-	static void          setStreamingOutput(obs_output_t* output);
-	static obs_output_t* getRecordingOutput(void);
-	static void          setRecordingOutput(obs_output_t* output);
-	static obs_output_t* getReplayBufferOutput(void);
-	static void          setReplayBufferOutput(obs_output_t* output);
-	static obs_output_t* getVirtualWebcamOutput(void);
-	static void          setVirtualWebcamOutput(obs_output_t* output);
-	static void          waitReleaseWorker(void);
+	static bool createStreamingOutput(void);
+	static bool createRecordingOutput(void);
+	static void createReplayBufferOutput(void);
+	static obs_output_t *getStreamingOutput(void);
+	static void setStreamingOutput(obs_output_t *output);
+	static obs_output_t *getRecordingOutput(void);
+	static void setRecordingOutput(obs_output_t *output);
+	static obs_output_t *getReplayBufferOutput(void);
+	static void setReplayBufferOutput(obs_output_t *output);
+	static obs_output_t *getVirtualWebcamOutput(void);
+	static void setVirtualWebcamOutput(obs_output_t *output);
+	static void waitReleaseWorker(void);
 
 	// Update settings
 	static void updateStreamingOutput();
@@ -289,10 +201,9 @@ class OBS_service
 	static void updateAudioTracks(void);
 
 	// Update outputs
-	static void updateFfmpegOutput(bool isSimpleMode, obs_output_t* output);
+	static void updateFfmpegOutput(bool isSimpleMode, obs_output_t *output);
 	static void UpdateFFmpegCustomOutput(void);
 	static void updateReplayBufferOutput(bool isSimpleMode, bool useStreamEncoder);
-
 
 	static std::string GetDefaultVideoSavePath(void);
 
@@ -312,20 +223,20 @@ class OBS_service
 
 	// Copy the successfully applied default video configuration to
 	// the user configuration, then save it to basic.ini.
-	static void keepFallbackVideoConfig(const obs_video_info& ovi);
+	static void keepFallbackVideoConfig(const obs_video_info &ovi);
 
 	static int GetSimpleAudioBitrate(void);
 	static int GetAdvancedAudioBitrate(int i);
 
 	// Output signals
 	static void connectOutputSignals(void);
-	static void JSCallbackOutputSignal(void* data, calldata_t*);
+	static void JSCallbackOutputSignal(void *data, calldata_t *);
 
 	static bool useRecordingPreset();
 
-	static void duplicate_encoder(obs_encoder_t** dst, obs_encoder_t* src, uint64_t trackIndex = 0);
+	static void duplicate_encoder(obs_encoder_t **dst, obs_encoder_t *src, uint64_t trackIndex = 0);
 
-	static bool EncoderAvailable(const char* encoder);
+	static bool EncoderAvailable(const char *encoder);
 	static void stopAllOutputs(void);
 
 	static bool startTwitchSoundtrackAudio(void);

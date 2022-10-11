@@ -99,112 +99,66 @@
 #define GBYTE (1024ULL * 1024ULL * 1024ULL)
 #define TBYTE (1024ULL * 1024ULL * 1024ULL * 1024ULL)
 
-enum crashHandlerCommand {
-	REGISTER = 0,
-	UNREGISTER = 1,
-	REGISTERMEMORYDUMP = 2,
-	CRASHWITHCODE = 3
-};
+enum crashHandlerCommand { REGISTER = 0, UNREGISTER = 1, REGISTERMEMORYDUMP = 2, CRASHWITHCODE = 3 };
 
-struct NodeOBSLogParam final
-{
+struct NodeOBSLogParam final {
 	std::fstream logStream;
 	bool enableDebugLogs = false;
 };
 
 std::string g_moduleDirectory = "";
-os_cpu_usage_info_t* cpuUsageInfo      = nullptr;
+os_cpu_usage_info_t *cpuUsageInfo = nullptr;
 #ifdef WIN32
 std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
 HMODULE hRtwq;
 #endif
-std::string                                            slobs_plugin;
-std::vector<std::pair<std::string, obs_module_t*>>     obsModules;
-OBS_API::LogReport                                     logReport;
-OBS_API::OutputStats                                   streamingOutputStats;
-OBS_API::OutputStats                                   recordingOutputStats;
-std::mutex                                             logMutex;
-std::string                                            currentVersion;
-std::string                                            username("unknown");
-std::chrono::high_resolution_clock::time_point         start_wait_acknowledge;
+std::string slobs_plugin;
+std::vector<std::pair<std::string, obs_module_t *>> obsModules;
+OBS_API::LogReport logReport;
+OBS_API::OutputStats streamingOutputStats;
+OBS_API::OutputStats recordingOutputStats;
+std::mutex logMutex;
+std::string currentVersion;
+std::string username("unknown");
+std::chrono::high_resolution_clock::time_point start_wait_acknowledge;
 
-ipc::server* g_server = nullptr;
+ipc::server *g_server = nullptr;
 
 static bool browserAccel = true;
 static bool mediaFileCaching = true;
 static std::string processPriority = "Normal";
 
-void OBS_API::Register(ipc::server& srv)
+void OBS_API::Register(ipc::server &srv)
 {
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("API");
 
 	cls->register_function(std::make_shared<ipc::function>(
-	    "OBS_API_initAPI",
-	    std::vector<ipc::type>{ipc::type::String, ipc::type::String, ipc::type::String, ipc::type::String},
-	    OBS_API_initAPI));
-	cls->register_function(
-	    std::make_shared<ipc::function>("OBS_API_destroyOBS_API", std::vector<ipc::type>{}, OBS_API_destroyOBS_API));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "OBS_API_getPerformanceStatistics", std::vector<ipc::type>{}, OBS_API_getPerformanceStatistics));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "SetWorkingDirectory", std::vector<ipc::type>{ipc::type::String}, SetWorkingDirectory));
-	cls->register_function(
-	    std::make_shared<ipc::function>("StopCrashHandler", std::vector<ipc::type>{}, StopCrashHandler));
+		"OBS_API_initAPI", std::vector<ipc::type>{ipc::type::String, ipc::type::String, ipc::type::String, ipc::type::String}, OBS_API_initAPI));
+	cls->register_function(std::make_shared<ipc::function>("OBS_API_destroyOBS_API", std::vector<ipc::type>{}, OBS_API_destroyOBS_API));
+	cls->register_function(std::make_shared<ipc::function>("OBS_API_getPerformanceStatistics", std::vector<ipc::type>{}, OBS_API_getPerformanceStatistics));
+	cls->register_function(std::make_shared<ipc::function>("SetWorkingDirectory", std::vector<ipc::type>{ipc::type::String}, SetWorkingDirectory));
+	cls->register_function(std::make_shared<ipc::function>("StopCrashHandler", std::vector<ipc::type>{}, StopCrashHandler));
 	cls->register_function(std::make_shared<ipc::function>("OBS_API_QueryHotkeys", std::vector<ipc::type>{}, QueryHotkeys));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "OBS_API_ProcessHotkeyStatus",
-	    std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32},
-	    ProcessHotkeyStatus));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "SetUsername", std::vector<ipc::type>{ipc::type::String}, SetUsername));
-	cls->register_function(
-	    std::make_shared<ipc::function>("OBS_API_forceCrash", std::vector<ipc::type>{}, OBS_API_forceCrash));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "SetBrowserAcceleration",
-		std::vector<ipc::type>{ipc::type::UInt32},
-		SetBrowserAcceleration));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "GetBrowserAcceleration",
-		std::vector<ipc::type>{},
-		GetBrowserAcceleration));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "GetBrowserAccelerationLegacy",
-		std::vector<ipc::type>{},
-		GetBrowserAccelerationLegacy));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "SetMediaFileCaching",
-		std::vector<ipc::type>{ipc::type::UInt32},
-		SetMediaFileCaching));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "GetMediaFileCaching",
-		std::vector<ipc::type>{},
-		GetMediaFileCaching));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "GetMediaFileCachingLegacy",
-		std::vector<ipc::type>{},
-		GetMediaFileCachingLegacy));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "SetProcessPriority",
-		std::vector<ipc::type>{ipc::type::String},
-		SetProcessPriority));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "GetProcessPriority",
-		std::vector<ipc::type>{},
-		GetProcessPriority));
-    cls->register_function(std::make_shared<ipc::function>(
-        "GetProcessPriorityLegacy",
-        std::vector<ipc::type>{},
-        GetProcessPriorityLegacy));
-    cls->register_function(std::make_shared<ipc::function>(
-        "OBS_API_forceCrash",
-        std::vector<ipc::type>{},
-        OBS_API_forceCrash));
+	cls->register_function(std::make_shared<ipc::function>("OBS_API_ProcessHotkeyStatus", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32},
+							       ProcessHotkeyStatus));
+	cls->register_function(std::make_shared<ipc::function>("SetUsername", std::vector<ipc::type>{ipc::type::String}, SetUsername));
+	cls->register_function(std::make_shared<ipc::function>("OBS_API_forceCrash", std::vector<ipc::type>{}, OBS_API_forceCrash));
+	cls->register_function(std::make_shared<ipc::function>("SetBrowserAcceleration", std::vector<ipc::type>{ipc::type::UInt32}, SetBrowserAcceleration));
+	cls->register_function(std::make_shared<ipc::function>("GetBrowserAcceleration", std::vector<ipc::type>{}, GetBrowserAcceleration));
+	cls->register_function(std::make_shared<ipc::function>("GetBrowserAccelerationLegacy", std::vector<ipc::type>{}, GetBrowserAccelerationLegacy));
+	cls->register_function(std::make_shared<ipc::function>("SetMediaFileCaching", std::vector<ipc::type>{ipc::type::UInt32}, SetMediaFileCaching));
+	cls->register_function(std::make_shared<ipc::function>("GetMediaFileCaching", std::vector<ipc::type>{}, GetMediaFileCaching));
+	cls->register_function(std::make_shared<ipc::function>("GetMediaFileCachingLegacy", std::vector<ipc::type>{}, GetMediaFileCachingLegacy));
+	cls->register_function(std::make_shared<ipc::function>("SetProcessPriority", std::vector<ipc::type>{ipc::type::String}, SetProcessPriority));
+	cls->register_function(std::make_shared<ipc::function>("GetProcessPriority", std::vector<ipc::type>{}, GetProcessPriority));
+	cls->register_function(std::make_shared<ipc::function>("GetProcessPriorityLegacy", std::vector<ipc::type>{}, GetProcessPriorityLegacy));
+	cls->register_function(std::make_shared<ipc::function>("OBS_API_forceCrash", std::vector<ipc::type>{}, OBS_API_forceCrash));
 
 	srv.register_collection(cls);
 	g_server = &srv;
 }
 
-void replaceAll(std::string& str, const std::string& from, const std::string& to)
+void replaceAll(std::string &str, const std::string &from, const std::string &to)
 {
 	if (from.empty())
 		return;
@@ -215,11 +169,7 @@ void replaceAll(std::string& str, const std::string& from, const std::string& to
 	}
 };
 
-void OBS_API::SetWorkingDirectory(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void OBS_API::SetWorkingDirectory(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
 	g_moduleDirectory = args[0].value_str;
 	replaceAll(g_moduleDirectory, "\\", "/");
@@ -231,18 +181,18 @@ void OBS_API::SetWorkingDirectory(
 #ifdef _WIN32
 static void SetPrivilegeForGPUPriority(void)
 {
-	const DWORD      flags = TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY;
+	const DWORD flags = TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY;
 	TOKEN_PRIVILEGES tp;
-	HANDLE           token;
-	LUID             val;
+	HANDLE token;
+	LUID val;
 
 	if (!OpenProcessToken(GetCurrentProcess(), flags, &token)) {
 		return;
 	}
 
 	if (!!LookupPrivilegeValue(NULL, SE_INC_BASE_PRIORITY_NAME, &val)) {
-		tp.PrivilegeCount           = 1;
-		tp.Privileges[0].Luid       = val;
+		tp.PrivilegeCount = 1;
+		tp.Privileges[0].Luid = val;
 		tp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
 
 		if (!AdjustTokenPrivileges(token, false, &tp, sizeof(tp), NULL, NULL)) {
@@ -254,29 +204,20 @@ static void SetPrivilegeForGPUPriority(void)
 }
 #endif
 
-static std::string GenerateTimeDateFilename(const char* extension)
+static std::string GenerateTimeDateFilename(const char *extension)
 {
-	time_t     now       = time(0);
-	char       file[256] = {};
-	struct tm* cur_time;
+	time_t now = time(0);
+	char file[256] = {};
+	struct tm *cur_time;
 
 	cur_time = localtime(&now);
-	snprintf(
-	    file,
-	    sizeof(file),
-	    "%d-%02d-%02d %02d-%02d-%02d.%s",
-	    cur_time->tm_year + 1900,
-	    cur_time->tm_mon + 1,
-	    cur_time->tm_mday,
-	    cur_time->tm_hour,
-	    cur_time->tm_min,
-	    cur_time->tm_sec,
-	    extension);
+	snprintf(file, sizeof(file), "%d-%02d-%02d %02d-%02d-%02d.%s", cur_time->tm_year + 1900, cur_time->tm_mon + 1, cur_time->tm_mday, cur_time->tm_hour,
+		 cur_time->tm_min, cur_time->tm_sec, extension);
 
 	return std::string(file);
 }
 
-static bool GetToken(lexer* lex, std::string& str, base_token_type type)
+static bool GetToken(lexer *lex, std::string &str, base_token_type type)
 {
 	base_token token;
 	if (!lexer_getbasetoken(lex, &token, IGNORE_WHITESPACE))
@@ -288,7 +229,7 @@ static bool GetToken(lexer* lex, std::string& str, base_token_type type)
 	return true;
 }
 
-static bool ExpectToken(lexer* lex, const char* str, base_token_type type)
+static bool ExpectToken(lexer *lex, const char *str, base_token_type type)
 {
 	base_token token;
 	if (!lexer_getbasetoken(lex, &token, IGNORE_WHITESPACE))
@@ -303,9 +244,9 @@ static bool ExpectToken(lexer* lex, const char* str, base_token_type type)
 * Perhaps a better cross-platform solution can take
 * place but this is as cross-platform as it gets
 * for right now.  */
-static uint64_t ConvertLogName(const char* name)
+static uint64_t ConvertLogName(const char *name)
 {
-	lexer  lex;
+	lexer lex;
 	std::string year, month, day, hour, minute, second;
 
 	lexer_init(&lex);
@@ -338,13 +279,13 @@ static uint64_t ConvertLogName(const char* name)
 	return std::stoull(timestring);
 }
 
-static void DeleteOldestFile(const char* location, unsigned maxLogs)
+static void DeleteOldestFile(const char *location, unsigned maxLogs)
 {
-	std::string            oldestLog;
-	uint64_t          oldest_ts = (uint64_t)-1;
-	struct os_dirent* entry;
+	std::string oldestLog;
+	uint64_t oldest_ts = (uint64_t)-1;
+	struct os_dirent *entry;
 
-	os_dir_t* dir = os_opendir(location);
+	os_dir_t *dir = os_opendir(location);
 
 	if (!dir) {
 		std::cout << "Failed to open log directory." << std::endl;
@@ -390,22 +331,20 @@ static void DeleteOldestFile(const char* location, unsigned maxLogs)
 #endif
 #include <osn-error.hpp>
 
-outdated_driver_error * outdated_driver_error::inst = nullptr;
+outdated_driver_error *outdated_driver_error::inst = nullptr;
 
-outdated_driver_error * outdated_driver_error::instance()
+outdated_driver_error *outdated_driver_error::instance()
 {
-	if(inst == nullptr)
-	{
+	if (inst == nullptr) {
 		inst = new outdated_driver_error();
 	}
 	return inst;
 }
 
-void outdated_driver_error::set_active( bool state) 
+void outdated_driver_error::set_active(bool state)
 {
 	if (state) {
-		if (!lookup_enabled)
-		{
+		if (!lookup_enabled) {
 			line_1 = "";
 			line_2 = "";
 		}
@@ -417,36 +356,36 @@ void outdated_driver_error::set_active( bool state)
 
 std::string outdated_driver_error::get_error()
 {
-	if(line_1.size() && line_2.size())
+	if (line_1.size() && line_2.size())
 		return line_1 + std::string("\n") + line_2;
-	else 
+	else
 		return "";
 }
 
-void outdated_driver_error::catch_error(const char* msg)
+void outdated_driver_error::catch_error(const char *msg)
 {
 	if (!lookup_enabled)
 		return;
 
 	const std::string msg_string = msg;
 
-	if (line_1.size()==0) {
+	if (line_1.size() == 0) {
 		const std::string line_1_pattern = "Driver does not support the required nvenc API version";
 		auto pattern_position = msg_string.find(line_1_pattern);
-		if ( pattern_position != std::string::npos) {
+		if (pattern_position != std::string::npos) {
 			line_1 = msg_string.substr(pattern_position);
 			return;
 		}
-	} else if (line_2.size()==0) {
+	} else if (line_2.size() == 0) {
 		const std::string line_2_pattern = "The minimum required Nvidia driver for nvenc";
 		auto pattern_position = msg_string.find(line_2_pattern);
-		if ( pattern_position != std::string::npos) {
+		if (pattern_position != std::string::npos) {
 			line_2 = msg_string.substr(pattern_position);
 		}
 	}
 }
 
-static std::vector<char> nodeobs_log_formatted_message(const char* format, va_list args)
+static std::vector<char> nodeobs_log_formatted_message(const char *format, va_list args)
 {
 	if (!format)
 		return std::vector<char>();
@@ -459,7 +398,7 @@ static std::vector<char> nodeobs_log_formatted_message(const char* format, va_li
 #endif
 	if (length <= 0)
 		return std::vector<char>();
-	std::vector<char> buf     = std::vector<char>(length + 1, '\0');
+	std::vector<char> buf = std::vector<char>(length + 1, '\0');
 	int written = vsprintf(buf.data(), format, args);
 	if (written <= 0)
 		return std::vector<char>();
@@ -467,16 +406,16 @@ static std::vector<char> nodeobs_log_formatted_message(const char* format, va_li
 	return buf;
 }
 
-std::chrono::high_resolution_clock             hrc;
+std::chrono::high_resolution_clock hrc;
 std::chrono::high_resolution_clock::time_point tp = std::chrono::high_resolution_clock::now();
-static void                                    node_obs_log(int log_level, const char* msg, va_list args, void* param)
+static void node_obs_log(int log_level, const char *msg, va_list args, void *param)
 {
 	if (param == nullptr)
 		return;
 
 	// Calculate log time.
 	auto timeSinceStart = (std::chrono::high_resolution_clock::now() - tp);
-	auto days           = std::chrono::duration_cast<std::chrono::duration<int, std::ratio<86400>>>(timeSinceStart);
+	auto days = std::chrono::duration_cast<std::chrono::duration<int, std::ratio<86400>>>(timeSinceStart);
 	timeSinceStart -= days;
 	auto hours = std::chrono::duration_cast<std::chrono::hours>(timeSinceStart);
 	timeSinceStart -= hours;
@@ -533,59 +472,33 @@ static void                                    node_obs_log(int log_level, const
 	std::array<char, 160> timebuf{};
 	static const std::string_view timeformat("[%.3d:%.2d:%.2d:%.2d.%.3d.%.3d.%.3d][%*s][%*s]");
 #ifdef WIN32
-	int length     = sprintf_s(
-        timebuf.data(),
-        timebuf.size(),
-        timeformat.data(),
-        days.count(),
-        hours.count(),
-        minutes.count(),
-        seconds.count(),
-        milliseconds.count(),
-        microseconds.count(),
-        nanoseconds.count(),
-        thread_id.length(),
-        thread_id.c_str(),
-        levelname.length(),
-        levelname.data());
+	int length = sprintf_s(timebuf.data(), timebuf.size(), timeformat.data(), days.count(), hours.count(), minutes.count(), seconds.count(),
+			       milliseconds.count(), microseconds.count(), nanoseconds.count(), thread_id.length(), thread_id.c_str(), levelname.length(),
+			       levelname.data());
 #else
-	int length     = snprintf(
-        timebuf.data(),
-        timebuf.size(),
-        timeformat.data(),
-        days.count(),
-        hours.count(),
-        minutes.count(),
-        seconds.count(),
-        milliseconds.count(),
-        microseconds.count(),
-        nanoseconds.count(),
-        thread_id.length(),
-        thread_id.c_str(),
-        levelname.length(),
-        levelname.data());
+	int length = snprintf(timebuf.data(), timebuf.size(), timeformat.data(), days.count(), hours.count(), minutes.count(), seconds.count(),
+			      milliseconds.count(), microseconds.count(), nanoseconds.count(), thread_id.length(), thread_id.c_str(), levelname.length(),
+			      levelname.data());
 #endif
 	if (length < 0)
 		return;
 
 	std::string_view time_and_level(timebuf.data(), length);
 
-	// Format incoming text	
+	// Format incoming text
 	std::vector<char> buf = nodeobs_log_formatted_message(msg, args);
-	std::string_view text = (buf.size()) ?
-		std::string_view(buf.data(), buf.size()) : std::string_view("");
+	std::string_view text = (buf.size()) ? std::string_view(buf.data(), buf.size()) : std::string_view("");
 
 	std::lock_guard<std::mutex> lock(logMutex);
 
 	outdated_driver_error::instance()->catch_error(msg);
-	NodeOBSLogParam* logParam = reinterpret_cast<NodeOBSLogParam*>(param);
+	NodeOBSLogParam *logParam = reinterpret_cast<NodeOBSLogParam *>(param);
 
 	// Split by \n (new-line)
 	size_t last_valid_idx = 0;
 	for (size_t idx = 0; idx <= text.length(); idx++) {
 		if ((idx == text.length()) || (text[idx] == '\n')) {
-			std::string_view line = (idx > last_valid_idx) ?
-				std::string_view(&text[last_valid_idx], idx - last_valid_idx) : std::string_view("");
+			std::string_view line = (idx > last_valid_idx) ? std::string_view(&text[last_valid_idx], idx - last_valid_idx) : std::string_view("");
 
 			std::string newmsg;
 			newmsg.reserve(time_and_level.size() + line.size() + 3);
@@ -594,14 +507,14 @@ static void                                    node_obs_log(int log_level, const
 			newmsg += line;
 			newmsg += '\n';
 
-			last_valid_idx     = idx + 1;
+			last_valid_idx = idx + 1;
 
 			// File Log
 			if (log_level != LOG_DEBUG || logParam->enableDebugLogs) {
 				logParam->logStream << newmsg << std::flush;
 			}
 
-            // Internal Log
+			// Internal Log
 			logReport.push(newmsg, log_level);
 
 			// Std Out / Std Err
@@ -619,7 +532,7 @@ static void                                    node_obs_log(int log_level, const
 				int wNum = MultiByteToWideChar(CP_UTF8, 0, newmsg.c_str(), -1, NULL, 0);
 				if (wNum > 1) {
 					std::wstring wide_buf;
-					std::mutex   wide_mutex;
+					std::mutex wide_mutex;
 
 					std::lock_guard<std::mutex> lock(wide_mutex);
 					wide_buf.reserve(wNum + 1);
@@ -651,8 +564,8 @@ uint32_t pid = (uint32_t)getpid();
 std::vector<char> registerProcess(void)
 {
 	std::vector<char> buffer;
-	uint8_t action     = crashHandlerCommand::REGISTER;
-	bool    isCritical = true;
+	uint8_t action = crashHandlerCommand::REGISTER;
+	bool isCritical = true;
 	buffer.resize(sizeof(action) + sizeof(isCritical) + sizeof(pid));
 
 	uint32_t offset = 0;
@@ -692,7 +605,8 @@ std::vector<char> registerMemoryDump(void)
 
 	// Buffer
 	std::vector<char> buffer;
-	buffer.resize(sizeof(action) + sizeof(pid) + sizeof(int) + eventName_Start_Size + sizeof(int) + eventName_Fail_Size + sizeof(int) + eventName_Success_Size + sizeof(int) + dumpPathSize + sizeof(int) + dumpNameSize);
+	buffer.resize(sizeof(action) + sizeof(pid) + sizeof(int) + eventName_Start_Size + sizeof(int) + eventName_Fail_Size + sizeof(int) +
+		      eventName_Success_Size + sizeof(int) + dumpPathSize + sizeof(int) + dumpNameSize);
 	uint32_t offset = 0;
 
 	//@uint32_t - pid
@@ -721,9 +635,9 @@ std::vector<char> registerMemoryDump(void)
 
 	//@str - dumpPath
 	memcpy(buffer.data() + offset, &dumpPathSize, sizeof(dumpPathSize));
-	offset+=sizeof(dumpPathSize);
+	offset += sizeof(dumpPathSize);
 	memcpy(buffer.data() + offset, &dumpPath[0], dumpPathSize);
-	offset+=dumpPathSize;
+	offset += dumpPathSize;
 
 	//@str - dumpName
 	memcpy(buffer.data() + offset, &dumpNameSize, sizeof(dumpNameSize));
@@ -760,7 +674,7 @@ std::vector<char> crashedProcess(uint32_t crash_id)
 	memcpy(buffer.data(), &action, sizeof(action));
 	offset++;
 	memcpy(buffer.data() + offset, &crash_id, sizeof(crash_id));
-	offset+=sizeof(crash_id);
+	offset += sizeof(crash_id);
 	memcpy(buffer.data() + offset, &pid, sizeof(pid));
 
 	return buffer;
@@ -776,10 +690,10 @@ void OBS_API::SetCrashHandlerPipe(const std::wstring &new_pipe)
 
 void writeCrashHandler(std::vector<char> buffer)
 {
-	HANDLE hPipe = CreateFile( crash_handler_pipe.c_str(), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+	HANDLE hPipe = CreateFile(crash_handler_pipe.c_str(), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
 
 	if (hPipe == INVALID_HANDLE_VALUE)
-		hPipe = CreateFile( TEXT("\\\\.\\pipe\\slobs-crash-handler"), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+		hPipe = CreateFile(TEXT("\\\\.\\pipe\\slobs-crash-handler"), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
 
 	if (hPipe == INVALID_HANDLE_VALUE)
 		return;
@@ -815,7 +729,7 @@ void writeCrashHandler(std::vector<char> buffer)
 }
 #endif
 
-static bool checkIfDebugLogsEnabled(const std::string& appdata)
+static bool checkIfDebugLogsEnabled(const std::string &appdata)
 {
 #if defined(_DEBUG)
 	return true;
@@ -830,7 +744,7 @@ static bool checkIfDebugLogsEnabled(const std::string& appdata)
 	// To set the environment variable globally on macOS, use the solution from the question here:
 	// https://apple.stackexchange.com/questions/289060/setting-variables-in-environment-plist
 	// Reboot is required!
-	char* envValue = getenv("SLOBS_PRODUCTION_DEBUG");
+	char *envValue = getenv("SLOBS_PRODUCTION_DEBUG");
 	if (envValue != nullptr) {
 		if (astrcmpi(envValue, "true") == 0) {
 			return true;
@@ -850,12 +764,9 @@ static bool checkIfDebugLogsEnabled(const std::string& appdata)
 void addModulePaths()
 {
 #if defined(_WIN32)
-	obs_add_module_path(
-		std::string(g_moduleDirectory + "/obs-plugins/64bit").c_str(),
-		std::string(g_moduleDirectory + "/data/obs-plugins/%module%").c_str());
-	obs_add_module_path(
-		std::string(slobs_plugin + "/obs-plugins/64bit").c_str(),
-		std::string(slobs_plugin + "/data/obs-plugins/%module%").c_str());
+	obs_add_module_path(std::string(g_moduleDirectory + "/obs-plugins/64bit").c_str(),
+			    std::string(g_moduleDirectory + "/data/obs-plugins/%module%").c_str());
+	obs_add_module_path(std::string(slobs_plugin + "/obs-plugins/64bit").c_str(), std::string(slobs_plugin + "/data/obs-plugins/%module%").c_str());
 #elif defined(__APPLE__)
 
 #else
@@ -863,11 +774,7 @@ void addModulePaths()
 #endif
 }
 
-void OBS_API::OBS_API_initAPI(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void OBS_API::OBS_API_initAPI(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
 	writeCrashHandler(registerProcess());
 
@@ -879,35 +786,36 @@ void OBS_API::OBS_API_initAPI(
 	/* FIXME These should be configurable */
 	/* FIXME g_moduleDirectory really needs to be a wstring */
 	std::string appdata = args[0].value_str;
-	std::string locale  = args[1].value_str;
-	currentVersion      = args[2].value_str;
+	std::string locale = args[1].value_str;
+	currentVersion = args[2].value_str;
 	utility::osn_current_version(currentVersion);
 
 #ifdef ENABLE_CRASHREPORT
 	util::CrashManager crashManager;
 	crashManager.SetVersionName(currentVersion);
 	crashManager.SetReportServerUrl(args[3].value_str);
-	char* path = g_moduleDirectory.data();
+	char *path = g_moduleDirectory.data();
 	if (crashManager.Initialize(path, appdata)) {
 		crashManager.Configure();
 		if (crashManager.InitializeMemoryDump()) {
 			writeCrashHandler(registerMemoryDump());
 		}
-   }
+	}
 
 #ifdef WIN32
 	// Register the pre and post server callbacks to log the data into the crashmanager
-	g_server->set_pre_callback([](std::string cname, std::string fname, const std::vector<ipc::value>& args, void* data)
-	{ 
-		util::CrashManager& crashManager = *static_cast<util::CrashManager*>(data);
-		crashManager.ProcessPreServerCall(cname, fname, args);
-
-	}, &crashManager);
-	g_server->set_post_callback([](std::string cname, std::string fname, const std::vector<ipc::value>& args, void* data)
-	{
-		util::CrashManager& crashManager = *static_cast<util::CrashManager*>(data);
-		crashManager.ProcessPostServerCall(cname, fname, args);
-	}, &crashManager);
+	g_server->set_pre_callback(
+		[](std::string cname, std::string fname, const std::vector<ipc::value> &args, void *data) {
+			util::CrashManager &crashManager = *static_cast<util::CrashManager *>(data);
+			crashManager.ProcessPreServerCall(cname, fname, args);
+		},
+		&crashManager);
+	g_server->set_post_callback(
+		[](std::string cname, std::string fname, const std::vector<ipc::value> &args, void *data) {
+			util::CrashManager &crashManager = *static_cast<util::CrashManager *>(data);
+			crashManager.ProcessPostServerCall(cname, fname, args);
+		},
+		&crashManager);
 
 #endif
 #endif
@@ -930,14 +838,14 @@ void OBS_API::OBS_API_initAPI(
 
 	std::vector<char> userData = std::vector<char>(1024);
 	os_get_config_path(userData.data(), userData.capacity() - 1, "slobs-client/plugin_config");
-    if (!obs_startup(locale.c_str(), userData.data(), NULL)) {
-            // TODO: We should return an error code if obs fails to initialize.
-            // This was added as a temporary measure to detect what could be happening in some
-            // cases (if the user data path is wrong for ex). This will be correctly adjusted
-            // when init API supports more return codes.
+	if (!obs_startup(locale.c_str(), userData.data(), NULL)) {
+		// TODO: We should return an error code if obs fails to initialize.
+		// This was added as a temporary measure to detect what could be happening in some
+		// cases (if the user data path is wrong for ex). This will be correctly adjusted
+		// when init API supports more return codes.
 #ifdef WIN32
-            std::string userDataPath = std::string(userData.begin(), userData.end());
-            util::CrashManager::AddWarning("Failed to start OBS, locale: " + locale + " user data: " + userDataPath);
+		std::string userDataPath = std::string(userData.begin(), userData.end());
+		util::CrashManager::AddWarning("Failed to start OBS, locale: " + locale + " user data: " + userDataPath);
 #endif
 	}
 
@@ -952,19 +860,18 @@ void OBS_API::OBS_API_initAPI(
 		std::cerr << "Failed to open log file" << std::endl;
 #ifdef WIN32
 		util::CrashManager::AddWarning("Error on log file, failed to create path: " + log_path);
-#endif	
+#endif
 	}
 
 	/* Delete oldest file in the folder to imitate rotating */
 	DeleteOldestFile(log_path.c_str(), 3);
 	log_path.append(filename);
 
-	auto logParam = std::make_unique<NodeOBSLogParam>();	
+	auto logParam = std::make_unique<NodeOBSLogParam>();
 	logParam->enableDebugLogs = checkIfDebugLogsEnabled(appdata);
 
 #if defined(_WIN32) && defined(UNICODE)
-	logParam->logStream =
-	    std::fstream(converter.from_bytes(log_path.c_str()).c_str(), std::ios_base::out | std::ios_base::trunc);
+	logParam->logStream = std::fstream(converter.from_bytes(log_path.c_str()).c_str(), std::ios_base::out | std::ios_base::trunc);
 #else
 	logParam->logStream = std::fstream(log_path, std::ios_base::out | std::ios_base::trunc);
 #endif
@@ -976,9 +883,7 @@ void OBS_API::OBS_API_initAPI(
 	base_set_log_handler(node_obs_log, (logParam) ? logParam.release() : nullptr);
 #ifndef _DEBUG
 	// Redirect the ipc log callbacks to our log handler
-	ipc::register_log_callback([](void* data, const char* fmt, va_list args) { 
-		blogva(LOG_ERROR, fmt, args);
-	}, nullptr);
+	ipc::register_log_callback([](void *data, const char *fmt, va_list args) { blogva(LOG_ERROR, fmt, args); }, nullptr);
 #endif
 
 #ifdef _WIN32
@@ -991,7 +896,7 @@ void OBS_API::OBS_API_initAPI(
 	ConfigManager::getInstance().setAppdataPath(appdata);
 
 	/* Set global private settings for whomever it concerns */
-	obs_data_t* private_settings = obs_data_create();
+	obs_data_t *private_settings = obs_data_create();
 	obs_data_set_bool(private_settings, "BrowserHWAccel", browserAccel);
 	obs_apply_private_data(private_settings);
 	obs_data_release(private_settings);
@@ -1040,19 +945,17 @@ void OBS_API::OBS_API_initAPI(
 	obs_hotkey_enable_callback_rerouting(true);
 
 	// Init replay buffer rendering mode
-	const char* currentOutputMode = config_get_string(ConfigManager::getInstance().getBasic(), "Output", "Mode");
-	bool        simple            = true;
+	const char *currentOutputMode = config_get_string(ConfigManager::getInstance().getBasic(), "Output", "Mode");
+	bool simple = true;
 
 	if (currentOutputMode)
 		simple = strcmp(currentOutputMode, "Simple") == 0;
 
 	enum obs_replay_buffer_rendering_mode mode = OBS_STREAMING_REPLAY_BUFFER_RENDERING;
 
-	bool useStreamOutput = config_get_bool(
-	    ConfigManager::getInstance().getBasic(), simple ? "SimpleOutput" : "AdvOut", "replayBufferUseStreamOutput");
+	bool useStreamOutput = config_get_bool(ConfigManager::getInstance().getBasic(), simple ? "SimpleOutput" : "AdvOut", "replayBufferUseStreamOutput");
 
-	obs_set_replay_buffer_rendering_mode(
-		useStreamOutput ? OBS_STREAMING_REPLAY_BUFFER_RENDERING : OBS_RECORDING_REPLAY_BUFFER_RENDERING);
+	obs_set_replay_buffer_rendering_mode(useStreamOutput ? OBS_STREAMING_REPLAY_BUFFER_RENDERING : OBS_RECORDING_REPLAY_BUFFER_RENDERING);
 
 	util::CrashManager::setAppState("idle");
 
@@ -1064,11 +967,7 @@ void OBS_API::OBS_API_initAPI(
 	AUTO_DEBUG;
 }
 
-void OBS_API::OBS_API_destroyOBS_API(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void OBS_API::OBS_API_destroyOBS_API(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
 	/* INJECT osn::Source::Manager */
 	// Alright, you're probably wondering: Why is osn code here?
@@ -1082,11 +981,7 @@ void OBS_API::OBS_API_destroyOBS_API(
 	AUTO_DEBUG;
 }
 
-void OBS_API::OBS_API_getPerformanceStatistics(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void OBS_API::OBS_API_getPerformanceStatistics(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 
@@ -1109,122 +1004,117 @@ void OBS_API::OBS_API_getPerformanceStatistics(
 	AUTO_DEBUG;
 }
 
-void OBS_API::QueryHotkeys(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void OBS_API::QueryHotkeys(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
-	struct HotkeyInfo
-	{
-		std::string                objectName;
+	struct HotkeyInfo {
+		std::string objectName;
 		obs_hotkey_registerer_type objectType;
-		std::string                hotkeyName;
-		std::string                hotkeyDesc;
-		obs_hotkey_id              hotkeyId;
+		std::string hotkeyName;
+		std::string hotkeyDesc;
+		obs_hotkey_id hotkeyId;
 	};
 
 	// For each registered hotkey
 	std::vector<HotkeyInfo> hotkeyInfos;
 	obs_enum_hotkeys(
-	    [](void* data, obs_hotkey_id id, obs_hotkey_t* key) {
-		    // Make sure every word has an initial capital letter
-		    auto ToTitle = [](std::string s) {
-			    bool last = true;
-			    for (char& c : s) {
-				    int full_c = (uint8_t)c;
-				    full_c     = last ? ::toupper(full_c) : ::tolower(full_c);
-				    last       = ::isspace(full_c);
-			    }
-			    return s;
-		    };
-		    std::vector<HotkeyInfo>& hotkeyInfos     = *static_cast<std::vector<HotkeyInfo>*>(data);
-		    auto                     registerer_type = obs_hotkey_get_registerer_type(key);
-		    void*                    registerer      = obs_hotkey_get_registerer(key);
-		    HotkeyInfo               currentHotkeyInfo;
-		    if (registerer == nullptr)
-			    return true;
+		[](void *data, obs_hotkey_id id, obs_hotkey_t *key) {
+			// Make sure every word has an initial capital letter
+			auto ToTitle = [](std::string s) {
+				bool last = true;
+				for (char &c : s) {
+					int full_c = (uint8_t)c;
+					full_c = last ? ::toupper(full_c) : ::tolower(full_c);
+					last = ::isspace(full_c);
+				}
+				return s;
+			};
+			std::vector<HotkeyInfo> &hotkeyInfos = *static_cast<std::vector<HotkeyInfo> *>(data);
+			auto registerer_type = obs_hotkey_get_registerer_type(key);
+			void *registerer = obs_hotkey_get_registerer(key);
+			HotkeyInfo currentHotkeyInfo;
+			if (registerer == nullptr)
+				return true;
 
-		    // Discover the type of object registered with this hotkey
-		    switch (registerer_type) {
-		    case OBS_HOTKEY_REGISTERER_NONE: 
-		    case OBS_HOTKEY_REGISTERER_FRONTEND: {
-			    // Ignore any frontend hotkey
-			    return true;
-			    break;
-		    }
-		    case OBS_HOTKEY_REGISTERER_SOURCE: {
-			    auto* weak_source            = static_cast<obs_weak_source_t*>(registerer);
-			    auto  key_source             = OBSGetStrongRef(weak_source);
-			    if (key_source == nullptr)
-				    return true;
-			    currentHotkeyInfo.objectName = obs_source_get_name(key_source);
-			    currentHotkeyInfo.objectType = OBS_HOTKEY_REGISTERER_SOURCE;
-			    break;
-		    }
-		    case OBS_HOTKEY_REGISTERER_OUTPUT: {
-			    auto* weak_output            = static_cast<obs_weak_output_t*>(registerer);
-			    auto  key_output             = OBSGetStrongRef(weak_output);
-			    if (key_output == nullptr)
-				    return true;
-			    currentHotkeyInfo.objectName = obs_output_get_name(key_output);
-			    currentHotkeyInfo.objectType = OBS_HOTKEY_REGISTERER_OUTPUT;
-			    break;
-		    }
-		    case OBS_HOTKEY_REGISTERER_ENCODER: {
-			    auto* weak_encoder           = static_cast<obs_weak_encoder_t*>(registerer);
-			    auto  key_encoder            = OBSGetStrongRef(weak_encoder);
-			    if (key_encoder == nullptr)
-				    return true;
-			    currentHotkeyInfo.objectName = obs_encoder_get_name(key_encoder);
-			    currentHotkeyInfo.objectType = OBS_HOTKEY_REGISTERER_ENCODER;
-			    break;
-		    }
-		    case OBS_HOTKEY_REGISTERER_SERVICE: {
-			    auto* weak_service           = static_cast<obs_weak_service_t*>(registerer);
-			    auto  key_service            = OBSGetStrongRef(weak_service);
-			    if (key_service == nullptr)
-				    return true;
-			    currentHotkeyInfo.objectName = obs_service_get_name(key_service);
-			    currentHotkeyInfo.objectType = OBS_HOTKEY_REGISTERER_SERVICE;
-			    break;
-		    }
-		    }
+			// Discover the type of object registered with this hotkey
+			switch (registerer_type) {
+			case OBS_HOTKEY_REGISTERER_NONE:
+			case OBS_HOTKEY_REGISTERER_FRONTEND: {
+				// Ignore any frontend hotkey
+				return true;
+				break;
+			}
+			case OBS_HOTKEY_REGISTERER_SOURCE: {
+				auto *weak_source = static_cast<obs_weak_source_t *>(registerer);
+				auto key_source = OBSGetStrongRef(weak_source);
+				if (key_source == nullptr)
+					return true;
+				currentHotkeyInfo.objectName = obs_source_get_name(key_source);
+				currentHotkeyInfo.objectType = OBS_HOTKEY_REGISTERER_SOURCE;
+				break;
+			}
+			case OBS_HOTKEY_REGISTERER_OUTPUT: {
+				auto *weak_output = static_cast<obs_weak_output_t *>(registerer);
+				auto key_output = OBSGetStrongRef(weak_output);
+				if (key_output == nullptr)
+					return true;
+				currentHotkeyInfo.objectName = obs_output_get_name(key_output);
+				currentHotkeyInfo.objectType = OBS_HOTKEY_REGISTERER_OUTPUT;
+				break;
+			}
+			case OBS_HOTKEY_REGISTERER_ENCODER: {
+				auto *weak_encoder = static_cast<obs_weak_encoder_t *>(registerer);
+				auto key_encoder = OBSGetStrongRef(weak_encoder);
+				if (key_encoder == nullptr)
+					return true;
+				currentHotkeyInfo.objectName = obs_encoder_get_name(key_encoder);
+				currentHotkeyInfo.objectType = OBS_HOTKEY_REGISTERER_ENCODER;
+				break;
+			}
+			case OBS_HOTKEY_REGISTERER_SERVICE: {
+				auto *weak_service = static_cast<obs_weak_service_t *>(registerer);
+				auto key_service = OBSGetStrongRef(weak_service);
+				if (key_service == nullptr)
+					return true;
+				currentHotkeyInfo.objectName = obs_service_get_name(key_service);
+				currentHotkeyInfo.objectType = OBS_HOTKEY_REGISTERER_SERVICE;
+				break;
+			}
+			}
 
-		    // Key defs
-		    const char* _key_name = obs_hotkey_get_name(key);
-		    const char* _desc     = obs_hotkey_get_description(key);
+			// Key defs
+			const char *_key_name = obs_hotkey_get_name(key);
+			const char *_desc = obs_hotkey_get_description(key);
 
-		    if (!_key_name)
-			    return true;
+			if (!_key_name)
+				return true;
 
-		    if (!_desc)
-			    _desc = "";
+			if (!_desc)
+				_desc = "";
 
-		    auto       key_name = std::string(_key_name);
-		    auto       desc     = std::string(_desc);
-		    const auto hotkeyId = obs_hotkey_get_id(key);
+			auto key_name = std::string(_key_name);
+			auto desc = std::string(_desc);
+			const auto hotkeyId = obs_hotkey_get_id(key);
 
-		    // Parse the key name and the description
-		    key_name = key_name.substr(key_name.find_first_of(".") + 1);
-		    std::replace(key_name.begin(), key_name.end(), '-', '_');
-		    std::transform(key_name.begin(), key_name.end(), key_name.begin(), ::toupper);
-		    std::replace(desc.begin(), desc.end(), '-', ' ');
-		    desc = ToTitle(desc);
+			// Parse the key name and the description
+			key_name = key_name.substr(key_name.find_first_of(".") + 1);
+			std::replace(key_name.begin(), key_name.end(), '-', '_');
+			std::transform(key_name.begin(), key_name.end(), key_name.begin(), ::toupper);
+			std::replace(desc.begin(), desc.end(), '-', ' ');
+			desc = ToTitle(desc);
 
-		    currentHotkeyInfo.hotkeyName = key_name;
-		    currentHotkeyInfo.hotkeyDesc = desc;
-		    currentHotkeyInfo.hotkeyId   = hotkeyId;
-		    hotkeyInfos.push_back(currentHotkeyInfo);
+			currentHotkeyInfo.hotkeyName = key_name;
+			currentHotkeyInfo.hotkeyDesc = desc;
+			currentHotkeyInfo.hotkeyId = hotkeyId;
+			hotkeyInfos.push_back(currentHotkeyInfo);
 
-		    return true;
-	    },
-	    &hotkeyInfos);
+			return true;
+		},
+		&hotkeyInfos);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 
 	// For each hotkey that we've found
-	for (auto& hotkeyInfo : hotkeyInfos) {
+	for (auto &hotkeyInfo : hotkeyInfos) {
 		rval.push_back(ipc::value(hotkeyInfo.objectName));
 		rval.push_back(ipc::value(uint32_t(hotkeyInfo.objectType)));
 		rval.push_back(ipc::value(hotkeyInfo.hotkeyName));
@@ -1235,14 +1125,10 @@ void OBS_API::QueryHotkeys(
 	AUTO_DEBUG;
 }
 
-void OBS_API::ProcessHotkeyStatus(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void OBS_API::ProcessHotkeyStatus(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
 	obs_hotkey_id hotkeyId = args[0].value_union.ui64;
-	uint64_t      press    = args[1].value_union.i32;
+	uint64_t press = args[1].value_union.i32;
 
 	// TODO: Check if the hotkey ID is valid
 	obs_hotkey_trigger_routed_callback(hotkeyId, (bool)press);
@@ -1252,11 +1138,7 @@ void OBS_API::ProcessHotkeyStatus(
 	AUTO_DEBUG;
 }
 
-void OBS_API::SetUsername(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void OBS_API::SetUsername(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
 	username = args[0].value_str;
 	util::CrashManager::SetUsername(username);
@@ -1266,7 +1148,7 @@ void OBS_API::SetUsername(
 	AUTO_DEBUG;
 }
 
-void OBS_API::SetProcessPriorityOld(const char* priority)
+void OBS_API::SetProcessPriorityOld(const char *priority)
 {
 	if (!priority)
 		return;
@@ -1284,11 +1166,7 @@ void OBS_API::SetProcessPriorityOld(const char* priority)
 #endif
 }
 
-void OBS_API::OBS_API_forceCrash(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void OBS_API::OBS_API_forceCrash(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
 	throw std::runtime_error("Simulated crash to test crash handling functionality");
 
@@ -1300,14 +1178,13 @@ void OBS_API::OBS_API_forceCrash(
 bool DisableAudioDucking(bool disable)
 {
 #ifdef WIN32
-	ComPtr<IMMDeviceEnumerator>   devEmum;
-	ComPtr<IMMDevice>             device;
+	ComPtr<IMMDeviceEnumerator> devEmum;
+	ComPtr<IMMDevice> device;
 	ComPtr<IAudioSessionManager2> sessionManager2;
-	ComPtr<IAudioSessionControl>  sessionControl;
+	ComPtr<IAudioSessionControl> sessionControl;
 	ComPtr<IAudioSessionControl2> sessionControl2;
 
-	HRESULT result = CoCreateInstance(
-	    __uuidof(MMDeviceEnumerator), nullptr, CLSCTX_INPROC_SERVER, __uuidof(IMMDeviceEnumerator), (void**)&devEmum);
+	HRESULT result = CoCreateInstance(__uuidof(MMDeviceEnumerator), nullptr, CLSCTX_INPROC_SERVER, __uuidof(IMMDeviceEnumerator), (void **)&devEmum);
 	if (FAILED(result))
 		return false;
 
@@ -1315,7 +1192,7 @@ bool DisableAudioDucking(bool disable)
 	if (FAILED(result))
 		return false;
 
-	result = device->Activate(__uuidof(IAudioSessionManager2), CLSCTX_INPROC_SERVER, nullptr, (void**)&sessionManager2);
+	result = device->Activate(__uuidof(IAudioSessionManager2), CLSCTX_INPROC_SERVER, nullptr, (void **)&sessionManager2);
 	if (FAILED(result))
 		return false;
 
@@ -1330,7 +1207,7 @@ bool DisableAudioDucking(bool disable)
 	result = sessionControl2->SetDuckingPreference(disable);
 	return SUCCEEDED(result);
 #else
-    return false;
+	return false;
 #endif
 }
 
@@ -1338,9 +1215,8 @@ void OBS_API::setAudioDeviceMonitoring(void)
 {
 /* load audio monitoring */
 #if defined(_WIN32) || defined(__APPLE__)
-	const char* device_name =
-	    config_get_string(ConfigManager::getInstance().getBasic(), "Audio", "MonitoringDeviceName");
-	const char* device_id = config_get_string(ConfigManager::getInstance().getBasic(), "Audio", "MonitoringDeviceId");
+	const char *device_name = config_get_string(ConfigManager::getInstance().getBasic(), "Audio", "MonitoringDeviceName");
+	const char *device_id = config_get_string(ConfigManager::getInstance().getBasic(), "Audio", "MonitoringDeviceId");
 
 	obs_set_audio_monitoring_device(device_name, device_id);
 
@@ -1357,20 +1233,19 @@ bool crash_handler_timeout_activated = false;
 bool crash_handler_exit = false;
 
 #ifdef WIN32
-typedef struct
-{
-	OVERLAPPED        oOverlap;
-	HANDLE            hPipeInst;
+typedef struct {
+	OVERLAPPED oOverlap;
+	HANDLE hPipeInst;
 	std::vector<char> chRequest;
-	DWORD             cbRead;
-	TCHAR             chReply[BUFFSIZE];
-	DWORD             cbToWrite;
-	DWORD             dwState;
-	BOOL              fPendingIO;
+	DWORD cbRead;
+	TCHAR chReply[BUFFSIZE];
+	DWORD cbToWrite;
+	DWORD dwState;
+	BOOL fPendingIO;
 } PIPEINST, *LPPIPEINST;
 
 PIPEINST Pipe = {0};
-HANDLE   hEvents = {0};
+HANDLE hEvents = {0};
 
 BOOL ConnectToNewClient(HANDLE hPipe, LPOVERLAPPED lpo)
 {
@@ -1419,15 +1294,8 @@ bool prepareTerminationPipe()
 
 	Pipe.oOverlap.hEvent = hEvents;
 
-	Pipe.hPipeInst = CreateNamedPipe(
-	    lpszPipename,
-	    PIPE_ACCESS_DUPLEX | FILE_FLAG_OVERLAPPED,
-	    PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT,
-	    1,
-	    BUFFSIZE * sizeof(TCHAR),
-	    BUFFSIZE * sizeof(TCHAR),
-	    5000,
-	    NULL);
+	Pipe.hPipeInst = CreateNamedPipe(lpszPipename, PIPE_ACCESS_DUPLEX | FILE_FLAG_OVERLAPPED, PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT, 1,
+					 BUFFSIZE * sizeof(TCHAR), BUFFSIZE * sizeof(TCHAR), 5000, NULL);
 
 	if (Pipe.hPipeInst == INVALID_HANDLE_VALUE) {
 		CloseHandle(hEvents);
@@ -1439,18 +1307,18 @@ bool prepareTerminationPipe()
 	Pipe.fPendingIO = ConnectToNewClient(Pipe.hPipeInst, &(Pipe.oOverlap));
 
 	Pipe.dwState = Pipe.fPendingIO ? CONNECTING_STATE : READING_STATE;
-	
+
 	return true;
 }
 
 void acknowledgeTerminate()
 {
-	BOOL   fSuccess;
+	BOOL fSuccess;
 	DWORD i, dwWait, cbRet, dwErr;
 
 	while (!crash_handler_exit) {
 		if (crash_handler_timeout_activated) {
-			auto tp    = std::chrono::high_resolution_clock::now();
+			auto tp = std::chrono::high_resolution_clock::now();
 			auto delta = tp - start_wait_acknowledge;
 
 			if (std::chrono::duration_cast<std::chrono::milliseconds>(delta).count() > 5000) {
@@ -1481,7 +1349,7 @@ void acknowledgeTerminate()
 						DisconnectAndReconnect();
 						break;
 					}
-					Pipe.cbRead  = cbRet;
+					Pipe.cbRead = cbRet;
 					Pipe.dwState = READING_STATE;
 					break;
 				}
@@ -1494,12 +1362,7 @@ void acknowledgeTerminate()
 			switch (Pipe.dwState) {
 			case READING_STATE: {
 				Pipe.chRequest.resize(BUFFSIZE);
-				fSuccess = ReadFile(
-				    Pipe.hPipeInst,
-				    Pipe.chRequest.data(),
-				    BUFFSIZE * sizeof(TCHAR),
-				    &Pipe.cbRead,
-				    &Pipe.oOverlap);
+				fSuccess = ReadFile(Pipe.hPipeInst, Pipe.chRequest.data(), BUFFSIZE * sizeof(TCHAR), &Pipe.cbRead, &Pipe.oOverlap);
 
 				GetOverlappedResult(Pipe.hPipeInst, &Pipe.oOverlap, &Pipe.cbRead, false);
 
@@ -1521,29 +1384,31 @@ void acknowledgeTerminate()
 	}
 }
 #else __APPLE__
-void acknowledgeTerminate (void) {
+void acknowledgeTerminate(void)
+{
 	std::vector<char> buffer;
 	buffer.resize(64);
 	int file_descriptor = open("exit-slobs-crash-handler", O_RDONLY);
 	if (file_descriptor < 0) {
 		blog(LOG_ERROR, "Could not open crash-handler exit fifo");
-        return;
-    }
+		return;
+	}
 
 	if (::read(file_descriptor, buffer.data(), buffer.size()) <= 0)
 		blog(LOG_ERROR, "Error while reading crash-handler exit message");
 }
 
-bool prepareTerminationPipe() {
+bool prepareTerminationPipe()
+{
 	// TODO
 	return false;
 }
 #endif
 
-void OBS_API::CreateCrashHandlerExitPipe() 
+void OBS_API::CreateCrashHandlerExitPipe()
 {
 	if (prepareTerminationPipe()) {
-		crash_handler_responce_thread = std::make_shared<std::thread>( acknowledgeTerminate );
+		crash_handler_responce_thread = std::make_shared<std::thread>(acknowledgeTerminate);
 	} else {
 #ifdef WIN32
 		blog(LOG_ERROR, "Failed to create pipe for crash-handler exit message");
@@ -1556,17 +1421,13 @@ void OBS_API::WaitCrashHandlerClose(bool waitBeforeClosing)
 	if (crash_handler_responce_thread) {
 		if (!waitBeforeClosing)
 			crash_handler_exit = true;
-			
+
 		if (crash_handler_responce_thread->joinable())
 			crash_handler_responce_thread->join();
 	}
 }
 
-void OBS_API::StopCrashHandler(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void OBS_API::StopCrashHandler(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
 	util::CrashManager::setAppState("shutdown");
 
@@ -1583,9 +1444,9 @@ void OBS_API::StopCrashHandler(
 	} else {
 		writeCrashHandler(unregisterProcess());
 
-		// Waiting 1 sec to let crash handler process unregister command before continuing 
-		// with shutdown sequence. 
-		// Only for a case when it failed to create a pipe to recieve confirmation from crash handler.  
+		// Waiting 1 sec to let crash handler process unregister command before continuing
+		// with shutdown sequence.
+		// Only for a case when it failed to create a pipe to recieve confirmation from crash handler.
 		std::this_thread::sleep_for(std::chrono::seconds(1));
 	}
 
@@ -1605,7 +1466,7 @@ void OBS_API::destroyOBS_API(void)
 	os_cpu_usage_info_destroy(cpuUsageInfo);
 
 #ifdef _WIN32
-	config_t* basicConfig         = ConfigManager::getInstance().getBasic();
+	config_t *basicConfig = ConfigManager::getInstance().getBasic();
 	if (basicConfig) {
 		bool disableAudioDucking = config_get_bool(basicConfig, "Audio", "DisableAudioDucking");
 		if (disableAudioDucking)
@@ -1619,55 +1480,55 @@ void OBS_API::destroyOBS_API(void)
 	OBS_service::stopAllOutputs();
 	OBS_service::waitReleaseWorker();
 
-	obs_encoder_t* streamingEncoder = OBS_service::getStreamingEncoder();
+	obs_encoder_t *streamingEncoder = OBS_service::getStreamingEncoder();
 	if (streamingEncoder != NULL) {
 		obs_encoder_release(streamingEncoder);
 		streamingEncoder = nullptr;
-    }
- 
-	obs_encoder_t* recordingEncoder = OBS_service::getRecordingEncoder();
+	}
+
+	obs_encoder_t *recordingEncoder = OBS_service::getRecordingEncoder();
 	if (recordingEncoder != NULL && (OBS_service::useRecordingPreset() || obs_get_multiple_rendering())) {
 		obs_encoder_release(recordingEncoder);
 		recordingEncoder = nullptr;
-    }
+	}
 
-	obs_encoder_t* audioStreamingEncoder = OBS_service::getAudioSimpleStreamingEncoder();
+	obs_encoder_t *audioStreamingEncoder = OBS_service::getAudioSimpleStreamingEncoder();
 	if (audioStreamingEncoder != NULL) {
 		obs_encoder_release(audioStreamingEncoder);
 		audioStreamingEncoder = nullptr;
-    }
+	}
 
-	obs_encoder_t* audioRecordingEncoder = OBS_service::getAudioSimpleRecordingEncoder();
+	obs_encoder_t *audioRecordingEncoder = OBS_service::getAudioSimpleRecordingEncoder();
 	if (audioRecordingEncoder != NULL && (OBS_service::useRecordingPreset() || obs_get_multiple_rendering())) {
 		obs_encoder_release(audioRecordingEncoder);
 		audioRecordingEncoder = nullptr;
-    }
+	}
 
-	obs_encoder_t* archiveEncoder = OBS_service::getArchiveEncoder();
+	obs_encoder_t *archiveEncoder = OBS_service::getArchiveEncoder();
 	if (archiveEncoder != NULL) {
 		obs_encoder_release(archiveEncoder);
 		archiveEncoder = nullptr;
-    }
+	}
 
-	obs_output_t* streamingOutput = OBS_service::getStreamingOutput();
+	obs_output_t *streamingOutput = OBS_service::getStreamingOutput();
 	if (streamingOutput != NULL) {
 		obs_output_release(streamingOutput);
 		streamingEncoder = nullptr;
-    }
+	}
 
-	obs_output_t* recordingOutput = OBS_service::getRecordingOutput();
+	obs_output_t *recordingOutput = OBS_service::getRecordingOutput();
 	if (recordingOutput != NULL) {
 		obs_output_release(recordingOutput);
 		recordingOutput = nullptr;
-    }
+	}
 
-	obs_output_t* replayBufferOutput = OBS_service::getReplayBufferOutput();
+	obs_output_t *replayBufferOutput = OBS_service::getReplayBufferOutput();
 	if (replayBufferOutput != NULL) {
 		obs_output_release(replayBufferOutput);
 		replayBufferOutput = nullptr;
-    }
+	}
 
-	obs_output* virtualWebcamOutput = OBS_service::getVirtualWebcamOutput();
+	obs_output *virtualWebcamOutput = OBS_service::getVirtualWebcamOutput();
 	if (virtualWebcamOutput != NULL) {
 		if (obs_output_active(virtualWebcamOutput))
 			obs_output_stop(virtualWebcamOutput);
@@ -1676,23 +1537,21 @@ void OBS_API::destroyOBS_API(void)
 		virtualWebcamOutput = nullptr;
 	}
 
-	obs_service_t* service = OBS_service::getService();
+	obs_service_t *service = OBS_service::getService();
 	if (service != NULL) {
 		obs_service_release(service);
 		service = nullptr;
-    }
+	}
 
-    OBS_service::clearAudioEncoder();
-    osn::Volmeter::ClearVolmeters();
-    osn::Fader::ClearFaders();
+	OBS_service::clearAudioEncoder();
+	osn::Volmeter::ClearVolmeters();
+	osn::Fader::ClearFaders();
 
 	obs_wait_for_destroy_queue();
 
 	// Release all video encoders
-	std::vector<obs_encoder_t*> videoEncoders;
-	osn::VideoEncoder::Manager::GetInstance().
-		for_each([&videoEncoders](obs_encoder_t* videoEncoder)
-	{
+	std::vector<obs_encoder_t *> videoEncoders;
+	osn::VideoEncoder::Manager::GetInstance().for_each([&videoEncoders](obs_encoder_t *videoEncoder) {
 		if (videoEncoder) {
 			obs_encoder_release(videoEncoder);
 			videoEncoder = nullptr;
@@ -1700,10 +1559,8 @@ void OBS_API::destroyOBS_API(void)
 	});
 
 	// Release all audio encoders
-	std::vector<obs_encoder_t*> audioEncoders;
-	osn::AudioEncoder::Manager::GetInstance().
-		for_each([&audioEncoders](obs_encoder_t* audioEncoder)
-	{
+	std::vector<obs_encoder_t *> audioEncoders;
+	osn::AudioEncoder::Manager::GetInstance().for_each([&audioEncoders](obs_encoder_t *audioEncoder) {
 		if (audioEncoder) {
 			obs_encoder_release(audioEncoder);
 			audioEncoder = nullptr;
@@ -1711,21 +1568,19 @@ void OBS_API::destroyOBS_API(void)
 	});
 
 	// Release all audio track encoders
-	std::vector<osn::AudioTrack*> audioTrackEncoders;
+	std::vector<osn::AudioTrack *> audioTrackEncoders;
 	// osn::IAudioTrack::Manager::GetInstance().
 	// 	for_each([&audioTrackEncoders](osn::AudioTrack* audioTrackEncoder)
-	for (auto const& audioTrack: osn::IAudioTrack::audioTracks)	{
-		if(audioTrack && audioTrack->audioEnc) {
+	for (auto const &audioTrack : osn::IAudioTrack::audioTracks) {
+		if (audioTrack && audioTrack->audioEnc) {
 			obs_encoder_release(audioTrack->audioEnc);
 			audioTrack->audioEnc = nullptr;
 		}
 	};
 
 	// Release all services
-	std::vector<obs_encoder_t*> services;
-	osn::Service::Manager::GetInstance().
-		for_each([&services](obs_service_t* service)
-	{
+	std::vector<obs_encoder_t *> services;
+	osn::Service::Manager::GetInstance().for_each([&services](obs_service_t *service) {
 		if (service) {
 			obs_service_release(service);
 			service = nullptr;
@@ -1733,94 +1588,80 @@ void OBS_API::destroyOBS_API(void)
 	});
 
 	// Release all delays
-	std::vector<osn::Delay*> delays;
-	osn::IDelay::Manager::GetInstance().
-		for_each([&delays](osn::Delay* delay)
-	{
+	std::vector<osn::Delay *> delays;
+	osn::IDelay::Manager::GetInstance().for_each([&delays](osn::Delay *delay) {
 		if (delay)
 			delete delay;
 	});
 
 	// Release all reconnects
-	std::vector<osn::Reconnect*> reconnects;
-	osn::IReconnect::Manager::GetInstance().
-		for_each([&reconnects](osn::Reconnect* reconnect)
-	{
+	std::vector<osn::Reconnect *> reconnects;
+	osn::IReconnect::Manager::GetInstance().for_each([&reconnects](osn::Reconnect *reconnect) {
 		if (reconnect)
 			delete reconnect;
 	});
 
 	// Release all networks
-	std::vector<osn::Network*> networks;
-	osn::INetwork::Manager::GetInstance().
-		for_each([&networks](osn::Network* network)
-	{
+	std::vector<osn::Network *> networks;
+	osn::INetwork::Manager::GetInstance().for_each([&networks](osn::Network *network) {
 		if (network)
 			delete network;
 	});
 
 	// Release all streaming ouputs
-	std::vector<osn::Streaming*> streamingOutputs;
-	osn::IStreaming::Manager::GetInstance().
-		for_each([&streamingOutputs](osn::Streaming* streamingOutput)
-	{
+	std::vector<osn::Streaming *> streamingOutputs;
+	osn::IStreaming::Manager::GetInstance().for_each([&streamingOutputs](osn::Streaming *streamingOutput) {
 		if (streamingOutput)
 			delete streamingOutput;
 	});
 
 	// Release all recording ouputs
-	std::vector<osn::FileOutput*> fileOutputs;
-	osn::IFileOutput::Manager::GetInstance().
-		for_each([&fileOutputs](osn::FileOutput* fileOutput)
-	{
+	std::vector<osn::FileOutput *> fileOutputs;
+	osn::IFileOutput::Manager::GetInstance().for_each([&fileOutputs](osn::FileOutput *fileOutput) {
 		if (fileOutput)
 			delete fileOutput;
 	});
 
 	// Check if the frontend was able to shutdown correctly:
-	// If there are some sources here it's because it ended unexpectedly, this represents a 
+	// If there are some sources here it's because it ended unexpectedly, this represents a
 	// problem since obs doesn't handle releasing leaked sources very well. The best we can
 	// do is to insert a try-catch block and disable the crash handler to avoid false positives
-	if (osn::Source::Manager::GetInstance().size() > 0		||
-		osn::Scene::Manager::GetInstance().size() > 0		||
-		osn::SceneItem::Manager::GetInstance().size() > 0	||
-		osn::Transition::Manager::GetInstance().size() > 0	||
-		osn::Filter::Manager::GetInstance().size() > 0		||
-		osn::Input::Manager::GetInstance().size() > 0) {
+	if (osn::Source::Manager::GetInstance().size() > 0 || osn::Scene::Manager::GetInstance().size() > 0 ||
+	    osn::SceneItem::Manager::GetInstance().size() > 0 || osn::Transition::Manager::GetInstance().size() > 0 ||
+	    osn::Filter::Manager::GetInstance().size() > 0 || osn::Input::Manager::GetInstance().size() > 0) {
 
 		for (int i = 0; i < MAX_CHANNELS; i++)
 			obs_set_output_source(i, nullptr);
 
 		// obs_set_output_source might cause destruction of some sources.
-		// Wait for the destruction thread to destroy the sources to be sure 
+		// Wait for the destruction thread to destroy the sources to be sure
 		// |for_each| below will only return actual remaining sources.
 		obs_wait_for_destroy_queue();
 
-		std::vector<obs_source_t*> sources;
-		osn::Source::Manager::GetInstance().for_each([&sources](obs_source_t* source)
-		{
+		std::vector<obs_source_t *> sources;
+		osn::Source::Manager::GetInstance().for_each([&sources](obs_source_t *source) {
 			if (source)
 				sources.push_back(source);
 		});
 
-		for (const auto &source: sources) {
+		for (const auto &source : sources) {
 			if (!source)
 				continue;
 
-			const char* source_id = obs_source_get_id(source);
+			const char *source_id = obs_source_get_id(source);
 			if (!source_id)
 				continue;
 
 			if (!strcmp(source_id, "scene")) {
-				std::list<obs_sceneitem_t*> items;
-				auto cb = [](obs_scene_t* scene, obs_sceneitem_t* item, void* data) {
+				std::list<obs_sceneitem_t *> items;
+				auto cb = [](obs_scene_t *scene, obs_sceneitem_t *item, void *data) {
 					if (item) {
 						obs_sceneitem_release(item);
 						obs_sceneitem_remove(item);
 					}
 					return true;
 				};
-				obs_scene_t* scene = obs_scene_from_source(source);
+				obs_scene_t *scene = obs_scene_from_source(source);
 				if (scene)
 					obs_scene_enum_items(scene, cb, nullptr);
 			}
@@ -1843,7 +1684,7 @@ void OBS_API::destroyOBS_API(void)
 		}
 
 		// Release all remaning transitions
-		for (auto source: sources) {
+		for (auto source : sources) {
 			if (source)
 				obs_source_release(source);
 		}
@@ -1852,13 +1693,10 @@ void OBS_API::destroyOBS_API(void)
 		// Remove the 'destruction' callback. Otherwise, it will try to
 		// access data released by |obs_shutdown| which leads to crashes.
 		obs_wait_for_destroy_queue();
-		osn::Source::Manager::GetInstance().for_each([&sources](obs_source_t* source)
-		{
-			osn::Source::detach_source_signals(source);
-		});
+		osn::Source::Manager::GetInstance().for_each([&sources](obs_source_t *source) { osn::Source::detach_source_signals(source); });
 
 #ifdef WIN32
-		// Directly blame the frontend since it didn't release all objects and that could cause 
+		// Directly blame the frontend since it didn't release all objects and that could cause
 		// a crash on the backend
 		// This is necessary since the frontend could still finish after the backend, causing the
 		// crash manager to think the backend crashed first while the real culprit is the frontend
@@ -1870,7 +1708,8 @@ void OBS_API::destroyOBS_API(void)
 		// Try-catch should suppress any error message that could be thrown to the user
 		try {
 			obs_shutdown();
-		} catch (...) {}
+		} catch (...) {
+		}
 
 	} else {
 		blog(LOG_DEBUG, "OBS_API::destroyOBS_API calling obs_shutdown, objects allocated %d", bnum_allocs());
@@ -1880,14 +1719,13 @@ void OBS_API::destroyOBS_API(void)
 	// Release each obs module (dlls for windows)
 	// TODO: We should release these modules (dlls) manually and not let the garbage
 	// collector do this for us on shutdown
-	for (auto& moduleInfo : obsModules) {
+	for (auto &moduleInfo : obsModules) {
 	}
 
 #ifdef _WIN32
 	if (hRtwq) {
 		typedef HRESULT(STDAPICALLTYPE * PFN_RtwqShutdown)();
-		PFN_RtwqShutdown func =
-			(PFN_RtwqShutdown)GetProcAddress(hRtwq, "RtwqShutdown");
+		PFN_RtwqShutdown func = (PFN_RtwqShutdown)GetProcAddress(hRtwq, "RtwqShutdown");
 		func();
 		FreeLibrary(hRtwq);
 	}
@@ -1903,21 +1741,11 @@ void OBS_API::destroyOBS_API(void)
 	blog(LOG_DEBUG, "OBS_API::destroyOBS_API after obs_shutdown, objects allocated %d", bnum_allocs());
 }
 
-struct ci_char_traits : public std::char_traits<char>
-{
-	static bool eq(char c1, char c2)
-	{
-		return toupper(c1) == toupper(c2);
-	}
-	static bool ne(char c1, char c2)
-	{
-		return toupper(c1) != toupper(c2);
-	}
-	static bool lt(char c1, char c2)
-	{
-		return toupper(c1) < toupper(c2);
-	}
-	static int compare(const char* s1, const char* s2, size_t n)
+struct ci_char_traits : public std::char_traits<char> {
+	static bool eq(char c1, char c2) { return toupper(c1) == toupper(c2); }
+	static bool ne(char c1, char c2) { return toupper(c1) != toupper(c2); }
+	static bool lt(char c1, char c2) { return toupper(c1) < toupper(c2); }
+	static int compare(const char *s1, const char *s2, size_t n)
 	{
 		while (n-- != 0) {
 			if (toupper(*s1) < toupper(*s2))
@@ -1929,7 +1757,7 @@ struct ci_char_traits : public std::char_traits<char>
 		}
 		return 0;
 	}
-	static const char* find(const char* s, int n, char a)
+	static const char *find(const char *s, int n, char a)
 	{
 		while (n-- > 0 && toupper(*s) != toupper(a)) {
 			++s;
@@ -1951,7 +1779,7 @@ double OBS_API::getCPU_Percentage(void)
 
 int OBS_API::getNumberOfDroppedFrames(void)
 {
-	obs_output_t* streamOutput = OBS_service::getStreamingOutput();
+	obs_output_t *streamOutput = OBS_service::getStreamingOutput();
 
 	int totalDropped = 0;
 
@@ -1964,13 +1792,13 @@ int OBS_API::getNumberOfDroppedFrames(void)
 
 double OBS_API::getDroppedFramesPercentage(void)
 {
-	obs_output_t* streamOutput = OBS_service::getStreamingOutput();
+	obs_output_t *streamOutput = OBS_service::getStreamingOutput();
 
 	double percent = 0;
 
 	if (streamOutput && obs_output_active(streamOutput)) {
 		int totalDropped = obs_output_get_frames_dropped(streamOutput);
-		int totalFrames  = obs_output_get_total_frames(streamOutput);
+		int totalFrames = obs_output_get_total_frames(streamOutput);
 		if (totalFrames == 0) {
 			percent = 0.0;
 		} else {
@@ -1981,10 +1809,10 @@ double OBS_API::getDroppedFramesPercentage(void)
 	return percent;
 }
 
-void OBS_API::getCurrentOutputStats(obs_output_t* output, OBS_API::OutputStats &outputStats)
+void OBS_API::getCurrentOutputStats(obs_output_t *output, OBS_API::OutputStats &outputStats)
 {
 	outputStats.kbitsPerSec = 0.0;
-	outputStats.dataOutput  = 0.0;
+	outputStats.dataOutput = 0.0;
 
 	if (!output) {
 		return;
@@ -2002,8 +1830,7 @@ void OBS_API::getCurrentOutputStats(obs_output_t* output, OBS_API::OutputStats &
 		uint64_t bitsBetween = (bytesSent - outputStats.lastBytesSent) * 8;
 
 		double timePassed = double(bytesSentTime - outputStats.lastBytesSentTime) / 1000000000.0;
-		if (timePassed < std::numeric_limits<double>::epsilon()
-		    && timePassed > -std::numeric_limits<double>::epsilon()) {
+		if (timePassed < std::numeric_limits<double>::epsilon() && timePassed > -std::numeric_limits<double>::epsilon()) {
 			outputStats.kbitsPerSec = 0.0;
 		} else {
 			outputStats.kbitsPerSec = double(bitsBetween) / timePassed / 1000.0;
@@ -2027,11 +1854,11 @@ double OBS_API::getAverageTimeToRenderFrame()
 
 std::string OBS_API::getDiskSpaceAvailable()
 {
-	const char* path = nullptr;
-	const char* mode = config_get_string(ConfigManager::getInstance().getBasic(), "Output", "Mode");
+	const char *path = nullptr;
+	const char *mode = config_get_string(ConfigManager::getInstance().getBasic(), "Output", "Mode");
 
 	if (strcmp(mode, "Advanced") == 0) {
-		const char* advanced_mode = config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "RecType");
+		const char *advanced_mode = config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "RecType");
 
 		if (strcmp(advanced_mode, "FFmpeg") == 0) {
 			path = config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "FFFilePath");
@@ -2068,17 +1895,17 @@ double OBS_API::getMemoryUsage()
 	return (double)os_get_proc_resident_size() / (1024.0 * 1024.0);
 }
 
-const std::vector<std::string>& OBS_API::getOBSLogErrors()
+const std::vector<std::string> &OBS_API::getOBSLogErrors()
 {
 	return logReport.errors;
 }
 
-const std::vector<std::string>& OBS_API::getOBSLogWarnings()
+const std::vector<std::string> &OBS_API::getOBSLogWarnings()
 {
 	return logReport.warnings;
 }
 
-std::queue<std::string>& OBS_API::getOBSLogGeneral()
+std::queue<std::string> &OBS_API::getOBSLogGeneral()
 {
 	return logReport.general;
 }
@@ -2098,13 +1925,10 @@ static BOOL CALLBACK MonitorEnumProc(HMONITOR hMonitor, HDC hdcMonitor, LPRECT l
 	MONITORINFO info;
 	info.cbSize = sizeof(info);
 	if (GetMonitorInfo(hMonitor, &info)) {
-		std::vector<std::pair<uint32_t, uint32_t>>* resolutions =
-			reinterpret_cast<std::vector<std::pair<uint32_t, uint32_t>>*>(dwData);
+		std::vector<std::pair<uint32_t, uint32_t>> *resolutions = reinterpret_cast<std::vector<std::pair<uint32_t, uint32_t>> *>(dwData);
 
-		resolutions->push_back(std::make_pair(
-			std::abs(info.rcMonitor.left - info.rcMonitor.right),
-			std::abs(info.rcMonitor.top - info.rcMonitor.bottom)
-		));
+		resolutions->push_back(
+			std::make_pair(std::abs(info.rcMonitor.left - info.rcMonitor.right), std::abs(info.rcMonitor.top - info.rcMonitor.bottom)));
 	}
 	return true;
 }
@@ -2120,48 +1944,30 @@ std::vector<std::pair<uint32_t, uint32_t>> OBS_API::availableResolutions(void)
 	return resolutions;
 }
 
-void OBS_API::SetBrowserAcceleration(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void OBS_API::SetBrowserAcceleration(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
 	browserAccel = args[0].value_union.ui32;
-    config_set_bool(
-        ConfigManager::getInstance().getGlobal(),
-        "General", "BrowserHWAccel", browserAccel);
-    config_save_safe(ConfigManager::getInstance().getGlobal(), "tmp", nullptr);
+	config_set_bool(ConfigManager::getInstance().getGlobal(), "General", "BrowserHWAccel", browserAccel);
+	config_save_safe(ConfigManager::getInstance().getGlobal(), "tmp", nullptr);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }
 
-void OBS_API::SetMediaFileCaching(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void OBS_API::SetMediaFileCaching(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
 	mediaFileCaching = args[0].value_union.ui32;
-    config_set_bool(
-        ConfigManager::getInstance().getGlobal(),
-        "General", "fileCaching", mediaFileCaching);
-    config_save_safe(ConfigManager::getInstance().getGlobal(), "tmp", nullptr);
+	config_set_bool(ConfigManager::getInstance().getGlobal(), "General", "fileCaching", mediaFileCaching);
+	config_save_safe(ConfigManager::getInstance().getGlobal(), "tmp", nullptr);
 	MemoryManager::GetInstance().updateSourcesCache();
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }
 
-void OBS_API::SetProcessPriority(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void OBS_API::SetProcessPriority(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
 	processPriority = args[0].value_str;
-    config_set_string(
-        ConfigManager::getInstance().getGlobal(),
-        "General", "ProcessPriority", processPriority.c_str());
-    config_save_safe(ConfigManager::getInstance().getGlobal(), "tmp", nullptr);
+	config_set_string(ConfigManager::getInstance().getGlobal(), "General", "ProcessPriority", processPriority.c_str());
+	config_save_safe(ConfigManager::getInstance().getGlobal(), "tmp", nullptr);
 
 #ifdef WIN32
 	if (processPriority.compare("High") == 0)
@@ -2190,74 +1996,44 @@ bool OBS_API::getMediaFileCaching()
 	return mediaFileCaching;
 }
 
-void OBS_API::GetBrowserAcceleration(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void OBS_API::GetBrowserAcceleration(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value((uint32_t)browserAccel));
 	AUTO_DEBUG;
 }
 
-void OBS_API::GetMediaFileCaching(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void OBS_API::GetMediaFileCaching(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value((uint32_t)mediaFileCaching));
 	AUTO_DEBUG;
 }
 
-void OBS_API::GetProcessPriority(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void OBS_API::GetProcessPriority(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(processPriority));
 	AUTO_DEBUG;
 }
 
-void OBS_API::GetBrowserAccelerationLegacy(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void OBS_API::GetBrowserAccelerationLegacy(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	rval.push_back(ipc::value((uint32_t)
-        config_get_bool(ConfigManager::getInstance().getGlobal(),
-        "General", "BrowserHWAccel")));
+	rval.push_back(ipc::value((uint32_t)config_get_bool(ConfigManager::getInstance().getGlobal(), "General", "BrowserHWAccel")));
 	AUTO_DEBUG;
 }
 
-void OBS_API::GetMediaFileCachingLegacy(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void OBS_API::GetMediaFileCachingLegacy(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	rval.push_back(ipc::value((uint32_t)
-        config_get_bool(ConfigManager::getInstance().getGlobal(),
-        "General", "fileCaching")));
+	rval.push_back(ipc::value((uint32_t)config_get_bool(ConfigManager::getInstance().getGlobal(), "General", "fileCaching")));
 	AUTO_DEBUG;
 }
 
-void OBS_API::GetProcessPriorityLegacy(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void OBS_API::GetProcessPriorityLegacy(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	rval.push_back(ipc::value(
-        config_get_string(ConfigManager::getInstance().getGlobal(),
-        "General", "ProcessPriority")));
+	rval.push_back(ipc::value(config_get_string(ConfigManager::getInstance().getGlobal(), "General", "ProcessPriority")));
 	AUTO_DEBUG;
 }

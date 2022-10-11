@@ -22,51 +22,31 @@
 #include "osn-streaming.hpp"
 #include "osn-file-output.hpp"
 
-namespace osn
-{
+namespace osn {
 
-    class Recording: public FileOutput
-    {
-        public:
-        Recording() : FileOutput() {
-            videoEncoder = nullptr;
-            signals = {
-                "start",
-                "stop",
-                "stopping",
-                "wrote"
-            };
-        }
-        virtual ~Recording();
+class Recording : public FileOutput {
+public:
+	Recording() : FileOutput()
+	{
+		videoEncoder = nullptr;
+		signals = {"start", "stop", "stopping", "wrote"};
+	}
+	virtual ~Recording();
 
-        public:
-        obs_encoder_t* videoEncoder;
-    };
+public:
+	obs_encoder_t *videoEncoder;
+};
 
-    class IRecording: public IFileOutput
-    {
-        public:
-		static void GetVideoEncoder(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void SetVideoEncoder(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
+class IRecording : public IFileOutput {
+public:
+	static void GetVideoEncoder(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void SetVideoEncoder(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
 
-        static void Query(
-            void*                          data,
-            const int64_t                  id,
-            const std::vector<ipc::value>& args,
-            std::vector<ipc::value>&       rval);
+	static void Query(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
 
-        static std::string GenerateSpecifiedFilename(
-            const std::string& extension, bool noSpace, const std::string& format, int width, int height);
-        static void FindBestFilename(std::string& strPath, bool noSpace);
+	static std::string GenerateSpecifiedFilename(const std::string &extension, bool noSpace, const std::string &format, int width, int height);
+	static void FindBestFilename(std::string &strPath, bool noSpace);
 
-        static obs_encoder_t* duplicate_encoder(obs_encoder_t* src, uint64_t trackIndex = 0);
-    };
+	static obs_encoder_t *duplicate_encoder(obs_encoder_t *src, uint64_t trackIndex = 0);
+};
 }

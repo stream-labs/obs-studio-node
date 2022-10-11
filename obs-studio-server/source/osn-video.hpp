@@ -21,71 +21,35 @@
 #include <obs.h>
 #include "utility.hpp"
 
-namespace osn
-{
-	class Video
-	{
-		public:
-		class Manager : public utility::unique_object_manager<struct obs_video_info>
-		{
-			friend class std::shared_ptr<Manager>;
+namespace osn {
+class Video {
+public:
+	class Manager : public utility::unique_object_manager<struct obs_video_info> {
+		friend class std::shared_ptr<Manager>;
 
-			protected:
-			Manager() {}
-			~Manager() {}
+	protected:
+		Manager() {}
+		~Manager() {}
 
-			public:
-			Manager(Manager const&)           = delete;
-			Manager operator=(Manager const&) = delete;
+	public:
+		Manager(Manager const &) = delete;
+		Manager operator=(Manager const &) = delete;
 
-			public:
-			static Manager& GetInstance();
-		};
-
-
-		public:
-		static void Register(ipc::server&);
-
-		static void GetSkippedFrames(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void GetTotalFrames(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-
-		static void GetVideoContext(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void SetVideoContext(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void AddVideoContext(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void RemoveVideoContext(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void GetLegacySettings(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void SetLegacySettings(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
+	public:
+		static Manager &GetInstance();
 	};
+
+public:
+	static void Register(ipc::server &);
+
+	static void GetSkippedFrames(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void GetTotalFrames(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+
+	static void GetVideoContext(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void SetVideoContext(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void AddVideoContext(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void RemoveVideoContext(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void GetLegacySettings(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void SetLegacySettings(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+};
 }

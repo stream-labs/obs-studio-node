@@ -20,30 +20,26 @@
 #include <napi.h>
 #include "recording.hpp"
 
-namespace osn
-{
-    class SimpleRecording :
-        public Napi::ObjectWrap<osn::SimpleRecording>,
-        public osn::Recording
-    {
-        public:
-        static Napi::FunctionReference constructor;
-        static Napi::Object Init(Napi::Env env, Napi::Object exports);
-        SimpleRecording(const Napi::CallbackInfo& info);
+namespace osn {
+class SimpleRecording : public Napi::ObjectWrap<osn::SimpleRecording>, public osn::Recording {
+public:
+	static Napi::FunctionReference constructor;
+	static Napi::Object Init(Napi::Env env, Napi::Object exports);
+	SimpleRecording(const Napi::CallbackInfo &info);
 
-        static Napi::Value Create(const Napi::CallbackInfo& info);
-        static void Destroy(const Napi::CallbackInfo& info);
+	static Napi::Value Create(const Napi::CallbackInfo &info);
+	static void Destroy(const Napi::CallbackInfo &info);
 
-        Napi::Value GetQuality(const Napi::CallbackInfo& info);
-        void SetQuality(const Napi::CallbackInfo& info, const Napi::Value& value);
-        Napi::Value GetAudioEncoder(const Napi::CallbackInfo& info);
-        void SetAudioEncoder(const Napi::CallbackInfo& info, const Napi::Value& value);
-        Napi::Value GetLowCPU(const Napi::CallbackInfo& info);
-        void SetLowCPU(const Napi::CallbackInfo& info, const Napi::Value& value);
-        Napi::Value GetStreaming(const Napi::CallbackInfo& info);
-        void SetStreaming(const Napi::CallbackInfo& info, const Napi::Value& value);
+	Napi::Value GetQuality(const Napi::CallbackInfo &info);
+	void SetQuality(const Napi::CallbackInfo &info, const Napi::Value &value);
+	Napi::Value GetAudioEncoder(const Napi::CallbackInfo &info);
+	void SetAudioEncoder(const Napi::CallbackInfo &info, const Napi::Value &value);
+	Napi::Value GetLowCPU(const Napi::CallbackInfo &info);
+	void SetLowCPU(const Napi::CallbackInfo &info, const Napi::Value &value);
+	Napi::Value GetStreaming(const Napi::CallbackInfo &info);
+	void SetStreaming(const Napi::CallbackInfo &info, const Napi::Value &value);
 
-        static Napi::Value GetLegacySettings(const Napi::CallbackInfo& info);
-        static void SetLegacySettings(const Napi::CallbackInfo& info, const Napi::Value& value);
-    };
+	static Napi::Value GetLegacySettings(const Napi::CallbackInfo &info);
+	static void SetLegacySettings(const Napi::CallbackInfo &info, const Napi::Value &value);
+};
 }

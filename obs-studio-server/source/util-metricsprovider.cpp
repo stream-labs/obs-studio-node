@@ -24,7 +24,6 @@
 #include <thread>
 #include <vector>
 
-
 #if defined(_WIN32)
 
 #include <io.h>
@@ -68,14 +67,7 @@ util::MetricsProvider::~MetricsProvider()
 
 bool util::MetricsProvider::Initialize(std::string pipe_name, std::string current_version, bool send_messages_async)
 {
-	m_Pipe = CreateFileA(
-	    pipe_name.c_str(),
-	    GENERIC_WRITE,
-	    FILE_SHARE_READ | FILE_SHARE_WRITE,
-	    NULL,
-	    OPEN_EXISTING,
-	    FILE_ATTRIBUTE_NORMAL,
-	    NULL);
+	m_Pipe = CreateFileA(pipe_name.c_str(), GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 
 	if (m_Pipe == NULL || m_Pipe == INVALID_HANDLE_VALUE) {
 		std::cout << "Failed to create outbound pipe instance." << std::endl;
@@ -88,8 +80,8 @@ bool util::MetricsProvider::Initialize(std::string pipe_name, std::string curren
 
 	// Send the pid
 	MetricsMessage message;
-	DWORD          pid = GetCurrentProcessId();
-	message.type       = MessageType::Pid;
+	DWORD pid = GetCurrentProcessId();
+	message.type = MessageType::Pid;
 	memcpy(message.param1, &pid, sizeof(DWORD));
 	bool result = SendPipeMessage(message);
 
@@ -135,7 +127,7 @@ void util::MetricsProvider::StartPolling(bool send_messages_async)
 void util::MetricsProvider::SendStatus(std::string status)
 {
 	MetricsMessage message = {};
-	message.type           = MessageType::Status;
+	message.type = MessageType::Status;
 	strcpy_s(message.param1, status.c_str());
 
 	PrepareMessage(message);
@@ -144,14 +136,14 @@ void util::MetricsProvider::SendStatus(std::string status)
 void util::MetricsProvider::SendTag(std::string tag, std::string value)
 {
 	MetricsMessage message = {};
-	message.type           = MessageType::Tag;
+	message.type = MessageType::Tag;
 	strcpy_s(message.param1, tag.c_str());
 	strcpy_s(message.param2, value.c_str());
 
 	PrepareMessage(message);
 }
 
-void util::MetricsProvider::PrepareMessage(MetricsMessage& message)
+void util::MetricsProvider::PrepareMessage(MetricsMessage &message)
 {
 	std::lock_guard<std::mutex> l(m_PollingMutex);
 
@@ -160,19 +152,18 @@ void util::MetricsProvider::PrepareMessage(MetricsMessage& message)
 		m_AsyncData.emplace(message);
 	} else {
 		SendPipeMessage(message);
-    }
+	}
 }
 
-bool util::MetricsProvider::SendPipeMessage(MetricsMessage& message)
+bool util::MetricsProvider::SendPipeMessage(MetricsMessage &message)
 {
 	if (m_PipeIsOpen) {
 		DWORD numBytesWritten = 0;
-		return WriteFile(
-		    m_Pipe,                 // handle to our outbound pipe
-		    &message,               // data to send
-		    sizeof(MetricsMessage), // length of data to send (bytes)
-		    &numBytesWritten,       // will store actual amount of data sent
-		    NULL                    // not using overlapped IO
+		return WriteFile(m_Pipe,                 // handle to our outbound pipe
+				 &message,               // data to send
+				 sizeof(MetricsMessage), // length of data to send (bytes)
+				 &numBytesWritten,       // will store actual amount of data sent
+				 NULL                    // not using overlapped IO
 		);
 	}
 
@@ -183,8 +174,8 @@ void util::MetricsProvider::BlameServer()
 {
 	m_BlameServer = true;
 
-    MetricsMessage message = {};
-	message.type           = MessageType::Blame;
+	MetricsMessage message = {};
+	message.type = MessageType::Blame;
 	strcpy_s(message.param1, "Backend Crash");
 
 	PrepareMessage(message);
@@ -194,8 +185,8 @@ void util::MetricsProvider::BlameUser()
 {
 	m_BlameUser = true;
 
-    MetricsMessage message = {};
-	message.type           = MessageType::Blame;
+	MetricsMessage message = {};
+	message.type = MessageType::Blame;
 	strcpy_s(message.param1, "User Crash");
 
 	PrepareMessage(message);
@@ -205,8 +196,8 @@ void util::MetricsProvider::BlameFrontend()
 {
 	m_BlameFrontend = true;
 
-    MetricsMessage message = {};
-	message.type           = MessageType::Blame;
+	MetricsMessage message = {};
+	message.type = MessageType::Blame;
 	strcpy_s(message.param1, "Frontend Crash");
 
 	PrepareMessage(message);

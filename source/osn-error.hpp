@@ -18,8 +18,7 @@
 
 #pragma once
 
-enum class ErrorCode : long long
-{
+enum class ErrorCode : long long {
 	// Everything is okay.
 	Ok,
 

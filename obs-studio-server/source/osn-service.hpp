@@ -21,76 +21,37 @@
 #include <obs.h>
 #include "utility.hpp"
 
-namespace osn
-{
-    class Service
-    {
-        public:
-        class Manager : public utility::unique_object_manager<obs_service_t>
-        {
-            friend class std::shared_ptr<Manager>;
+namespace osn {
+class Service {
+public:
+	class Manager : public utility::unique_object_manager<obs_service_t> {
+		friend class std::shared_ptr<Manager>;
 
-            protected:
-            Manager() {}
-            ~Manager() {}
+	protected:
+		Manager() {}
+		~Manager() {}
 
-            public:
-            Manager(Manager const&) = delete;
-            Manager operator=(Manager const&) = delete;
+	public:
+		Manager(Manager const &) = delete;
+		Manager operator=(Manager const &) = delete;
 
-            public:
-            static Manager& GetInstance();
-        };
+	public:
+		static Manager &GetInstance();
+	};
 
-        public:
-        static void Register(ipc::server&);
+public:
+	static void Register(ipc::server &);
 
-        static void GetTypes(
-                void* data,
-                const int64_t id,
-                const std::vector<ipc::value>& args,
-                std::vector<ipc::value>& rval);
-        static void Create(
-                void* data,
-                const int64_t id,
-                const std::vector<ipc::value>& args,
-                std::vector<ipc::value>& rval);
-        static void CreatePrivate(
-                void* data,
-                const int64_t id,
-                const std::vector<ipc::value>& args,
-                std::vector<ipc::value>& rval);
-        static void GetName(
-                void* data,
-                const int64_t id,
-                const std::vector<ipc::value>& args,
-                std::vector<ipc::value>& rval);
-        static void GetProperties(
-                void* data,
-                const int64_t id,
-                const std::vector<ipc::value>& args,
-                std::vector<ipc::value>& rval);
-        static void Update(
-                void* data,
-                const int64_t id,
-                const std::vector<ipc::value>& args,
-                std::vector<ipc::value>& rval);
-        static void GetSettings(
-                void* data,
-                const int64_t id,
-                const std::vector<ipc::value>& args,
-                std::vector<ipc::value>& rval);
-        static void GetLegacySettings(
-                void* data,
-                const int64_t id,
-                const std::vector<ipc::value>& args,
-                std::vector<ipc::value>& rval);
-        static obs_service_t* GetLegacyServiceSettings();
-        static void SetLegacySettings(
-                void* data,
-                const int64_t id,
-                const std::vector<ipc::value>& args,
-                std::vector<ipc::value>& rval);
-        static void SetLegacyServiceSettings(obs_service_t* service);
-    };
+	static void GetTypes(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void Create(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void CreatePrivate(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void GetName(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void GetProperties(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void Update(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void GetSettings(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void GetLegacySettings(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static obs_service_t *GetLegacyServiceSettings();
+	static void SetLegacySettings(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void SetLegacyServiceSettings(obs_service_t *service);
+};
 }
