@@ -1049,7 +1049,7 @@ static bool isEncoderAvailableForStreaming(const char *encoder, obs_service_t *s
 	if (!supportedCodecs || !encoderCodec)
 		return false;
 
-	while(*supportedCodecs) {
+	while (*supportedCodecs) {
 		if (strcmp(*supportedCodecs, encoderCodec) == 0)
 			return true;
 		supportedCodecs++;
