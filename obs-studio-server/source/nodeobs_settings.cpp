@@ -1047,6 +1047,26 @@ static bool EncoderAvailable(const char *encoder)
 	return false;
 }
 
+static bool isEncoderAvailableForStreaming(const char *encoder, obs_service_t *service)
+{
+	if (!encoder || !service)
+		return false;
+
+	auto supportedCodecs = obs_service_get_supported_video_codecs(service);
+	auto encoderCodec = obs_get_encoder_codec(encoder);
+
+	if (!supportedCodecs || !encoderCodec)
+		return false;
+
+	while (*supportedCodecs) {
+		if (strcmp(*supportedCodecs, encoderCodec) == 0)
+			return true;
+		supportedCodecs++;
+	}
+
+	return false;
+}
+
 void OBS_settings::getSimpleAvailableEncoders(std::vector<std::pair<std::string, ipc::value>> *encoders, bool recording)
 {
 	encoders->push_back(std::make_pair("Software (x264)", ipc::value(SIMPLE_ENCODER_X264)));
@@ -1060,7 +1080,7 @@ void OBS_settings::getSimpleAvailableEncoders(std::vector<std::pair<std::string,
 	if (EncoderAvailable("h264_texture_amf"))
 		encoders->push_back(std::make_pair("Hardware (AMD, H.264)", ipc::value(SIMPLE_ENCODER_AMD)));
 
-	if (recording) {
+	if (recording || isEncoderAvailableForStreaming("h265_texture_amf", OBS_service::getService())) {
 		if (EncoderAvailable("h265_texture_amf"))
 			encoders->push_back(std::make_pair("Hardware (AMD, HEVC)", ipc::value(SIMPLE_ENCODER_AMD_HEVC)));
 	}
@@ -1068,9 +1088,9 @@ void OBS_settings::getSimpleAvailableEncoders(std::vector<std::pair<std::string,
 	if (EncoderAvailable("jim_nvenc"))
 		encoders->push_back(std::make_pair("Hardware (NVENC, H.264)", ipc::value(SIMPLE_ENCODER_NVENC)));
 
-	if (recording) {
-		if (EncoderAvailable("jim_hevc_nvenc") ? "jim_hevc_nvenc" : "ffmpeg_hevc_nvenc")
-			encoders->push_back(std::make_pair("Hardware (NVENC, HEVC)", ipc::value(SIMPLE_ENCODER_NVENC_HEVC)));
+	const char *hevcEnc = EncoderAvailable("jim_hevc_nvenc") ? "jim_hevc_nvenc" : "ffmpeg_hevc_nvenc";
+	if (recording || isEncoderAvailableForStreaming(hevcEnc, OBS_service::getService())) {
+		encoders->push_back(std::make_pair("Hardware (NVENC, HEVC)", ipc::value(SIMPLE_ENCODER_NVENC_HEVC)));
 	}
 
 	if (EncoderAvailable(APPLE_SOFTWARE_VIDEO_ENCODER))
@@ -1093,7 +1113,7 @@ void OBS_settings::getAdvancedAvailableEncoders(std::vector<std::pair<std::strin
 	if (EncoderAvailable(ADVANCED_ENCODER_AMD))
 		encoder->push_back(std::make_pair("AMD HW H.264", ipc::value(ADVANCED_ENCODER_AMD)));
 
-	if (recording) {
+	if (recording || isEncoderAvailableForStreaming(ADVANCED_ENCODER_AMD_HEVC, OBS_service::getService())) {
 		if (EncoderAvailable(ADVANCED_ENCODER_AMD_HEVC))
 			encoder->push_back(std::make_pair("AMD HW H.265 (HEVC)", ipc::value(ADVANCED_ENCODER_AMD_HEVC)));
 	}
@@ -1104,7 +1124,7 @@ void OBS_settings::getAdvancedAvailableEncoders(std::vector<std::pair<std::strin
 	if (EncoderAvailable(ENCODER_NEW_NVENC))
 		encoder->push_back(std::make_pair("NVIDIA NVENC H.264 (new)", ipc::value(ENCODER_NEW_NVENC)));
 
-	if (recording) {
+	if (recording || isEncoderAvailableForStreaming(ENCODER_NEW_HEVC_NVENC, OBS_service::getService())) {
 		if (EncoderAvailable(ENCODER_NEW_HEVC_NVENC))
 			encoder->push_back(std::make_pair("NVIDIA NVENC HEVC (new)", ipc::value(ENCODER_NEW_HEVC_NVENC)));
 	}
