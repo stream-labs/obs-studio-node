@@ -31,17 +31,22 @@ void osn::ISimpleStreaming::Register(ipc::server &srv)
 	cls->register_function(std::make_shared<ipc::function>("GetService", std::vector<ipc::type>{ipc::type::UInt64}, GetService));
 	cls->register_function(std::make_shared<ipc::function>("SetService", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64}, SetService));
 	cls->register_function(std::make_shared<ipc::function>("GetVideoEncoder", std::vector<ipc::type>{ipc::type::UInt64}, GetVideoEncoder));
-	cls->register_function(std::make_shared<ipc::function>("SetVideoEncoder", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64}, SetVideoEncoder));
+	cls->register_function(
+		std::make_shared<ipc::function>("SetVideoEncoder", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64}, SetVideoEncoder));
 	cls->register_function(std::make_shared<ipc::function>("GetAudioEncoder", std::vector<ipc::type>{ipc::type::UInt64}, GetAudioEncoder));
-	cls->register_function(std::make_shared<ipc::function>("SetAudioEncoder", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64}, SetAudioEncoder));
+	cls->register_function(
+		std::make_shared<ipc::function>("SetAudioEncoder", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64}, SetAudioEncoder));
 	cls->register_function(std::make_shared<ipc::function>("GetUseAdvanced", std::vector<ipc::type>{ipc::type::UInt64}, GetUseAdvanced));
 	cls->register_function(std::make_shared<ipc::function>("SetUseAdvanced", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32}, SetUseAdvanced));
 	cls->register_function(std::make_shared<ipc::function>("GetCustomEncSettings", std::vector<ipc::type>{ipc::type::UInt64}, GetCustomEncSettings));
-	cls->register_function(std::make_shared<ipc::function>("SetCustomEncSettings", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String}, SetCustomEncSettings));
+	cls->register_function(
+		std::make_shared<ipc::function>("SetCustomEncSettings", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String}, SetCustomEncSettings));
 	cls->register_function(std::make_shared<ipc::function>("GetEnforceServiceBirate", std::vector<ipc::type>{ipc::type::UInt64}, GetEnforceServiceBirate));
-	cls->register_function(std::make_shared<ipc::function>("SetEnforceServiceBirate", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32}, SetEnforceServiceBirate));
+	cls->register_function(std::make_shared<ipc::function>("SetEnforceServiceBirate", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32},
+							       SetEnforceServiceBirate));
 	cls->register_function(std::make_shared<ipc::function>("GetEnableTwitchVOD", std::vector<ipc::type>{ipc::type::UInt64}, GetEnableTwitchVOD));
-	cls->register_function(std::make_shared<ipc::function>("SetEnableTwitchVOD", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32}, SetEnableTwitchVOD));
+	cls->register_function(
+		std::make_shared<ipc::function>("SetEnableTwitchVOD", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32}, SetEnableTwitchVOD));
 	cls->register_function(std::make_shared<ipc::function>("GetDelay", std::vector<ipc::type>{ipc::type::UInt64}, GetDelay));
 	cls->register_function(std::make_shared<ipc::function>("SetDelay", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64}, SetDelay));
 	cls->register_function(std::make_shared<ipc::function>("GetReconnect", std::vector<ipc::type>{ipc::type::UInt64}, GetReconnect));
@@ -202,7 +207,8 @@ static void SetupTwitchSoundtrackAudio(osn::SimpleStreaming *streaming)
 		return;
 
 	if (!streaming->streamArchive) {
-		streaming->streamArchive = obs_audio_encoder_create("ffmpeg_aac", "Soundtrack by Twitch Archive Encoder", nullptr, kSoundtrackArchiveTrackIdx, nullptr);
+		streaming->streamArchive =
+			obs_audio_encoder_create("ffmpeg_aac", "Soundtrack by Twitch Archive Encoder", nullptr, kSoundtrackArchiveTrackIdx, nullptr);
 		obs_encoder_set_audio(streaming->streamArchive, obs_get_audio());
 	}
 
@@ -362,7 +368,8 @@ void osn::ISimpleStreaming::Start(void *data, const int64_t id, const std::vecto
 	if (!streaming->delay) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Invalid delay.");
 	}
-	obs_output_set_delay(streaming->output, streaming->delay->enabled ? uint32_t(streaming->delay->delaySec) : 0, streaming->delay->preserveDelay ? OBS_OUTPUT_DELAY_PRESERVE : 0);
+	obs_output_set_delay(streaming->output, streaming->delay->enabled ? uint32_t(streaming->delay->delaySec) : 0,
+			     streaming->delay->preserveDelay ? OBS_OUTPUT_DELAY_PRESERVE : 0);
 
 	if (!streaming->reconnect) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Invalid reconnect.");
@@ -470,7 +477,8 @@ obs_encoder_t *osn::ISimpleStreaming::GetLegacyAudioEncoderSettings()
 {
 	obs_data_t *audioEncData = obs_data_create();
 	obs_data_set_string(audioEncData, "rate_control", "CBR");
-	obs_data_set_int(audioEncData, "bitrate", FindClosestAvailableAACBitrate(config_get_uint(ConfigManager::getInstance().getBasic(), "SimpleOutput", "ABitrate")));
+	obs_data_set_int(audioEncData, "bitrate",
+			 FindClosestAvailableAACBitrate(config_get_uint(ConfigManager::getInstance().getBasic(), "SimpleOutput", "ABitrate")));
 
 	bool advanced = config_get_bool(ConfigManager::getInstance().getBasic(), "SimpleOutput", "UseAdvanced");
 

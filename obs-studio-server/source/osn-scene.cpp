@@ -33,22 +33,27 @@ void osn::Scene::Register(ipc::server &srv)
 	cls->register_function(std::make_shared<ipc::function>("Remove", std::vector<ipc::type>{ipc::type::UInt64}, Remove));
 
 	cls->register_function(std::make_shared<ipc::function>("AsSource", std::vector<ipc::type>{ipc::type::UInt64}, AsSource));
-	cls->register_function(std::make_shared<ipc::function>("Duplicate", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String, ipc::type::Int32}, Duplicate));
+	cls->register_function(
+		std::make_shared<ipc::function>("Duplicate", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String, ipc::type::Int32}, Duplicate));
 
 	cls->register_function(std::make_shared<ipc::function>("AddSource", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64}, AddSource));
 
-	cls->register_function(std::make_shared<ipc::function>("AddSourceWithTransform",
-							       std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64, ipc::type::Double, ipc::type::Double, ipc::type::Int32, ipc::type::Double, ipc::type::Double, ipc::type::Double, ipc::type::Int64, ipc::type::Int64, ipc::type::Int64,
-										      ipc::type::Int64, ipc::type::Int32, ipc::type::Int32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32},
-							       AddSource));
+	cls->register_function(std::make_shared<ipc::function>(
+		"AddSourceWithTransform",
+		std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64, ipc::type::Double, ipc::type::Double, ipc::type::Int32, ipc::type::Double,
+				       ipc::type::Double, ipc::type::Double, ipc::type::Int64, ipc::type::Int64, ipc::type::Int64, ipc::type::Int64,
+				       ipc::type::Int32, ipc::type::Int32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32},
+		AddSource));
 
 	cls->register_function(std::make_shared<ipc::function>("FindItemByName", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String}, FindItemByName));
 	cls->register_function(std::make_shared<ipc::function>("FindItemById", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int64}, FindItemByItemId));
-	cls->register_function(std::make_shared<ipc::function>("MoveItem", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32, ipc::type::Int32}, MoveItem));
+	cls->register_function(
+		std::make_shared<ipc::function>("MoveItem", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32, ipc::type::Int32}, MoveItem));
 	cls->register_function(std::make_shared<ipc::function>("OrderItems", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Binary}, OrderItems));
 	cls->register_function(std::make_shared<ipc::function>("GetItem", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32}, GetItem));
 	cls->register_function(std::make_shared<ipc::function>("GetItems", std::vector<ipc::type>{ipc::type::UInt64}, GetItems));
-	cls->register_function(std::make_shared<ipc::function>("GetItemsInRange", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32, ipc::type::Int32}, GetItemsInRange));
+	cls->register_function(std::make_shared<ipc::function>("GetItemsInRange", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32, ipc::type::Int32},
+							       GetItemsInRange));
 
 	cls->register_function(std::make_shared<ipc::function>("Connect", std::vector<ipc::type>{ipc::type::UInt64}, Connect));
 	cls->register_function(std::make_shared<ipc::function>("Disconnect", std::vector<ipc::type>{ipc::type::UInt64}, Disconnect));

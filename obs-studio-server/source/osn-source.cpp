@@ -133,11 +133,24 @@ void osn::Source::Register(ipc::server &srv)
 	cls->register_function(std::make_shared<ipc::function>("GetEnabled", std::vector<ipc::type>{ipc::type::UInt64}, GetEnabled));
 	cls->register_function(std::make_shared<ipc::function>("SetEnabled", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32}, SetEnabled));
 
-	cls->register_function(std::make_shared<ipc::function>("SendMouseClick", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::Int32, ipc::type::UInt32}, SendMouseClick));
-	cls->register_function(std::make_shared<ipc::function>("SendMouseMove", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::Int32}, SendMouseMove));
-	cls->register_function(std::make_shared<ipc::function>("SendMouseWheel", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::Int32, ipc::type::Int32}, SendMouseWheel));
+	cls->register_function(
+		std::make_shared<ipc::function>("SendMouseClick",
+						std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32,
+								       ipc::type::UInt32, ipc::type::Int32, ipc::type::UInt32},
+						SendMouseClick));
+	cls->register_function(std::make_shared<ipc::function>(
+		"SendMouseMove", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::Int32},
+		SendMouseMove));
+	cls->register_function(std::make_shared<ipc::function>("SendMouseWheel",
+							       std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32, ipc::type::UInt32,
+										      ipc::type::UInt32, ipc::type::Int32, ipc::type::Int32},
+							       SendMouseWheel));
 	cls->register_function(std::make_shared<ipc::function>("SendFocus", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32}, SendFocus));
-	cls->register_function(std::make_shared<ipc::function>("SendKeyClick", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32, ipc::type::String, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::Int32}, SendKeyClick));
+	cls->register_function(
+		std::make_shared<ipc::function>("SendKeyClick",
+						std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32, ipc::type::String, ipc::type::UInt32,
+								       ipc::type::UInt32, ipc::type::UInt32, ipc::type::Int32},
+						SendKeyClick));
 
 	srv.register_collection(cls);
 }

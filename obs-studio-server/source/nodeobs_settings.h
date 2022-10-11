@@ -51,7 +51,8 @@ struct Parameter {
 		std::vector<char> buffer;
 		uint32_t indexBuffer = 0;
 
-		size_t sizeStruct = name.length() + description.length() + type.length() + subType.length() + sizeof(uint64_t) * 7 + sizeof(bool) * 3 + sizeof(double) * 3 + sizeOfCurrentValue + sizeOfValues;
+		size_t sizeStruct = name.length() + description.length() + type.length() + subType.length() + sizeof(uint64_t) * 7 + sizeof(bool) * 3 +
+				    sizeof(double) * 3 + sizeOfCurrentValue + sizeOfValues;
 		buffer.resize(sizeStruct);
 
 		*reinterpret_cast<uint64_t *>(buffer.data() + indexBuffer) = name.length();
@@ -175,7 +176,8 @@ private:
 	static void saveVideoSettings(std::vector<SubCategory> videoSettings);
 	static void saveAdvancedSettings(std::vector<SubCategory> advancedSettings);
 
-	static SubCategory serializeSettingsData(const std::string &nameSubCategory, std::vector<std::vector<std::pair<std::string, ipc::value>>> &entries, config_t *config, const std::string &section, bool isVisible, bool isEnabled);
+	static SubCategory serializeSettingsData(const std::string &nameSubCategory, std::vector<std::vector<std::pair<std::string, ipc::value>>> &entries,
+						 config_t *config, const std::string &section, bool isVisible, bool isEnabled);
 
 	/****** Get Output Settings ******/
 
@@ -211,5 +213,6 @@ private:
 	static void getSimpleAvailableEncoders(std::vector<std::pair<std::string, ipc::value>> *encoders, bool recording);
 	static void getAdvancedAvailableEncoders(std::vector<std::pair<std::string, ipc::value>> *encoders, bool recording);
 	static std::vector<std::pair<uint64_t, uint64_t>> getOutputResolutions(uint64_t base_cx, uint64_t base_cy);
-	static void getEncoderSettings(const obs_encoder_t *encoder, obs_data_t *settings, std::vector<Parameter> *subCategoryParameters, int index, bool isCategoryEnabled, bool recordEncoder);
+	static void getEncoderSettings(const obs_encoder_t *encoder, obs_data_t *settings, std::vector<Parameter> *subCategoryParameters, int index,
+				       bool isCategoryEnabled, bool recordEncoder);
 };

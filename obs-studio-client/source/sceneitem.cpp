@@ -34,37 +34,38 @@ Napi::FunctionReference osn::SceneItem::constructor;
 Napi::Object osn::SceneItem::Init(Napi::Env env, Napi::Object exports)
 {
 	Napi::HandleScope scope(env);
-	Napi::Function func = DefineClass(env, "SceneItem",
-					  {
-						  InstanceAccessor("source", &osn::SceneItem::GetSource, nullptr),
-						  InstanceAccessor("scene", &osn::SceneItem::GetScene, nullptr),
-						  InstanceAccessor("visible", &osn::SceneItem::IsVisible, &osn::SceneItem::SetVisible),
-						  InstanceAccessor("selected", &osn::SceneItem::IsSelected, &osn::SceneItem::SetSelected),
-						  InstanceAccessor("streamVisible", &osn::SceneItem::IsStreamVisible, &osn::SceneItem::SetStreamVisible),
-						  InstanceAccessor("recordingVisible", &osn::SceneItem::IsRecordingVisible, &osn::SceneItem::SetRecordingVisible),
-						  InstanceAccessor("position", &osn::SceneItem::GetPosition, &osn::SceneItem::SetPosition),
-						  InstanceAccessor("rotation", &osn::SceneItem::GetRotation, &osn::SceneItem::SetRotation),
-						  InstanceAccessor("scale", &osn::SceneItem::GetScale, &osn::SceneItem::SetScale),
-						  InstanceAccessor("alignment", &osn::SceneItem::GetAlignment, &osn::SceneItem::SetAlignment),
-						  InstanceAccessor("boundsAlignment", &osn::SceneItem::GetBoundsAlignment, &osn::SceneItem::SetBoundsAlignment),
-						  InstanceAccessor("bounds", &osn::SceneItem::GetBounds, &osn::SceneItem::SetBounds),
-						  InstanceAccessor("transformInfo", &osn::SceneItem::GetTransformInfo, &osn::SceneItem::SetTransformInfo),
-						  InstanceAccessor("boundsType", &osn::SceneItem::GetBoundsType, &osn::SceneItem::SetBoundsType),
-						  InstanceAccessor("crop", &osn::SceneItem::GetCrop, &osn::SceneItem::SetCrop),
-						  InstanceAccessor("scaleFilter", &osn::SceneItem::GetScaleFilter, &osn::SceneItem::SetScaleFilter),
-						  InstanceAccessor("id", &osn::SceneItem::GetId, nullptr),
-						  InstanceAccessor("blendingMethod", &osn::SceneItem::GetBlendingMethod, &osn::SceneItem::SetBlendingMethod),
-						  InstanceAccessor("blendingMode", &osn::SceneItem::GetBlendingMode, &osn::SceneItem::SetBlendingMode),
+	Napi::Function func =
+		DefineClass(env, "SceneItem",
+			    {
+				    InstanceAccessor("source", &osn::SceneItem::GetSource, nullptr),
+				    InstanceAccessor("scene", &osn::SceneItem::GetScene, nullptr),
+				    InstanceAccessor("visible", &osn::SceneItem::IsVisible, &osn::SceneItem::SetVisible),
+				    InstanceAccessor("selected", &osn::SceneItem::IsSelected, &osn::SceneItem::SetSelected),
+				    InstanceAccessor("streamVisible", &osn::SceneItem::IsStreamVisible, &osn::SceneItem::SetStreamVisible),
+				    InstanceAccessor("recordingVisible", &osn::SceneItem::IsRecordingVisible, &osn::SceneItem::SetRecordingVisible),
+				    InstanceAccessor("position", &osn::SceneItem::GetPosition, &osn::SceneItem::SetPosition),
+				    InstanceAccessor("rotation", &osn::SceneItem::GetRotation, &osn::SceneItem::SetRotation),
+				    InstanceAccessor("scale", &osn::SceneItem::GetScale, &osn::SceneItem::SetScale),
+				    InstanceAccessor("alignment", &osn::SceneItem::GetAlignment, &osn::SceneItem::SetAlignment),
+				    InstanceAccessor("boundsAlignment", &osn::SceneItem::GetBoundsAlignment, &osn::SceneItem::SetBoundsAlignment),
+				    InstanceAccessor("bounds", &osn::SceneItem::GetBounds, &osn::SceneItem::SetBounds),
+				    InstanceAccessor("transformInfo", &osn::SceneItem::GetTransformInfo, &osn::SceneItem::SetTransformInfo),
+				    InstanceAccessor("boundsType", &osn::SceneItem::GetBoundsType, &osn::SceneItem::SetBoundsType),
+				    InstanceAccessor("crop", &osn::SceneItem::GetCrop, &osn::SceneItem::SetCrop),
+				    InstanceAccessor("scaleFilter", &osn::SceneItem::GetScaleFilter, &osn::SceneItem::SetScaleFilter),
+				    InstanceAccessor("id", &osn::SceneItem::GetId, nullptr),
+				    InstanceAccessor("blendingMethod", &osn::SceneItem::GetBlendingMethod, &osn::SceneItem::SetBlendingMethod),
+				    InstanceAccessor("blendingMode", &osn::SceneItem::GetBlendingMode, &osn::SceneItem::SetBlendingMode),
 
-						  InstanceMethod("moveUp", &osn::SceneItem::MoveUp),
-						  InstanceMethod("moveDown", &osn::SceneItem::MoveDown),
-						  InstanceMethod("moveTop", &osn::SceneItem::MoveTop),
-						  InstanceMethod("moveBottom", &osn::SceneItem::MoveBottom),
-						  InstanceMethod("move", &osn::SceneItem::Move),
-						  InstanceMethod("remove", &osn::SceneItem::Remove),
-						  InstanceMethod("deferUpdateBegin", &osn::SceneItem::DeferUpdateBegin),
-						  InstanceMethod("deferUpdateEnd", &osn::SceneItem::DeferUpdateEnd),
-					  });
+				    InstanceMethod("moveUp", &osn::SceneItem::MoveUp),
+				    InstanceMethod("moveDown", &osn::SceneItem::MoveDown),
+				    InstanceMethod("moveTop", &osn::SceneItem::MoveTop),
+				    InstanceMethod("moveBottom", &osn::SceneItem::MoveBottom),
+				    InstanceMethod("move", &osn::SceneItem::Move),
+				    InstanceMethod("remove", &osn::SceneItem::Remove),
+				    InstanceMethod("deferUpdateBegin", &osn::SceneItem::DeferUpdateBegin),
+				    InstanceMethod("deferUpdateEnd", &osn::SceneItem::DeferUpdateEnd),
+			    });
 	exports.Set("SceneItem", func);
 	osn::SceneItem::constructor = Napi::Persistent(func);
 	osn::SceneItem::constructor.SuppressDestruct();
@@ -690,7 +691,8 @@ void osn::SceneItem::SetCrop(const Napi::CallbackInfo &info, const Napi::Value &
 	if (!conn)
 		return;
 
-	conn->call("SceneItem", "SetCrop", std::vector<ipc::value>{ipc::value(this->itemId), ipc::value(left), ipc::value(top), ipc::value(right), ipc::value(bottom)});
+	conn->call("SceneItem", "SetCrop",
+		   std::vector<ipc::value>{ipc::value(this->itemId), ipc::value(left), ipc::value(top), ipc::value(right), ipc::value(bottom)});
 
 	sid->cropLeft = left;
 	sid->cropTop = top;

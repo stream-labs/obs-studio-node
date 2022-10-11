@@ -327,7 +327,8 @@ void display::Init(Napi::Env env, Napi::Object exports)
 	exports.Set(Napi::String::New(env, "OBS_content_destroyDisplay"), Napi::Function::New(env, display::OBS_content_destroyDisplay));
 	exports.Set(Napi::String::New(env, "OBS_content_getDisplayPreviewOffset"), Napi::Function::New(env, display::OBS_content_getDisplayPreviewOffset));
 	exports.Set(Napi::String::New(env, "OBS_content_getDisplayPreviewSize"), Napi::Function::New(env, display::OBS_content_getDisplayPreviewSize));
-	exports.Set(Napi::String::New(env, "OBS_content_createSourcePreviewDisplay"), Napi::Function::New(env, display::OBS_content_createSourcePreviewDisplay));
+	exports.Set(Napi::String::New(env, "OBS_content_createSourcePreviewDisplay"),
+		    Napi::Function::New(env, display::OBS_content_createSourcePreviewDisplay));
 	exports.Set(Napi::String::New(env, "OBS_content_resizeDisplay"), Napi::Function::New(env, display::OBS_content_resizeDisplay));
 	exports.Set(Napi::String::New(env, "OBS_content_moveDisplay"), Napi::Function::New(env, display::OBS_content_moveDisplay));
 	exports.Set(Napi::String::New(env, "OBS_content_setPaddingSize"), Napi::Function::New(env, display::OBS_content_setPaddingSize));

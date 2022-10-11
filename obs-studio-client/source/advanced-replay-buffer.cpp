@@ -27,32 +27,33 @@ Napi::FunctionReference osn::AdvancedReplayBuffer::constructor;
 Napi::Object osn::AdvancedReplayBuffer::Init(Napi::Env env, Napi::Object exports)
 {
 	Napi::HandleScope scope(env);
-	Napi::Function func = DefineClass(env, "AdvancedReplayBuffer",
-					  {StaticMethod("create", &osn::AdvancedReplayBuffer::Create),
-					   StaticMethod("destroy", &osn::AdvancedReplayBuffer::Destroy),
+	Napi::Function func =
+		DefineClass(env, "AdvancedReplayBuffer",
+			    {StaticMethod("create", &osn::AdvancedReplayBuffer::Create),
+			     StaticMethod("destroy", &osn::AdvancedReplayBuffer::Destroy),
 
-					   InstanceAccessor("path", &osn::AdvancedReplayBuffer::GetPath, &osn::AdvancedReplayBuffer::SetPath),
-					   InstanceAccessor("format", &osn::AdvancedReplayBuffer::GetFormat, &osn::AdvancedReplayBuffer::SetFormat),
-					   InstanceAccessor("muxerSettings", &osn::AdvancedReplayBuffer::GetMuxerSettings, &osn::AdvancedReplayBuffer::SetMuxerSettings),
-					   InstanceAccessor("fileFormat", &osn::AdvancedReplayBuffer::GetFileFormat, &osn::AdvancedReplayBuffer::SetFileFormat),
-					   InstanceAccessor("overwrite", &osn::AdvancedReplayBuffer::GetOverwrite, &osn::AdvancedReplayBuffer::SetOverwrite),
-					   InstanceAccessor("noSpace", &osn::AdvancedReplayBuffer::GetNoSpace, &osn::AdvancedReplayBuffer::SetNoSpace),
-					   InstanceAccessor("duration", &osn::AdvancedReplayBuffer::GetDuration, &osn::AdvancedReplayBuffer::SetDuration),
-					   InstanceAccessor("prefix", &osn::AdvancedReplayBuffer::GetPrefix, &osn::AdvancedReplayBuffer::SetPrefix),
-					   InstanceAccessor("suffix", &osn::AdvancedReplayBuffer::GetSuffix, &osn::AdvancedReplayBuffer::SetSuffix),
-					   InstanceAccessor("signalHandler", &osn::AdvancedReplayBuffer::GetSignalHandler, &osn::AdvancedReplayBuffer::SetSignalHandler),
-					   InstanceAccessor("mixer", &osn::AdvancedReplayBuffer::GetMixer, &osn::AdvancedReplayBuffer::SetMixer),
-					   InstanceAccessor("usesStream", &osn::AdvancedReplayBuffer::GetUsesStream, &osn::AdvancedReplayBuffer::SetUsesStream),
+			     InstanceAccessor("path", &osn::AdvancedReplayBuffer::GetPath, &osn::AdvancedReplayBuffer::SetPath),
+			     InstanceAccessor("format", &osn::AdvancedReplayBuffer::GetFormat, &osn::AdvancedReplayBuffer::SetFormat),
+			     InstanceAccessor("muxerSettings", &osn::AdvancedReplayBuffer::GetMuxerSettings, &osn::AdvancedReplayBuffer::SetMuxerSettings),
+			     InstanceAccessor("fileFormat", &osn::AdvancedReplayBuffer::GetFileFormat, &osn::AdvancedReplayBuffer::SetFileFormat),
+			     InstanceAccessor("overwrite", &osn::AdvancedReplayBuffer::GetOverwrite, &osn::AdvancedReplayBuffer::SetOverwrite),
+			     InstanceAccessor("noSpace", &osn::AdvancedReplayBuffer::GetNoSpace, &osn::AdvancedReplayBuffer::SetNoSpace),
+			     InstanceAccessor("duration", &osn::AdvancedReplayBuffer::GetDuration, &osn::AdvancedReplayBuffer::SetDuration),
+			     InstanceAccessor("prefix", &osn::AdvancedReplayBuffer::GetPrefix, &osn::AdvancedReplayBuffer::SetPrefix),
+			     InstanceAccessor("suffix", &osn::AdvancedReplayBuffer::GetSuffix, &osn::AdvancedReplayBuffer::SetSuffix),
+			     InstanceAccessor("signalHandler", &osn::AdvancedReplayBuffer::GetSignalHandler, &osn::AdvancedReplayBuffer::SetSignalHandler),
+			     InstanceAccessor("mixer", &osn::AdvancedReplayBuffer::GetMixer, &osn::AdvancedReplayBuffer::SetMixer),
+			     InstanceAccessor("usesStream", &osn::AdvancedReplayBuffer::GetUsesStream, &osn::AdvancedReplayBuffer::SetUsesStream),
 
-					   InstanceMethod("start", &osn::AdvancedReplayBuffer::Start),
-					   InstanceMethod("stop", &osn::AdvancedReplayBuffer::Stop),
+			     InstanceMethod("start", &osn::AdvancedReplayBuffer::Start),
+			     InstanceMethod("stop", &osn::AdvancedReplayBuffer::Stop),
 
-					   InstanceMethod("save", &osn::AdvancedReplayBuffer::Save),
-					   InstanceMethod("lastFile", &osn::AdvancedReplayBuffer::GetLastFile),
+			     InstanceMethod("save", &osn::AdvancedReplayBuffer::Save),
+			     InstanceMethod("lastFile", &osn::AdvancedReplayBuffer::GetLastFile),
 
-					   StaticAccessor("legacySettings", &osn::AdvancedReplayBuffer::GetLegacySettings, &osn::AdvancedReplayBuffer::SetLegacySettings),
-					   InstanceAccessor("streaming", &osn::AdvancedReplayBuffer::GetStreaming, &osn::AdvancedReplayBuffer::SetStreaming),
-					   InstanceAccessor("recording", &osn::AdvancedReplayBuffer::GetRecording, &osn::AdvancedReplayBuffer::SetRecording)});
+			     StaticAccessor("legacySettings", &osn::AdvancedReplayBuffer::GetLegacySettings, &osn::AdvancedReplayBuffer::SetLegacySettings),
+			     InstanceAccessor("streaming", &osn::AdvancedReplayBuffer::GetStreaming, &osn::AdvancedReplayBuffer::SetStreaming),
+			     InstanceAccessor("recording", &osn::AdvancedReplayBuffer::GetRecording, &osn::AdvancedReplayBuffer::SetRecording)});
 
 	exports.Set("AdvancedReplayBuffer", func);
 	osn::AdvancedReplayBuffer::constructor = Napi::Persistent(func);

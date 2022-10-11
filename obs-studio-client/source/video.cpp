@@ -29,9 +29,11 @@ Napi::Object osn::Video::Init(Napi::Env env, Napi::Object exports)
 {
 	Napi::HandleScope scope(env);
 	Napi::Function func = DefineClass(env, "Video",
-					  {StaticAccessor("skippedFrames", &osn::Video::GetSkippedFrames, nullptr), StaticAccessor("encodedFrames", &osn::Video::GetEncodedFrames, nullptr),
+					  {StaticAccessor("skippedFrames", &osn::Video::GetSkippedFrames, nullptr),
+					   StaticAccessor("encodedFrames", &osn::Video::GetEncodedFrames, nullptr),
 
-					   StaticAccessor("videoContext", &osn::Video::GetVideoContext, &osn::Video::SetVideoContext), StaticAccessor("legacySettings", &osn::Video::GetLegacySettings, &osn::Video::SetLegacySettings)});
+					   StaticAccessor("videoContext", &osn::Video::GetVideoContext, &osn::Video::SetVideoContext),
+					   StaticAccessor("legacySettings", &osn::Video::GetLegacySettings, &osn::Video::SetLegacySettings)});
 	exports.Set("Video", func);
 	osn::Video::constructor = Napi::Persistent(func);
 	osn::Video::constructor.SuppressDestruct();

@@ -37,7 +37,8 @@ static const uint32_t grayPaddingArea = 10ul;
 std::mutex OBS::Display::m_displayMtx;
 bool OBS::Display::m_dayTheme = false;
 
-static void RecalculateApectRatioConstrainedSize(uint32_t origW, uint32_t origH, uint32_t sourceW, uint32_t sourceH, int32_t &outX, int32_t &outY, uint32_t &outW, uint32_t &outH)
+static void RecalculateApectRatioConstrainedSize(uint32_t origW, uint32_t origH, uint32_t sourceW, uint32_t sourceH, int32_t &outX, int32_t &outY,
+						 uint32_t &outW, uint32_t &outH)
 {
 	double_t sourceAR = double_t(sourceW) / double_t(sourceH);
 	double_t origAR = double_t(origW) / double_t(origH);
@@ -96,7 +97,8 @@ static void HandleWin32ErrorMessage(DWORD errorCode)
 {
 	LPSTR lpErrorStr = nullptr;
 	DWORD dwErrorStrSize = 16;
-	DWORD dwErrorStrLen = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, errorCode, LANG_USER_DEFAULT, lpErrorStr, dwErrorStrSize, NULL);
+	DWORD dwErrorStrLen = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, NULL, errorCode, LANG_USER_DEFAULT, lpErrorStr,
+					     dwErrorStrSize, NULL);
 	std::string exceptionMessage("Unexpected WinAPI error: " + std::string(lpErrorStr, dwErrorStrLen));
 	LocalFree(lpErrorStr);
 	throw std::system_error(errorCode, std::system_category(), exceptionMessage);
@@ -138,7 +140,8 @@ void OBS::Display::SystemWorker()
 				windowStyle = WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOPMOST | WS_EX_COMPOSITED;
 			}
 
-			HWND newWindow = CreateWindowEx(windowStyle, TEXT("Win32DisplayClass"), TEXT("SlobsChildWindowPreview"), WS_VISIBLE | WS_POPUP | WS_CHILD, 0, 0, question->width, question->height, NULL, NULL, NULL, this);
+			HWND newWindow = CreateWindowEx(windowStyle, TEXT("Win32DisplayClass"), TEXT("SlobsChildWindowPreview"),
+							WS_VISIBLE | WS_POPUP | WS_CHILD, 0, 0, question->width, question->height, NULL, NULL, NULL, this);
 
 			if (!newWindow) {
 				answer->success = false;
@@ -195,7 +198,8 @@ void OBS::Display::SystemWorker()
 static vec4 ConvertColorToVec4(uint32_t color)
 {
 	vec4 colorVec4;
-	vec4_set(&colorVec4, static_cast<float>(color & 0xFF) / 255.0f, static_cast<float>((color & 0xFF00) >> 8) / 255.0f, static_cast<float>((color & 0xFF0000) >> 16) / 255.0f, static_cast<float>((color & 0xFF000000) >> 24) / 255.0f);
+	vec4_set(&colorVec4, static_cast<float>(color & 0xFF) / 255.0f, static_cast<float>((color & 0xFF00) >> 8) / 255.0f,
+		 static_cast<float>((color & 0xFF0000) >> 16) / 255.0f, static_cast<float>((color & 0xFF000000) >> 24) / 255.0f);
 	return colorVec4;
 }
 
@@ -418,7 +422,8 @@ OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode,
 	question.parentWindow = (HWND)windowHandle;
 	question.width = m_gsInitData.cx;
 	question.height = m_gsInitData.cy;
-	while (!PostThreadMessage(GetThreadId(worker.native_handle()), (UINT)SystemWorkerMessage::CreateWindow, reinterpret_cast<intptr_t>(&question), reinterpret_cast<intptr_t>(&answer))) {
+	while (!PostThreadMessage(GetThreadId(worker.native_handle()), (UINT)SystemWorkerMessage::CreateWindow, reinterpret_cast<intptr_t>(&question),
+				  reinterpret_cast<intptr_t>(&answer))) {
 		Sleep(0);
 	}
 
@@ -509,7 +514,8 @@ OBS::Display::~Display()
 	DestroyWindowMessageAnswer answer;
 
 	question.window = m_ourWindow;
-	PostThreadMessage(GetThreadId(worker.native_handle()), (UINT)SystemWorkerMessage::DestroyWindow, reinterpret_cast<intptr_t>(&question), reinterpret_cast<intptr_t>(&answer));
+	PostThreadMessage(GetThreadId(worker.native_handle()), (UINT)SystemWorkerMessage::DestroyWindow, reinterpret_cast<intptr_t>(&question),
+			  reinterpret_cast<intptr_t>(&answer));
 
 	if (!answer.try_wait()) {
 		while (!answer.wait()) {
@@ -1185,7 +1191,8 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t *scene, obs_sceneitem_t *item,
 
 					for (size_t p = 0; p < len; p++) {
 						char v = buf.data()[p];
-						DrawGlyph(dp->m_textVertices, (edge[n].x / 2) - offset + (p * pt), edge[n].y - pt * 2, pt, 0, v, dp->m_guidelineColor);
+						DrawGlyph(dp->m_textVertices, (edge[n].x / 2) - offset + (p * pt), edge[n].y - pt * 2, pt, 0, v,
+							  dp->m_guidelineColor);
 					}
 				}
 			} else if (left < -0.707f) { // RIGHT
@@ -1196,7 +1203,8 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t *scene, obs_sceneitem_t *item,
 
 					for (size_t p = 0; p < len; p++) {
 						char v = buf.data()[p];
-						DrawGlyph(dp->m_textVertices, edge[n].x + (dist / 2) - offset + (p * pt), edge[n].y - pt * 2, pt, 0, v, dp->m_guidelineColor);
+						DrawGlyph(dp->m_textVertices, edge[n].x + (dist / 2) - offset + (p * pt), edge[n].y - pt * 2, pt, 0, v,
+							  dp->m_guidelineColor);
 					}
 				}
 			} else if (top > 0.707f) { // UP
@@ -1207,7 +1215,8 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t *scene, obs_sceneitem_t *item,
 
 					for (size_t p = 0; p < len; p++) {
 						char v = buf.data()[p];
-						DrawGlyph(dp->m_textVertices, edge[n].x + (p * pt) + 15, edge[n].y - (dist / 2) - pt, pt, 0, v, dp->m_guidelineColor);
+						DrawGlyph(dp->m_textVertices, edge[n].x + (p * pt) + 15, edge[n].y - (dist / 2) - pt, pt, 0, v,
+							  dp->m_guidelineColor);
 					}
 				}
 			} else if (top < -0.707f) { // DOWN
@@ -1218,7 +1227,8 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t *scene, obs_sceneitem_t *item,
 
 					for (size_t p = 0; p < len; p++) {
 						char v = buf.data()[p];
-						DrawGlyph(dp->m_textVertices, edge[n].x + (p * pt) + 15, edge[n].y + (dist / 2) - pt, pt, 0, v, dp->m_guidelineColor);
+						DrawGlyph(dp->m_textVertices, edge[n].x + (p * pt) + 15, edge[n].y + (dist / 2) - pt, pt, 0, v,
+							  dp->m_guidelineColor);
 					}
 				}
 			}
@@ -1525,7 +1535,8 @@ void OBS::Display::UpdatePreviewArea()
 	if (sourceH == 0)
 		sourceH = 1;
 
-	RecalculateApectRatioConstrainedSize(m_gsInitData.cx, m_gsInitData.cy, sourceW, sourceH, m_previewOffset.first, m_previewOffset.second, m_previewSize.first, m_previewSize.second);
+	RecalculateApectRatioConstrainedSize(m_gsInitData.cx, m_gsInitData.cy, sourceW, sourceH, m_previewOffset.first, m_previewOffset.second,
+					     m_previewSize.first, m_previewSize.second);
 
 	offsetX = m_paddingSize;
 	offsetY = float_t(offsetX) * float_t(sourceH) / float_t(sourceW);

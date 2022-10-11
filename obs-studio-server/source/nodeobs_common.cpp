@@ -157,37 +157,62 @@ void OBS_content::Register(ipc::server &srv)
 
 	cls->register_function(std::make_shared<ipc::function>("OBS_content_setDayTheme", std::vector<ipc::type>{ipc::type::UInt32}, OBS_content_setDayTheme));
 
-	cls->register_function(std::make_shared<ipc::function>("OBS_content_createDisplay", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String, ipc::type::Int32, ipc::type::UInt32}, OBS_content_createDisplay));
+	cls->register_function(std::make_shared<ipc::function>(
+		"OBS_content_createDisplay", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String, ipc::type::Int32, ipc::type::UInt32}, OBS_content_createDisplay));
 
-	cls->register_function(std::make_shared<ipc::function>("OBS_content_destroyDisplay", std::vector<ipc::type>{ipc::type::String}, OBS_content_destroyDisplay));
+	cls->register_function(
+		std::make_shared<ipc::function>("OBS_content_destroyDisplay", std::vector<ipc::type>{ipc::type::String}, OBS_content_destroyDisplay));
 
-	cls->register_function(std::make_shared<ipc::function>("OBS_content_getDisplayPreviewOffset", std::vector<ipc::type>{ipc::type::String}, OBS_content_getDisplayPreviewOffset));
+	cls->register_function(std::make_shared<ipc::function>("OBS_content_getDisplayPreviewOffset", std::vector<ipc::type>{ipc::type::String},
+							       OBS_content_getDisplayPreviewOffset));
 
-	cls->register_function(std::make_shared<ipc::function>("OBS_content_getDisplayPreviewSize", std::vector<ipc::type>{ipc::type::String}, OBS_content_getDisplayPreviewSize));
+	cls->register_function(std::make_shared<ipc::function>("OBS_content_getDisplayPreviewSize", std::vector<ipc::type>{ipc::type::String},
+							       OBS_content_getDisplayPreviewSize));
 
-	cls->register_function(std::make_shared<ipc::function>("OBS_content_createSourcePreviewDisplay", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String, ipc::type::String, ipc::type::UInt32}, OBS_content_createSourcePreviewDisplay));
+	cls->register_function(std::make_shared<ipc::function>("OBS_content_createSourcePreviewDisplay",
+							       std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String, ipc::type::String, ipc::type::UInt32},
+							       OBS_content_createSourcePreviewDisplay));
 
-	cls->register_function(std::make_shared<ipc::function>("OBS_content_resizeDisplay", std::vector<ipc::type>{ipc::type::String, ipc::type::UInt32, ipc::type::UInt32}, OBS_content_resizeDisplay));
+	cls->register_function(std::make_shared<ipc::function>(
+		"OBS_content_resizeDisplay", std::vector<ipc::type>{ipc::type::String, ipc::type::UInt32, ipc::type::UInt32}, OBS_content_resizeDisplay));
 
-	cls->register_function(std::make_shared<ipc::function>("OBS_content_moveDisplay", std::vector<ipc::type>{ipc::type::String, ipc::type::UInt32, ipc::type::UInt32}, OBS_content_moveDisplay));
+	cls->register_function(std::make_shared<ipc::function>(
+		"OBS_content_moveDisplay", std::vector<ipc::type>{ipc::type::String, ipc::type::UInt32, ipc::type::UInt32}, OBS_content_moveDisplay));
 
-	cls->register_function(std::make_shared<ipc::function>("OBS_content_setPaddingSize", std::vector<ipc::type>{ipc::type::String, ipc::type::UInt32}, OBS_content_setPaddingSize));
+	cls->register_function(std::make_shared<ipc::function>("OBS_content_setPaddingSize", std::vector<ipc::type>{ipc::type::String, ipc::type::UInt32},
+							       OBS_content_setPaddingSize));
 
-	cls->register_function(std::make_shared<ipc::function>("OBS_content_setPaddingColor", std::vector<ipc::type>{ipc::type::String, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32}, OBS_content_setPaddingColor));
+	cls->register_function(std::make_shared<ipc::function>("OBS_content_setPaddingColor",
+							       std::vector<ipc::type>{ipc::type::String, ipc::type::UInt32, ipc::type::UInt32,
+										      ipc::type::UInt32, ipc::type::UInt32},
+							       OBS_content_setPaddingColor));
 
-	cls->register_function(std::make_shared<ipc::function>("OBS_content_setBackgroundColor", std::vector<ipc::type>{ipc::type::String, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32}, OBS_content_setBackgroundColor));
+	cls->register_function(std::make_shared<ipc::function>("OBS_content_setBackgroundColor",
+							       std::vector<ipc::type>{ipc::type::String, ipc::type::UInt32, ipc::type::UInt32,
+										      ipc::type::UInt32, ipc::type::UInt32},
+							       OBS_content_setBackgroundColor));
 
-	cls->register_function(std::make_shared<ipc::function>("OBS_content_setOutlineColor", std::vector<ipc::type>{ipc::type::String, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32}, OBS_content_setOutlineColor));
+	cls->register_function(std::make_shared<ipc::function>("OBS_content_setOutlineColor",
+							       std::vector<ipc::type>{ipc::type::String, ipc::type::UInt32, ipc::type::UInt32,
+										      ipc::type::UInt32, ipc::type::UInt32},
+							       OBS_content_setOutlineColor));
 
-	cls->register_function(std::make_shared<ipc::function>("OBS_content_setCropOutlineColor", std::vector<ipc::type>{ipc::type::String, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32}, OBS_content_setCropOutlineColor));
+	cls->register_function(std::make_shared<ipc::function>("OBS_content_setCropOutlineColor",
+							       std::vector<ipc::type>{ipc::type::String, ipc::type::UInt32, ipc::type::UInt32,
+										      ipc::type::UInt32, ipc::type::UInt32},
+							       OBS_content_setCropOutlineColor));
 
-	cls->register_function(std::make_shared<ipc::function>("OBS_content_setShouldDrawUI", std::vector<ipc::type>{ipc::type::String, ipc::type::Int32}, OBS_content_setShouldDrawUI));
+	cls->register_function(std::make_shared<ipc::function>("OBS_content_setShouldDrawUI", std::vector<ipc::type>{ipc::type::String, ipc::type::Int32},
+							       OBS_content_setShouldDrawUI));
 
-	cls->register_function(std::make_shared<ipc::function>("OBS_content_setDrawGuideLines", std::vector<ipc::type>{ipc::type::String, ipc::type::Int32}, OBS_content_setDrawGuideLines));
+	cls->register_function(std::make_shared<ipc::function>("OBS_content_setDrawGuideLines", std::vector<ipc::type>{ipc::type::String, ipc::type::Int32},
+							       OBS_content_setDrawGuideLines));
 
-	cls->register_function(std::make_shared<ipc::function>("OBS_content_setDrawRotationHandle", std::vector<ipc::type>{ipc::type::String, ipc::type::Int32}, OBS_content_setDrawRotationHandle));
+	cls->register_function(std::make_shared<ipc::function>("OBS_content_setDrawRotationHandle", std::vector<ipc::type>{ipc::type::String, ipc::type::Int32},
+							       OBS_content_setDrawRotationHandle));
 
-	cls->register_function(std::make_shared<ipc::function>("OBS_content_createIOSurface", std::vector<ipc::type>{ipc::type::String}, OBS_content_createIOSurface));
+	cls->register_function(
+		std::make_shared<ipc::function>("OBS_content_createIOSurface", std::vector<ipc::type>{ipc::type::String}, OBS_content_createIOSurface));
 
 	srv.register_collection(cls);
 	g_srv = &srv;

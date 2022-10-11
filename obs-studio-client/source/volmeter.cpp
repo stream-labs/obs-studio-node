@@ -79,7 +79,8 @@ Napi::Value osn::Volmeter::Create(const Napi::CallbackInfo &info)
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
 
-	auto instance = osn::Volmeter::constructor.New({Napi::Number::New(info.Env(), response[1].value_union.ui64), Napi::Number::New(info.Env(), response[2].value_union.ui32)});
+	auto instance = osn::Volmeter::constructor.New(
+		{Napi::Number::New(info.Env(), response[1].value_union.ui64), Napi::Number::New(info.Env(), response[2].value_union.ui32)});
 	return instance;
 }
 

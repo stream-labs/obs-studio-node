@@ -25,7 +25,8 @@
 void osn::Properties::Register(ipc::server &srv)
 {
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Properties");
-	cls->register_function(std::make_shared<ipc::function>("Modified", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String, ipc::type::String}, Modified));
+	cls->register_function(
+		std::make_shared<ipc::function>("Modified", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String, ipc::type::String}, Modified));
 	cls->register_function(std::make_shared<ipc::function>("Clicked", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String}, Clicked));
 	srv.register_collection(cls);
 }
