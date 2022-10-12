@@ -216,9 +216,6 @@ OBS::Display::Display()
 #elif defined(__linux__) || defined(__FreeBSD__)
 #endif
 
-#ifdef WIN32
-	worker = std::thread(std::bind(&OBS::Display::SystemWorker, this));
-#endif
 	m_gsInitData.adapter = 0;
 	m_gsInitData.cx = 0;
 	m_gsInitData.cy = 0;
@@ -410,6 +407,12 @@ OBS::Display::Display()
 	m_rotationHandleColorVec4 = ConvertColorToVec4(m_rotationHandleColor);
 
 	UpdatePreviewArea();
+
+	// Start it at the end to avoid stopping it in
+	// an intermediary catch when the code above throws an exception.
+#ifdef WIN32
+	worker = std::thread(std::bind(&OBS::Display::SystemWorker, this));
+#endif
 }
 
 OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode, bool renderAtBottom) : Display()

@@ -268,34 +268,42 @@ void OBS_content::OBS_content_createDisplay(void *data, const int64_t id, const 
 		break;
 	}
 
+	try {
 #ifdef WIN32
-	displays.insert_or_assign(args[1].value_str, new OBS::Display(windowHandle, mode, args[3].value_union.ui32));
-	if (!IsWindows8OrGreater()) {
-		BOOL enabled = FALSE;
-		DwmIsCompositionEnabled(&enabled);
-		if (!enabled && firstDisplayCreation) {
-			windowMessage = new std::thread(popupAeroDisabledWindow);
+		displays.insert_or_assign(args[1].value_str, new OBS::Display(windowHandle, mode, args[3].value_union.ui32));
+		if (!IsWindows8OrGreater()) {
+			BOOL enabled = FALSE;
+			DwmIsCompositionEnabled(&enabled);
+			if (!enabled && firstDisplayCreation) {
+				windowMessage = new std::thread(popupAeroDisabledWindow);
+			}
 		}
-	}
 #else
-	OBS::Display *display = new OBS::Display(windowHandle, mode, args[3].value_union.i32);
-	displays.insert_or_assign(args[1].value_str, display);
+		OBS::Display *display = new OBS::Display(windowHandle, mode, args[3].value_union.i32);
+		displays.insert_or_assign(args[1].value_str, display);
 #endif
 
-	// device rebuild functionality available only with D3D
+		// device rebuild functionality available only with D3D
 #ifdef _WIN32
-	if (firstDisplayCreation) {
-		obs_enter_graphics();
+		if (firstDisplayCreation) {
+			obs_enter_graphics();
 
-		gs_device_loss callbacks;
-		callbacks.device_loss_release = &OnDeviceLost;
-		callbacks.device_loss_rebuild = &OnDeviceRebuilt;
-		callbacks.data = nullptr;
+			gs_device_loss callbacks;
+			callbacks.device_loss_release = &OnDeviceLost;
+			callbacks.device_loss_rebuild = &OnDeviceRebuilt;
+			callbacks.data = nullptr;
 
-		gs_register_loss_callbacks(&callbacks);
-		obs_leave_graphics();
-	}
+			gs_register_loss_callbacks(&callbacks);
+			obs_leave_graphics();
+		}
 #endif
+	} catch (const std::exception& e) {
+		std::string message(std::string("Display creation failed: ") + e.what());
+		std::cerr << message << std::endl;
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
+		rval.push_back(ipc::value(message));
+		return;
+	}
 
 	firstDisplayCreation = false;
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -353,8 +361,16 @@ void OBS_content::OBS_content_createSourcePreviewDisplay(void *data, const int64
 		return;
 	}
 
-	OBS::Display *display = new OBS::Display(windowHandle, OBS_MAIN_VIDEO_RENDERING, args[1].value_str, args[3].value_union.ui32);
-	displays.insert_or_assign(args[2].value_str, display);
+	try {
+		OBS::Display *display = new OBS::Display(windowHandle, OBS_MAIN_VIDEO_RENDERING, args[1].value_str, args[3].value_union.ui32);
+		displays.insert_or_assign(args[2].value_str, display);
+	} catch (const std::exception& e) {
+		std::string message(std::string("Source preview display creation failed: ") + e.what());
+		std::cerr << message << std::endl;
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
+		rval.push_back(ipc::value(message));
+		return;
+	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
