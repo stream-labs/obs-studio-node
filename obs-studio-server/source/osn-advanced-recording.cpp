@@ -29,16 +29,19 @@ void osn::IAdvancedRecording::Register(ipc::server& srv)
         "Create", std::vector<ipc::type>{}, Create));
     cls->register_function(std::make_shared<ipc::function>(
         "Destroy", std::vector<ipc::type>{ipc::type::UInt64}, Destroy));
-	cls->register_function(
-	    std::make_shared<ipc::function>("GetVideoEncoder", std::vector<ipc::type>{ipc::type::UInt64}, GetVideoEncoder));
-	cls->register_function(std::make_shared<ipc::function>(
-	    "SetVideoEncoder", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64}, SetVideoEncoder));
+    cls->register_function(std::make_shared<ipc::function>(
+        "GetVideoEncoder",
+        std::vector<ipc::type>{ipc::type::UInt64},
+        GetVideoEncoder));
+    cls->register_function(std::make_shared<ipc::function>(
+        "SetVideoEncoder",
+        std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64},
+        SetVideoEncoder));
 	cls->register_function(
 	    std::make_shared<ipc::function>("GetVideoCanvas", std::vector<ipc::type>{ipc::type::UInt64}, GetVideoCanvas));
 	cls->register_function(std::make_shared<ipc::function>(
 	    "SetVideoCanvas", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64}, SetVideoCanvas));
-    cls->register_function(
-	    std::make_shared<ipc::function>(
+    cls->register_function(std::make_shared<ipc::function>(
         "GetMixer",
         std::vector<ipc::type>{ipc::type::UInt64},
         GetMixer));
@@ -96,6 +99,50 @@ void osn::IAdvancedRecording::Register(ipc::server& srv)
         "SetStreaming",
         std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64},
         SetStreaming));
+    cls->register_function(std::make_shared<ipc::function>(
+        "SplitFile",
+        std::vector<ipc::type>{ipc::type::UInt64},
+        SplitFile));
+    cls->register_function(std::make_shared<ipc::function>(
+        "GetEnableFileSplit",
+        std::vector<ipc::type>{ipc::type::UInt64},
+        GetEnableFileSplit));
+    cls->register_function(std::make_shared<ipc::function>(
+        "SetEnableFileSplit",
+        std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32},
+        SetEnableFileSplit));
+    cls->register_function(std::make_shared<ipc::function>(
+        "GetSplitType",
+        std::vector<ipc::type>{ipc::type::UInt64},
+        GetSplitType));
+    cls->register_function(std::make_shared<ipc::function>(
+        "SetSplitType",
+        std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32},
+        SetSplitType));
+    cls->register_function(std::make_shared<ipc::function>(
+        "GetSplitTime",
+        std::vector<ipc::type>{ipc::type::UInt64},
+        GetSplitTime));
+    cls->register_function(std::make_shared<ipc::function>(
+        "SetSplitTime",
+        std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32},
+        SetSplitTime));
+    cls->register_function(std::make_shared<ipc::function>(
+        "GetSplitSize",
+        std::vector<ipc::type>{ipc::type::UInt64},
+        GetSplitSize));
+    cls->register_function(std::make_shared<ipc::function>(
+        "SetSplitSize",
+        std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32},
+        SetSplitSize));
+    cls->register_function(std::make_shared<ipc::function>(
+        "GetFileResetTimestamps",
+        std::vector<ipc::type>{ipc::type::UInt64},
+        GetFileResetTimestamps));
+    cls->register_function(std::make_shared<ipc::function>(
+        "SetFileResetTimestamps",
+        std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32},
+        SetFileResetTimestamps));
 
     srv.register_collection(cls);
 }
@@ -336,9 +383,7 @@ void osn::IAdvancedRecording::Start(
         path += "/";
 
     path += GenerateSpecifiedFilename(
-	    recording->format,
-	    recording->noSpace,
-	    recording->fileFormat,
+        recording->format, recording->noSpace, recording->fileFormat,
 	    recording->canvas->base_width,
 	    recording->canvas->base_height);
 
@@ -351,6 +396,9 @@ void osn::IAdvancedRecording::Start(
         "muxer_settings", recording->muxerSettings.c_str());
     obs_output_update(recording->output, settings);
     obs_data_release(settings);
+
+    if (recording->enableFileSplit)
+        recording->ConfigureRecFileSplitting();
 
     recording->startOutput();
 
@@ -542,6 +590,24 @@ void osn::IAdvancedRecording::GetLegacySettings(
             allocate(recording->videoEncoder);
     }
 
+    recording->enableFileSplit =
+        config_get_bool(ConfigManager::getInstance().getBasic(), "AdvOut", "RecSplitFile");
+    const char* splitFileType =
+        config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "RecSplitFileType");
+    if (strcmp(splitFileType, "Time") == 0)
+        recording->splitType = SplitFileType::TIME;
+    else if (strcmp(splitFileType, "Size") == 0)
+        recording->splitType = SplitFileType::SIZE;
+    else
+        recording->splitType = SplitFileType::MANUAL;
+
+    recording->splitTime =
+        config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "RecSplitFileTime");
+    recording->splitSize =
+        config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "RecSplitFileSize");
+    recording->fileResetTimestamps =
+        config_get_bool(ConfigManager::getInstance().getBasic(), "AdvOut", "RecSplitFileResetTimestamps");
+
     uint64_t uid =
         osn::IAdvancedRecording::Manager::GetInstance().allocate(recording);
     if (uid == UINT64_MAX) {
@@ -622,6 +688,41 @@ void osn::IAdvancedRecording::SetLegacySettings(
 	    }
         obs_data_release(settings);
     }
+
+    config_set_bool(
+        ConfigManager::getInstance().getBasic(), "AdvOut",
+        "RecSplitFile", recording->enableFileSplit);
+
+    switch(recording->splitType) {
+        case SplitFileType::TIME: {
+            config_set_string(
+                ConfigManager::getInstance().getBasic(), "AdvOut",
+                "RecSplitFileType", "Time");
+            break;
+        }
+        case SplitFileType::SIZE: {
+            config_set_string(
+                ConfigManager::getInstance().getBasic(), "AdvOut",
+                "RecSplitFileType", "Size");
+            break;
+        }
+        default: {
+            config_set_string(
+                ConfigManager::getInstance().getBasic(), "AdvOut",
+                "RecSplitFileType", "Manual");
+            break;
+        }
+    }
+
+    config_set_int(
+        ConfigManager::getInstance().getBasic(), "AdvOut",
+        "RecSplitFileTime", recording->splitTime);
+    config_set_int(
+        ConfigManager::getInstance().getBasic(), "AdvOut",
+        "RecSplitFileSize", recording->splitSize);
+    config_set_bool(
+        ConfigManager::getInstance().getBasic(), "AdvOut",
+        "RecSplitFileResetTimestamps", recording->fileResetTimestamps);
 
     config_save_safe(
         ConfigManager::getInstance().getBasic(), "tmp", nullptr);

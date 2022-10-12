@@ -106,7 +106,8 @@ export declare const enum EPathType {
 export declare const enum ETextType {
     Default = 0,
     Password = 1,
-    Multiline = 2
+    Multiline = 2,
+    TextInfo = 3
 }
 export declare const enum ENumberType {
     Scroller = 0,
@@ -274,6 +275,11 @@ export declare const enum EVcamInstalledStatus {
     NotInstalled = 0,
     LegacyInstalled = 1,
     Installed = 2
+}
+export declare const enum ERecSplitType {
+    Time = 0,
+    Size = 1,
+    Manual = 2
 }
 export declare const Global: IGlobal;
 export declare const Video: IVideo;
@@ -817,9 +823,15 @@ export interface IFileOutput {
 }
 export interface IRecording extends IFileOutput {
     videoEncoder: IVideoEncoder;
+    enableFileSplit: boolean;
+    splitType: ERecSplitType;
+    splitTime: number;
+    splitSize: number;
+    fileResetTimestamps: boolean;
     signalHandler: (signal: EOutputSignal) => void;
     start(): void;
     stop(force?: boolean): void;
+    splitFile(): void;
 }
 export interface ISimpleRecording extends IRecording {
     quality: ERecordingQuality;

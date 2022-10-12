@@ -148,9 +148,7 @@ void osn::ReplayBuffer::SetSignalHandler(const Napi::CallbackInfo& info, const N
     if (cb.IsNull() || !cb.IsFunction())
         return;
 
-    if (isWorkerRunning) {
-        stopWorker();
-    }
+    stopWorker();
 
     this->cb = Napi::Persistent(cb);
     this->cb.SuppressDestruct();
@@ -161,10 +159,7 @@ void osn::ReplayBuffer::Start(const Napi::CallbackInfo& info) {
     if (!conn)
         return;
 
-    if (!isWorkerRunning) {
-        startWorker(info.Env(), this->cb.Value(), className, this->uid);
-        isWorkerRunning = true;
-    }
+    startWorker(info.Env(), this->cb.Value(), className, this->uid);
 
     conn->call(className, "Start", {ipc::value(this->uid)});
 }

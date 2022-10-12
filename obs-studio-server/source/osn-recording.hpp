@@ -24,6 +24,11 @@
 
 namespace osn
 {
+    enum SplitFileType: uint32_t {
+        TIME,
+        SIZE,
+        MANUAL
+    };
 
     class Recording: public FileOutput
     {
@@ -36,28 +41,95 @@ namespace osn
                 "stopping",
                 "wrote"
             };
+            enableFileSplit = false;
+            splitType = SplitFileType::TIME;
+            splitTime = 15;
+            splitSize = 2048;
+            fileResetTimestamps = true;
         }
         virtual ~Recording();
 
         public:
         obs_encoder_t* videoEncoder;
+        bool enableFileSplit;
+        enum SplitFileType splitType;
+        uint32_t splitTime;
+        uint32_t splitSize;
+        bool fileResetTimestamps;
+
+        void ConfigureRecFileSplitting();
     };
 
     class IRecording: public IFileOutput
     {
         public:
-		static void GetVideoEncoder(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void SetVideoEncoder(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
+        static void GetVideoEncoder(
+            void*                          data,
+            const int64_t                  id,
+            const std::vector<ipc::value>& args,
+            std::vector<ipc::value>&       rval);
+        static void SetVideoEncoder(
+            void*                          data,
+            const int64_t                  id,
+            const std::vector<ipc::value>& args,
+            std::vector<ipc::value>&       rval);
 
         static void Query(
+            void*                          data,
+            const int64_t                  id,
+            const std::vector<ipc::value>& args,
+            std::vector<ipc::value>&       rval);
+        static void SplitFile(
+            void*                          data,
+            const int64_t                  id,
+            const std::vector<ipc::value>& args,
+            std::vector<ipc::value>&       rval);
+        static void GetEnableFileSplit(
+            void*                          data,
+            const int64_t                  id,
+            const std::vector<ipc::value>& args,
+            std::vector<ipc::value>&       rval);
+        static void SetEnableFileSplit(
+            void*                          data,
+            const int64_t                  id,
+            const std::vector<ipc::value>& args,
+            std::vector<ipc::value>&       rval);
+        static void GetSplitType(
+            void*                          data,
+            const int64_t                  id,
+            const std::vector<ipc::value>& args,
+            std::vector<ipc::value>&       rval);
+        static void SetSplitType(
+            void*                          data,
+            const int64_t                  id,
+            const std::vector<ipc::value>& args,
+            std::vector<ipc::value>&       rval);
+        static void GetSplitTime(
+            void*                          data,
+            const int64_t                  id,
+            const std::vector<ipc::value>& args,
+            std::vector<ipc::value>&       rval);
+        static void SetSplitTime(
+            void*                          data,
+            const int64_t                  id,
+            const std::vector<ipc::value>& args,
+            std::vector<ipc::value>&       rval);
+        static void GetSplitSize(
+            void*                          data,
+            const int64_t                  id,
+            const std::vector<ipc::value>& args,
+            std::vector<ipc::value>&       rval);
+        static void SetSplitSize(
+            void*                          data,
+            const int64_t                  id,
+            const std::vector<ipc::value>& args,
+            std::vector<ipc::value>&       rval);
+        static void GetFileResetTimestamps(
+            void*                          data,
+            const int64_t                  id,
+            const std::vector<ipc::value>& args,
+            std::vector<ipc::value>&       rval);
+        static void SetFileResetTimestamps(
             void*                          data,
             const int64_t                  id,
             const std::vector<ipc::value>& args,

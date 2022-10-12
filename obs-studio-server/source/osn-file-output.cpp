@@ -119,6 +119,7 @@ void osn::IFileOutput::SetPath(
     AUTO_DEBUG;
 }
 
+
 void osn::IFileOutput::GetVideoCanvas(
     void*                          data,
     const int64_t                  id,
@@ -158,7 +159,6 @@ void osn::IFileOutput::SetVideoCanvas(
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }
-
 
 void osn::IFileOutput::GetFormat(
     void*                          data,
@@ -357,6 +357,7 @@ void osn::IFileOutput::GetLastFile(
 
     rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
     rval.push_back(ipc::value(path));
+    calldata_free(&cd);
 }
 
 osn::IFileOutput::Manager& osn::IFileOutput::Manager::GetInstance()

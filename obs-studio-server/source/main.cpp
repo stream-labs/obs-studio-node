@@ -225,7 +225,9 @@ int main(int argc, char* argv[])
     sd.last_disconnect = sd.last_connect = std::chrono::high_resolution_clock::now();
     sd.count_connected                   = 0;
     OBS_API::SetCrashHandlerPipe(std::wstring(socketPath.begin(), socketPath.end()));
-    Sleep(12000);
+
+    Sleep(10000);
+
     // Classes
     /// System
     {

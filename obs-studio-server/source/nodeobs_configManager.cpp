@@ -65,6 +65,7 @@ void initGlobalDefault(config_t* config)
 	config_set_default_bool(config, "General", "BrowserHWAccel", true);
 	config_set_default_bool(config, "General", "fileCaching", true);
 	config_set_default_string(config, "General", "ProcessPriority", "Normal");
+	config_set_default_bool(config, "Audio", "LowLatencyAudioBuffering", false);
 
 	config_save_safe(config, "tmp", nullptr);
 }
@@ -225,7 +226,6 @@ void initBasicDefault(config_t* config)
 
 	config_set_default_uint(config, "Video", "OutputCX", scale_cx);
 	config_set_default_uint(config, "Video", "OutputCY", scale_cy);
-	config_set_default_uint(config, "Video", "Canvases", 1);
 
 	/* don't allow OutputCX/OutputCY to be susceptible to defaults
 	* changing */

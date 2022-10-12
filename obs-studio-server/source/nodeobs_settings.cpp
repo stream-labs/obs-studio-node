@@ -2390,9 +2390,9 @@ void OBS_settings::getStandardRecordingSettings(
 	memcpy(recSplitFile.currentValue.data(), &recSplitFileVal, sizeof(recSplitFileVal));
 	recSplitFile.sizeOfCurrentValue = sizeof(recSplitFileVal);
 
-	recRescale.visible = true;
-	recRescale.enabled = isCategoryEnabled;
-	recRescale.masked  = false;
+	recSplitFile.visible = true;
+	recSplitFile.enabled = isCategoryEnabled;
+	recSplitFile.masked  = false;
 
 	subCategoryParameters->params.push_back(recSplitFile);
 
@@ -2441,6 +2441,8 @@ void OBS_settings::getStandardRecordingSettings(
 	recSplitFileType.sizeOfValues = recSplitFileType.values.size();
 	recSplitFileType.countValues  = recSplitFileTypeValues.size();
 	recSplitFileType.visible = recSplitFileVal;
+	recSplitFileType.enabled = isCategoryEnabled;
+	recSplitFileType.masked  = false;
 
 	subCategoryParameters->params.push_back(recSplitFileType);
 

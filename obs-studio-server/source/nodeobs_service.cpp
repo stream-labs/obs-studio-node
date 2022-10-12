@@ -492,6 +492,7 @@ int OBS_service::resetVideoContext(bool reload, bool retryWithDefaultConf)
 		obs_set_video_levels(sdr_white_level, hdr_nominal_peak_level);
 	}
 
+
 	return errorcode;
 }
 
@@ -1231,7 +1232,6 @@ void LoadRecordingPreset_Lossy(const char *encoderId)
 		encoderId, "simple_video_recording", nullptr, nullptr);
 	if (!videoRecordingEncoder)
 		throw "Failed to create video recording encoder (simple output)";
-
 }
 
 const char *get_simple_output_encoder(const char *encoder)
@@ -2645,6 +2645,7 @@ void OBS_service::OBS_service_getLastReplay(
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(path));
+	calldata_free(&cd);
 }
 
 void OBS_service::OBS_service_getLastRecording(
@@ -2669,6 +2670,25 @@ void OBS_service::OBS_service_getLastRecording(
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(path));
+	calldata_free(&cd);
+}
+
+void OBS_service::OBS_service_splitFile(
+    void*                          data,
+    const int64_t                  id,
+    const std::vector<ipc::value>& args,
+    std::vector<ipc::value>&       rval)
+{
+	if (!recordingOutput) {
+		PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Invalid recording ouput.");
+	}
+
+	calldata_t cd = {0};
+
+	proc_handler_t* ph = obs_output_get_proc_handler(recordingOutput);
+	proc_handler_call(ph, "split_file", &cd);
+	calldata_free(&cd);
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 }
 
 void OBS_service::OBS_service_splitFile(

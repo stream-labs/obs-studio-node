@@ -51,4 +51,14 @@ namespace api
     void SetProcessPriority(const Napi::CallbackInfo& info);
     Napi::Value GetProcessPriorityLegacy(const Napi::CallbackInfo& info);
     Napi::Value OBS_API_forceCrash(const Napi::CallbackInfo& info);
+
+    Napi::Value GetSdrWhiteLevel(const Napi::CallbackInfo& info);
+    void SetSdrWhiteLevel(const Napi::CallbackInfo& info);
+    Napi::Value GetSdrWhiteLevelLegacy(const Napi::CallbackInfo& info);
+    Napi::Value GetHdrNominalPeakLevel(const Napi::CallbackInfo& info);
+    void SetHdrNominalPeakLevel(const Napi::CallbackInfo& info);
+    Napi::Value GetHdrNominalPeakLevelLegacy(const Napi::CallbackInfo& info);
+    Napi::Value GetLowLatencyAudioBuffering(const Napi::CallbackInfo& info);
+    void SetLowLatencyAudioBuffering(const Napi::CallbackInfo& info);
+    Napi::Value GetLowLatencyAudioBufferingLegacy(const Napi::CallbackInfo& info);
 }

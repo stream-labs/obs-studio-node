@@ -160,7 +160,7 @@ Napi::Value osn::Video::get(const Napi::CallbackInfo& info)
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
 
-	if (response.size() != 11)
+    if (response.size() != 11)
 		return info.Env().Undefined();
 
     Napi::Object video = Napi::Object::New(info.Env());

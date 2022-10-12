@@ -292,7 +292,7 @@ void osn::ISimpleStreaming::SetCustomEncSettings(
 static constexpr int kSoundtrackArchiveEncoderIdx = 1;
 static constexpr int kSoundtrackArchiveTrackIdx = 5;
 
-static inline uint32_t setMixer(obs_source_t *source, const int mixerIdx, const bool checked)
+static uint32_t setMixer(obs_source_t *source, const int mixerIdx, const bool checked)
 {
     uint32_t mixers = obs_source_get_audio_mixers(source);
     uint32_t new_mixers = mixers;
@@ -305,7 +305,7 @@ static inline uint32_t setMixer(obs_source_t *source, const int mixerIdx, const 
     return mixers;
 }
 
-static inline void SetupTwitchSoundtrackAudio(osn::SimpleStreaming* streaming)
+static void SetupTwitchSoundtrackAudio(osn::SimpleStreaming* streaming)
 {
     // These are magic ints provided by OBS for default sources:
     // 0 is the main scene/transition which you'd see on the main preview,
@@ -353,7 +353,7 @@ static inline void SetupTwitchSoundtrackAudio(osn::SimpleStreaming* streaming)
     obs_data_release(settings);
 }
 
-static inline void StopTwitchSoundtrackAudio(osn::Streaming* streaming)
+static void StopTwitchSoundtrackAudio(osn::Streaming* streaming)
 {
     if (streaming->streamArchive) {
         obs_encoder_release(streaming->streamArchive);

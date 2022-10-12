@@ -147,7 +147,8 @@ export const enum EPathType {
 export const enum ETextType {
     Default,
     Password,
-    Multiline
+    Multiline,
+    TextInfo
 }
 
 export const enum ENumberType {
@@ -351,6 +352,12 @@ export const enum EVcamInstalledStatus {
     NotInstalled = 0,
     LegacyInstalled = 1,
     Installed = 2
+}
+
+export const enum ERecSplitType {
+    Time = 0,
+    Size = 1,
+    Manual = 2
 }
 
 export const Global: IGlobal = obs.Global;
@@ -1402,7 +1409,7 @@ export interface IDisplay {
 }
 
 /**
- * This represents a video_t structure from within libobs
+ * This represents a obs_video_info structure from within libobs
  */
 export interface IVideoInfo {
     fpsNum: number;
@@ -1689,9 +1696,15 @@ export interface IFileOutput {
 
 export interface IRecording extends IFileOutput {
     videoEncoder: IVideoEncoder,
+    enableFileSplit: boolean,
+    splitType: ERecSplitType,
+    splitTime: number,
+    splitSize: number,
+    fileResetTimestamps: boolean,
     signalHandler: (signal: EOutputSignal) => void,
     start(): void,
-    stop(force?: boolean): void
+    stop(force?: boolean): void,
+    splitFile(): void
 }
 
 export interface ISimpleRecording extends IRecording {

@@ -52,9 +52,10 @@ class WorkerSignals
 
     void startWorker(napi_env env, Napi::Function asyncCallback,
         const std::string& name, const uint64_t& refID) {
-        if (!workerStop)
+        if (!workerStop || isWorkerRunning)
             return;
 
+        isWorkerRunning = true;
         workerStop = false;
         jsThread = Napi::ThreadSafeFunction::New(
             env,
@@ -141,17 +142,15 @@ class WorkerSignals
             std::this_thread::sleep_for(std::chrono::milliseconds(totalSleepMS));
         }
 
-        for (auto & signalData : signalsList) {
-            delete signalData;
-        }
         return;
     }
 
     void stopWorker(void) {
-        if (workerStop)
+        if (workerStop || !isWorkerRunning)
             return;
 
         workerStop = true;
+        isWorkerRunning = false;
         if (workerThread->joinable()) {
             workerThread->join();
         }

@@ -84,6 +84,26 @@ Napi::Object osn::SimpleRecording::Init(Napi::Env env, Napi::Object exports) {
                 "streaming",
                 &osn::SimpleRecording::GetStreaming,
                 &osn::SimpleRecording::SetStreaming),
+            InstanceAccessor(
+                "enableFileSplit",
+                &osn::SimpleRecording::GetEnableFileSplit,
+                &osn::SimpleRecording::SetEnableFileSplit),
+            InstanceAccessor(
+                "splitType",
+                &osn::SimpleRecording::GetSplitType,
+                &osn::SimpleRecording::SetSplitType),
+            InstanceAccessor(
+                "splitTime",
+                &osn::SimpleRecording::GetSplitTime,
+                &osn::SimpleRecording::SetSplitTime),
+            InstanceAccessor(
+                "splitSize",
+                &osn::SimpleRecording::GetSplitSize,
+                &osn::SimpleRecording::SetSplitSize),
+            InstanceAccessor(
+                "fileResetTimestamps",
+                &osn::SimpleRecording::GetFileResetTimestamps,
+                &osn::SimpleRecording::SetFileResetTimestamps),
 	        InstanceAccessor(
                 "video",
                 &osn::SimpleRecording::GetCanvas,
@@ -91,6 +111,7 @@ Napi::Object osn::SimpleRecording::Init(Napi::Env env, Napi::Object exports) {
 
             InstanceMethod("start", &osn::SimpleRecording::Start),
             InstanceMethod("stop", &osn::SimpleRecording::Stop),
+            InstanceMethod("splitFile", &osn::SimpleRecording::SplitFile),
 
             StaticAccessor(
                 "legacySettings",

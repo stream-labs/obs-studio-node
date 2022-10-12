@@ -49,6 +49,11 @@ class OBS_content
 
 	static void Register(ipc::server&);
 
+	static void OBS_content_setDayTheme(
+	    void*                          data,
+	    const int64_t                  id,
+	    const std::vector<ipc::value>& args,
+	    std::vector<ipc::value>&       rval);
 	static void OBS_content_createDisplay(
 	    void*                          data,
 	    const int64_t                  id,
@@ -101,6 +106,11 @@ class OBS_content
 	    const std::vector<ipc::value>& args,
 	    std::vector<ipc::value>&       rval);
 	static void OBS_content_setOutlineColor(
+	    void*                          data,
+	    const int64_t                  id,
+	    const std::vector<ipc::value>& args,
+	    std::vector<ipc::value>&       rval);
+	static void OBS_content_setCropOutlineColor(
 	    void*                          data,
 	    const int64_t                  id,
 	    const std::vector<ipc::value>& args,

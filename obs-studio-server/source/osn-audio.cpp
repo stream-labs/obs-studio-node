@@ -56,7 +56,7 @@ void osn::Audio::GetAudioContext(
     AUTO_DEBUG;
 }
 
-static inline const char* GetSpeakers(enum speaker_layout speakers)
+static const char* GetSpeakers(enum speaker_layout speakers)
 {
     switch (speakers) {
         case SPEAKERS_UNKNOWN:
@@ -80,7 +80,7 @@ static inline const char* GetSpeakers(enum speaker_layout speakers)
     }
 }
 
-static inline enum speaker_layout GetSpeakersFromStr(const std::string& value)
+static enum speaker_layout GetSpeakersFromStr(const std::string& value)
 {
     if (value.compare("Unknown") == 0)
         return SPEAKERS_UNKNOWN;
@@ -129,7 +129,7 @@ void osn::Audio::SetAudioContext(
     AUTO_DEBUG;
 }
 
-static inline void SaveAudioSettings(obs_audio_info audio)
+static void SaveAudioSettings(obs_audio_info audio)
 {
     config_set_uint(
         ConfigManager::getInstance().getBasic(),
