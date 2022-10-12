@@ -49,9 +49,6 @@ obs_encoder_t *aacTracks[MAX_AUDIO_MIXES];
 std::string aacEncodersID[MAX_AUDIO_MIXES];
 obs_video_info *base_canvas = nullptr;
 
-obs_encoder_t *aacTracks[MAX_AUDIO_MIXES];
-std::string aacEncodersID[MAX_AUDIO_MIXES];
-
 std::string aacSimpleRecEncID;
 std::string aacStreamEncID;
 
@@ -2545,20 +2542,6 @@ void OBS_service::OBS_service_splitFile(void *data, const int64_t id, const std:
 	proc_handler_t *ph = obs_output_get_proc_handler(recordingOutput);
 	proc_handler_call(ph, "split_file", &cd);
 	calldata_free(&cd);
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-}
-
-void OBS_service::OBS_service_splitFile(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
-{
-	if (!recordingOutput) {
-		PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Invalid recording ouput.");
-	}
-
-	calldata_t cd = {0};
-
-	proc_handler_t *ph = obs_output_get_proc_handler(recordingOutput);
-	proc_handler_call(ph, "split_file", &cd);
-
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 }
 

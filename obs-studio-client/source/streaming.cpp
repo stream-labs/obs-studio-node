@@ -57,25 +57,25 @@ void osn::Streaming::SetService(const Napi::CallbackInfo &info, const Napi::Valu
 	conn->call(className, "SetService", {ipc::value(this->uid), ipc::value(service->uid)});
 }
 
-Napi::Value osn::Streaming::GetCanvas(const Napi::CallbackInfo& info)
+Napi::Value osn::Streaming::GetCanvas(const Napi::CallbackInfo &info)
 {
 	auto conn = GetConnection(info);
 	if (!conn)
 		return info.Env().Undefined();
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper(className, "GetVideoCanvas", { ipc::value(this->uid) });
+	std::vector<ipc::value> response = conn->call_synchronous_helper(className, "GetVideoCanvas", {ipc::value(this->uid)});
 
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
 
-	auto instance = osn::Video::constructor.New({ Napi::Number::New(info.Env(), response[1].value_union.ui64) });
+	auto instance = osn::Video::constructor.New({Napi::Number::New(info.Env(), response[1].value_union.ui64)});
 
 	return instance;
 }
 
-void osn::Streaming::SetCanvas(const Napi::CallbackInfo& info, const Napi::Value& value)
+void osn::Streaming::SetCanvas(const Napi::CallbackInfo &info, const Napi::Value &value)
 {
-	osn::Video* canvas = Napi::ObjectWrap<osn::Video>::Unwrap(value.ToObject());
+	osn::Video *canvas = Napi::ObjectWrap<osn::Video>::Unwrap(value.ToObject());
 
 	if (!canvas) {
 		Napi::TypeError::New(info.Env(), "Invalid canvas argument").ThrowAsJavaScriptException();
@@ -86,7 +86,7 @@ void osn::Streaming::SetCanvas(const Napi::CallbackInfo& info, const Napi::Value
 	if (!conn)
 		return;
 
-	conn->call(className, "SetVideoContext", { ipc::value(this->uid), ipc::value(canvas->canvasId) });
+	conn->call(className, "SetVideoContext", {ipc::value(this->uid), ipc::value(canvas->canvasId)});
 }
 Napi::Value osn::Streaming::GetVideoEncoder(const Napi::CallbackInfo &info)
 {
