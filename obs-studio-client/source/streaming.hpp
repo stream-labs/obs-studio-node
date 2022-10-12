@@ -20,39 +20,36 @@
 #include <napi.h>
 #include "worker-signals.hpp"
 
-namespace osn
-{
-    class Streaming :
-        public WorkerSignals
-    {
-        public:
-        uint64_t uid;
-        Streaming(): WorkerSignals() {};
+namespace osn {
+class Streaming : public WorkerSignals {
+public:
+	uint64_t uid;
+	Streaming() : WorkerSignals(){};
 
-        protected:
-        Napi::Function signalHandler;
-        std::string className;
+protected:
+	Napi::Function signalHandler;
+	std::string className;
 
-        Napi::Value GetService(const Napi::CallbackInfo& info);
-        void SetService(const Napi::CallbackInfo& info, const Napi::Value& value);
-        Napi::Value GetCanvas(const Napi::CallbackInfo& info);
-        void SetCanvas(const Napi::CallbackInfo& info, const Napi::Value& value);
-        Napi::Value GetVideoEncoder(const Napi::CallbackInfo& info);
-        void SetVideoEncoder(const Napi::CallbackInfo& info, const Napi::Value& value);
-        Napi::Value GetEnforceServiceBirate(const Napi::CallbackInfo& info);
-        void SetEnforceServiceBirate(const Napi::CallbackInfo& info, const Napi::Value& value);
-        Napi::Value GetEnableTwitchVOD(const Napi::CallbackInfo& info);
-        void SetEnableTwitchVOD(const Napi::CallbackInfo& info, const Napi::Value& value);
-        Napi::Value GetDelay(const Napi::CallbackInfo& info);
-        void SetDelay(const Napi::CallbackInfo& info, const Napi::Value& value);
-        Napi::Value GetReconnect(const Napi::CallbackInfo& info);
-        void SetReconnect(const Napi::CallbackInfo& info, const Napi::Value& value);
-        Napi::Value GetNetwork(const Napi::CallbackInfo& info);
-        void SetNetwork(const Napi::CallbackInfo& info, const Napi::Value& value);
-        Napi::Value GetSignalHandler(const Napi::CallbackInfo& info);
-        void SetSignalHandler(const Napi::CallbackInfo& info, const Napi::Value& value);
-        
-        void Start(const Napi::CallbackInfo& info);
-        void Stop(const Napi::CallbackInfo& info);
-    };
+	Napi::Value GetService(const Napi::CallbackInfo &info);
+	void SetService(const Napi::CallbackInfo &info, const Napi::Value &value);
+	Napi::Value GetCanvas(const Napi::CallbackInfo &info);
+	void SetCanvas(const Napi::CallbackInfo &info, const Napi::Value &value);
+	Napi::Value GetVideoEncoder(const Napi::CallbackInfo &info);
+	void SetVideoEncoder(const Napi::CallbackInfo &info, const Napi::Value &value);
+	Napi::Value GetEnforceServiceBirate(const Napi::CallbackInfo &info);
+	void SetEnforceServiceBirate(const Napi::CallbackInfo &info, const Napi::Value &value);
+	Napi::Value GetEnableTwitchVOD(const Napi::CallbackInfo &info);
+	void SetEnableTwitchVOD(const Napi::CallbackInfo &info, const Napi::Value &value);
+	Napi::Value GetDelay(const Napi::CallbackInfo &info);
+	void SetDelay(const Napi::CallbackInfo &info, const Napi::Value &value);
+	Napi::Value GetReconnect(const Napi::CallbackInfo &info);
+	void SetReconnect(const Napi::CallbackInfo &info, const Napi::Value &value);
+	Napi::Value GetNetwork(const Napi::CallbackInfo &info);
+	void SetNetwork(const Napi::CallbackInfo &info, const Napi::Value &value);
+	Napi::Value GetSignalHandler(const Napi::CallbackInfo &info);
+	void SetSignalHandler(const Napi::CallbackInfo &info, const Napi::Value &value);
+
+	void Start(const Napi::CallbackInfo &info);
+	void Stop(const Napi::CallbackInfo &info);
+};
 }

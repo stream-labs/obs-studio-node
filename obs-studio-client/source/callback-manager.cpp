@@ -31,7 +31,7 @@
 bool globalCallback::isWorkerRunning = false;
 bool globalCallback::worker_stop = true;
 uint32_t globalCallback::sleepIntervalMS = 50;
-std::thread* globalCallback::worker_thread = nullptr;
+std::thread *globalCallback::worker_thread = nullptr;
 Napi::ThreadSafeFunction globalCallback::js_thread;
 bool globalCallback::m_all_workers_stop = false;
 std::mutex globalCallback::mtx_volmeters;
@@ -39,15 +39,11 @@ std::map<uint64_t, Napi::ThreadSafeFunction> globalCallback::volmeters;
 
 void globalCallback::Init(Napi::Env env, Napi::Object exports)
 {
-	exports.Set(
-		Napi::String::New(env, "RegisterSourceCallback"),
-		Napi::Function::New(env, globalCallback::RegisterGlobalCallback));
-	exports.Set(
-		Napi::String::New(env, "RemoveSourceCallback"),
-		Napi::Function::New(env, globalCallback::RemoveGlobalCallback));
+	exports.Set(Napi::String::New(env, "RegisterSourceCallback"), Napi::Function::New(env, globalCallback::RegisterGlobalCallback));
+	exports.Set(Napi::String::New(env, "RemoveSourceCallback"), Napi::Function::New(env, globalCallback::RemoveGlobalCallback));
 }
 
-Napi::Value globalCallback::RegisterGlobalCallback(const Napi::CallbackInfo& info)
+Napi::Value globalCallback::RegisterGlobalCallback(const Napi::CallbackInfo &info)
 {
 	Napi::Function async_callback = info[0].As<Napi::Function>();
 
@@ -60,7 +56,7 @@ Napi::Value globalCallback::RegisterGlobalCallback(const Napi::CallbackInfo& inf
 	return Napi::Boolean::New(info.Env(), true);
 }
 
-Napi::Value globalCallback::RemoveGlobalCallback(const Napi::CallbackInfo& info)
+Napi::Value globalCallback::RemoveGlobalCallback(const Napi::CallbackInfo &info)
 {
 	if (isWorkerRunning)
 		stop_worker();
@@ -73,13 +69,7 @@ void globalCallback::start_worker(napi_env env, Napi::Function async_callback)
 	if (!worker_stop)
 		return;
 
-	js_thread = Napi::ThreadSafeFunction::New(
-      env,
-      async_callback,
-      "GlobalCallback",
-      0,
-      1,
-      []( Napi::Env ) {} );
+	js_thread = Napi::ThreadSafeFunction::New(env, async_callback, "GlobalCallback", 0, 1, [](Napi::Env) {});
 }
 
 void globalCallback::stop_worker(void)
@@ -96,9 +86,7 @@ void globalCallback::stop_worker(void)
 
 void globalCallback::worker()
 {
-	auto sources_callback = []( Napi::Env env, 
-			Napi::Function jsCallback,
-			SourceSizeInfoData* data ) {
+	auto sources_callback = [](Napi::Env env, Napi::Function jsCallback, SourceSizeInfoData *data) {
 		try {
 			Napi::Array result = Napi::Array::New(env, data->items.size());
 
@@ -110,12 +98,13 @@ void globalCallback::worker()
 				obj.Set("flags", Napi::Number::New(env, data->items[i]->flags));
 				result.Set(i, obj);
 			}
-			jsCallback.Call({ result });
-		} catch (...) {}
+			jsCallback.Call({result});
+		} catch (...) {
+		}
 		delete data;
 	};
 
-	auto volmeter_callback = []( Napi::Env env, Napi::Function jsCallback, VolmeterData* data ) {
+	auto volmeter_callback = [](Napi::Env env, Napi::Function jsCallback, VolmeterData *data) {
 		try {
 			Napi::Array magnitude = Napi::Array::New(env);
 			Napi::Array peak = Napi::Array::New(env);
@@ -132,9 +121,10 @@ void globalCallback::worker()
 			}
 
 			if (data->magnitude.size() > 0 && data->peak.size() > 0 && data->input_peak.size() > 0) {
-				jsCallback.Call({ magnitude, peak, input_peak });
+				jsCallback.Call({magnitude, peak, input_peak});
 			}
-		} catch (...) {}
+		} catch (...) {
+		}
 		delete data;
 	};
 
@@ -152,39 +142,35 @@ void globalCallback::worker()
 		{
 			uint32_t index = 0;
 			volmeters_ids.resize(sizeof(uint64_t) * volmeters.size());
-			for (auto vol: volmeters) {
-				*reinterpret_cast<uint64_t*>(volmeters_ids.data() + index) = vol.first;
+			for (auto vol : volmeters) {
+				*reinterpret_cast<uint64_t *>(volmeters_ids.data() + index) = vol.first;
 				index += sizeof(uint64_t);
 			}
 		}
 
 		{
-			std::vector<ipc::value> response =
-				conn->call_synchronous_helper("CallbackManager", "GlobalQuery",
-				{
-					ipc::value((uint64_t)volmeters_ids.size()),
-					ipc::value(volmeters_ids)
-				});
+			std::vector<ipc::value> response = conn->call_synchronous_helper(
+				"CallbackManager", "GlobalQuery", {ipc::value((uint64_t)volmeters_ids.size()), ipc::value(volmeters_ids)});
 			if (!response.size() || (response.size() == 1)) {
 				goto do_sleep;
 			}
 
 			uint32_t index = 1;
 
-			SourceSizeInfoData* data = new SourceSizeInfoData{ {} };
-			for (int i = 2; i < (response[1].value_union.ui32*4) + 2; i++) {
-				SourceSizeInfo* item = new SourceSizeInfo;
+			SourceSizeInfoData *data = new SourceSizeInfoData{{}};
+			for (int i = 2; i < (response[1].value_union.ui32 * 4) + 2; i++) {
+				SourceSizeInfo *item = new SourceSizeInfo;
 
-				item->name   = response[i++].value_str;
-				item->width  = response[i++].value_union.ui32;
+				item->name = response[i++].value_str;
+				item->width = response[i++].value_union.ui32;
 				item->height = response[i++].value_union.ui32;
-				item->flags  = response[i].value_union.ui32;
+				item->flags = response[i].value_union.ui32;
 				data->items.push_back(item);
 				index = i;
 			}
 
 			if (data->items.size() > 0) {
-				napi_status status = js_thread.NonBlockingCall( data, sources_callback );
+				napi_status status = js_thread.NonBlockingCall(data, sources_callback);
 				if (status != napi_ok) {
 					delete data;
 				}
@@ -192,8 +178,8 @@ void globalCallback::worker()
 
 			index++;
 
-			for (auto vol: volmeters) {
-				VolmeterData* data     = new VolmeterData{{}, {}, {}};
+			for (auto vol : volmeters) {
+				VolmeterData *data = new VolmeterData{{}, {}, {}};
 				size_t channels = response[index++].value_union.i32;
 				bool isMuted = response[index++].value_union.i32;
 				if (!channels)
@@ -203,8 +189,8 @@ void globalCallback::worker()
 					data->peak.resize(channels);
 					data->input_peak.resize(channels);
 					for (size_t ch = 0; ch < channels; ch++) {
-						data->magnitude[ch]  = response[index + ch * 3 + 0].value_union.fp32;
-						data->peak[ch]       = response[index + ch * 3 + 1].value_union.fp32;
+						data->magnitude[ch] = response[index + ch * 3 + 0].value_union.fp32;
+						data->peak[ch] = response[index + ch * 3 + 1].value_union.fp32;
 						data->input_peak[ch] = response[index + ch * 3 + 2].value_union.fp32;
 					}
 					napi_status status = vol.second.NonBlockingCall(data, volmeter_callback);
@@ -215,13 +201,12 @@ void globalCallback::worker()
 					index += (3 * channels);
 				}
 			}
-
 		}
 
 	do_sleep:
 		mtx_volmeters.unlock();
-		auto tp_end  = std::chrono::high_resolution_clock::now();
-		auto dur     = std::chrono::duration_cast<std::chrono::milliseconds>(tp_end - tp_start);
+		auto tp_end = std::chrono::high_resolution_clock::now();
+		auto dur = std::chrono::duration_cast<std::chrono::milliseconds>(tp_end - tp_start);
 		totalSleepMS = sleepIntervalMS - dur.count();
 		if (totalSleepMS > 0)
 			std::this_thread::sleep_for(std::chrono::milliseconds(totalSleepMS));
@@ -231,13 +216,7 @@ void globalCallback::worker()
 
 void globalCallback::add_volmeter(napi_env env, uint64_t id, Napi::Function cb)
 {
-	Napi::ThreadSafeFunction vol_thread = Napi::ThreadSafeFunction::New(
-      env,
-      cb,
-      "Volmeter",
-      0,
-      1,
-      []( Napi::Env ) {} );
+	Napi::ThreadSafeFunction vol_thread = Napi::ThreadSafeFunction::New(env, cb, "Volmeter", 0, 1, [](Napi::Env) {});
 	volmeters.insert(std::make_pair(id, vol_thread));
 }
 
@@ -245,7 +224,7 @@ void globalCallback::remove_volmeter(uint64_t id)
 {
 	if (volmeters.find(id) == volmeters.end())
 		return;
-	
+
 	volmeters[id].Release();
 	volmeters.erase(id);
 }

@@ -28,46 +28,45 @@
 
 Napi::FunctionReference osn::Module::constructor;
 
-Napi::Object osn::Module::Init(Napi::Env env, Napi::Object exports) {
+Napi::Object osn::Module::Init(Napi::Env env, Napi::Object exports)
+{
 	Napi::HandleScope scope(env);
-	Napi::Function func =
-		DefineClass(env,
-		"Module",
-		{
-			StaticMethod("open", &osn::Module::Open),
-			StaticMethod("modules", &osn::Module::Modules),
+	Napi::Function func = DefineClass(env, "Module",
+					  {
+						  StaticMethod("open", &osn::Module::Open),
+						  StaticMethod("modules", &osn::Module::Modules),
 
-			InstanceMethod("initialize", &osn::Module::Initialize),
+						  InstanceMethod("initialize", &osn::Module::Initialize),
 
-			InstanceAccessor("name", &osn::Module::Name, nullptr),
-			InstanceAccessor("fileName", &osn::Module::FileName, nullptr),
-			InstanceAccessor("author", &osn::Module::Author, nullptr),
-			InstanceAccessor("description", &osn::Module::Description, nullptr),
-			InstanceAccessor("binaryPath", &osn::Module::BinaryPath, nullptr),
-			InstanceAccessor("dataPath", &osn::Module::DataPath, nullptr),
+						  InstanceAccessor("name", &osn::Module::Name, nullptr),
+						  InstanceAccessor("fileName", &osn::Module::FileName, nullptr),
+						  InstanceAccessor("author", &osn::Module::Author, nullptr),
+						  InstanceAccessor("description", &osn::Module::Description, nullptr),
+						  InstanceAccessor("binaryPath", &osn::Module::BinaryPath, nullptr),
+						  InstanceAccessor("dataPath", &osn::Module::DataPath, nullptr),
 
-		});
+					  });
 	exports.Set("Module", func);
 	osn::Module::constructor = Napi::Persistent(func);
 	osn::Module::constructor.SuppressDestruct();
 	return exports;
 }
 
-osn::Module::Module(const Napi::CallbackInfo& info)
-    : Napi::ObjectWrap<osn::Module>(info) {
-    Napi::Env env = info.Env();
-    Napi::HandleScope scope(env);
-    int length = info.Length();
+osn::Module::Module(const Napi::CallbackInfo &info) : Napi::ObjectWrap<osn::Module>(info)
+{
+	Napi::Env env = info.Env();
+	Napi::HandleScope scope(env);
+	int length = info.Length();
 
-    if (length <= 0 || !info[0].IsNumber()) {
-        Napi::TypeError::New(env, "Number expected").ThrowAsJavaScriptException();
-        return;
-    }
+	if (length <= 0 || !info[0].IsNumber()) {
+		Napi::TypeError::New(env, "Number expected").ThrowAsJavaScriptException();
+		return;
+	}
 
 	this->moduleId = (uint64_t)info[0].ToNumber().Int64Value();
 }
 
-Napi::Value osn::Module::Open(const Napi::CallbackInfo& info)
+Napi::Value osn::Module::Open(const Napi::CallbackInfo &info)
 {
 	std::string bin_path = info[0].ToString().Utf8Value();
 	std::string data_path = info[1].ToString().Utf8Value();
@@ -76,28 +75,23 @@ Napi::Value osn::Module::Open(const Napi::CallbackInfo& info)
 	if (!conn)
 		return info.Env().Undefined();
 
-	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("Module", "Open", {ipc::value(bin_path), ipc::value(data_path)});
+	std::vector<ipc::value> response = conn->call_synchronous_helper("Module", "Open", {ipc::value(bin_path), ipc::value(data_path)});
 
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
 
-    auto instance =
-        osn::Module::constructor.New({
-            Napi::Number::New(info.Env(), response[1].value_union.ui64)
-            });
+	auto instance = osn::Module::constructor.New({Napi::Number::New(info.Env(), response[1].value_union.ui64)});
 
-    return instance;
+	return instance;
 }
 
-Napi::Value osn::Module::Modules(const Napi::CallbackInfo& info)
+Napi::Value osn::Module::Modules(const Napi::CallbackInfo &info)
 {
 	auto conn = GetConnection(info);
 	if (!conn)
 		return info.Env().Undefined();
 
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Module", "Modules", {});
+	std::vector<ipc::value> response = conn->call_synchronous_helper("Module", "Modules", {});
 
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
@@ -111,14 +105,13 @@ Napi::Value osn::Module::Modules(const Napi::CallbackInfo& info)
 	return modules;
 }
 
-Napi::Value osn::Module::Initialize(const Napi::CallbackInfo& info)
+Napi::Value osn::Module::Initialize(const Napi::CallbackInfo &info)
 {
 	auto conn = GetConnection(info);
 	if (!conn)
 		return info.Env().Undefined();
 
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Module", "Initialize", {ipc::value(this->moduleId)});
+	std::vector<ipc::value> response = conn->call_synchronous_helper("Module", "Initialize", {ipc::value(this->moduleId)});
 
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
@@ -126,14 +119,13 @@ Napi::Value osn::Module::Initialize(const Napi::CallbackInfo& info)
 	return Napi::Boolean::New(info.Env(), response[1].value_union.i32);
 }
 
-Napi::Value osn::Module::Name(const Napi::CallbackInfo& info)
+Napi::Value osn::Module::Name(const Napi::CallbackInfo &info)
 {
 	auto conn = GetConnection(info);
 	if (!conn)
 		return info.Env().Undefined();
 
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Module", "GetName", {ipc::value(this->moduleId)});
+	std::vector<ipc::value> response = conn->call_synchronous_helper("Module", "GetName", {ipc::value(this->moduleId)});
 
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
@@ -141,14 +133,13 @@ Napi::Value osn::Module::Name(const Napi::CallbackInfo& info)
 	return Napi::String::New(info.Env(), response[1].value_str);
 }
 
-Napi::Value osn::Module::FileName(const Napi::CallbackInfo& info)
+Napi::Value osn::Module::FileName(const Napi::CallbackInfo &info)
 {
 	auto conn = GetConnection(info);
 	if (!conn)
 		return info.Env().Undefined();
 
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Module", "GetFileName", {ipc::value(this->moduleId)});
+	std::vector<ipc::value> response = conn->call_synchronous_helper("Module", "GetFileName", {ipc::value(this->moduleId)});
 
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
@@ -156,14 +147,13 @@ Napi::Value osn::Module::FileName(const Napi::CallbackInfo& info)
 	return Napi::String::New(info.Env(), response[1].value_str);
 }
 
-Napi::Value osn::Module::Description(const Napi::CallbackInfo& info)
+Napi::Value osn::Module::Description(const Napi::CallbackInfo &info)
 {
 	auto conn = GetConnection(info);
 	if (!conn)
 		return info.Env().Undefined();
 
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Module", "GetDescription", {ipc::value(this->moduleId)});
+	std::vector<ipc::value> response = conn->call_synchronous_helper("Module", "GetDescription", {ipc::value(this->moduleId)});
 
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
@@ -171,14 +161,13 @@ Napi::Value osn::Module::Description(const Napi::CallbackInfo& info)
 	return Napi::String::New(info.Env(), response[1].value_str);
 }
 
-Napi::Value osn::Module::Author(const Napi::CallbackInfo& info)
+Napi::Value osn::Module::Author(const Napi::CallbackInfo &info)
 {
 	auto conn = GetConnection(info);
 	if (!conn)
 		return info.Env().Undefined();
 
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Module", "GetAuthor", {ipc::value(this->moduleId)});
+	std::vector<ipc::value> response = conn->call_synchronous_helper("Module", "GetAuthor", {ipc::value(this->moduleId)});
 
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
@@ -186,14 +175,13 @@ Napi::Value osn::Module::Author(const Napi::CallbackInfo& info)
 	return Napi::String::New(info.Env(), response[1].value_str);
 }
 
-Napi::Value osn::Module::BinaryPath(const Napi::CallbackInfo& info)
+Napi::Value osn::Module::BinaryPath(const Napi::CallbackInfo &info)
 {
 	auto conn = GetConnection(info);
 	if (!conn)
 		return info.Env().Undefined();
 
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Module", "GetBinaryPath", {ipc::value(this->moduleId)});
+	std::vector<ipc::value> response = conn->call_synchronous_helper("Module", "GetBinaryPath", {ipc::value(this->moduleId)});
 
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
@@ -201,14 +189,13 @@ Napi::Value osn::Module::BinaryPath(const Napi::CallbackInfo& info)
 	return Napi::String::New(info.Env(), response[1].value_str);
 }
 
-Napi::Value osn::Module::DataPath(const Napi::CallbackInfo& info)
+Napi::Value osn::Module::DataPath(const Napi::CallbackInfo &info)
 {
 	auto conn = GetConnection(info);
 	if (!conn)
 		return info.Env().Undefined();
 
-	std::vector<ipc::value> response =
-	    conn->call_synchronous_helper("Module", "GetDataPath", {ipc::value(this->moduleId)});
+	std::vector<ipc::value> response = conn->call_synchronous_helper("Module", "GetDataPath", {ipc::value(this->moduleId)});
 
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();

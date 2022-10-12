@@ -22,42 +22,41 @@
 #include <queue>
 #include <vector>
 
-namespace osn
-{
-    struct signalInfo {
-        std::string signal;
-        int code;
-        std::string errorMessage;
-    };
+namespace osn {
+struct signalInfo {
+	std::string signal;
+	int code;
+	std::string errorMessage;
+};
 
-    class OutputSignals
-    {
-        public:
-        OutputSignals() {
-            output = nullptr;
-            canvas = nullptr;
-        }
-        virtual ~OutputSignals() {}
+class OutputSignals {
+public:
+	OutputSignals()
+	{
+		output = nullptr;
+		canvas = nullptr;
+	}
+	virtual ~OutputSignals() {}
 
-        public:
-        std::mutex signalsMtx;
-        std::queue<signalInfo> signalsReceived;
-        std::vector<std::string> signals;
-        obs_output_t* output;
-        obs_video_info* canvas;
+public:
+	std::mutex signalsMtx;
+	std::queue<signalInfo> signalsReceived;
+	std::vector<std::string> signals;
+	obs_output_t *output;
+	obs_video_info *canvas;
 
-        void ConnectSignals();
+	void ConnectSignals();
 
-        public:
-        std::condition_variable cvStop;
-        std::mutex mtxOutputStop;
-        void createOutput(std::string type, std::string name);
-        void deleteOutput();
-        void startOutput();
-    };
+public:
+	std::condition_variable cvStop;
+	std::mutex mtxOutputStop;
+	void createOutput(std::string type, std::string name);
+	void deleteOutput();
+	void startOutput();
+};
 
-    struct cbData {
-        std::string signal;
-        OutputSignals* outputClass;
-    };
+struct cbData {
+	std::string signal;
+	OutputSignals *outputClass;
+};
 }

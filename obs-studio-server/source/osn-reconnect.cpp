@@ -20,166 +20,111 @@
 #include "osn-error.hpp"
 #include "shared.hpp"
 
-void osn::IReconnect::Register(ipc::server& srv)
+void osn::IReconnect::Register(ipc::server &srv)
 {
-    std::shared_ptr<ipc::collection> cls =
-        std::make_shared<ipc::collection>("Reconnect");
+	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("Reconnect");
 
-    cls->register_function(std::make_shared<ipc::function>(
-        "Create", std::vector<ipc::type>{}, Create));
+	cls->register_function(std::make_shared<ipc::function>("Create", std::vector<ipc::type>{}, Create));
 
-    cls->register_function(std::make_shared<ipc::function>(
-        "GetEnabled",
-        std::vector<ipc::type>{ipc::type::UInt64},
-        GetEnabled));
-    cls->register_function(std::make_shared<ipc::function>(
-        "SetEnabled",
-        std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32},
-        SetEnabled));
-    cls->register_function(std::make_shared<ipc::function>(
-        "GetRetryDelay",
-        std::vector<ipc::type>{ipc::type::UInt64},
-        GetRetryDelay));
-    cls->register_function(std::make_shared<ipc::function>(
-        "SetRetryDelay",
-        std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32},
-        SetRetryDelay));
-    cls->register_function(std::make_shared<ipc::function>(
-        "GetMaxRetries",
-        std::vector<ipc::type>{ipc::type::UInt64},
-        GetMaxRetries));
-    cls->register_function(std::make_shared<ipc::function>(
-        "SetMaxRetries",
-        std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32},
-        SetMaxRetries));
+	cls->register_function(std::make_shared<ipc::function>("GetEnabled", std::vector<ipc::type>{ipc::type::UInt64}, GetEnabled));
+	cls->register_function(std::make_shared<ipc::function>("SetEnabled", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32}, SetEnabled));
+	cls->register_function(std::make_shared<ipc::function>("GetRetryDelay", std::vector<ipc::type>{ipc::type::UInt64}, GetRetryDelay));
+	cls->register_function(std::make_shared<ipc::function>("SetRetryDelay", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32}, SetRetryDelay));
+	cls->register_function(std::make_shared<ipc::function>("GetMaxRetries", std::vector<ipc::type>{ipc::type::UInt64}, GetMaxRetries));
+	cls->register_function(std::make_shared<ipc::function>("SetMaxRetries", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32}, SetMaxRetries));
 
-    srv.register_collection(cls);
+	srv.register_collection(cls);
 }
 
-void osn::IReconnect::Create(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void osn::IReconnect::Create(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
-    uint64_t uid =
-        osn::IReconnect::Manager::GetInstance().allocate(new Reconnect());
-    if (uid == UINT64_MAX) {
-        PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Index list is full.");
-    }
+	uint64_t uid = osn::IReconnect::Manager::GetInstance().allocate(new Reconnect());
+	if (uid == UINT64_MAX) {
+		PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Index list is full.");
+	}
 
-    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-    rval.push_back(ipc::value(uid));
-    AUTO_DEBUG;
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(uid));
+	AUTO_DEBUG;
 }
 
-void osn::IReconnect::GetEnabled(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void osn::IReconnect::GetEnabled(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
-    Reconnect* reconnect =
-        osn::IReconnect::Manager::GetInstance().find(args[0].value_union.ui64);
-    if (!reconnect) {
-        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Reconnect reference is not valid.");
-    }
+	Reconnect *reconnect = osn::IReconnect::Manager::GetInstance().find(args[0].value_union.ui64);
+	if (!reconnect) {
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Reconnect reference is not valid.");
+	}
 
-    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-    rval.push_back(ipc::value(reconnect->enabled));
-    AUTO_DEBUG;
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(reconnect->enabled));
+	AUTO_DEBUG;
 }
 
-void osn::IReconnect::SetEnabled(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void osn::IReconnect::SetEnabled(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
-    Reconnect* reconnect =
-        osn::IReconnect::Manager::GetInstance().find(args[0].value_union.ui64);
-    if (!reconnect) {
-        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Reconnect reference is not valid.");
-    }
+	Reconnect *reconnect = osn::IReconnect::Manager::GetInstance().find(args[0].value_union.ui64);
+	if (!reconnect) {
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Reconnect reference is not valid.");
+	}
 
-    reconnect->enabled = args[1].value_union.ui32;
+	reconnect->enabled = args[1].value_union.ui32;
 
-    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-    AUTO_DEBUG;
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
 }
 
-void osn::IReconnect::GetRetryDelay(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void osn::IReconnect::GetRetryDelay(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
-    Reconnect* reconnect =
-        osn::IReconnect::Manager::GetInstance().find(args[0].value_union.ui64);
-    if (!reconnect) {
-        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Reconnect reference is not valid.");
-    }
+	Reconnect *reconnect = osn::IReconnect::Manager::GetInstance().find(args[0].value_union.ui64);
+	if (!reconnect) {
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Reconnect reference is not valid.");
+	}
 
-    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-    rval.push_back(ipc::value(reconnect->retryDelay));
-    AUTO_DEBUG;
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(reconnect->retryDelay));
+	AUTO_DEBUG;
 }
 
-void osn::IReconnect::SetRetryDelay(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void osn::IReconnect::SetRetryDelay(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
-    Reconnect* reconnect =
-        osn::IReconnect::Manager::GetInstance().find(args[0].value_union.ui64);
-    if (!reconnect) {
-        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Reconnect reference is not valid.");
-    }
+	Reconnect *reconnect = osn::IReconnect::Manager::GetInstance().find(args[0].value_union.ui64);
+	if (!reconnect) {
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Reconnect reference is not valid.");
+	}
 
-    reconnect->retryDelay = args[1].value_union.ui32;
+	reconnect->retryDelay = args[1].value_union.ui32;
 
-    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-    AUTO_DEBUG;
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
 }
 
-void osn::IReconnect::GetMaxRetries(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void osn::IReconnect::GetMaxRetries(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
-    Reconnect* reconnect =
-        osn::IReconnect::Manager::GetInstance().find(args[0].value_union.ui64);
-    if (!reconnect) {
-        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Reconnect reference is not valid.");
-    }
+	Reconnect *reconnect = osn::IReconnect::Manager::GetInstance().find(args[0].value_union.ui64);
+	if (!reconnect) {
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Reconnect reference is not valid.");
+	}
 
-    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-    rval.push_back(ipc::value(reconnect->maxRetries));
-    AUTO_DEBUG;
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(reconnect->maxRetries));
+	AUTO_DEBUG;
 }
 
-void osn::IReconnect::SetMaxRetries(
-    void*                          data,
-    const int64_t                  id,
-    const std::vector<ipc::value>& args,
-    std::vector<ipc::value>&       rval)
+void osn::IReconnect::SetMaxRetries(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
-    Reconnect* reconnect =
-        osn::IReconnect::Manager::GetInstance().find(args[0].value_union.ui64);
-    if (!reconnect) {
-        PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Reconnect reference is not valid.");
-    }
+	Reconnect *reconnect = osn::IReconnect::Manager::GetInstance().find(args[0].value_union.ui64);
+	if (!reconnect) {
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Reconnect reference is not valid.");
+	}
 
-    reconnect->maxRetries = args[1].value_union.ui32;
+	reconnect->maxRetries = args[1].value_union.ui32;
 
-    rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-    AUTO_DEBUG;
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
 }
 
-osn::IReconnect::Manager& osn::IReconnect::Manager::GetInstance()
+osn::IReconnect::Manager &osn::IReconnect::Manager::GetInstance()
 {
-    static osn::IReconnect::Manager _inst;
-    return _inst;
+	static osn::IReconnect::Manager _inst;
+	return _inst;
 }

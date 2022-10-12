@@ -20,34 +20,30 @@
 #include <napi.h>
 #include "recording.hpp"
 
-namespace osn
-{
-    class AdvancedRecording :
-        public Napi::ObjectWrap<osn::AdvancedRecording>,
-        public osn::Recording
-    {
-        public:
-        static Napi::FunctionReference constructor;
-        static Napi::Object Init(Napi::Env env, Napi::Object exports);
-        AdvancedRecording(const Napi::CallbackInfo& info);
+namespace osn {
+class AdvancedRecording : public Napi::ObjectWrap<osn::AdvancedRecording>, public osn::Recording {
+public:
+	static Napi::FunctionReference constructor;
+	static Napi::Object Init(Napi::Env env, Napi::Object exports);
+	AdvancedRecording(const Napi::CallbackInfo &info);
 
-        static Napi::Value Create(const Napi::CallbackInfo& info);
-        static void Destroy(const Napi::CallbackInfo& info);
+	static Napi::Value Create(const Napi::CallbackInfo &info);
+	static void Destroy(const Napi::CallbackInfo &info);
 
-        Napi::Value GetMixer(const Napi::CallbackInfo& info);
-        void SetMixer(const Napi::CallbackInfo& info, const Napi::Value& value);
-        Napi::Value GetRescaling(const Napi::CallbackInfo& info);
-        void SetRescaling(const Napi::CallbackInfo& info, const Napi::Value& value);
-        Napi::Value GetOutputWidth(const Napi::CallbackInfo& info);
-        void SetOutputWidth(const Napi::CallbackInfo& info, const Napi::Value& value);
-        Napi::Value GetOutputHeight(const Napi::CallbackInfo& info);
-        void SetOutputHeight(const Napi::CallbackInfo& info, const Napi::Value& value);
-        Napi::Value GetUseStreamEncoders(const Napi::CallbackInfo& info);
-        void SetUseStreamEncoders(const Napi::CallbackInfo& info, const Napi::Value& value);
-        Napi::Value GetStreaming(const Napi::CallbackInfo& info);
-        void SetStreaming(const Napi::CallbackInfo& info, const Napi::Value& value);
+	Napi::Value GetMixer(const Napi::CallbackInfo &info);
+	void SetMixer(const Napi::CallbackInfo &info, const Napi::Value &value);
+	Napi::Value GetRescaling(const Napi::CallbackInfo &info);
+	void SetRescaling(const Napi::CallbackInfo &info, const Napi::Value &value);
+	Napi::Value GetOutputWidth(const Napi::CallbackInfo &info);
+	void SetOutputWidth(const Napi::CallbackInfo &info, const Napi::Value &value);
+	Napi::Value GetOutputHeight(const Napi::CallbackInfo &info);
+	void SetOutputHeight(const Napi::CallbackInfo &info, const Napi::Value &value);
+	Napi::Value GetUseStreamEncoders(const Napi::CallbackInfo &info);
+	void SetUseStreamEncoders(const Napi::CallbackInfo &info, const Napi::Value &value);
+	Napi::Value GetStreaming(const Napi::CallbackInfo &info);
+	void SetStreaming(const Napi::CallbackInfo &info, const Napi::Value &value);
 
-        static Napi::Value GetLegacySettings(const Napi::CallbackInfo& info);
-        static void SetLegacySettings(const Napi::CallbackInfo& info, const Napi::Value& value);
-    };
+	static Napi::Value GetLegacySettings(const Napi::CallbackInfo &info);
+	static void SetLegacySettings(const Napi::CallbackInfo &info, const Napi::Value &value);
+};
 }

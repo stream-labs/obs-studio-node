@@ -20,28 +20,26 @@
 #include <napi.h>
 #include "utility-v8.hpp"
 
-namespace osn
-{
-	class Module : public Napi::ObjectWrap<osn::Module>
-	{
-		public:
-		uint64_t moduleId;
+namespace osn {
+class Module : public Napi::ObjectWrap<osn::Module> {
+public:
+	uint64_t moduleId;
 
-		public:
-		static Napi::FunctionReference constructor;
-		static Napi::Object Init(Napi::Env env, Napi::Object exports);
-		Module(const Napi::CallbackInfo& info);
+public:
+	static Napi::FunctionReference constructor;
+	static Napi::Object Init(Napi::Env env, Napi::Object exports);
+	Module(const Napi::CallbackInfo &info);
 
-		static Napi::Value Open(const Napi::CallbackInfo& info);
-		static Napi::Value Modules(const Napi::CallbackInfo& info);
+	static Napi::Value Open(const Napi::CallbackInfo &info);
+	static Napi::Value Modules(const Napi::CallbackInfo &info);
 
-		Napi::Value Initialize(const Napi::CallbackInfo& info);
+	Napi::Value Initialize(const Napi::CallbackInfo &info);
 
-		Napi::Value Name(const Napi::CallbackInfo& info);
-		Napi::Value FileName(const Napi::CallbackInfo& info);
-		Napi::Value Author(const Napi::CallbackInfo& info);
-		Napi::Value Description(const Napi::CallbackInfo& info);
-		Napi::Value BinaryPath(const Napi::CallbackInfo& info);
-		Napi::Value DataPath(const Napi::CallbackInfo& info);
-	};
+	Napi::Value Name(const Napi::CallbackInfo &info);
+	Napi::Value FileName(const Napi::CallbackInfo &info);
+	Napi::Value Author(const Napi::CallbackInfo &info);
+	Napi::Value Description(const Napi::CallbackInfo &info);
+	Napi::Value BinaryPath(const Napi::CallbackInfo &info);
+	Napi::Value DataPath(const Napi::CallbackInfo &info);
+};
 }

@@ -18,24 +18,23 @@
 
 #include <napi.h>
 
-namespace display
-{
-	void Init(Napi::Env env, Napi::Object exports);
+namespace display {
+void Init(Napi::Env env, Napi::Object exports);
 
-	Napi::Value OBS_content_setDayTheme(const Napi::CallbackInfo& info);
-	Napi::Value OBS_content_createDisplay(const Napi::CallbackInfo& info);
-	Napi::Value OBS_content_destroyDisplay(const Napi::CallbackInfo& info);
-	Napi::Value OBS_content_getDisplayPreviewOffset(const Napi::CallbackInfo& info);
-	Napi::Value OBS_content_getDisplayPreviewSize(const Napi::CallbackInfo& info);
-	Napi::Value OBS_content_createSourcePreviewDisplay(const Napi::CallbackInfo& info);
-	Napi::Value OBS_content_resizeDisplay(const Napi::CallbackInfo& info);
-	Napi::Value OBS_content_moveDisplay(const Napi::CallbackInfo& info);
-	Napi::Value OBS_content_setPaddingSize(const Napi::CallbackInfo& info);
-	Napi::Value OBS_content_setPaddingColor(const Napi::CallbackInfo& info);
-	Napi::Value OBS_content_setOutlineColor(const Napi::CallbackInfo& info);
-	Napi::Value OBS_content_setCropOutlineColor(const Napi::CallbackInfo& info);
-	Napi::Value OBS_content_setShouldDrawUI(const Napi::CallbackInfo& info);
-	Napi::Value OBS_content_setDrawGuideLines(const Napi::CallbackInfo& info);
-	Napi::Value OBS_content_setDrawRotationHandle(const Napi::CallbackInfo& info);
-	Napi::Value OBS_content_createIOSurface(const Napi::CallbackInfo& info);
+Napi::Value OBS_content_setDayTheme(const Napi::CallbackInfo &info);
+Napi::Value OBS_content_createDisplay(const Napi::CallbackInfo &info);
+Napi::Value OBS_content_destroyDisplay(const Napi::CallbackInfo &info);
+Napi::Value OBS_content_getDisplayPreviewOffset(const Napi::CallbackInfo &info);
+Napi::Value OBS_content_getDisplayPreviewSize(const Napi::CallbackInfo &info);
+Napi::Value OBS_content_createSourcePreviewDisplay(const Napi::CallbackInfo &info);
+Napi::Value OBS_content_resizeDisplay(const Napi::CallbackInfo &info);
+Napi::Value OBS_content_moveDisplay(const Napi::CallbackInfo &info);
+Napi::Value OBS_content_setPaddingSize(const Napi::CallbackInfo &info);
+Napi::Value OBS_content_setPaddingColor(const Napi::CallbackInfo &info);
+Napi::Value OBS_content_setOutlineColor(const Napi::CallbackInfo &info);
+Napi::Value OBS_content_setCropOutlineColor(const Napi::CallbackInfo &info);
+Napi::Value OBS_content_setShouldDrawUI(const Napi::CallbackInfo &info);
+Napi::Value OBS_content_setDrawGuideLines(const Napi::CallbackInfo &info);
+Napi::Value OBS_content_setDrawRotationHandle(const Napi::CallbackInfo &info);
+Napi::Value OBS_content_createIOSurface(const Napi::CallbackInfo &info);
 }
