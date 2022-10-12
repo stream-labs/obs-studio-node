@@ -37,6 +37,7 @@ void osn::Scene::Register(ipc::server &srv)
 	cls->register_function(
 		std::make_shared<ipc::function>("Duplicate", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String, ipc::type::Int32}, Duplicate));
 
+	cls->register_function(std::make_shared<ipc::function>("AsSource", std::vector<ipc::type>{ipc::type::UInt64}, AsSource));
 	cls->register_function(
 		std::make_shared<ipc::function>("AddSource", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64, ipc::type::UInt64}, AddSource));
 

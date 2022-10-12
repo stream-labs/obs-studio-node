@@ -562,10 +562,8 @@ void osn::ISimpleStreaming::SetLegacyVideoEncoderSettings(obs_encoder_t *encoder
 	}
 	config_set_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "StreamEncoder", encId);
 
-	if (presetType) {
-		preset = obs_data_get_string(settings, "preset");
-		config_set_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", presetType, preset);
-	}
+	preset = obs_data_get_string(settings, "preset");
+	config_set_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", presetType, preset);
 
 	obs_data_release(settings);
 }

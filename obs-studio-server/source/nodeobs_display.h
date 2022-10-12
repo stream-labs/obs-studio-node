@@ -57,9 +57,12 @@ private:
 public:
 	static void SetDayTheme(bool dayTheme);
 
-	Display(uint64_t windowHandle, enum obs_video_rendering_mode mode, obs_video_info *canvas); // Create a Main Preview one
-	Display(uint64_t windowHandle, enum obs_video_rendering_mode mode, std::string sourceName,
-		obs_video_info *canvas); // Create a Source-Specific one
+	Display(uint64_t windowHandle,
+		enum obs_video_rendering_mode mode, // Create a Main Preview one
+		bool renderAtBottom, obs_video_info* canvas);
+	Display(uint64_t windowHandle, enum obs_video_rendering_mode mode,
+		std::string sourceName, // Create a Source-Specific one
+		bool renderAtBottom, obs_video_info* canvas);
 	~Display();
 
 	void SetPosition(uint32_t x, uint32_t y);
@@ -161,6 +164,7 @@ private:
 	vec4 m_rotationHandleColorVec4;
 
 	bool m_shouldDrawUI = true;
+	bool m_renderAtBottom = false;
 
 	enum obs_video_rendering_mode m_renderingMode = OBS_MAIN_VIDEO_RENDERING;
 	struct obs_video_info *canvas;

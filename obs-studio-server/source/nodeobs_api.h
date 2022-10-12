@@ -35,8 +35,6 @@
 
 extern std::string g_moduleDirectory;
 
-#define REPLACED_BY_MULTI_CANVAS
-
 namespace util {
 class CrashManager;
 }

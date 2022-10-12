@@ -124,18 +124,16 @@ class TestMode
 	obs_video_info * ovi;
 	OBSSource      source[6];
 
-	static void render_rand(void*, uint32_t cx, uint32_t cy)
+	static void render_rand(void *, uint32_t cx, uint32_t cy)
 	{
-		gs_effect_t* solid         = obs_get_base_effect(OBS_EFFECT_SOLID);
-		gs_eparam_t* randomvals[3] = {gs_effect_get_param_by_name(solid, "randomvals1"),
-		                              gs_effect_get_param_by_name(solid, "randomvals2"),
-		                              gs_effect_get_param_by_name(solid, "randomvals3")};
+		gs_effect_t *solid = obs_get_base_effect(OBS_EFFECT_SOLID);
+		gs_eparam_t *randomvals[3] = {gs_effect_get_param_by_name(solid, "randomvals1"), gs_effect_get_param_by_name(solid, "randomvals2"),
+					      gs_effect_get_param_by_name(solid, "randomvals3")};
 
 		struct vec4 r;
 
 		for (int i = 0; i < 3; i++) {
-			vec4_set(
-			    &r, rand_float(true) * 100.0f, rand_float(true) * 100.0f, rand_float(true) * 50000.0f + 10000.0f, 0.0f);
+			vec4_set(&r, rand_float(true) * 100.0f, rand_float(true) * 100.0f, rand_float(true) * 50000.0f + 10000.0f, 0.0f);
 			gs_effect_set_vec4(randomvals[i], &r);
 		}
 
@@ -143,7 +141,7 @@ class TestMode
 			gs_draw_sprite(nullptr, 0, cx, cy);
 	}
 
-	public:
+public:
 	inline TestMode()
 	{
 		ovi = obs_create_video_info();
