@@ -158,7 +158,8 @@ void OBS_content::Register(ipc::server &srv)
 	cls->register_function(std::make_shared<ipc::function>("OBS_content_setDayTheme", std::vector<ipc::type>{ipc::type::UInt32}, OBS_content_setDayTheme));
 
 	cls->register_function(std::make_shared<ipc::function>(
-		"OBS_content_createDisplay", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String, ipc::type::Int32, ipc::type::UInt32}, OBS_content_createDisplay));
+		"OBS_content_createDisplay", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String, ipc::type::Int32, ipc::type::UInt32},
+		OBS_content_createDisplay));
 
 	cls->register_function(
 		std::make_shared<ipc::function>("OBS_content_destroyDisplay", std::vector<ipc::type>{ipc::type::String}, OBS_content_destroyDisplay));
@@ -169,9 +170,9 @@ void OBS_content::Register(ipc::server &srv)
 	cls->register_function(std::make_shared<ipc::function>("OBS_content_getDisplayPreviewSize", std::vector<ipc::type>{ipc::type::String},
 							       OBS_content_getDisplayPreviewSize));
 
-	cls->register_function(std::make_shared<ipc::function>("OBS_content_createSourcePreviewDisplay",
-							       std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String, ipc::type::String, ipc::type::UInt32},
-							       OBS_content_createSourcePreviewDisplay));
+	cls->register_function(std::make_shared<ipc::function>(
+		"OBS_content_createSourcePreviewDisplay", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String, ipc::type::String, ipc::type::UInt32},
+		OBS_content_createSourcePreviewDisplay));
 
 	cls->register_function(std::make_shared<ipc::function>(
 		"OBS_content_resizeDisplay", std::vector<ipc::type>{ipc::type::String, ipc::type::UInt32, ipc::type::UInt32}, OBS_content_resizeDisplay));
@@ -297,7 +298,7 @@ void OBS_content::OBS_content_createDisplay(void *data, const int64_t id, const 
 			obs_leave_graphics();
 		}
 #endif
-	} catch (const std::exception& e) {
+	} catch (const std::exception &e) {
 		std::string message(std::string("Display creation failed: ") + e.what());
 		std::cerr << message << std::endl;
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
@@ -364,7 +365,7 @@ void OBS_content::OBS_content_createSourcePreviewDisplay(void *data, const int64
 	try {
 		OBS::Display *display = new OBS::Display(windowHandle, OBS_MAIN_VIDEO_RENDERING, args[1].value_str, args[3].value_union.ui32);
 		displays.insert_or_assign(args[2].value_str, display);
-	} catch (const std::exception& e) {
+	} catch (const std::exception &e) {
 		std::string message(std::string("Source preview display creation failed: ") + e.what());
 		std::cerr << message << std::endl;
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));

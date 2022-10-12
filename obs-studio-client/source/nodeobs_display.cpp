@@ -85,7 +85,8 @@ Napi::Value display::OBS_content_createDisplay(const Napi::CallbackInfo &info)
 	if (!conn)
 		return info.Env().Undefined();
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Display", "OBS_content_createDisplay", {ipc::value((uint64_t)windowHandle), ipc::value(key), ipc::value(mode), ipc::value(renderAtBottom)});
+	std::vector<ipc::value> response = conn->call_synchronous_helper(
+		"Display", "OBS_content_createDisplay", {ipc::value((uint64_t)windowHandle), ipc::value(key), ipc::value(mode), ipc::value(renderAtBottom)});
 
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
@@ -164,7 +165,9 @@ Napi::Value display::OBS_content_createSourcePreviewDisplay(const Napi::Callback
 	if (!conn)
 		return info.Env().Undefined();
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Display", "OBS_content_createSourcePreviewDisplay", {ipc::value((uint64_t)windowHandle), ipc::value(sourceName), ipc::value(key), ipc::value(renderAtBottom)});
+	std::vector<ipc::value> response =
+		conn->call_synchronous_helper("Display", "OBS_content_createSourcePreviewDisplay",
+					      {ipc::value((uint64_t)windowHandle), ipc::value(sourceName), ipc::value(key), ipc::value(renderAtBottom)});
 
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
