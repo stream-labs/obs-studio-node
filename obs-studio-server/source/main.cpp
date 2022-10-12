@@ -222,8 +222,6 @@ int main(int argc, char *argv[])
 	sd.count_connected = 0;
 	OBS_API::SetCrashHandlerPipe(std::wstring(socketPath.begin(), socketPath.end()));
 
-	Sleep(10000);
-
 	// Classes
 	/// System
 	{

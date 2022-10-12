@@ -153,13 +153,6 @@ describe(testName, function() {
         scene.release();
     });
 
-    it('Stop crash handler', function() {
-        // Stopping crash handler as a last test case
-        expect(function() {
-            osn.NodeObs.InitShutdownSequence();
-        }).to.not.throw();
-    });
-
     it('Get and set the browser source acceleration', function() {
         expect(osn.NodeObs.GetBrowserAcceleration()).
             to.equal(true, 'Invalid browser source acceleration default value');
@@ -182,5 +175,12 @@ describe(testName, function() {
         osn.NodeObs.SetProcessPriority('High');
         expect(osn.NodeObs.GetProcessPriority()).
             to.equal('High', 'Invalid process priority value');
+    });
+
+    it('Stop crash handler', function() {
+        // Stopping crash handler as a last test case
+        expect(function() {
+            osn.NodeObs.InitShutdownSequence();
+        }).to.not.throw();
     });
 });
