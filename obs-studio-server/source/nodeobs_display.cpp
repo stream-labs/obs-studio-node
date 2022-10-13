@@ -1440,7 +1440,7 @@ void OBS::Display::DisplayCallback(void *displayPtr, uint32_t cx, uint32_t cy)
 			obs_set_video_rendering_mode(dp->m_renderingMode);
 		obs_source_video_render(dp->m_source);
 	} else {
-		obs_render_texture(0, dp->m_renderingMode);
+		obs_render_texture(dp->canvas, dp->m_renderingMode);
 
 		/* Here we assume that channel 0 holds the primary transition.
 		* We also assume that the active source within that transition is

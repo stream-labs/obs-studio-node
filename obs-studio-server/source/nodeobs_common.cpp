@@ -90,7 +90,7 @@ static bool CenterAlignSelectedItems(obs_scene_t *scene, obs_sceneitem_t *item, 
 		return true;
 
 	obs_video_info ovi = {0};
-	obs_get_video_info(&ovi);
+	obs_get_video_info_scene_item(item, &ovi);
 
 	obs_transform_info itemInfo;
 	vec2_set(&itemInfo.pos, 0.0f, 0.0f);
