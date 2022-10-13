@@ -301,9 +301,7 @@ void OBS_content::OBS_content_createDisplay(void *data, const int64_t id, const 
 	} catch (const std::exception &e) {
 		std::string message(std::string("Display creation failed: ") + e.what());
 		std::cerr << message << std::endl;
-		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
-		rval.push_back(ipc::value(message));
-		return;
+		blog(LOG_ERROR, "%s", message.data());
 	}
 
 	firstDisplayCreation = false;
@@ -368,9 +366,7 @@ void OBS_content::OBS_content_createSourcePreviewDisplay(void *data, const int64
 	} catch (const std::exception &e) {
 		std::string message(std::string("Source preview display creation failed: ") + e.what());
 		std::cerr << message << std::endl;
-		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
-		rval.push_back(ipc::value(message));
-		return;
+		blog(LOG_ERROR, "%s", message.data());
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
