@@ -407,8 +407,6 @@ OBS::Display::Display()
 	m_resizeOuterColorVec4 = ConvertColorToVec4(m_resizeOuterColor);
 	m_resizeInnerColorVec4 = ConvertColorToVec4(m_resizeInnerColor);
 	m_rotationHandleColorVec4 = ConvertColorToVec4(m_rotationHandleColor);
-
-	UpdatePreviewArea();
 }
 
 OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode, bool renderAtBottom, obs_video_info* canvas) : Display()

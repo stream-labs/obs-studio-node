@@ -156,9 +156,9 @@ elseif(APPLE)
 endif()
 
 string(
-    CONCAT OSN_DEFAULT_LIBOBS_URL
-    "https://obsstudios3.streamlabs.com/"
-    "libobs-${LIBOBS_PLATFORM}-${LIBOBS_BUILD_TYPE}-${LIBOBS_VERSION}${OBS_URL_EXTENSION}.7z"
+	CONCAT OSN_DEFAULT_LIBOBS_URL
+	"https://obsstudios3.streamlabs.com/"
+	"libobs-${LIBOBS_PLATFORM}-${LIBOBS_BUILD_TYPE}-${LIBOBS_VERSION}${OBS_URL_EXTENSION}.7z"
 )
 
 set(
@@ -174,8 +174,6 @@ download_project(
 )
 
 if (WIN32)
-	set(w32-pthreads_DIR "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
-	include("${libobs_SOURCE_DIR}/cmake/w32-pthreadsConfig.cmake")
 	include("${libobs_SOURCE_DIR}/cmake/LibObsConfig.cmake")
 elseif(APPLE)
 	include("${libobs_SOURCE_DIR}/Frameworks/libobs.Framework/Resources/cmake/LibobsConfig.cmake")
