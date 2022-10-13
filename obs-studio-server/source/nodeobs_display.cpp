@@ -54,45 +54,6 @@ static void RecalculateApectRatioConstrainedSize(uint32_t origW, uint32_t origH,
 }
 
 #ifdef _WIN32
-enum class SystemWorkerMessage : uint32_t {
-	CreateWindow = WM_USER + 0,
-	DestroyWindow = WM_USER + 1,
-	StopThread = WM_USER + 2,
-};
-
-struct message_answer {
-	HANDLE event;
-	bool called = false;
-	bool success = false;
-	DWORD errorCode;
-	std::string errorMessage;
-
-	message_answer() { event = CreateSemaphore(NULL, 0, INT32_MAX, NULL); }
-	~message_answer() { CloseHandle(event); }
-
-	bool wait() { return WaitForSingleObject(event, 1) == WAIT_OBJECT_0; }
-
-	bool try_wait() { return WaitForSingleObject(event, 0) == WAIT_OBJECT_0; }
-
-	void signal() { ReleaseSemaphore(event, 1, NULL); }
-};
-
-struct CreateWindowMessageQuestion {
-	HWND parentWindow;
-	uint32_t width, height;
-};
-
-struct CreateWindowMessageAnswer : message_answer {
-	HWND windowHandle;
-};
-
-struct DestroyWindowMessageQuestion {
-	HWND window;
-};
-
-struct DestroyWindowMessageAnswer : message_answer {
-};
-
 static void HandleWin32ErrorMessage(DWORD errorCode)
 {
 	LPSTR lpErrorStr = nullptr;
@@ -104,95 +65,167 @@ static void HandleWin32ErrorMessage(DWORD errorCode)
 	throw std::system_error(errorCode, std::system_category(), exceptionMessage);
 }
 
-void OBS::Display::SystemWorker()
-{
-	MSG message;
-	PeekMessage(&message, NULL, WM_USER, WM_USER, PM_NOREMOVE);
+class OBS::Display::SystemWorkerThread final {
+public:
+	enum class Message : uint32_t {
+		CreateWindow = WM_USER + 0,
+		DestroyWindow = WM_USER + 1,
+		StopThread = WM_USER + 2,
+	};
 
-	bool keepRunning = true;
-	do {
-		BOOL gotMessage = GetMessage(&message, NULL, 0, 0);
-		if (gotMessage == 0) {
-			continue;
+	struct MessageQuestion {
+		MessageQuestion(Message message) : m_message(message) {}
+		virtual ~MessageQuestion() {}
+		const Message m_message;
+	};
+
+	struct CreateWindowMessageQuestion : public MessageQuestion {
+		CreateWindowMessageQuestion() : MessageQuestion(Message::CreateWindow) {}
+		HWND m_parentWindow = NULL;
+		uint32_t m_width = 0;
+		uint32_t m_height = 0;
+	};
+
+	struct StopThreadMessageQuestion : public MessageQuestion {
+		StopThreadMessageQuestion() : MessageQuestion(Message::StopThread) {}
+	};
+
+	struct DestroyWindowMessageQuestion : public MessageQuestion {
+		DestroyWindowMessageQuestion() : MessageQuestion(Message::DestroyWindow) {}
+		HWND m_window = NULL;
+	};
+
+	struct MessageAnswer {
+		MessageAnswer() { m_event = CreateSemaphore(NULL, 0, INT32_MAX, NULL); }
+		virtual ~MessageAnswer() { CloseHandle(m_event); }
+
+		bool Wait() { return WaitForSingleObject(m_event, 1) == WAIT_OBJECT_0; }
+		bool TryWait() { return WaitForSingleObject(m_event, 0) == WAIT_OBJECT_0; }
+		void Signal() { ReleaseSemaphore(m_event, 1, NULL); }
+
+		HANDLE m_event;
+		bool m_called = false;
+		bool m_success = false;
+		DWORD m_errorCode = 0;
+		std::string m_errorMessage;
+	};
+
+	struct CreateWindowMessageAnswer : MessageAnswer {
+		HWND m_windowHandle = NULL;
+	};
+
+	struct DestroyWindowMessageAnswer : MessageAnswer {
+	};
+
+	SystemWorkerThread() : m_thread(&OBS::Display::SystemWorkerThread::Thread, this) {}
+	~SystemWorkerThread()
+	{
+		if (m_thread.joinable()) {
+			PostMessage(StopThreadMessageQuestion(), nullptr);
+			m_thread.join();
 		}
-		if (gotMessage == -1) {
-			break; // Some sort of error.
-		}
+	}
 
-		if (message.hwnd != NULL) {
-			TranslateMessage(&message);
-			DispatchMessage(&message);
-			continue;
-		}
+	bool PostMessage(const MessageQuestion& question, MessageAnswer* answer)
+	{
+		return ::PostThreadMessage(GetThreadId(m_thread.native_handle()), static_cast<UINT>(question.m_message),
+			reinterpret_cast<uintptr_t>(&question), reinterpret_cast<intptr_t>(answer)) != 0;
+	}
 
-		switch ((SystemWorkerMessage)message.message) {
-		case SystemWorkerMessage::CreateWindow: {
-			CreateWindowMessageQuestion *question = reinterpret_cast<CreateWindowMessageQuestion *>(message.wParam);
-			CreateWindowMessageAnswer *answer = reinterpret_cast<CreateWindowMessageAnswer *>(message.lParam);
+private:
 
-			BOOL enabled = FALSE;
-			DwmIsCompositionEnabled(&enabled);
-			DWORD windowStyle;
+	void Thread()
+	{
+		MSG message;
+		PeekMessage(&message, NULL, WM_USER, WM_USER, PM_NOREMOVE);
 
-			if (IsWindows8OrGreater() || !enabled) {
-				windowStyle = WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOPMOST;
-			} else {
-				windowStyle = WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOPMOST | WS_EX_COMPOSITED;
+		bool keepRunning = true;
+		do {
+			BOOL gotMessage = GetMessage(&message, NULL, 0, 0);
+			if (gotMessage == 0) {
+				continue;
+			}
+			if (gotMessage == -1) {
+				break; // Some sort of error.
 			}
 
-			HWND newWindow = CreateWindowEx(windowStyle, TEXT("Win32DisplayClass"), TEXT("SlobsChildWindowPreview"),
-							WS_VISIBLE | WS_POPUP | WS_CHILD, 0, 0, question->width, question->height, NULL, NULL, NULL, this);
+			if (message.hwnd != NULL) {
+				TranslateMessage(&message);
+				DispatchMessage(&message);
+				continue;
+			}
 
-			if (!newWindow) {
-				answer->success = false;
-				HandleWin32ErrorMessage(GetLastError());
-			} else {
+			switch ((Message)message.message) {
+			case Message::CreateWindow: {
+				CreateWindowMessageQuestion *question = reinterpret_cast<CreateWindowMessageQuestion *>(message.wParam);
+				CreateWindowMessageAnswer *answer = reinterpret_cast<CreateWindowMessageAnswer *>(message.lParam);
+
+				BOOL enabled = FALSE;
+				DwmIsCompositionEnabled(&enabled);
+				DWORD windowStyle;
+
 				if (IsWindows8OrGreater() || !enabled) {
-					SetLayeredWindowAttributes(newWindow, 0, 255, LWA_ALPHA);
-				}
-
-				SetParent(newWindow, question->parentWindow);
-				answer->windowHandle = newWindow;
-				answer->success = true;
-			}
-
-			answer->called = true;
-			answer->signal();
-			break;
-		}
-		case SystemWorkerMessage::DestroyWindow: {
-			DestroyWindowMessageQuestion *question = reinterpret_cast<DestroyWindowMessageQuestion *>(message.wParam);
-			DestroyWindowMessageAnswer *answer = reinterpret_cast<DestroyWindowMessageAnswer *>(message.lParam);
-
-			if (!DestroyWindow(question->window)) {
-				auto error = GetLastError();
-
-				// We check for error 1400 because if this display is a projector, it is attached to a HTML DOM, so
-				// we cannot directly control its destruction since the HTML will probably do this concurrently,
-				// the DestroyWindow is allows to fail on this case, a better solution here woul be checking if this
-				// display is really a projector and do not attempt to destroy it (let the HTML do it for us).
-				if (error != 1400) {
-					answer->success = false;
-					HandleWin32ErrorMessage(error);
+					windowStyle = WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOPMOST;
 				} else {
-					answer->success = true;
+					windowStyle = WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOPMOST | WS_EX_COMPOSITED;
 				}
 
-			} else {
-				answer->success = true;
-			}
+				HWND newWindow = CreateWindowEx(windowStyle, TEXT("Win32DisplayClass"), TEXT("SlobsChildWindowPreview"),
+								WS_VISIBLE | WS_POPUP | WS_CHILD, 0, 0, question->m_width, question->m_height, NULL, NULL, NULL, this);
 
-			answer->called = true;
-			answer->signal();
-			break;
-		}
-		case SystemWorkerMessage::StopThread: {
-			keepRunning = false;
-			break;
-		}
-		}
-	} while (keepRunning);
-}
+				if (!newWindow) {
+					answer->m_success = false;
+					HandleWin32ErrorMessage(GetLastError());
+				} else {
+					if (IsWindows8OrGreater() || !enabled) {
+						SetLayeredWindowAttributes(newWindow, 0, 255, LWA_ALPHA);
+					}
+
+					SetParent(newWindow, question->m_parentWindow);
+					answer->m_windowHandle = newWindow;
+					answer->m_success = true;
+				}
+
+				answer->m_called = true;
+				answer->Signal();
+				break;
+			}
+			case Message::DestroyWindow: {
+				DestroyWindowMessageQuestion *question = reinterpret_cast<DestroyWindowMessageQuestion *>(message.wParam);
+				DestroyWindowMessageAnswer *answer = reinterpret_cast<DestroyWindowMessageAnswer *>(message.lParam);
+
+				if (!DestroyWindow(question->m_window)) {
+					auto error = GetLastError();
+
+					// We check for error 1400 because if this display is a projector, it is attached to a HTML DOM, so
+					// we cannot directly control its destruction since the HTML will probably do this concurrently,
+					// the DestroyWindow is allows to fail on this case, a better solution here woul be checking if this
+					// display is really a projector and do not attempt to destroy it (let the HTML do it for us).
+					if (error != 1400) {
+						answer->m_success = false;
+						HandleWin32ErrorMessage(error);
+					} else {
+						answer->m_success = true;
+					}
+
+				} else {
+					answer->m_success = true;
+				}
+
+				answer->m_called = true;
+				answer->Signal();
+				break;
+			}
+			case Message::StopThread: {
+				keepRunning = false;
+				break;
+			}
+			}
+		} while (keepRunning);	
+	}
+
+	std::thread m_thread;
+};
 #endif
 
 static vec4 ConvertColorToVec4(uint32_t color)
@@ -209,16 +242,16 @@ void OBS::Display::SetDayTheme(bool dayTheme)
 }
 
 OBS::Display::Display()
-{
 #if defined(_WIN32)
+	: m_systemWorkerThread(std::make_unique<SystemWorkerThread>())
+#endif
+{
+#if defined(_WIN32)	
 	DisplayWndClass();
 #elif defined(__APPLE__)
 #elif defined(__linux__) || defined(__FreeBSD__)
 #endif
 
-#ifdef WIN32
-	worker = std::thread(std::bind(&OBS::Display::SystemWorker, this));
-#endif
 	m_gsInitData.adapter = 0;
 	m_gsInitData.cx = 0;
 	m_gsInitData.cy = 0;
@@ -230,175 +263,179 @@ OBS::Display::Display()
 	m_position.first = 0;
 	m_position.second = 0;
 
-	obs_enter_graphics();
-	m_gsSolidEffect = obs_get_base_effect(OBS_EFFECT_SOLID);
-	GS::Vertex v(nullptr, nullptr, nullptr, nullptr, nullptr);
+	{
+		// This enters the OBS graphics context upon creation
+		// and leaves it at the end of the C++ scope or when an exception is thrown.
+		ScopedGraphicsContext scopedGraphicsContext;
 
-	// Left solid outline
-	m_leftSolidOutline = std::make_unique<GS::VertexBuffer>(2);
-	m_leftSolidOutline->Resize(2);
-	v = m_leftSolidOutline->At(0);
-	vec3_set(v.position, 0.0f, 0.0f, 0);
-	vec4_set(v.uv[0], 0, 0, 0, 0);
-	*v.color = 0xFFFFFFFF;
-	v = m_leftSolidOutline->At(1);
-	vec3_set(v.position, 0.0f, 1.0f, 0);
-	vec4_set(v.uv[0], 0, 0, 0, 0);
-	*v.color = 0xFFFFFFFF;
-	m_leftSolidOutline->Update();
+		m_gsSolidEffect = obs_get_base_effect(OBS_EFFECT_SOLID);
 
-	// Top solid outline
-	m_topSolidOutline = std::make_unique<GS::VertexBuffer>(2);
-	m_topSolidOutline->Resize(2);
-	v = m_topSolidOutline->At(0);
-	vec3_set(v.position, 0.0f, 0.0f, 0);
-	vec4_set(v.uv[0], 0, 0, 0, 0);
-	*v.color = 0xFFFFFFFF;
-	v = m_topSolidOutline->At(1);
-	vec3_set(v.position, 1.0f, 0.0f, 0);
-	vec4_set(v.uv[0], 0, 0, 0, 0);
-	*v.color = 0xFFFFFFFF;
-	m_topSolidOutline->Update();
+		GS::Vertex v(nullptr, nullptr, nullptr, nullptr, nullptr);
 
-	// Right solid outline
-	m_rightSolidOutline = std::make_unique<GS::VertexBuffer>(2);
-	m_rightSolidOutline->Resize(2);
-	v = m_rightSolidOutline->At(0);
-	vec3_set(v.position, 1.0f, 0.0f, 0);
-	vec4_set(v.uv[0], 0, 0, 0, 0);
-	*v.color = 0xFFFFFFFF;
-	v = m_rightSolidOutline->At(1);
-	vec3_set(v.position, 1.0f, 1.0f, 0);
-	vec4_set(v.uv[0], 0, 0, 0, 0);
-	*v.color = 0xFFFFFFFF;
-	m_rightSolidOutline->Update();
-
-	// Bottom solid outline
-	m_bottomSolidOutline = std::make_unique<GS::VertexBuffer>(2);
-	m_bottomSolidOutline->Resize(2);
-	v = m_bottomSolidOutline->At(0);
-	vec3_set(v.position, 0.0f, 1.0f, 0);
-	vec4_set(v.uv[0], 0, 0, 0, 0);
-	*v.color = 0xFFFFFFFF;
-	v = m_bottomSolidOutline->At(1);
-	vec3_set(v.position, 1.0f, 1.0f, 0);
-	vec4_set(v.uv[0], 0, 0, 0, 0);
-	*v.color = 0xFFFFFFFF;
-	m_bottomSolidOutline->Update();
-
-	// Crop effect outline
-	m_cropOutline = std::make_unique<GS::VertexBuffer>(4);
-	m_cropOutline->Resize(4);
-
-	m_boxLine = std::make_unique<GS::VertexBuffer>(6);
-	m_boxLine->Resize(6);
-	v = m_boxLine->At(0);
-	vec3_set(v.position, 0, 0, 0);
-	vec4_set(v.uv[0], 0, 0, 0, 0);
-	*v.color = 0xFFFFFFFF;
-	v = m_boxLine->At(1);
-	vec3_set(v.position, 1, 0, 0);
-	vec4_set(v.uv[0], 1, 0, 0, 0);
-	*v.color = 0xFFFFFFFF;
-	v = m_boxLine->At(2);
-	vec3_set(v.position, 1, 1, 0);
-	vec4_set(v.uv[0], 1, 1, 0, 0);
-	*v.color = 0xFFFFFFFF;
-	v = m_boxLine->At(3);
-	vec3_set(v.position, 0, 1, 0);
-	vec4_set(v.uv[0], 0, 1, 0, 0);
-	*v.color = 0xFFFFFFFF;
-	v = m_boxLine->At(4);
-	vec3_set(v.position, 0, 0, 0);
-	vec4_set(v.uv[0], 0, 0, 0, 0);
-	*v.color = 0xFFFFFFFF;
-	m_boxLine->Update();
-
-	m_boxTris = std::make_unique<GS::VertexBuffer>(4);
-	m_boxTris->Resize(4);
-	v = m_boxTris->At(0);
-	vec3_set(v.position, 0, 0, 0);
-	vec4_set(v.uv[0], 0, 0, 0, 0);
-	*v.color = 0xFFFFFFFF;
-	v = m_boxTris->At(1);
-	vec3_set(v.position, 1, 0, 0);
-	vec4_set(v.uv[0], 1, 0, 0, 0);
-	*v.color = 0xFFFFFFFF;
-	v = m_boxTris->At(2);
-	vec3_set(v.position, 0, 1, 0);
-	vec4_set(v.uv[0], 0, 1, 0, 0);
-	*v.color = 0xFFFFFFFF;
-	v = m_boxTris->At(3);
-	vec3_set(v.position, 1, 1, 0);
-	vec4_set(v.uv[0], 1, 1, 0, 0);
-	*v.color = 0xFFFFFFFF;
-	m_boxTris->Update();
-
-	// Rotation handle line
-	m_rotHandleLine = std::make_unique<GS::VertexBuffer>(5);
-	m_rotHandleLine->Resize(5);
-	v = m_rotHandleLine->At(0);
-	vec3_set(v.position, 0.5f - 0.34f / HANDLE_RADIUS, 0.5f, 0);
-	vec4_set(v.uv[0], 0, 0, 0, 0);
-	*v.color = 0xFFFFFFFF;
-	v = m_rotHandleLine->At(1);
-	vec3_set(v.position, 0.5f - 0.34f / HANDLE_RADIUS, -2.0f, 0);
-	vec4_set(v.uv[0], 0, 0, 0, 0);
-	*v.color = 0xFFFFFFFF;
-	v = m_rotHandleLine->At(2);
-	vec3_set(v.position, 0.5f + 0.34f / HANDLE_RADIUS, -2.0f, 0);
-	vec4_set(v.uv[0], 0, 0, 0, 0);
-	*v.color = 0xFFFFFFFF;
-	v = m_rotHandleLine->At(3);
-	vec3_set(v.position, 0.5f + 0.34f / HANDLE_RADIUS, 0.5f, 0);
-	vec4_set(v.uv[0], 0, 0, 0, 0);
-	*v.color = 0xFFFFFFFF;
-	v = m_rotHandleLine->At(4);
-	vec3_set(v.position, 0.5f - 0.34f / HANDLE_RADIUS, 0.5f, 0);
-	vec4_set(v.uv[0], 0, 0, 0, 0);
-	*v.color = 0xFFFFFFFF;
-	m_rotHandleLine->Update();
-
-	// Rotation handle circle
-	m_rotHandleCircle = std::make_unique<GS::VertexBuffer>(120);
-	m_rotHandleCircle->Resize(120);
-	float angle = 180;
-	for (int i = 0; i < 40; ++i) {
-		v = m_rotHandleCircle->At(i * 3);
-		vec3_set(v.position, sin(RAD(angle)) / 2 + 0.5f, cos(RAD(angle)) / 2 + 0.5f, 0);
+		// Left solid outline
+		m_leftSolidOutline = std::make_unique<GS::VertexBuffer>(2);
+		m_leftSolidOutline->Resize(2);
+		v = m_leftSolidOutline->At(0);
+		vec3_set(v.position, 0.0f, 0.0f, 0);
 		vec4_set(v.uv[0], 0, 0, 0, 0);
 		*v.color = 0xFFFFFFFF;
-		angle += 8.75f;
-		v = m_rotHandleCircle->At((i * 3) + 1);
-		vec3_set(v.position, sin(RAD(angle)) / 2 + 0.5f, cos(RAD(angle)) / 2 + 0.5f, 0);
+		v = m_leftSolidOutline->At(1);
+		vec3_set(v.position, 0.0f, 1.0f, 0);
 		vec4_set(v.uv[0], 0, 0, 0, 0);
 		*v.color = 0xFFFFFFFF;
-		v = m_rotHandleCircle->At((i * 3) + 2);
-		vec3_set(v.position, 0.5f, 1.0f, 0);
+		m_leftSolidOutline->Update();
+
+		// Top solid outline
+		m_topSolidOutline = std::make_unique<GS::VertexBuffer>(2);
+		m_topSolidOutline->Resize(2);
+		v = m_topSolidOutline->At(0);
+		vec3_set(v.position, 0.0f, 0.0f, 0);
 		vec4_set(v.uv[0], 0, 0, 0, 0);
 		*v.color = 0xFFFFFFFF;
-	}
-	m_rotHandleCircle->Update();
+		v = m_topSolidOutline->At(1);
+		vec3_set(v.position, 1.0f, 0.0f, 0);
+		vec4_set(v.uv[0], 0, 0, 0, 0);
+		*v.color = 0xFFFFFFFF;
+		m_topSolidOutline->Update();
 
-	// Text
-	m_textVertices = new GS::VertexBuffer(65535);
-	m_textEffect = obs_get_base_effect(OBS_EFFECT_DEFAULT);
-	m_textTexture = gs_texture_create_from_file((g_moduleDirectory + "/resources/roboto.png").c_str());
-	if (!m_textTexture) {
-		throw std::runtime_error("couldn't load roboto font");
-	}
+		// Right solid outline
+		m_rightSolidOutline = std::make_unique<GS::VertexBuffer>(2);
+		m_rightSolidOutline->Resize(2);
+		v = m_rightSolidOutline->At(0);
+		vec3_set(v.position, 1.0f, 0.0f, 0);
+		vec4_set(v.uv[0], 0, 0, 0, 0);
+		*v.color = 0xFFFFFFFF;
+		v = m_rightSolidOutline->At(1);
+		vec3_set(v.position, 1.0f, 1.0f, 0);
+		vec4_set(v.uv[0], 0, 0, 0, 0);
+		*v.color = 0xFFFFFFFF;
+		m_rightSolidOutline->Update();
 
-	// Overflow
-	m_overflowNightTexture = gs_texture_create_from_file((g_moduleDirectory + "/resources/overflow-night-mode.png").c_str());
-	if (!m_overflowNightTexture) {
-		throw std::runtime_error("couldn't load the night pattern overflow texture");
-	}
-	m_overflowDayTexture = gs_texture_create_from_file((g_moduleDirectory + "/resources/overflow-day-mode.png").c_str());
-	if (!m_overflowDayTexture) {
-		throw std::runtime_error("couldn't load the day pattern overflow texture");
-	}
+		// Bottom solid outline
+		m_bottomSolidOutline = std::make_unique<GS::VertexBuffer>(2);
+		m_bottomSolidOutline->Resize(2);
+		v = m_bottomSolidOutline->At(0);
+		vec3_set(v.position, 0.0f, 1.0f, 0);
+		vec4_set(v.uv[0], 0, 0, 0, 0);
+		*v.color = 0xFFFFFFFF;
+		v = m_bottomSolidOutline->At(1);
+		vec3_set(v.position, 1.0f, 1.0f, 0);
+		vec4_set(v.uv[0], 0, 0, 0, 0);
+		*v.color = 0xFFFFFFFF;
+		m_bottomSolidOutline->Update();
 
-	obs_leave_graphics();
+		// Crop effect outline
+		m_cropOutline = std::make_unique<GS::VertexBuffer>(4);
+		m_cropOutline->Resize(4);
+
+		m_boxLine = std::make_unique<GS::VertexBuffer>(6);
+		m_boxLine->Resize(6);
+		v = m_boxLine->At(0);
+		vec3_set(v.position, 0, 0, 0);
+		vec4_set(v.uv[0], 0, 0, 0, 0);
+		*v.color = 0xFFFFFFFF;
+		v = m_boxLine->At(1);
+		vec3_set(v.position, 1, 0, 0);
+		vec4_set(v.uv[0], 1, 0, 0, 0);
+		*v.color = 0xFFFFFFFF;
+		v = m_boxLine->At(2);
+		vec3_set(v.position, 1, 1, 0);
+		vec4_set(v.uv[0], 1, 1, 0, 0);
+		*v.color = 0xFFFFFFFF;
+		v = m_boxLine->At(3);
+		vec3_set(v.position, 0, 1, 0);
+		vec4_set(v.uv[0], 0, 1, 0, 0);
+		*v.color = 0xFFFFFFFF;
+		v = m_boxLine->At(4);
+		vec3_set(v.position, 0, 0, 0);
+		vec4_set(v.uv[0], 0, 0, 0, 0);
+		*v.color = 0xFFFFFFFF;
+		m_boxLine->Update();
+
+		m_boxTris = std::make_unique<GS::VertexBuffer>(4);
+		m_boxTris->Resize(4);
+		v = m_boxTris->At(0);
+		vec3_set(v.position, 0, 0, 0);
+		vec4_set(v.uv[0], 0, 0, 0, 0);
+		*v.color = 0xFFFFFFFF;
+		v = m_boxTris->At(1);
+		vec3_set(v.position, 1, 0, 0);
+		vec4_set(v.uv[0], 1, 0, 0, 0);
+		*v.color = 0xFFFFFFFF;
+		v = m_boxTris->At(2);
+		vec3_set(v.position, 0, 1, 0);
+		vec4_set(v.uv[0], 0, 1, 0, 0);
+		*v.color = 0xFFFFFFFF;
+		v = m_boxTris->At(3);
+		vec3_set(v.position, 1, 1, 0);
+		vec4_set(v.uv[0], 1, 1, 0, 0);
+		*v.color = 0xFFFFFFFF;
+		m_boxTris->Update();
+
+		// Rotation handle line
+		m_rotHandleLine = std::make_unique<GS::VertexBuffer>(5);
+		m_rotHandleLine->Resize(5);
+		v = m_rotHandleLine->At(0);
+		vec3_set(v.position, 0.5f - 0.34f / HANDLE_RADIUS, 0.5f, 0);
+		vec4_set(v.uv[0], 0, 0, 0, 0);
+		*v.color = 0xFFFFFFFF;
+		v = m_rotHandleLine->At(1);
+		vec3_set(v.position, 0.5f - 0.34f / HANDLE_RADIUS, -2.0f, 0);
+		vec4_set(v.uv[0], 0, 0, 0, 0);
+		*v.color = 0xFFFFFFFF;
+		v = m_rotHandleLine->At(2);
+		vec3_set(v.position, 0.5f + 0.34f / HANDLE_RADIUS, -2.0f, 0);
+		vec4_set(v.uv[0], 0, 0, 0, 0);
+		*v.color = 0xFFFFFFFF;
+		v = m_rotHandleLine->At(3);
+		vec3_set(v.position, 0.5f + 0.34f / HANDLE_RADIUS, 0.5f, 0);
+		vec4_set(v.uv[0], 0, 0, 0, 0);
+		*v.color = 0xFFFFFFFF;
+		v = m_rotHandleLine->At(4);
+		vec3_set(v.position, 0.5f - 0.34f / HANDLE_RADIUS, 0.5f, 0);
+		vec4_set(v.uv[0], 0, 0, 0, 0);
+		*v.color = 0xFFFFFFFF;
+		m_rotHandleLine->Update();
+
+		// Rotation handle circle
+		m_rotHandleCircle = std::make_unique<GS::VertexBuffer>(120);
+		m_rotHandleCircle->Resize(120);
+		float angle = 180;
+		for (int i = 0; i < 40; ++i) {
+			v = m_rotHandleCircle->At(i * 3);
+			vec3_set(v.position, sin(RAD(angle)) / 2 + 0.5f, cos(RAD(angle)) / 2 + 0.5f, 0);
+			vec4_set(v.uv[0], 0, 0, 0, 0);
+			*v.color = 0xFFFFFFFF;
+			angle += 8.75f;
+			v = m_rotHandleCircle->At((i * 3) + 1);
+			vec3_set(v.position, sin(RAD(angle)) / 2 + 0.5f, cos(RAD(angle)) / 2 + 0.5f, 0);
+			vec4_set(v.uv[0], 0, 0, 0, 0);
+			*v.color = 0xFFFFFFFF;
+			v = m_rotHandleCircle->At((i * 3) + 2);
+			vec3_set(v.position, 0.5f, 1.0f, 0);
+			vec4_set(v.uv[0], 0, 0, 0, 0);
+			*v.color = 0xFFFFFFFF;
+		}
+		m_rotHandleCircle->Update();
+
+		// Text
+		m_textVertices = new GS::VertexBuffer(65535);
+		m_textEffect = obs_get_base_effect(OBS_EFFECT_DEFAULT);
+		m_textTexture = gs_texture_create_from_file((g_moduleDirectory + "/resources/roboto.png").c_str());
+		if (!m_textTexture) {
+			throw std::runtime_error("couldn't load roboto font");
+		}
+
+		// Overflow
+		m_overflowNightTexture = gs_texture_create_from_file((g_moduleDirectory + "/resources/overflow-night-mode.png").c_str());
+		if (!m_overflowNightTexture) {
+			throw std::runtime_error("couldn't load the night pattern overflow texture");
+		}
+		m_overflowDayTexture = gs_texture_create_from_file((g_moduleDirectory + "/resources/overflow-day-mode.png").c_str());
+		if (!m_overflowDayTexture) {
+			throw std::runtime_error("couldn't load the day pattern overflow texture");
+		}
+	}
 
 	m_paddingColorVec4 = ConvertColorToVec4(m_paddingColor);
 	m_backgroundColorVec4 = ConvertColorToVec4(m_backgroundColor);
@@ -416,30 +453,29 @@ OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode,
 {
 	m_renderAtBottom = renderAtBottom;
 #ifdef _WIN32
-	CreateWindowMessageQuestion question;
-	CreateWindowMessageAnswer answer;
+	SystemWorkerThread::CreateWindowMessageQuestion question;
+	SystemWorkerThread::CreateWindowMessageAnswer answer;
 
-	question.parentWindow = (HWND)windowHandle;
-	question.width = m_gsInitData.cx;
-	question.height = m_gsInitData.cy;
-	while (!PostThreadMessage(GetThreadId(worker.native_handle()), (UINT)SystemWorkerMessage::CreateWindow, reinterpret_cast<intptr_t>(&question),
-				  reinterpret_cast<intptr_t>(&answer))) {
+	question.m_parentWindow = (HWND)windowHandle;
+	question.m_width = m_gsInitData.cx;
+	question.m_height = m_gsInitData.cy;
+	while (!m_systemWorkerThread->PostMessage(question, &answer)) {
 		Sleep(0);
 	}
 
-	if (!answer.try_wait()) {
-		while (!answer.wait()) {
-			if (answer.called)
+	if (!answer.TryWait()) {
+		while (!answer.Wait()) {
+			if (answer.m_called)
 				break;
 			Sleep(0);
 		}
 	}
 
-	if (!answer.success) {
-		throw std::system_error(answer.errorCode, std::system_category(), answer.errorMessage);
+	if (!answer.m_success) {
+		throw std::system_error(answer.m_errorCode, std::system_category(), answer.m_errorMessage);
 	}
 
-	m_ourWindow = answer.windowHandle;
+	m_ourWindow = answer.m_windowHandle;
 	m_parentWindow = reinterpret_cast<HWND>(windowHandle);
 	m_gsInitData.window.hwnd = reinterpret_cast<void *>(m_ourWindow);
 #endif
@@ -457,7 +493,8 @@ OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode,
 	m_displayMtx.unlock();
 }
 
-OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode, std::string sourceName, bool renderAtBottom) : Display(windowHandle, mode, renderAtBottom)
+OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode, std::string sourceName, bool renderAtBottom)
+	: Display(windowHandle, mode, renderAtBottom)
 {
 	m_source = obs_get_source_by_name(sourceName.c_str());
 	obs_source_inc_showing(m_source);
@@ -510,29 +547,23 @@ OBS::Display::~Display()
 	m_displayMtx.unlock();
 
 #ifdef _WIN32
-	DestroyWindowMessageQuestion question;
-	DestroyWindowMessageAnswer answer;
+	SystemWorkerThread::DestroyWindowMessageQuestion question;
+	SystemWorkerThread::DestroyWindowMessageAnswer answer;
 
-	question.window = m_ourWindow;
-	PostThreadMessage(GetThreadId(worker.native_handle()), (UINT)SystemWorkerMessage::DestroyWindow, reinterpret_cast<intptr_t>(&question),
-			  reinterpret_cast<intptr_t>(&answer));
+	question.m_window = m_ourWindow;
+	m_systemWorkerThread->PostMessage(question, &answer);
 
-	if (!answer.try_wait()) {
-		while (!answer.wait()) {
-			if (answer.called)
+	if (!answer.TryWait()) {
+		while (!answer.Wait()) {
+			if (answer.m_called)
 				break;
 			Sleep(0);
 		}
 	}
 
-	if (!answer.success) {
-		std::cerr << "OBS::Display::~Display: " << answer.errorMessage << std::endl;
+	if (!answer.m_success) {
+		std::cerr << "OBS::Display::~Display: " << answer.m_errorMessage << std::endl;
 	}
-
-	PostThreadMessage(GetThreadId(worker.native_handle()), (UINT)SystemWorkerMessage::StopThread, NULL, NULL);
-
-	if (worker.joinable())
-		worker.join();
 #endif
 }
 

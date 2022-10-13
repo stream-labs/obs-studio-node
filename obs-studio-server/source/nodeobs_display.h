@@ -47,10 +47,6 @@ extern ipc::server *g_srv;
 
 namespace OBS {
 class Display {
-	std::thread worker;
-
-	void SystemWorker();
-
 private:
 	Display();
 
@@ -120,6 +116,11 @@ public: // Rendering code needs it.
 	std::pair<uint32_t, uint32_t> m_previewSize;
 
 private:
+	struct ScopedGraphicsContext final {
+		ScopedGraphicsContext() { obs_enter_graphics(); }
+		~ScopedGraphicsContext() { obs_leave_graphics(); }
+	};
+
 	static bool m_dayTheme;
 	// OBS Graphics API
 	gs_effect_t *m_gsSolidEffect, *m_textEffect;
@@ -169,6 +170,8 @@ private:
 	enum obs_video_rendering_mode m_renderingMode = OBS_MAIN_VIDEO_RENDERING;
 
 #if defined(_WIN32)
+	class SystemWorkerThread;
+	std::unique_ptr<SystemWorkerThread> m_systemWorkerThread;
 	HWND m_ourWindow;
 	HWND m_parentWindow;
 	static bool DisplayWndClassRegistered;
