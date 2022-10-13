@@ -126,14 +126,13 @@ public:
 		}
 	}
 
-	bool PostMessage(const MessageQuestion& question, MessageAnswer* answer)
+	bool PostMessage(const MessageQuestion &question, MessageAnswer *answer)
 	{
-		return ::PostThreadMessage(GetThreadId(m_thread.native_handle()), static_cast<UINT>(question.m_message),
-			reinterpret_cast<uintptr_t>(&question), reinterpret_cast<intptr_t>(answer)) != 0;
+		return ::PostThreadMessage(GetThreadId(m_thread.native_handle()), static_cast<UINT>(question.m_message), reinterpret_cast<uintptr_t>(&question),
+					   reinterpret_cast<intptr_t>(answer)) != 0;
 	}
 
 private:
-
 	void Thread()
 	{
 		MSG message;
@@ -171,7 +170,8 @@ private:
 				}
 
 				HWND newWindow = CreateWindowEx(windowStyle, TEXT("Win32DisplayClass"), TEXT("SlobsChildWindowPreview"),
-								WS_VISIBLE | WS_POPUP | WS_CHILD, 0, 0, question->m_width, question->m_height, NULL, NULL, NULL, this);
+								WS_VISIBLE | WS_POPUP | WS_CHILD, 0, 0, question->m_width, question->m_height, NULL, NULL, NULL,
+								this);
 
 				if (!newWindow) {
 					answer->m_success = false;
@@ -221,7 +221,7 @@ private:
 				break;
 			}
 			}
-		} while (keepRunning);	
+		} while (keepRunning);
 	}
 
 	std::thread m_thread;
@@ -246,7 +246,7 @@ OBS::Display::Display()
 	: m_systemWorkerThread(std::make_unique<SystemWorkerThread>())
 #endif
 {
-#if defined(_WIN32)	
+#if defined(_WIN32)
 	DisplayWndClass();
 #elif defined(__APPLE__)
 #elif defined(__linux__) || defined(__FreeBSD__)
@@ -580,7 +580,8 @@ void OBS::Display::SetPosition(uint32_t x, uint32_t y)
 	}
 
 	HWND insertAfter = (m_renderAtBottom) ? HWND_BOTTOM : NULL;
-	SetWindowPos(m_ourWindow, insertAfter, m_position.first, m_position.second, m_gsInitData.cx, m_gsInitData.cy, SWP_NOCOPYBITS | SWP_NOSIZE | SWP_NOACTIVATE);
+	SetWindowPos(m_ourWindow, insertAfter, m_position.first, m_position.second, m_gsInitData.cx, m_gsInitData.cy,
+		     SWP_NOCOPYBITS | SWP_NOSIZE | SWP_NOACTIVATE);
 #endif
 }
 
