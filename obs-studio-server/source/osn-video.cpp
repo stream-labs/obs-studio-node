@@ -199,6 +199,10 @@ static const char *GetColorSpace(const enum video_colorspace &colorSpace)
 		return "709";
 	case VIDEO_CS_SRGB:
 		return "sRGB";
+	case VIDEO_CS_2100_PQ:
+		return "2100PQ";
+	case VIDEO_CS_2100_HLG:
+		return "2100HLG";
 	default:
 		return "709";
 	}
@@ -212,6 +216,10 @@ static enum video_colorspace ColorSpaceFromStr(const std::string &value)
 		return VIDEO_CS_601;
 	else if (value.compare("sRGB") == 0)
 		return VIDEO_CS_SRGB;
+	else if (value.compare("2100PQ") == 0)
+		return VIDEO_CS_2100_PQ;
+	else if (value.compare("2100HLG") == 0)
+		return VIDEO_CS_2100_HLG;
 
 	return VIDEO_CS_DEFAULT;
 }
