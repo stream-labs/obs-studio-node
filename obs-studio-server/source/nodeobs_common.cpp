@@ -158,7 +158,8 @@ void OBS_content::Register(ipc::server &srv)
 	cls->register_function(std::make_shared<ipc::function>("OBS_content_setDayTheme", std::vector<ipc::type>{ipc::type::UInt32}, OBS_content_setDayTheme));
 
 	cls->register_function(std::make_shared<ipc::function>(
-		"OBS_content_createDisplay", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String, ipc::type::Int32, ipc::type::UInt32}, OBS_content_createDisplay));
+		"OBS_content_createDisplay", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String, ipc::type::Int32, ipc::type::UInt32},
+		OBS_content_createDisplay));
 
 	cls->register_function(
 		std::make_shared<ipc::function>("OBS_content_destroyDisplay", std::vector<ipc::type>{ipc::type::String}, OBS_content_destroyDisplay));
@@ -169,9 +170,9 @@ void OBS_content::Register(ipc::server &srv)
 	cls->register_function(std::make_shared<ipc::function>("OBS_content_getDisplayPreviewSize", std::vector<ipc::type>{ipc::type::String},
 							       OBS_content_getDisplayPreviewSize));
 
-	cls->register_function(std::make_shared<ipc::function>("OBS_content_createSourcePreviewDisplay",
-							       std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String, ipc::type::String, ipc::type::UInt32},
-							       OBS_content_createSourcePreviewDisplay));
+	cls->register_function(std::make_shared<ipc::function>(
+		"OBS_content_createSourcePreviewDisplay", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String, ipc::type::String, ipc::type::UInt32},
+		OBS_content_createSourcePreviewDisplay));
 
 	cls->register_function(std::make_shared<ipc::function>(
 		"OBS_content_resizeDisplay", std::vector<ipc::type>{ipc::type::String, ipc::type::UInt32, ipc::type::UInt32}, OBS_content_resizeDisplay));
