@@ -28,6 +28,7 @@
 #include "sceneitem.hpp"
 #include "shared.hpp"
 #include "utility.hpp"
+#include "video.hpp"
 
 Napi::FunctionReference osn::SceneItem::constructor;
 
@@ -43,6 +44,7 @@ Napi::Object osn::SceneItem::Init(Napi::Env env, Napi::Object exports)
 				    InstanceAccessor("selected", &osn::SceneItem::IsSelected, &osn::SceneItem::SetSelected),
 				    InstanceAccessor("streamVisible", &osn::SceneItem::IsStreamVisible, &osn::SceneItem::SetStreamVisible),
 				    InstanceAccessor("recordingVisible", &osn::SceneItem::IsRecordingVisible, &osn::SceneItem::SetRecordingVisible),
+				    InstanceAccessor("video", &osn::SceneItem::GetCanvas, &osn::SceneItem::SetCanvas),
 				    InstanceAccessor("position", &osn::SceneItem::GetPosition, &osn::SceneItem::SetPosition),
 				    InstanceAccessor("rotation", &osn::SceneItem::GetRotation, &osn::SceneItem::SetRotation),
 				    InstanceAccessor("scale", &osn::SceneItem::GetScale, &osn::SceneItem::SetScale),
@@ -383,6 +385,38 @@ void osn::SceneItem::SetPosition(const Napi::CallbackInfo &info, const Napi::Val
 
 	sid->posX = x;
 	sid->posY = y;
+}
+
+Napi::Value osn::SceneItem::GetCanvas(const Napi::CallbackInfo &info)
+{
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
+
+	std::vector<ipc::value> response = conn->call_synchronous_helper("SceneItem", "GetCanvas", {ipc::value(this->itemId)});
+
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
+
+	auto instance = osn::Video::constructor.New({Napi::Number::New(info.Env(), response[1].value_union.ui64)});
+
+	return instance;
+}
+
+void osn::SceneItem::SetCanvas(const Napi::CallbackInfo &info, const Napi::Value &value)
+{
+	osn::Video *canvas = Napi::ObjectWrap<osn::Video>::Unwrap(value.ToObject());
+
+	if (!canvas) {
+		Napi::TypeError::New(info.Env(), "Invalid canvas argument").ThrowAsJavaScriptException();
+		return;
+	}
+
+	auto conn = GetConnection(info);
+	if (!conn)
+		return;
+
+	conn->call("SceneItem", "SetCanvas", {ipc::value(this->itemId), ipc::value(canvas->canvasId)});
 }
 
 Napi::Value osn::SceneItem::GetRotation(const Napi::CallbackInfo &info)

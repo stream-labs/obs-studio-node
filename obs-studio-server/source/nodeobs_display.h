@@ -167,7 +167,7 @@ private:
 	bool m_renderAtBottom = false;
 
 	enum obs_video_rendering_mode m_renderingMode = OBS_MAIN_VIDEO_RENDERING;
-	struct obs_video_info *canvas;
+	struct obs_video_info *m_canvas;
 
 #if defined(_WIN32)
 	HWND m_ourWindow;

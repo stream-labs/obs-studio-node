@@ -409,7 +409,7 @@ OBS::Display::Display()
 	m_rotationHandleColorVec4 = ConvertColorToVec4(m_rotationHandleColor);
 }
 
-OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode, bool renderAtBottom, obs_video_info* canvas) : Display()
+OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode, bool renderAtBottom, obs_video_info *canvas) : Display()
 {
 	m_renderAtBottom = renderAtBottom;
 #ifdef _WIN32
@@ -449,12 +449,7 @@ OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode,
 	}
 
 	m_renderingMode = mode;
-	if (!canvas) {
-		this->canvas = new obs_video_info;
-		obs_get_video_info_by_index(0, this->canvas);
-	} else {
-		this->canvas = canvas;
-	}
+	m_canvas = canvas;
 
 	obs_display_add_draw_callback(m_display, DisplayCallback, this);
 	m_displayMtx.unlock();
@@ -462,7 +457,8 @@ OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode,
 	UpdatePreviewArea();
 }
 
-OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode, std::string sourceName, bool renderAtBottom, obs_video_info* canvas) : Display(windowHandle, mode, renderAtBottom, canvas)
+OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode, std::string sourceName, bool renderAtBottom, obs_video_info *canvas)
+	: Display(windowHandle, mode, renderAtBottom, canvas)
 {
 	m_source = obs_get_source_by_name(sourceName.c_str());
 	obs_source_inc_showing(m_source);
@@ -554,7 +550,8 @@ void OBS::Display::SetPosition(uint32_t x, uint32_t y)
 	}
 
 	HWND insertAfter = (m_renderAtBottom) ? HWND_BOTTOM : NULL;
-	SetWindowPos(m_ourWindow, insertAfter, m_position.first, m_position.second, m_gsInitData.cx, m_gsInitData.cy, SWP_NOCOPYBITS | SWP_NOSIZE | SWP_NOACTIVATE);
+	SetWindowPos(m_ourWindow, insertAfter, m_position.first, m_position.second, m_gsInitData.cx, m_gsInitData.cy,
+		     SWP_NOCOPYBITS | SWP_NOSIZE | SWP_NOACTIVATE);
 #endif
 }
 
@@ -1351,7 +1348,7 @@ void OBS::Display::DisplayCallback(void *displayPtr, uint32_t cx, uint32_t cy)
 	dp->UpdatePreviewArea();
 
 	// Get proper source/base size.
-	uint32_t sourceW, sourceH;
+	uint32_t sourceW = 0, sourceH = 0;
 	if (dp->m_source) {
 		sourceW = obs_source_get_width(dp->m_source);
 		sourceH = obs_source_get_height(dp->m_source);
@@ -1360,8 +1357,10 @@ void OBS::Display::DisplayCallback(void *displayPtr, uint32_t cx, uint32_t cy)
 		if (sourceH == 0)
 			sourceH = 1;
 	} else {
-		sourceW = dp->canvas->base_width;
-		sourceH = dp->canvas->base_height;
+		if (dp->m_canvas) {
+			sourceW = dp->m_canvas->base_width;
+			sourceH = dp->m_canvas->base_height;
+		}
 
 		if (sourceW == 0)
 			sourceW = 1;
@@ -1440,7 +1439,7 @@ void OBS::Display::DisplayCallback(void *displayPtr, uint32_t cx, uint32_t cy)
 			obs_set_video_rendering_mode(dp->m_renderingMode);
 		obs_source_video_render(dp->m_source);
 	} else {
-		obs_render_texture(dp->canvas, dp->m_renderingMode);
+		obs_render_texture(dp->m_canvas, dp->m_renderingMode);
 
 		/* Here we assume that channel 0 holds the primary transition.
 		* We also assume that the active source within that transition is
@@ -1518,13 +1517,15 @@ obs_source_t *OBS::Display::GetSourceForUIEffects()
 void OBS::Display::UpdatePreviewArea()
 {
 	int32_t offsetX = 0, offsetY = 0;
-	uint32_t sourceW, sourceH;
+	uint32_t sourceW = 0, sourceH = 0;
 	if (m_source) {
 		sourceW = obs_source_get_width(m_source);
 		sourceH = obs_source_get_height(m_source);
 	} else {
-		sourceW = canvas->base_width;
-		sourceH = canvas->base_height;
+		if (m_canvas) {
+			sourceW = m_canvas->base_width;
+			sourceH = m_canvas->base_height;
+		}
 	}
 
 	if (sourceW == 0)
