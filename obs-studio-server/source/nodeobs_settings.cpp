@@ -3707,8 +3707,11 @@ std::vector<SubCategory> OBS_settings::getAdvancedSettings()
 	colorSpace.push_back(std::make_pair("minVal", ipc::value((double)0)));
 	colorSpace.push_back(std::make_pair("maxVal", ipc::value((double)0)));
 	colorSpace.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-	colorSpace.push_back(std::make_pair("601", ipc::value("601")));
-	colorSpace.push_back(std::make_pair("709", ipc::value("709")));
+	colorSpace.push_back(std::make_pair("sRGB", ipc::value("sRGB")));
+	colorSpace.push_back(std::make_pair("Rec. 709", ipc::value("709")));
+	colorSpace.push_back(std::make_pair("Rec. 601", ipc::value("601")));
+	colorSpace.push_back(std::make_pair("Rec. 2100 (PQ)", ipc::value("2100PQ")));
+	colorSpace.push_back(std::make_pair("Rec. 2100 (HLG)", ipc::value("2100HLG")));
 	entries.push_back(colorSpace);
 
 	//YUV Color Range

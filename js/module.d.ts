@@ -231,7 +231,9 @@ export declare const enum EColorSpace {
     Default = 0,
     CS601 = 1,
     CS709 = 2,
-    CSSRGB = 3
+    CSSRGB = 3,
+    CS2100PQ = 4,
+    CS2100HLG = 5
 }
 export declare const enum ESpeakerLayout {
     Unknown = 0,

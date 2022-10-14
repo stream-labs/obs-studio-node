@@ -302,7 +302,9 @@ export const enum EColorSpace {
     Default,
     CS601,
     CS709,
-    CSSRGB
+    CSSRGB,
+    CS2100PQ,
+    CS2100HLG
 }
 
 export const enum ESpeakerLayout {
