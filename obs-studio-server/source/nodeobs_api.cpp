@@ -802,7 +802,7 @@ void OBS_API::OBS_API_initAPI(void *data, const int64_t id, const std::vector<ip
 	std::string locale = args[1].value_str;
 	currentVersion = args[2].value_str;
 	utility::osn_current_version(currentVersion);
-	std::this_thread::sleep_for(std::chrono::seconds(8));
+
 #ifdef ENABLE_CRASHREPORT
 	util::CrashManager crashManager;
 	crashManager.SetVersionName(currentVersion);
@@ -913,19 +913,7 @@ void OBS_API::OBS_API_initAPI(void *data, const int64_t id, const std::vector<ip
 	obs_data_set_bool(private_settings, "BrowserHWAccel", browserAccel);
 	obs_apply_private_data(private_settings);
 	obs_data_release(private_settings);
-	/*
-	int videoError = OBS_service::resetVideoContext(false, true);
-	if (videoError != OBS_VIDEO_SUCCESS) {
-#ifdef WIN32
-		util::CrashManager::GetMetricsProvider()->BlameUser();
 
-		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
-		rval.push_back(ipc::value(videoError));
-		AUTO_DEBUG;
-		return;
-#endif
-	}
-	*/
 	addModulePaths();
 	struct obs_module_failure_info mfi;
 	obs_load_all_modules2(&mfi);
@@ -947,7 +935,6 @@ void OBS_API::OBS_API_initAPI(void *data, const int64_t id, const std::vector<ip
 	OBS_service::createVideoRecordingEncoder();
 
 	OBS_service::resetAudioContext();
-	//OBS_service::resetVideoContext();
 
 	OBS_service::setupAudioEncoder();
 
