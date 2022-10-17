@@ -242,9 +242,12 @@ describe(testName, () => {
         osn.AdvancedRecordingFactory.destroy(recording);
 
         osn.AdvancedRecordingFactory.destroy(recording2);
+
+        secondContext.destroy();
     });
 
     it('Start Dual Output with recording and scene items', async () => {
+        const returnSource = osn.Global.getOutputSource(0);
         const secondContext = osn.VideoFactory.create();
 
         const secondVideoInfo: osn.IVideoInfo = {
@@ -415,6 +418,10 @@ describe(testName, () => {
         osn.AdvancedRecordingFactory.destroy(recording);
 
         osn.AdvancedRecordingFactory.destroy(recording2);
+
+        osn.Global.setOutputSource(0, returnSource);
+
+        secondContext.destroy();
 
         sceneItem1.source.release();
         sceneItem1.remove();

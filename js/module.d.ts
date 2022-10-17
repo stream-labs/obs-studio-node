@@ -546,6 +546,7 @@ export interface ISceneItem {
     visible: boolean;
     streamVisible: boolean;
     recordingVisible: boolean;
+    video: IVideo;
     readonly transformInfo: ITransformInfo;
     crop: ICropInfo;
     moveUp(): void;

@@ -1067,6 +1067,7 @@ export interface ISceneItem {
     /** Whether or not the item is visible on the recording output */
     recordingVisible: boolean;
 
+    video: IVideo;
     /**
      * Transform information on the item packed into
      * a single convenient object
