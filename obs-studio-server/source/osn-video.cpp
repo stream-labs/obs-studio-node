@@ -315,13 +315,12 @@ void osn::Video::RemoveVideoContext(void *data, const int64_t id, const std::vec
 		PRETTY_ERROR_RETURN(ErrorCode::Error, "No video context is currently set.");
 	}
 
-	obs_remove_video_info(canvas);
-	osn::Video::Manager::GetInstance().free(args[0].value_union.ui64);
 	try {
-		obs_reset_video();
+		obs_remove_video_info(canvas);
 	} catch (const char *error) {
 		blog(LOG_ERROR, error);
 	}
+	osn::Video::Manager::GetInstance().free(args[0].value_union.ui64);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
