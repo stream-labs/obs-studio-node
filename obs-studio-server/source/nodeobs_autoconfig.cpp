@@ -547,7 +547,6 @@ void autoConfig::TestBandwidthThread(void)
 	bool gotError = false;
 
 	obs_video_info *ovi = obs_create_video_info();
-
 	obs_video_info video = *ovi;
 	video.base_width = 1280;
 	video.base_height = 720;
@@ -556,8 +555,15 @@ void autoConfig::TestBandwidthThread(void)
 	video.output_format = VIDEO_FORMAT_NV12;
 	video.fps_num = 60;
 	video.fps_den = 1;
-	video.initialized = true;
-	obs_set_video_info(ovi, &video);
+
+	int ret = obs_set_video_info(ovi, &video);
+	if (ret != OBS_VIDEO_SUCCESS) {
+		eventsMutex.lock();
+		events.push(AutoConfigInfo("error", "invalid_video_settings", 0));
+		eventsMutex.unlock();
+		obs_remove_video_info(ovi);
+		return;
+	}
 
 	const char *serverType = "rtmp_common";
 
@@ -811,7 +817,7 @@ void autoConfig::TestBandwidthThread(void)
 	obs_encoder_release(vencoder);
 	obs_encoder_release(aencoder);
 	obs_service_release(service);
-	int ret = obs_remove_video_info(ovi);
+	ret = obs_remove_video_info(ovi);
 	if (ret != OBS_VIDEO_SUCCESS) {
 		blog(LOG_ERROR, "[VIDEO_CANVAS] failed to remove video canvas %08X", ovi);
 	}
@@ -1082,6 +1088,7 @@ bool autoConfig::TestSoftwareEncoding()
 		int ret = obs_set_video_info(ovi, &video);
 		if (ret != OBS_VIDEO_SUCCESS) {
 			blog(LOG_ERROR, "[VIDEO_CANVAS] Failed to update video info %08X", ovi);
+			return false;
 		}
 
 		obs_encoder_set_audio(aencoder, obs_get_audio());
@@ -1206,9 +1213,6 @@ void autoConfig::TestStreamEncoderThread()
 	eventsMutex.lock();
 	events.push(AutoConfigInfo("starting_step", "streamingEncoder_test", 0));
 	eventsMutex.unlock();
-
-	baseResolutionCX = config_get_int(ConfigManager::getInstance().getBasic(), "Video", "BaseCX");
-	baseResolutionCY = config_get_int(ConfigManager::getInstance().getBasic(), "Video", "BaseCY");
 
 	TestHardwareEncoding();
 
@@ -1361,7 +1365,14 @@ bool autoConfig::CheckSettings(void)
 	video.fps_num = idealFPSNum;
 	video.fps_den = 1;
 	video.initialized = true;
-	obs_set_video_info(ovi, &video);
+	int ret = obs_set_video_info(ovi, &video);
+	if (ret != OBS_VIDEO_SUCCESS) {
+		eventsMutex.lock();
+		events.push(AutoConfigInfo("error", "invalid_video_settings", 100));
+		eventsMutex.unlock();
+		obs_remove_video_info(ovi);
+		return false;
+	}
 
 	OBSEncoder vencoder = obs_video_encoder_create(GetEncoderId(streamingEncoder), "test_encoder", nullptr, nullptr);
 	OBSEncoder aencoder = obs_audio_encoder_create("ffmpeg_aac", "test_aac", nullptr, 0, nullptr);
@@ -1469,7 +1480,7 @@ bool autoConfig::CheckSettings(void)
 	obs_encoder_release(aencoder);
 	obs_service_release(service);
 
-	int ret = obs_remove_video_info(ovi);
+	ret = obs_remove_video_info(ovi);
 	if (ret != OBS_VIDEO_SUCCESS) {
 		blog(LOG_ERROR, "[VIDEO_CANVAS] Failed to remove video info after CheckSettings, %08X", ovi);
 	}

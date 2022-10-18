@@ -26,6 +26,7 @@ describe(testName, function() {
 
     // Shutdown OBS process
     after(async function() {
+
         // Releasing user got from pool
         await obs.releaseUser();
         

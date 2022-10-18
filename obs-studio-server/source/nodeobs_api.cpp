@@ -802,7 +802,7 @@ void OBS_API::OBS_API_initAPI(void *data, const int64_t id, const std::vector<ip
 	std::string locale = args[1].value_str;
 	currentVersion = args[2].value_str;
 	utility::osn_current_version(currentVersion);
-
+	Sleep(10000);
 #ifdef ENABLE_CRASHREPORT
 	util::CrashManager crashManager;
 	crashManager.SetVersionName(currentVersion);

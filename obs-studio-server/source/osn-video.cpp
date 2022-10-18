@@ -275,7 +275,10 @@ void osn::Video::SetVideoContext(void *data, const int64_t id, const std::vector
 	// ???? fpsType args[10].value_union.ui32
 
 	try {
-		obs_set_video_info(canvas, &video);
+		int ret = obs_set_video_info(canvas, &video);
+		if (ret != OBS_VIDEO_SUCCESS) {
+			blog(LOG_ERROR, "Failed to set video context");
+		}
 	} catch (const char *error) {
 		blog(LOG_ERROR, error);
 	}
