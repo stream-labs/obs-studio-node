@@ -188,7 +188,7 @@ void utility::unique_id::mark_free_range(utility::unique_id::id_t min, utility::
 	}
 }
 
-void utility::ProcessProperties(obs_properties_t *prp, obs_data *settings, bool &updateSource, std::vector<ipc::value> &rval)
+void utility::ProcessProperties(obs_properties_t *prp, obs_data *settings, std::vector<ipc::value> &rval)
 {
 	const char *buf = nullptr;
 	for (obs_property_t *p = obs_properties_first(prp); (p != nullptr); obs_property_next(&p)) {

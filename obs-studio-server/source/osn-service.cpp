@@ -151,7 +151,7 @@ void osn::Service::GetProperties(void *data, const int64_t id, const std::vector
 	obs_data *settings = obs_service_get_settings(service);
 
 	bool update = false;
-	utility::ProcessProperties(prp, settings, update, rval);
+	utility::ProcessProperties(prp, settings, rval);
 
 	obs_properties_destroy(prp);
 

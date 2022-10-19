@@ -189,8 +189,7 @@ void osn::VideoEncoder::GetProperties(void *data, const int64_t id, const std::v
 	obs_properties_t *prp = obs_encoder_properties(encoder);
 	obs_data *settings = obs_encoder_get_settings(encoder);
 
-	bool update = false;
-	utility::ProcessProperties(prp, settings, update, rval);
+	utility::ProcessProperties(prp, settings, rval);
 
 	obs_properties_destroy(prp);
 
