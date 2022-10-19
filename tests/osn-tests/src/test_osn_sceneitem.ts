@@ -65,30 +65,6 @@ describe(testName, () => {
         }
     });
 
-    beforeEach(function() {
-        // Creating scene
-        const scene = osn.SceneFactory.create(sceneName); 
-
-        // Checking if scene was created correctly
-        expect(scene).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateScene, sceneName));
-        expect(scene.id).to.equal('scene', GetErrorMessage(ETestErrorMsg.SceneId, sceneName));
-        expect(scene.name).to.equal(sceneName, GetErrorMessage(ETestErrorMsg.SceneName, sceneName));
-        expect(scene.type).to.equal(osn.ESourceType.Scene, GetErrorMessage(ETestErrorMsg.SceneType, sceneName));
-
-        // Creating input source
-        const source = osn.InputFactory.create(EOBSInputTypes.ImageSource, sourceName);
-
-        // Checking if source was created correctly
-        expect(source).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateInput, EOBSInputTypes.ImageSource));
-        expect(source.id).to.equal(EOBSInputTypes.ImageSource, GetErrorMessage(ETestErrorMsg.InputId, EOBSInputTypes.ImageSource));
-        expect(source.name).to.equal(sourceName, GetErrorMessage(ETestErrorMsg.InputName, EOBSInputTypes.ImageSource));
-    });
-
-    afterEach(function() {
-        const scene = osn.SceneFactory.fromName(sceneName);
-        scene.release();
-    });
-
     it('Get scene item id', () => {
         let sceneItemId: number = undefined;
 
