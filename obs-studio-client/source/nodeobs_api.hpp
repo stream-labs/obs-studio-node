@@ -48,6 +48,9 @@ Napi::Value GetProcessPriority(const Napi::CallbackInfo &info);
 void SetProcessPriority(const Napi::CallbackInfo &info);
 Napi::Value GetProcessPriorityLegacy(const Napi::CallbackInfo &info);
 Napi::Value OBS_API_forceCrash(const Napi::CallbackInfo &info);
+Napi::Value GetForceGPURendering(const Napi::CallbackInfo &info);
+void SetForceGPURendering(const Napi::CallbackInfo &info);
+Napi::Value GetForceGPURenderingLegacy(const Napi::CallbackInfo &info);
 
 Napi::Value GetSdrWhiteLevel(const Napi::CallbackInfo &info);
 void SetSdrWhiteLevel(const Napi::CallbackInfo &info);

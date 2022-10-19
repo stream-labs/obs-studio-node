@@ -129,6 +129,7 @@ static bool mediaFileCaching = true;
 static uint32_t sdrWhiteLevel = 300;
 static uint32_t hdrNominalPeakLevel = 1000;
 static bool lowLatencyAudioBuffering = false;
+static bool forceGPURendering = true;
 static std::string processPriority = "Normal";
 
 void OBS_API::Register(ipc::server &srv)
@@ -165,6 +166,9 @@ void OBS_API::Register(ipc::server &srv)
 	cls->register_function(std::make_shared<ipc::function>("SetLowLatencyAudioBuffering", std::vector<ipc::type>{}, SetLowLatencyAudioBuffering));
 	cls->register_function(
 		std::make_shared<ipc::function>("GetLowLatencyAudioBufferingLegacy", std::vector<ipc::type>{}, GetLowLatencyAudioBufferingLegacy));
+	cls->register_function(std::make_shared<ipc::function>("GetForceGPURendering", std::vector<ipc::type>{}, GetForceGPURendering));
+	cls->register_function(std::make_shared<ipc::function>("SetForceGPURendering", std::vector<ipc::type>{}, SetForceGPURendering));
+	cls->register_function(std::make_shared<ipc::function>("GetForceGPURenderingLegacy", std::vector<ipc::type>{}, GetForceGPURenderingLegacy));
 
 	srv.register_collection(cls);
 	g_server = &srv;
@@ -2106,5 +2110,28 @@ void OBS_API::GetLowLatencyAudioBufferingLegacy(void *data, const int64_t id, co
 {
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value((uint32_t)config_get_bool(ConfigManager::getInstance().getGlobal(), "Audio", "LowLatencyAudioBuffering")));
+	AUTO_DEBUG;
+}
+
+void OBS_API::GetForceGPURendering(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
+{
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value((uint32_t)forceGPURendering));
+	AUTO_DEBUG;
+}
+
+void OBS_API::SetForceGPURendering(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
+{
+	forceGPURendering = args[0].value_union.ui32;
+	config_set_bool(ConfigManager::getInstance().getBasic(), "Video", "ForceGPUAsRenderDevice", forceGPURendering);
+	config_save_safe(ConfigManager::getInstance().getBasic(), "tmp", nullptr);
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
+}
+
+void OBS_API::GetForceGPURenderingLegacy(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
+{
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value((uint32_t)config_get_bool(ConfigManager::getInstance().getBasic(), "Video", "ForceGPUAsRenderDevice")));
 	AUTO_DEBUG;
 }

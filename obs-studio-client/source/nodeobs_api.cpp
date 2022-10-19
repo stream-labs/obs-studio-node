@@ -514,6 +514,45 @@ Napi::Value api::GetLowLatencyAudioBufferingLegacy(const Napi::CallbackInfo &inf
 	return Napi::Boolean::New(info.Env(), response[1].value_union.ui32);
 }
 
+Napi::Value api::GetForceGPURendering(const Napi::CallbackInfo &info)
+{
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
+
+	std::vector<ipc::value> response = conn->call_synchronous_helper("API", "GetForceGPURendering", {});
+
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
+
+	return Napi::Boolean::New(info.Env(), response[1].value_union.ui32);
+}
+
+void api::SetForceGPURendering(const Napi::CallbackInfo &info)
+{
+	bool forceGPURendering = info[0].ToBoolean().Value();
+
+	auto conn = GetConnection(info);
+	if (!conn)
+		return;
+
+	conn->call("API", "SetForceGPURendering", {ipc::value(forceGPURendering)});
+}
+
+Napi::Value api::GetForceGPURenderingLegacy(const Napi::CallbackInfo &info)
+{
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
+
+	std::vector<ipc::value> response = conn->call_synchronous_helper("API", "GetForceGPURenderingLegacy", {});
+
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
+
+	return Napi::Boolean::New(info.Env(), response[1].value_union.ui32);
+}
+
 void api::Init(Napi::Env env, Napi::Object exports)
 {
 	exports.Set(Napi::String::New(env, "OBS_API_initAPI"), Napi::Function::New(env, api::OBS_API_initAPI));
@@ -545,4 +584,7 @@ void api::Init(Napi::Env env, Napi::Object exports)
 	exports.Set(Napi::String::New(env, "GetLowLatencyAudioBuffering"), Napi::Function::New(env, api::GetLowLatencyAudioBuffering));
 	exports.Set(Napi::String::New(env, "SetLowLatencyAudioBuffering"), Napi::Function::New(env, api::SetLowLatencyAudioBuffering));
 	exports.Set(Napi::String::New(env, "GetLowLatencyAudioBufferingLegacy"), Napi::Function::New(env, api::GetLowLatencyAudioBufferingLegacy));
+	exports.Set(Napi::String::New(env, "GetForceGPURendering"), Napi::Function::New(env, api::GetForceGPURendering));
+	exports.Set(Napi::String::New(env, "SetForceGPURendering"), Napi::Function::New(env, api::SetForceGPURendering));
+	exports.Set(Napi::String::New(env, "GetForceGPURenderingLegacy"), Napi::Function::New(env, api::GetForceGPURenderingLegacy));
 }
