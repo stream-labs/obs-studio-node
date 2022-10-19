@@ -168,6 +168,12 @@ describe(testName, () => {
                 case 'ndi_audiofilter': {
                     settings = filterSettings.ndi;
                     settings['ndi_filter_ndiname'] = 'Test Output';
+                    break;
+                }
+                case 'hdr_tonemap_filter': {
+                    settings = filterSettings.hdrTonemap;
+                    settings['sdr_white_level_nits'] = 400;
+                    break;
                 }
             }
 

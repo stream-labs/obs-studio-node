@@ -19,7 +19,7 @@
 #include "util-memory.h"
 #include <stdlib.h>
 
-void* util::malloc_aligned(size_t align, size_t size)
+void *util::malloc_aligned(size_t align, size_t size)
 {
 #if defined(_MSC_VER)
 #ifdef DEBUG
@@ -28,11 +28,11 @@ void* util::malloc_aligned(size_t align, size_t size)
 	return _aligned_malloc(size, align);
 #endif
 #else
-    return malloc(size);
+	return malloc(size);
 #endif
 }
 
-void util::free_aligned(void* mem)
+void util::free_aligned(void *mem)
 {
 #if defined(_MSC_VER)
 #ifdef DEBUG

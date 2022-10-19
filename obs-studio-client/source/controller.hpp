@@ -24,29 +24,28 @@
 #include "ipc-client.hpp"
 #include <napi.h>
 
-class Controller
-{
-	public:
-	static Controller& GetInstance()
+class Controller {
+public:
+	static Controller &GetInstance()
 	{
 		static Controller _inst;
 		return _inst;
 	}
 
-	private:
+private:
 	Controller();
 	~Controller();
 
-	public: // C++11
-	Controller(Controller const&) = delete;
-	void operator=(Controller const&) = delete;
+public: // C++11
+	Controller(Controller const &) = delete;
+	void operator=(Controller const &) = delete;
 
 	static void Init(Napi::Env env, Napi::Object exports);
 
-	public:
-	std::shared_ptr<ipc::client> host(const std::string& uri);
+public:
+	std::shared_ptr<ipc::client> host(const std::string &uri);
 
-	std::shared_ptr<ipc::client> connect(const std::string& uri);
+	std::shared_ptr<ipc::client> connect(const std::string &uri);
 
 	DWORD GetExitCode();
 
@@ -54,8 +53,8 @@ class Controller
 
 	std::shared_ptr<ipc::client> GetConnection();
 
-	private:
-	bool                         m_isServer = false;
+private:
+	bool m_isServer = false;
 	std::shared_ptr<ipc::client> m_connection;
-	ipc::ProcessInfo                  procId;
+	ipc::ProcessInfo procId;
 };

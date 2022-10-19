@@ -143,8 +143,6 @@ describe(testName, () => {
                         settings = inputSettings.win32WindowCapture;
                         settings['compatibility'] = true;
                         settings['client_area'] = true;
-                        settings['method'] = 0;
-                        settings['window'] = '';
                     } else if (obs.os == 'darwin') {
                         settings = inputSettings.macWindowCapture;
                         settings['show_empty_names'] = true;
@@ -169,9 +167,11 @@ describe(testName, () => {
                     settings['use_device_timing'] = true;
                     break;
                 }
-                case 'av_capture_input': {
+                case 'av_capture_input':
+                case 'av_capture_input_v2': {
                     settings = inputSettings.avCaptureInput;
                     settings['color_space'] = 2;
+                    settings['use_preset'] = false;
                     break;
                 }
                 case 'coreaudio_input_capture':
@@ -379,7 +379,8 @@ describe(testName, () => {
                             // Adding ndi filter to ndi source
                             input.addFilter(filter);
                         }
-                    } else if (filterType === 'async_delay_filter') {
+                    } else if (filterType === 'async_delay_filter' ||
+                        filterType === 'mediasoupconnector_vfilter') {
                         if (inputType === 'ffmpeg_source' ||
                             inputType === 'dshow_input') {
                             const filter = osn.FilterFactory.create(filterType, filterType);
