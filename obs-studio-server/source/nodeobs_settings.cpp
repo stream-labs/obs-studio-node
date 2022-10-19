@@ -4454,6 +4454,8 @@ void OBS_settings::OBS_settings_getInputAudioDevices(void *data, const int64_t i
 
 #ifdef WIN32
 	rval.push_back(ipc::value((uint32_t)0));
+	rval.push_back(ipc::value("Default"));
+	rval.push_back(ipc::value("default"));
 	enumInputDevices(CLSID_AudioInputDeviceCategory, rval);
 #elif __APPLE__
 	const char* source_id = "coreaudio_input_capture";
@@ -4469,6 +4471,8 @@ void OBS_settings::OBS_settings_getOutputAudioDevices(void *data, const int64_t 
 
 #ifdef WIN32
 	rval.push_back(ipc::value((uint32_t)0));
+	rval.push_back(ipc::value("Default"));
+	rval.push_back(ipc::value("default"));
 	enumAudioOutputDevices(rval);
 #elif __APPLE__
 	const char* source_id = "coreaudio_output_capture";
