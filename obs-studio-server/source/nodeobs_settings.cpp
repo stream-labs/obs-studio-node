@@ -4446,7 +4446,7 @@ void OBS_settings::OBS_settings_getInputAudioDevices(void *data, const int64_t i
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 
 #ifdef WIN32
-	rval.push_back(ipc::value((uint32_t)0));
+	rval.push_back(ipc::value((uint32_t)1));
 	rval.push_back(ipc::value("Default"));
 	rval.push_back(ipc::value("default"));
 	enumInputDevices(CLSID_AudioInputDeviceCategory, rval);
@@ -4463,7 +4463,7 @@ void OBS_settings::OBS_settings_getOutputAudioDevices(void *data, const int64_t 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 
 #ifdef WIN32
-	rval.push_back(ipc::value((uint32_t)0));
+	rval.push_back(ipc::value((uint32_t)1));
 	rval.push_back(ipc::value("Default"));
 	rval.push_back(ipc::value("default"));
 	enumAudioOutputDevices(rval);
