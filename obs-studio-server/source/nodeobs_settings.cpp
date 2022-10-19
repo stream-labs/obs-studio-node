@@ -4426,12 +4426,16 @@ void enumAudioOutputDevices(std::vector<ipc::value> &rval)
 		CoTaskMemPtr<WCHAR> w_id;
 
 		res = collection->Item(i, device.Assign());
-		if (FAILED(res))
+		if (FAILED(res)) {
+			count--;
 			continue;
+		}
 
 		res = device->GetId(&w_id);
-		if (FAILED(res) || !w_id || !*w_id)
+		if (FAILED(res) || !w_id || !*w_id) {
+			count--;
 			continue;
+		}
 		rval.push_back(ipc::value(GetDeviceName(device)));
 		char *id = NULL;
 		os_wcs_to_utf8_ptr(w_id, 0, &id);
