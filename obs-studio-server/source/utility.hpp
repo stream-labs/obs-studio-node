@@ -241,6 +241,6 @@ public:
 	void clear() { object_map.clear(); }
 };
 
-void ProcessProperties(obs_properties_t *prp, obs_data *settings, bool &updateSource, std::vector<ipc::value> &rval);
+void ProcessProperties(obs_properties_t *prp, obs_data *settings, std::vector<ipc::value> &rval);
 const char *GetSafeString(const char *str);
 } // namespace utility

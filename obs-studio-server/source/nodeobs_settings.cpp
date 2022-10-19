@@ -24,6 +24,12 @@
 
 #ifdef WIN32
 #include <windows.h>
+#include "strmif.h"
+#include "uuids.h"
+#include "util/windows/ComPtr.hpp"
+#include "util/windows/CoTaskMemPtr.hpp"
+#include <mmdeviceapi.h>
+#include <functiondiscoverykeys_devpkey.h>
 #endif
 
 #ifdef __APPLE__
@@ -4310,17 +4316,152 @@ void getDevices(const char *source_id, const char *property_name, std::vector<ip
 	obs_source_release(dummy_source);
 }
 
+#ifdef WIN32
+void enumInputDevices(const GUID &type, std::vector<ipc::value> &rval)
+{
+	ComPtr<ICreateDevEnum> deviceEnum;
+	ComPtr<IEnumMoniker> enumMoniker;
+	ComPtr<IMoniker> deviceInfo;
+	HRESULT hr;
+	DWORD count = 0;
+	ComPtr<IPropertyBag> propertyData;
+
+	hr = CoCreateInstance(CLSID_SystemDeviceEnum, NULL, CLSCTX_INPROC_SERVER, IID_ICreateDevEnum, (void **)&deviceEnum);
+	if (FAILED(hr)) {
+		blog(LOG_ERROR, "Could not create ICreateDeviceEnum");
+		return;
+	}
+
+	hr = deviceEnum->CreateClassEnumerator(type, &enumMoniker, 0);
+	if (FAILED(hr)) {
+		blog(LOG_ERROR, "CreateClassEnumerator failed");
+		return;
+	}
+
+	uint32_t nbDevices = 0;
+	if (hr == S_OK) {
+		VARIANT deviceName, devicePath;
+		deviceName.vt = VT_BSTR;
+		devicePath.vt = VT_BSTR;
+		devicePath.bstrVal = NULL;
+		while (enumMoniker->Next(1, &deviceInfo, &count) == S_OK) {
+			hr = deviceInfo->BindToStorage(0, 0, IID_IPropertyBag, (void **)&propertyData);
+			if (FAILED(hr))
+				continue;
+			hr = propertyData->Read(L"FriendlyName", &deviceName, NULL);
+			if (FAILED(hr))
+				continue;
+
+			char *utf8Name = NULL;
+			os_wcs_to_utf8_ptr(deviceName.bstrVal, 0, &utf8Name);
+			std::string deviceId = utf8Name;
+			deviceId += ':'; // Not a bug, dshow expects it as a separator
+
+			hr = propertyData->Read(L"DevicePath", &devicePath, NULL);
+			if (SUCCEEDED(hr)) {
+				char *utf8Path = NULL;
+				os_wcs_to_utf8_ptr(devicePath.bstrVal, 0, &utf8Path);
+				deviceId += utf8Path;
+			}
+
+			nbDevices++;
+			rval.push_back(ipc::value(utf8Name));
+			rval.push_back(ipc::value(deviceId));
+		}
+	}
+	rval[1] = ipc::value(nbDevices + rval[1].value_union.ui32);
+}
+
+std::string GetDeviceName(IMMDevice *device)
+{
+	if (!device) {
+		return "";
+	}
+	std::string device_name;
+	ComPtr<IPropertyStore> store;
+	HRESULT res;
+
+	if (SUCCEEDED(device->OpenPropertyStore(STGM_READ, store.Assign()))) {
+		PROPVARIANT nameVar;
+
+		PropVariantInit(&nameVar);
+		res = store->GetValue(PKEY_Device_FriendlyName, &nameVar);
+
+		if (SUCCEEDED(res) && nameVar.pwszVal && *nameVar.pwszVal) {
+			size_t len = wcslen(nameVar.pwszVal);
+			size_t size;
+
+			size = os_wcs_to_utf8(nameVar.pwszVal, len, nullptr, 0);
+			device_name.resize(size);
+			os_wcs_to_utf8(nameVar.pwszVal, len, &device_name[0], size);
+		}
+	}
+
+	return device_name;
+}
+
+void enumAudioOutputDevices(std::vector<ipc::value> &rval)
+{
+	ComPtr<IMMDeviceEnumerator> enumerator;
+	ComPtr<IMMDeviceCollection> collection;
+	UINT count;
+	uint32_t finalCount;
+	HRESULT res;
+
+	res = CoCreateInstance(__uuidof(MMDeviceEnumerator), NULL, CLSCTX_ALL, __uuidof(IMMDeviceEnumerator), (void **)enumerator.Assign());
+	if (FAILED(res))
+		blog(LOG_ERROR, "Failed to create enumerator");
+
+	res = enumerator->EnumAudioEndpoints(eRender, DEVICE_STATE_ACTIVE, collection.Assign());
+	if (FAILED(res))
+		blog(LOG_ERROR, "Failed to enumerate devices");
+
+	res = collection->GetCount(&count);
+	if (FAILED(res))
+		blog(LOG_ERROR, "Failed to get device count");
+
+	finalCount = count + rval[1].value_union.ui32;
+
+	for (UINT i = 0; i < count; i++) {
+		ComPtr<IMMDevice> device;
+		CoTaskMemPtr<WCHAR> w_id;
+
+		res = collection->Item(i, device.Assign());
+		if (FAILED(res)) {
+			finalCount--;
+			continue;
+		}
+
+		res = device->GetId(&w_id);
+		if (FAILED(res) || !w_id || !*w_id) {
+			finalCount--;
+			continue;
+		}
+		rval.push_back(ipc::value(GetDeviceName(device)));
+		char *id = NULL;
+		os_wcs_to_utf8_ptr(w_id, 0, &id);
+		rval.push_back(ipc::value(id));
+	}
+
+	rval[1] = ipc::value(finalCount);
+}
+
+#endif
+
 void OBS_settings::OBS_settings_getInputAudioDevices(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 
 #ifdef WIN32
-	const char *source_id = "wasapi_input_capture";
+	rval.push_back(ipc::value((uint32_t)1));
+	rval.push_back(ipc::value("Default"));
+	rval.push_back(ipc::value("default"));
+	enumInputDevices(CLSID_AudioInputDeviceCategory, rval);
 #elif __APPLE__
 	const char *source_id = "coreaudio_input_capture";
+	getDevices(source_id, "device_id", rval);
 #endif
 
-	getDevices(source_id, "device_id", rval);
 	AUTO_DEBUG;
 }
 
@@ -4329,12 +4470,15 @@ void OBS_settings::OBS_settings_getOutputAudioDevices(void *data, const int64_t 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 
 #ifdef WIN32
-	const char *source_id = "wasapi_output_capture";
+	rval.push_back(ipc::value((uint32_t)1));
+	rval.push_back(ipc::value("Default"));
+	rval.push_back(ipc::value("default"));
+	enumAudioOutputDevices(rval);
 #elif __APPLE__
 	const char *source_id = "coreaudio_output_capture";
+	getDevices(source_id, "device_id", rval);
 #endif
 
-	getDevices(source_id, "device_id", rval);
 	AUTO_DEBUG;
 }
 
@@ -4343,12 +4487,13 @@ void OBS_settings::OBS_settings_getVideoDevices(void *data, const int64_t id, co
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 
 #ifdef WIN32
-	const char *source_id = "dshow_input";
-	const char *property_name = "video_device_id";
+	rval.push_back(ipc::value((uint32_t)0));
+	enumInputDevices(CLSID_VideoInputDeviceCategory, rval);
 #elif __APPLE__
 	const char *source_id = "av_capture_input";
 	const char *property_name = "device";
+	getDevices(source_id, property_name, rval);
 #endif
 
-	getDevices(source_id, property_name, rval);
+	AUTO_DEBUG;
 }
