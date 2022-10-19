@@ -120,7 +120,7 @@ inline void CreateVideo(const Napi::CallbackInfo &info, const std::vector<ipc::v
 	video.Set("colorspace", response[index++].value_union.ui32);
 	video.Set("range", response[index++].value_union.ui32);
 	video.Set("scaleType", response[index++].value_union.ui32);
-	if (response.size() >= 11)
+	if (response.size() >= 12)
 		video.Set("fpsType", response[index++].value_union.ui32);
 }
 
