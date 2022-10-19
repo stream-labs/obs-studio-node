@@ -4369,7 +4369,7 @@ void enumInputDevices(const GUID &type, std::vector<ipc::value> &rval)
 			rval.push_back(ipc::value(deviceId));
 		}
 	}
-	rval[1] = ipc::value(nbDevices);
+	rval[1] = ipc::value(nbDevices + rval[1].value_union.ui32);
 }
 
 std::string GetDeviceName(IMMDevice *device)
@@ -4420,7 +4420,7 @@ void enumAudioOutputDevices(std::vector<ipc::value> &rval)
 	if (FAILED(res))
 		blog(LOG_ERROR, "Failed to get device count");
 
-	finalCount = count + 1;
+	finalCount = count + rval[1].value_union.ui32;
 
 	for (UINT i = 0; i < count; i++) {
 		ComPtr<IMMDevice> device;
