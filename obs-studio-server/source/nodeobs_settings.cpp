@@ -4405,6 +4405,7 @@ void enumAudioOutputDevices(std::vector<ipc::value> &rval)
 	ComPtr<IMMDeviceEnumerator> enumerator;
 	ComPtr<IMMDeviceCollection> collection;
 	UINT count;
+	uint32_t finalCount;
 	HRESULT res;
 
 	res = CoCreateInstance(__uuidof(MMDeviceEnumerator), NULL, CLSCTX_ALL, __uuidof(IMMDeviceEnumerator), (void **)enumerator.Assign());
@@ -4419,7 +4420,7 @@ void enumAudioOutputDevices(std::vector<ipc::value> &rval)
 	if (FAILED(res))
 		blog(LOG_ERROR, "Failed to get device count");
 
-	rval[1] = ipc::value((uint32_t)count);
+	finalCount = count;
 
 	for (UINT i = 0; i < count; i++) {
 		ComPtr<IMMDevice> device;
@@ -4427,13 +4428,13 @@ void enumAudioOutputDevices(std::vector<ipc::value> &rval)
 
 		res = collection->Item(i, device.Assign());
 		if (FAILED(res)) {
-			count--;
+			finalCount--;
 			continue;
 		}
 
 		res = device->GetId(&w_id);
 		if (FAILED(res) || !w_id || !*w_id) {
-			count--;
+			finalCount--;
 			continue;
 		}
 		rval.push_back(ipc::value(GetDeviceName(device)));
@@ -4441,6 +4442,8 @@ void enumAudioOutputDevices(std::vector<ipc::value> &rval)
 		os_wcs_to_utf8_ptr(w_id, 0, &id);
 		rval.push_back(ipc::value(id));
 	}
+
+	rval[1] = ipc::value(finalCount);
 }
 
 #endif
