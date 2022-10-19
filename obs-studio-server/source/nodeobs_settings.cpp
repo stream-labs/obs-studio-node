@@ -4317,7 +4317,7 @@ void getDevices(const char *source_id, const char *property_name, std::vector<ip
 }
 
 #ifdef WIN32
-void enumInputDevices(const GUID &type, std::vector<ipc::value>& rval)
+void enumInputDevices(const GUID &type, std::vector<ipc::value> &rval)
 {
 	ComPtr<ICreateDevEnum> deviceEnum;
 	ComPtr<IEnumMoniker> enumMoniker;
@@ -4326,9 +4326,7 @@ void enumInputDevices(const GUID &type, std::vector<ipc::value>& rval)
 	DWORD count = 0;
 	ComPtr<IPropertyBag> propertyData;
 
-	hr = CoCreateInstance(CLSID_SystemDeviceEnum, NULL,
-					CLSCTX_INPROC_SERVER, IID_ICreateDevEnum,
-					(void **)&deviceEnum);
+	hr = CoCreateInstance(CLSID_SystemDeviceEnum, NULL, CLSCTX_INPROC_SERVER, IID_ICreateDevEnum, (void **)&deviceEnum);
 	if (FAILED(hr)) {
 		blog(LOG_ERROR, "Could not create ICreateDeviceEnum");
 		return;
@@ -4347,8 +4345,7 @@ void enumInputDevices(const GUID &type, std::vector<ipc::value>& rval)
 		devicePath.vt = VT_BSTR;
 		devicePath.bstrVal = NULL;
 		while (enumMoniker->Next(1, &deviceInfo, &count) == S_OK) {
-			hr = deviceInfo->BindToStorage(0, 0, IID_IPropertyBag,
-							(void **)&propertyData);
+			hr = deviceInfo->BindToStorage(0, 0, IID_IPropertyBag, (void **)&propertyData);
 			if (FAILED(hr))
 				continue;
 			hr = propertyData->Read(L"FriendlyName", &deviceName, NULL);
@@ -4375,7 +4372,7 @@ void enumInputDevices(const GUID &type, std::vector<ipc::value>& rval)
 	rval[1] = ipc::value(nbDevices);
 }
 
-std::string GetDeviceName(IMMDevice* device)
+std::string GetDeviceName(IMMDevice *device)
 {
 	if (!device) {
 		return "";
@@ -4403,22 +4400,18 @@ std::string GetDeviceName(IMMDevice* device)
 	return device_name;
 }
 
-void enumAudioOutputDevices(std::vector<ipc::value>& rval)
+void enumAudioOutputDevices(std::vector<ipc::value> &rval)
 {
 	ComPtr<IMMDeviceEnumerator> enumerator;
 	ComPtr<IMMDeviceCollection> collection;
 	UINT count;
 	HRESULT res;
 
-	res = CoCreateInstance(__uuidof(MMDeviceEnumerator), NULL, CLSCTX_ALL,
-					__uuidof(IMMDeviceEnumerator),
-					(void **)enumerator.Assign());
+	res = CoCreateInstance(__uuidof(MMDeviceEnumerator), NULL, CLSCTX_ALL, __uuidof(IMMDeviceEnumerator), (void **)enumerator.Assign());
 	if (FAILED(res))
 		blog(LOG_ERROR, "Failed to create enumerator");
 
-	res = enumerator->EnumAudioEndpoints(eRender,
-						DEVICE_STATE_ACTIVE,
-						collection.Assign());
+	res = enumerator->EnumAudioEndpoints(eRender, DEVICE_STATE_ACTIVE, collection.Assign());
 	if (FAILED(res))
 		blog(LOG_ERROR, "Failed to enumerate devices");
 
@@ -4458,7 +4451,7 @@ void OBS_settings::OBS_settings_getInputAudioDevices(void *data, const int64_t i
 	rval.push_back(ipc::value("default"));
 	enumInputDevices(CLSID_AudioInputDeviceCategory, rval);
 #elif __APPLE__
-	const char* source_id = "coreaudio_input_capture";
+	const char *source_id = "coreaudio_input_capture";
 	getDevices(source_id, "device_id", rval);
 #endif
 
@@ -4475,7 +4468,7 @@ void OBS_settings::OBS_settings_getOutputAudioDevices(void *data, const int64_t 
 	rval.push_back(ipc::value("default"));
 	enumAudioOutputDevices(rval);
 #elif __APPLE__
-	const char* source_id = "coreaudio_output_capture";
+	const char *source_id = "coreaudio_output_capture";
 	getDevices(source_id, "device_id", rval);
 #endif
 
@@ -4490,8 +4483,8 @@ void OBS_settings::OBS_settings_getVideoDevices(void *data, const int64_t id, co
 	rval.push_back(ipc::value((uint32_t)0));
 	enumInputDevices(CLSID_VideoInputDeviceCategory, rval);
 #elif __APPLE__
-	const char* source_id = "av_capture_input";
-	const char* property_name = "device";
+	const char *source_id = "av_capture_input";
+	const char *property_name = "device";
 	getDevices(source_id, property_name, rval);
 #endif
 
