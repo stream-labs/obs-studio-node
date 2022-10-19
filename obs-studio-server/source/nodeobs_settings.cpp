@@ -4420,7 +4420,7 @@ void enumAudioOutputDevices(std::vector<ipc::value> &rval)
 	if (FAILED(res))
 		blog(LOG_ERROR, "Failed to get device count");
 
-	finalCount = count;
+	finalCount = count + 1;
 
 	for (UINT i = 0; i < count; i++) {
 		ComPtr<IMMDevice> device;
