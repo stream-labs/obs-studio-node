@@ -31,12 +31,12 @@ public:
 	static Napi::Value GetLegacySettings(const Napi::CallbackInfo &info);
 	static void SetLegacySettings(const Napi::CallbackInfo &info, const Napi::Value &value);
 
-    static Napi::Value GetMonitoringDevice(const Napi::CallbackInfo &info);
-    static void SetMonitoringDevice(const Napi::CallbackInfo &info, const Napi::Value &value);
-    static Napi::Value GetMonitoringDeviceLegacy(const Napi::CallbackInfo &info);
-    static Napi::Value GetMonitoringDevices(const Napi::CallbackInfo &info);
-    static Napi::Value GetAudioDucking(const Napi::CallbackInfo &info);
-    static void SetAudioDucking(const Napi::CallbackInfo &info, const Napi::Value &value);
-    static Napi::Value GetAudioDuckingLegacy(const Napi::CallbackInfo &info);
+	static Napi::Value GetMonitoringDevice(const Napi::CallbackInfo &info);
+	static void SetMonitoringDevice(const Napi::CallbackInfo &info, const Napi::Value &value);
+	static Napi::Value GetMonitoringDeviceLegacy(const Napi::CallbackInfo &info);
+	static Napi::Value GetMonitoringDevices(const Napi::CallbackInfo &info);
+	static Napi::Value GetAudioDucking(const Napi::CallbackInfo &info);
+	static void SetAudioDucking(const Napi::CallbackInfo &info, const Napi::Value &value);
+	static Napi::Value GetAudioDuckingLegacy(const Napi::CallbackInfo &info);
 };
 }
