@@ -224,7 +224,7 @@ void osn::Audio::GetMonitoringDevices(void *data, const int64_t id, const std::v
 	};
 
 	obs_enum_audio_monitoring_devices(enum_devices, &rval);
-	rval[1] = (rval.size() - 2) / 2;
+	rval[1] = ipc::value((uint32_t)(rval.size() - 2) / 2);
 	AUTO_DEBUG;
 }
 
