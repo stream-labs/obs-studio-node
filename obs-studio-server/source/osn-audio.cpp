@@ -246,6 +246,7 @@ void osn::Audio::SetAudioDucking(void *data, const int64_t id, const std::vector
 	audioDucking = args[0].value_union.ui32;
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 
+#ifdef WIN32
 	ComPtr<IMMDeviceEnumerator> devEmum;
 	ComPtr<IMMDevice> device;
 	ComPtr<IAudioSessionManager2> sessionManager2;
@@ -275,6 +276,7 @@ void osn::Audio::SetAudioDucking(void *data, const int64_t id, const std::vector
 	result = sessionControl2->SetDuckingPreference(audioDucking);
 	if (FAILED(result))
 		return;
+#endif
 
 	config_set_bool(ConfigManager::getInstance().getBasic(), "Audio", "DisableAudioDucking", audioDucking);
 	config_save_safe(ConfigManager::getInstance().getBasic(), "tmp", nullptr);
