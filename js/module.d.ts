@@ -671,8 +671,8 @@ export interface IAudioFactory {
     monitoringDevice: IDevice;
     monitoringDeviceLegacy: IDevice;
     readonly monitoringDevices: IDevice[];
-    audioDucking: boolean;
-    audioDuckingLegacy: boolean;
+    disableAudioDucking: boolean;
+    disableAudioDuckingLegacy: boolean;
 }
 export interface IModuleFactory extends IFactoryTypes {
     open(binPath: string, dataPath: string): IModule;

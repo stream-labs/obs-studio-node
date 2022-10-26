@@ -30,8 +30,8 @@ Napi::Object osn::Audio::Init(Napi::Env env, Napi::Object exports)
 					   StaticAccessor("monitoringDevice", &osn::Audio::GetMonitoringDevice, &osn::Audio::SetMonitoringDevice),
 					   StaticAccessor("monitoringDeviceLegacy", &osn::Audio::GetMonitoringDeviceLegacy, nullptr),
 					   StaticAccessor("monitoringDevices", &osn::Audio::GetMonitoringDevices, nullptr),
-					   StaticAccessor("audioDucking", &osn::Audio::GetAudioDucking, &osn::Audio::SetAudioDucking),
-					   StaticAccessor("audioDuckingLegacy", &osn::Audio::GetAudioDuckingLegacy, nullptr)});
+					   StaticAccessor("disableAudioDucking", &osn::Audio::GetDisableAudioDucking, &osn::Audio::SetDisableAudioDucking),
+					   StaticAccessor("disableAudioDuckingLegacy", &osn::Audio::GetDisableAudioDuckingLegacy, nullptr)});
 	exports.Set("Audio", func);
 	osn::Audio::constructor = Napi::Persistent(func);
 	osn::Audio::constructor.SuppressDestruct();
@@ -196,13 +196,13 @@ Napi::Value osn::Audio::GetMonitoringDevices(const Napi::CallbackInfo &info)
 	return devices;
 }
 
-Napi::Value osn::Audio::GetAudioDucking(const Napi::CallbackInfo &info)
+Napi::Value osn::Audio::GetDisableAudioDucking(const Napi::CallbackInfo &info)
 {
 	auto conn = GetConnection(info);
 	if (!conn)
 		return info.Env().Undefined();
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Audio", "GetAudioDucking", {});
+	std::vector<ipc::value> response = conn->call_synchronous_helper("Audio", "GetDisableAudioDucking", {});
 
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
@@ -210,24 +210,24 @@ Napi::Value osn::Audio::GetAudioDucking(const Napi::CallbackInfo &info)
 	return Napi::Boolean::New(info.Env(), response[1].value_union.ui32);
 }
 
-void osn::Audio::SetAudioDucking(const Napi::CallbackInfo &info, const Napi::Value &value)
+void osn::Audio::SetDisableAudioDucking(const Napi::CallbackInfo &info, const Napi::Value &value)
 {
-	bool audioDucking = value.ToBoolean().Value();
+	bool disableAudioDucking = value.ToBoolean().Value();
 
 	auto conn = GetConnection(info);
 	if (!conn)
 		return;
 
-	conn->call("Audio", "SetAudioDucking", {ipc::value(audioDucking)});
+	conn->call("Audio", "SetDisableAudioDucking", {ipc::value(disableAudioDucking)});
 }
 
-Napi::Value osn::Audio::GetAudioDuckingLegacy(const Napi::CallbackInfo &info)
+Napi::Value osn::Audio::GetDisableAudioDuckingLegacy(const Napi::CallbackInfo &info)
 {
 	auto conn = GetConnection(info);
 	if (!conn)
 		return info.Env().Undefined();
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Audio", "GetAudioDuckingLegacy", {});
+	std::vector<ipc::value> response = conn->call_synchronous_helper("Audio", "GetDisableAudioDuckingLegacy", {});
 
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();

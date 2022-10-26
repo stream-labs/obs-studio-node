@@ -1458,8 +1458,8 @@ export interface IAudioFactory {
     monitoringDevice: IDevice;
     monitoringDeviceLegacy: IDevice;
     readonly monitoringDevices: IDevice[];
-    audioDucking: boolean; // Windows only
-    audioDuckingLegacy: boolean; // Windows only
+    disableAudioDucking: boolean; // Windows only
+    disableAudioDuckingLegacy: boolean; // Windows only
 }
 
 export interface IModuleFactory extends IFactoryTypes {

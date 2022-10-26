@@ -32,7 +32,7 @@
 // DELETE ME WHEN REMOVING NODEOBS
 #include "nodeobs_configManager.hpp"
 
-static bool audioDucking = true;
+static bool disableAudioDucking = true;
 
 void osn::Audio::Register(ipc::server &srv)
 {
@@ -48,9 +48,9 @@ void osn::Audio::Register(ipc::server &srv)
 	cls->register_function(std::make_shared<ipc::function>("SetMonitoringDevice", std::vector<ipc::type>{}, SetMonitoringDevice));
 	cls->register_function(std::make_shared<ipc::function>("GetMonitoringDeviceLegacy", std::vector<ipc::type>{}, GetMonitoringDeviceLegacy));
 	cls->register_function(std::make_shared<ipc::function>("GetMonitoringDevices", std::vector<ipc::type>{}, GetMonitoringDevices));
-	cls->register_function(std::make_shared<ipc::function>("GetAudioDucking", std::vector<ipc::type>{}, GetAudioDucking));
-	cls->register_function(std::make_shared<ipc::function>("SetAudioDucking", std::vector<ipc::type>{ipc::type::UInt32}, SetAudioDucking));
-	cls->register_function(std::make_shared<ipc::function>("GetAudioDuckingLegacy", std::vector<ipc::type>{}, GetAudioDuckingLegacy));
+	cls->register_function(std::make_shared<ipc::function>("GetDisableAudioDucking", std::vector<ipc::type>{}, GetDisableAudioDucking));
+	cls->register_function(std::make_shared<ipc::function>("SetDisableAudioDucking", std::vector<ipc::type>{ipc::type::UInt32}, SetDisableAudioDucking));
+	cls->register_function(std::make_shared<ipc::function>("GetDisableAudioDuckingLegacy", std::vector<ipc::type>{}, GetDisableAudioDuckingLegacy));
 	srv.register_collection(cls);
 }
 
@@ -228,16 +228,16 @@ void osn::Audio::GetMonitoringDevices(void *data, const int64_t id, const std::v
 	AUTO_DEBUG;
 }
 
-void osn::Audio::GetAudioDucking(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
+void osn::Audio::GetDisableAudioDucking(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	rval.push_back(ipc::value((uint32_t)audioDucking));
+	rval.push_back(ipc::value((uint32_t)disableAudioDucking));
 	AUTO_DEBUG;
 }
 
-void osn::Audio::SetAudioDucking(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
+void osn::Audio::SetDisableAudioDucking(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
-	audioDucking = args[0].value_union.ui32;
+	disableAudioDucking = args[0].value_union.ui32;
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 
 #ifdef WIN32
@@ -267,18 +267,18 @@ void osn::Audio::SetAudioDucking(void *data, const int64_t id, const std::vector
 	if (FAILED(result))
 		return;
 
-	result = sessionControl2->SetDuckingPreference(audioDucking);
+	result = sessionControl2->SetDuckingPreference(disableAudioDucking);
 	if (FAILED(result))
 		return;
 #endif
 
-	config_set_bool(ConfigManager::getInstance().getBasic(), "Audio", "DisableAudioDucking", audioDucking);
+	config_set_bool(ConfigManager::getInstance().getBasic(), "Audio", "DisableAudioDucking", disableAudioDucking);
 	config_save_safe(ConfigManager::getInstance().getBasic(), "tmp", nullptr);
 
 	AUTO_DEBUG;
 }
 
-void osn::Audio::GetAudioDuckingLegacy(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
+void osn::Audio::GetDisableAudioDuckingLegacy(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value((uint32_t)config_get_bool(ConfigManager::getInstance().getBasic(), "Audio", "DisableAudioDucking")));
