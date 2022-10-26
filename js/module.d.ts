@@ -661,9 +661,18 @@ export interface IAudio {
     sampleRate: (44100 | 48000);
     speakers: ESpeakerLayout;
 }
+export interface IDevice {
+    name: string;
+    id: string;
+}
 export interface IAudioFactory {
     audioContext: IAudio;
     legacySettings: IAudio;
+    monitoringDevice: IDevice;
+    monitoringDeviceLegacy: IDevice;
+    readonly monitoringDevices: IDevice[];
+    audioDucking: boolean;
+    audioDuckingLegacy: boolean;
 }
 export interface IModuleFactory extends IFactoryTypes {
     open(binPath: string, dataPath: string): IModule;
