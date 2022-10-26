@@ -503,7 +503,7 @@ void osn::ISimpleStreaming::GetLegacySettings(void *data, const int64_t id, cons
 	osn::SimpleStreaming *streaming = new osn::SimpleStreaming();
 
 	streaming->videoEncoder = GetLegacyVideoEncoderSettings();
-	;
+
 	osn::VideoEncoder::Manager::GetInstance().allocate(streaming->videoEncoder);
 
 	streaming->audioEncoder = GetLegacyAudioEncoderSettings();
