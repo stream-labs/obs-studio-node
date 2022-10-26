@@ -45,18 +45,12 @@ void osn::Audio::Register(ipc::server &srv)
 		std::make_shared<ipc::function>("SetLegacySettings", std::vector<ipc::type>{ipc::type::UInt32, ipc::type::UInt32}, SetLegacySettings));
 	cls->register_function(
 		std::make_shared<ipc::function>("GetMonitoringDevice", std::vector<ipc::type>{ipc::type::String, ipc::type::String}, GetMonitoringDevice));
-	cls->register_function(
-		std::make_shared<ipc::function>("SetMonitoringDevice", std::vector<ipc::type>{}, SetMonitoringDevice));
-	cls->register_function(
-		std::make_shared<ipc::function>("GetMonitoringDeviceLegacy", std::vector<ipc::type>{}, GetMonitoringDeviceLegacy));
-	cls->register_function(
-		std::make_shared<ipc::function>("GetMonitoringDevices", std::vector<ipc::type>{}, GetMonitoringDevices));
-	cls->register_function(
-		std::make_shared<ipc::function>("GetAudioDucking", std::vector<ipc::type>{}, GetAudioDucking));
-	cls->register_function(
-		std::make_shared<ipc::function>("SetAudioDucking", std::vector<ipc::type>{ipc::type::UInt32}, SetAudioDucking));
-	cls->register_function(
-		std::make_shared<ipc::function>("GetAudioDuckingLegacy", std::vector<ipc::type>{}, GetAudioDuckingLegacy));
+	cls->register_function(std::make_shared<ipc::function>("SetMonitoringDevice", std::vector<ipc::type>{}, SetMonitoringDevice));
+	cls->register_function(std::make_shared<ipc::function>("GetMonitoringDeviceLegacy", std::vector<ipc::type>{}, GetMonitoringDeviceLegacy));
+	cls->register_function(std::make_shared<ipc::function>("GetMonitoringDevices", std::vector<ipc::type>{}, GetMonitoringDevices));
+	cls->register_function(std::make_shared<ipc::function>("GetAudioDucking", std::vector<ipc::type>{}, GetAudioDucking));
+	cls->register_function(std::make_shared<ipc::function>("SetAudioDucking", std::vector<ipc::type>{ipc::type::UInt32}, SetAudioDucking));
+	cls->register_function(std::make_shared<ipc::function>("GetAudioDuckingLegacy", std::vector<ipc::type>{}, GetAudioDuckingLegacy));
 	srv.register_collection(cls);
 }
 
