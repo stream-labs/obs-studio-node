@@ -1464,6 +1464,10 @@ bool OBS_service::startReplayBuffer(void)
 		updateStreamingEncoders(isSimpleMode);
 		useStreamEncoder = true;
 		rpUsesStream = true;
+	} else if (obs_get_multiple_rendering() && obs_get_replay_buffer_rendering_mode() == OBS_RECORDING_REPLAY_BUFFER_RENDERING) {
+		if (!isRecording)
+			updateRecordingEncoders(isSimpleMode);
+		rpUsesRec = true;
 	} else {
 		useStreamEncoder = isRecording ? !usingRecordingPreset : updateRecordingEncoders(isSimpleMode);
 
