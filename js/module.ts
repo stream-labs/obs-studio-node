@@ -1447,9 +1447,19 @@ export interface IAudio {
     speakers: ESpeakerLayout
 }
 
+export interface IDevice {
+    name: string,
+    id: string
+}
+
 export interface IAudioFactory {
     audioContext: IAudio;
     legacySettings: IAudio;
+    monitoringDevice: IDevice;
+    monitoringDeviceLegacy: IDevice;
+    readonly monitoringDevices: IDevice[];
+    disableAudioDucking: boolean; // Windows only
+    disableAudioDuckingLegacy: boolean; // Windows only
 }
 
 export interface IModuleFactory extends IFactoryTypes {
