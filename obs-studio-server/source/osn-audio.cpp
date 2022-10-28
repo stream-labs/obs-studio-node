@@ -241,6 +241,21 @@ void osn::Audio::SetDisableAudioDucking(void *data, const int64_t id, const std:
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 
 #ifdef WIN32
+
+	if (disableAudioDucking) {
+		// When windows detects communications activity / 0 - Mute all other sounds / 1 - Reduce all other by 80% / 2 - Reduce all other by 50% / 3 - Do nothing
+		DWORD nValue = 3;
+
+		HKEY hKey = 0;
+		HKEY hMainKey = HKEY_CURRENT_USER;
+		std::string sKeyPath = "Software\\Microsoft\\Multimedia\\Audio";
+
+		if (RegCreateKeyExA(hMainKey, sKeyPath.c_str(), 0, NULL, REG_OPTION_NON_VOLATILE, KEY_READ | KEY_WRITE, NULL, &hKey, NULL) == ERROR_SUCCESS) {
+			LSTATUS lStatus = ::RegSetValueExA(hKey, "UserDuckingPreference", 0, REG_DWORD, (const BYTE *)&nValue, (DWORD)sizeof(DWORD));
+			RegCloseKey(hKey);
+		}
+	}
+
 	ComPtr<IMMDeviceEnumerator> devEmum;
 	ComPtr<IMMDevice> device;
 	ComPtr<IAudioSessionManager2> sessionManager2;
