@@ -270,7 +270,7 @@ void osn::Video::SetVideoContext(void *data, const int64_t id, const std::vector
 #ifdef _WIN32
 	video.graphics_module = "libobs-d3d11.dll";
 #else
-	video.graphics_module = "libobs-opengl";
+	video.graphics_module = "libobs-opengl.dylib";
 #endif
 	video.fps_num = fpsNum;
 	video.fps_den = fpsDen;
