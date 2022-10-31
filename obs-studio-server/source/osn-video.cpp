@@ -264,7 +264,7 @@ void osn::Video::SetVideoContext(void *data, const int64_t id, const std::vector
 	uint32_t colorspace = args[7].value_union.ui32;
 	uint32_t range = args[8].value_union.ui32;
 	uint32_t scaleType = args[9].value_union.ui32;
-	uint32_t fpsType = args[9].value_union.ui32;
+	uint32_t fpsType = args[10].value_union.ui32;
 
 	obs_video_info video;
 #ifdef _WIN32
@@ -284,9 +284,6 @@ void osn::Video::SetVideoContext(void *data, const int64_t id, const std::vector
 	video.scale_type = (obs_scale_type)scaleType;
 	video.adapter = 0;
 	video.gpu_conversion = true;
-
-	config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSType", fpsType);
-	config_save_safe(ConfigManager::getInstance().getBasic(), "tmp", nullptr);
 
 	try {
 		obs_reset_video(&video);

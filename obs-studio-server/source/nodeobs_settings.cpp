@@ -3434,32 +3434,7 @@ std::vector<SubCategory> OBS_settings::getVideoSettings()
 
 	uint64_t fpsTypeValue = config_get_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSType");
 
-	if (fpsTypeValue == 0) {
-		fpsType.push_back(std::make_pair("currentValue", ipc::value("Common FPS Values")));
-		fpsType.push_back(std::make_pair("Common FPS Values", ipc::value("Common FPS Values")));
-		fpsType.push_back(std::make_pair("Integer FPS Value", ipc::value("Integer FPS Value")));
-		fpsType.push_back(std::make_pair("Fractional FPS Value", ipc::value("Fractional FPS Value")));
-		entries.push_back(fpsType);
-
-		//Common FPS Values
-		std::vector<std::pair<std::string, ipc::value>> fpsCommon;
-		fpsCommon.push_back(std::make_pair("name", ipc::value("FPSCommon")));
-		fpsCommon.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
-		fpsCommon.push_back(std::make_pair("description", ipc::value("Common FPS Values")));
-		fpsCommon.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
-		fpsCommon.push_back(std::make_pair("minVal", ipc::value((double)0)));
-		fpsCommon.push_back(std::make_pair("maxVal", ipc::value((double)0)));
-		fpsCommon.push_back(std::make_pair("stepVal", ipc::value((double)0)));
-		fpsCommon.push_back(std::make_pair("10", ipc::value("10")));
-		fpsCommon.push_back(std::make_pair("20", ipc::value("20")));
-		fpsCommon.push_back(std::make_pair("24 NTSC", ipc::value("24 NTSC")));
-		fpsCommon.push_back(std::make_pair("29.97", ipc::value("29.97")));
-		fpsCommon.push_back(std::make_pair("30", ipc::value("30")));
-		fpsCommon.push_back(std::make_pair("48", ipc::value("48")));
-		fpsCommon.push_back(std::make_pair("59.94", ipc::value("59.94")));
-		fpsCommon.push_back(std::make_pair("60", ipc::value("60")));
-		entries.push_back(fpsCommon);
-	} else if (fpsTypeValue == 1) {
+	if (fpsTypeValue == 1) {
 		fpsType.push_back(std::make_pair("currentValue", ipc::value("Integer FPS Value")));
 		fpsType.push_back(std::make_pair("Common FPS Values", ipc::value("Common FPS Values")));
 		fpsType.push_back(std::make_pair("Integer FPS Value", ipc::value("Integer FPS Value")));
@@ -3501,6 +3476,37 @@ std::vector<SubCategory> OBS_settings::getVideoSettings()
 		fpsDen.push_back(std::make_pair("maxVal", ipc::value((double)1000000)));
 		fpsDen.push_back(std::make_pair("stepVal", ipc::value((double)0)));
 		entries.push_back(fpsDen);
+	} else {
+		if (fpsTypeValue > 2) {
+			config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSType",
+					config_get_default_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSType"));
+			config_save_safe(ConfigManager::getInstance().getBasic(), "tmp", nullptr);
+		}
+
+		fpsType.push_back(std::make_pair("currentValue", ipc::value("Common FPS Values")));
+		fpsType.push_back(std::make_pair("Common FPS Values", ipc::value("Common FPS Values")));
+		fpsType.push_back(std::make_pair("Integer FPS Value", ipc::value("Integer FPS Value")));
+		fpsType.push_back(std::make_pair("Fractional FPS Value", ipc::value("Fractional FPS Value")));
+		entries.push_back(fpsType);
+
+		//Common FPS Values
+		std::vector<std::pair<std::string, ipc::value>> fpsCommon;
+		fpsCommon.push_back(std::make_pair("name", ipc::value("FPSCommon")));
+		fpsCommon.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
+		fpsCommon.push_back(std::make_pair("description", ipc::value("Common FPS Values")));
+		fpsCommon.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
+		fpsCommon.push_back(std::make_pair("minVal", ipc::value((double)0)));
+		fpsCommon.push_back(std::make_pair("maxVal", ipc::value((double)0)));
+		fpsCommon.push_back(std::make_pair("stepVal", ipc::value((double)0)));
+		fpsCommon.push_back(std::make_pair("10", ipc::value("10")));
+		fpsCommon.push_back(std::make_pair("20", ipc::value("20")));
+		fpsCommon.push_back(std::make_pair("24 NTSC", ipc::value("24 NTSC")));
+		fpsCommon.push_back(std::make_pair("29.97", ipc::value("29.97")));
+		fpsCommon.push_back(std::make_pair("30", ipc::value("30")));
+		fpsCommon.push_back(std::make_pair("48", ipc::value("48")));
+		fpsCommon.push_back(std::make_pair("59.94", ipc::value("59.94")));
+		fpsCommon.push_back(std::make_pair("60", ipc::value("60")));
+		entries.push_back(fpsCommon);
 	}
 
 	videoSettings.push_back(serializeSettingsData("Untitled", entries, ConfigManager::getInstance().getBasic(), "Video", true, isCategoryEnabled));
