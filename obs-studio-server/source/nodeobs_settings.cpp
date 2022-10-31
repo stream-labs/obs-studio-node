@@ -3478,7 +3478,8 @@ std::vector<SubCategory> OBS_settings::getVideoSettings()
 		entries.push_back(fpsDen);
 	} else {
 		if (fpsTypeValue > 2) {
-			config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSType", config_get_default_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSType"));
+			config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSType",
+					config_get_default_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSType"));
 			config_save_safe(ConfigManager::getInstance().getBasic(), "tmp", nullptr);
 		}
 
