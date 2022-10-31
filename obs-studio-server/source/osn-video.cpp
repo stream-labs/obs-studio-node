@@ -375,6 +375,7 @@ void osn::Video::SetLegacySettings(void *data, const int64_t id, const std::vect
 	uint32_t colorspace = args[7].value_union.ui32;
 	uint32_t range = args[8].value_union.ui32;
 	uint32_t scaleType = args[9].value_union.ui32;
+	uint32_t fpsType = args[10].value_union.ui32;
 
 	config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSNum", fpsNum);
 	config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSDen", fpsDen);
@@ -386,6 +387,7 @@ void osn::Video::SetLegacySettings(void *data, const int64_t id, const std::vect
 	config_set_string(ConfigManager::getInstance().getBasic(), "Video", "ColorFormat", GetOutputFormat((video_format)outputFormat));
 	config_set_string(ConfigManager::getInstance().getBasic(), "Video", "ColorSpace", GetColorSpace((video_colorspace)colorspace));
 	config_set_string(ConfigManager::getInstance().getBasic(), "Video", "ColorRange", GetColorRange((video_range_type)range));
+	config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSType", fpsType);
 
 	config_save_safe(ConfigManager::getInstance().getBasic(), "tmp", nullptr);
 }
