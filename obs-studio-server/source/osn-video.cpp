@@ -389,6 +389,9 @@ void osn::Video::SetLegacySettings(void *data, const int64_t id, const std::vect
 	config_set_string(ConfigManager::getInstance().getBasic(), "Video", "ColorRange", GetColorRange((video_range_type)range));
 	config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSType", fpsType);
 
+	if (!fpsDen)
+		fpsDen = 1;
+
 	switch (fpsType) {
 	case 0: {
 		// Common
