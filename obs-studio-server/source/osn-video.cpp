@@ -389,7 +389,7 @@ void osn::Video::SetLegacySettings(void *data, const int64_t id, const std::vect
 	config_set_string(ConfigManager::getInstance().getBasic(), "Video", "ColorRange", GetColorRange((video_range_type)range));
 	config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSType", fpsType);
 
-	switch(fpsType) {
+	switch (fpsType) {
 	case 0: {
 		// Common
 		auto value = std::to_string(fpsNum / fpsDen);
@@ -400,7 +400,7 @@ void osn::Video::SetLegacySettings(void *data, const int64_t id, const std::vect
 		bool found = false;
 		std::string strToSave = "";
 
-		for (auto possibleLegacyValue: possibleLegacyValues) {
+		for (auto possibleLegacyValue : possibleLegacyValues) {
 			auto valueSubStr = value.substr(0, 2);
 			auto possibleLegacyValueSubStr = possibleLegacyValue.substr(0, 2);
 			if (valueSubStr.compare(possibleLegacyValueSubStr) == 0) {
