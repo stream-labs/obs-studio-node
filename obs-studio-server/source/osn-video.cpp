@@ -389,5 +389,47 @@ void osn::Video::SetLegacySettings(void *data, const int64_t id, const std::vect
 	config_set_string(ConfigManager::getInstance().getBasic(), "Video", "ColorRange", GetColorRange((video_range_type)range));
 	config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSType", fpsType);
 
+	if (!fpsDen)
+		fpsDen = 1;
+
+	switch (fpsType) {
+	case 0: {
+		// Common
+		auto value = std::to_string(fpsNum / fpsDen);
+		if (value.compare("23") == 0)
+			value = "24";
+
+		std::string possibleLegacyValues[8] = {"10", "20", "24 NTSC", "29.97", "30", "48", "59.94", "60"};
+		bool found = false;
+		std::string strToSave = "";
+
+		for (auto possibleLegacyValue : possibleLegacyValues) {
+			auto valueSubStr = value.substr(0, 2);
+			auto possibleLegacyValueSubStr = possibleLegacyValue.substr(0, 2);
+			if (valueSubStr.compare(possibleLegacyValueSubStr) == 0) {
+				found = true;
+				strToSave = possibleLegacyValue;
+				break;
+			}
+		}
+
+		if (found && strToSave.size()) {
+			config_set_string(ConfigManager::getInstance().getBasic(), "Video", "FPSCommon", strToSave.c_str());
+		}
+		break;
+	}
+	case 1: {
+		// Integer
+		config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSInt", fpsNum);
+		break;
+	}
+	case 2: {
+		// Fractional
+		config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSNum", fpsNum);
+		config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSDen", fpsDen);
+		break;
+	}
+	}
+
 	config_save_safe(ConfigManager::getInstance().getBasic(), "tmp", nullptr);
 }
