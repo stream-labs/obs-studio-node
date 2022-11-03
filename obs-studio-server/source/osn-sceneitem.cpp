@@ -282,9 +282,9 @@ void osn::SceneItem::GetCanvas(void *data, const int64_t id, const std::vector<i
 	if (!item) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
-	
+
 	obs_video_info *canvas = obs_sceneitem_get_canvas(item);
-	
+
 	uint64_t uid = osn::Video::Manager::GetInstance().find(canvas);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
