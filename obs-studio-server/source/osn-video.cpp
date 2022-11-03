@@ -200,6 +200,10 @@ static const char *GetColorSpace(const enum video_colorspace &colorSpace)
 		return "709";
 	case VIDEO_CS_SRGB:
 		return "sRGB";
+	case VIDEO_CS_2100_PQ:
+		return "2100PQ";
+	case VIDEO_CS_2100_HLG:
+		return "2100HLG";
 	default:
 		return "709";
 	}
@@ -213,6 +217,10 @@ static enum video_colorspace ColorSpaceFromStr(const std::string &value)
 		return VIDEO_CS_601;
 	else if (value.compare("sRGB") == 0)
 		return VIDEO_CS_SRGB;
+	else if (value.compare("2100PQ") == 0)
+		return VIDEO_CS_2100_PQ;
+	else if (value.compare("2100HLG") == 0)
+		return VIDEO_CS_2100_HLG;
 
 	return VIDEO_CS_DEFAULT;
 }
@@ -412,6 +420,7 @@ void osn::Video::SetLegacySettings(void *data, const int64_t id, const std::vect
 	uint32_t colorspace = args[7].value_union.ui32;
 	uint32_t range = args[8].value_union.ui32;
 	uint32_t scaleType = args[9].value_union.ui32;
+	uint32_t fpsType = args[10].value_union.ui32;
 
 	config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSNum", fpsNum);
 	config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSDen", fpsDen);
@@ -423,6 +432,49 @@ void osn::Video::SetLegacySettings(void *data, const int64_t id, const std::vect
 	config_set_string(ConfigManager::getInstance().getBasic(), "Video", "ColorFormat", GetOutputFormat((video_format)outputFormat));
 	config_set_string(ConfigManager::getInstance().getBasic(), "Video", "ColorSpace", GetColorSpace((video_colorspace)colorspace));
 	config_set_string(ConfigManager::getInstance().getBasic(), "Video", "ColorRange", GetColorRange((video_range_type)range));
+	config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSType", fpsType);
+
+	if (!fpsDen)
+		fpsDen = 1;
+
+	switch (fpsType) {
+	case 0: {
+		// Common
+		auto value = std::to_string(fpsNum / fpsDen);
+		if (value.compare("23") == 0)
+			value = "24";
+
+		std::string possibleLegacyValues[8] = {"10", "20", "24 NTSC", "29.97", "30", "48", "59.94", "60"};
+		bool found = false;
+		std::string strToSave = "";
+
+		for (auto possibleLegacyValue : possibleLegacyValues) {
+			auto valueSubStr = value.substr(0, 2);
+			auto possibleLegacyValueSubStr = possibleLegacyValue.substr(0, 2);
+			if (valueSubStr.compare(possibleLegacyValueSubStr) == 0) {
+				found = true;
+				strToSave = possibleLegacyValue;
+				break;
+			}
+		}
+
+		if (found && strToSave.size()) {
+			config_set_string(ConfigManager::getInstance().getBasic(), "Video", "FPSCommon", strToSave.c_str());
+		}
+		break;
+	}
+	case 1: {
+		// Integer
+		config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSInt", fpsNum);
+		break;
+	}
+	case 2: {
+		// Fractional
+		config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSNum", fpsNum);
+		config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSDen", fpsDen);
+		break;
+	}
+	}
 
 	config_save_safe(ConfigManager::getInstance().getBasic(), "tmp", nullptr);
 }

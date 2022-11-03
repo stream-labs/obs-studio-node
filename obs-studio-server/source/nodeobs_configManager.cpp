@@ -194,6 +194,8 @@ void initBasicDefault(config_t *config)
 		config_save_safe(config, "tmp", nullptr);
 	}
 
+	config_set_default_bool(config, "Audio", "DisableAudioDucking", true);
+
 	config_set_default_string(config, "Output", "FilenameFormatting", "%CCYY-%MM-%DD %hh-%mm-%ss");
 
 	config_set_default_bool(config, "Output", "DelayEnable", false);

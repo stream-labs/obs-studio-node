@@ -26,7 +26,12 @@ Napi::Object osn::Audio::Init(Napi::Env env, Napi::Object exports)
 	Napi::HandleScope scope(env);
 	Napi::Function func = DefineClass(env, "Audio",
 					  {StaticAccessor("audioContext", &osn::Audio::GetAudioContext, &osn::Audio::SetAudioContext),
-					   StaticAccessor("legacySettings", &osn::Audio::GetLegacySettings, &osn::Audio::SetLegacySettings)});
+					   StaticAccessor("legacySettings", &osn::Audio::GetLegacySettings, &osn::Audio::SetLegacySettings),
+					   StaticAccessor("monitoringDevice", &osn::Audio::GetMonitoringDevice, &osn::Audio::SetMonitoringDevice),
+					   StaticAccessor("monitoringDeviceLegacy", &osn::Audio::GetMonitoringDeviceLegacy, nullptr),
+					   StaticAccessor("monitoringDevices", &osn::Audio::GetMonitoringDevices, nullptr),
+					   StaticAccessor("disableAudioDucking", &osn::Audio::GetDisableAudioDucking, &osn::Audio::SetDisableAudioDucking),
+					   StaticAccessor("disableAudioDuckingLegacy", &osn::Audio::GetDisableAudioDuckingLegacy, nullptr)});
 	exports.Set("Audio", func);
 	osn::Audio::constructor = Napi::Persistent(func);
 	osn::Audio::constructor.SuppressDestruct();
@@ -121,4 +126,111 @@ void osn::Audio::SetLegacySettings(const Napi::CallbackInfo &info, const Napi::V
 	std::vector<ipc::value> args;
 	SerializeAudioData(audio, args);
 	conn->call("Audio", "SetLegacySettings", args);
+}
+
+Napi::Value osn::Audio::GetMonitoringDevice(const Napi::CallbackInfo &info)
+{
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
+
+	std::vector<ipc::value> response = conn->call_synchronous_helper("Audio", "GetMonitoringDevice", {});
+
+	if (!ValidateResponse(info, response) || response.size() != 3)
+		return info.Env().Undefined();
+
+	auto device = Napi::Object::New(info.Env());
+	device.Set("name", response[1].value_str);
+	device.Set("id", response[2].value_str);
+	return device;
+}
+
+void osn::Audio::SetMonitoringDevice(const Napi::CallbackInfo &info, const Napi::Value &value)
+{
+	auto device = value.ToObject();
+	auto name = device.Get("name").ToString().Utf8Value();
+	auto id = device.Get("id").ToString().Utf8Value();
+
+	auto conn = GetConnection(info);
+	if (!conn)
+		return;
+
+	conn->call("Audio", "SetMonitoringDevice", {ipc::value(name), ipc::value(id)});
+}
+
+Napi::Value osn::Audio::GetMonitoringDeviceLegacy(const Napi::CallbackInfo &info)
+{
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
+
+	std::vector<ipc::value> response = conn->call_synchronous_helper("Audio", "GetMonitoringDeviceLegacy", {});
+
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
+
+	auto device = Napi::Object::New(info.Env());
+	device.Set("name", response[1].value_str);
+	device.Set("id", response[2].value_str);
+	return device;
+}
+
+Napi::Value osn::Audio::GetMonitoringDevices(const Napi::CallbackInfo &info)
+{
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
+
+	std::vector<ipc::value> response = conn->call_synchronous_helper("Audio", "GetMonitoringDevices", {});
+
+	uint32_t size = response[1].value_union.ui32;
+	auto devices = Napi::Array::New(info.Env(), size);
+	uint32_t index = 0;
+	for (uint32_t i = 2; i < size * 2 + 2; i += 2) {
+		auto device = Napi::Object::New(info.Env());
+		device.Set("name", response[i].value_str);
+		device.Set("id", response[i + 1].value_str);
+		devices.Set(index++, device);
+	}
+
+	return devices;
+}
+
+Napi::Value osn::Audio::GetDisableAudioDucking(const Napi::CallbackInfo &info)
+{
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
+
+	std::vector<ipc::value> response = conn->call_synchronous_helper("Audio", "GetDisableAudioDucking", {});
+
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
+
+	return Napi::Boolean::New(info.Env(), response[1].value_union.ui32);
+}
+
+void osn::Audio::SetDisableAudioDucking(const Napi::CallbackInfo &info, const Napi::Value &value)
+{
+	bool disableAudioDucking = value.ToBoolean().Value();
+
+	auto conn = GetConnection(info);
+	if (!conn)
+		return;
+
+	conn->call("Audio", "SetDisableAudioDucking", {ipc::value(disableAudioDucking)});
+}
+
+Napi::Value osn::Audio::GetDisableAudioDuckingLegacy(const Napi::CallbackInfo &info)
+{
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
+
+	std::vector<ipc::value> response = conn->call_synchronous_helper("Audio", "GetDisableAudioDuckingLegacy", {});
+
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
+
+	return Napi::Boolean::New(info.Env(), response[1].value_union.ui32);
 }

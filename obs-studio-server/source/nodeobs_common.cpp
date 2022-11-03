@@ -159,7 +159,8 @@ void OBS_content::Register(ipc::server &srv)
 	cls->register_function(std::make_shared<ipc::function>("OBS_content_setDayTheme", std::vector<ipc::type>{ipc::type::UInt32}, OBS_content_setDayTheme));
 
 	cls->register_function(std::make_shared<ipc::function>(
-		"OBS_content_createDisplay", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String, ipc::type::Int32, ipc::type::UInt32}, OBS_content_createDisplay));
+		"OBS_content_createDisplay", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String, ipc::type::Int32, ipc::type::UInt32},
+		OBS_content_createDisplay));
 
 	cls->register_function(
 		std::make_shared<ipc::function>("OBS_content_destroyDisplay", std::vector<ipc::type>{ipc::type::String}, OBS_content_destroyDisplay));
@@ -170,9 +171,9 @@ void OBS_content::Register(ipc::server &srv)
 	cls->register_function(std::make_shared<ipc::function>("OBS_content_getDisplayPreviewSize", std::vector<ipc::type>{ipc::type::String},
 							       OBS_content_getDisplayPreviewSize));
 
-	cls->register_function(std::make_shared<ipc::function>("OBS_content_createSourcePreviewDisplay",
-							       std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String, ipc::type::String, ipc::type::UInt32},
-							       OBS_content_createSourcePreviewDisplay));
+	cls->register_function(std::make_shared<ipc::function>(
+		"OBS_content_createSourcePreviewDisplay", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String, ipc::type::String, ipc::type::UInt32},
+		OBS_content_createSourcePreviewDisplay));
 
 	cls->register_function(std::make_shared<ipc::function>(
 		"OBS_content_resizeDisplay", std::vector<ipc::type>{ipc::type::String, ipc::type::UInt32, ipc::type::UInt32}, OBS_content_resizeDisplay));
@@ -268,35 +269,42 @@ void OBS_content::OBS_content_createDisplay(void *data, const int64_t id, const 
 		mode = OBS_RECORDING_VIDEO_RENDERING;
 		break;
 	}
+
 	obs_video_info *canvas = args[3].value_union.ui64 ? osn::Video::Manager::GetInstance().find(args[3].value_union.ui64) : nullptr;
+	try {
 #ifdef WIN32
-	displays.insert_or_assign(args[1].value_str, new OBS::Display(windowHandle, mode, args[3].value_union.ui32, canvas));
-	if (!IsWindows8OrGreater()) {
-		BOOL enabled = FALSE;
-		DwmIsCompositionEnabled(&enabled);
-		if (!enabled && firstDisplayCreation) {
-			windowMessage = new std::thread(popupAeroDisabledWindow);
+		displays.insert_or_assign(args[1].value_str, new OBS::Display(windowHandle, mode, args[3].value_union.ui32, canvas));
+		if (!IsWindows8OrGreater()) {
+			BOOL enabled = FALSE;
+			DwmIsCompositionEnabled(&enabled);
+			if (!enabled && firstDisplayCreation) {
+				windowMessage = new std::thread(popupAeroDisabledWindow);
+			}
 		}
-	}
 #else
-	OBS::Display *display = new OBS::Display(windowHandle, mode, args[3].value_union.i32, canvas);
-	displays.insert_or_assign(args[1].value_str, display);
+		OBS::Display *display = new OBS::Display(windowHandle, mode, args[3].value_union.i32, canvas);
+		displays.insert_or_assign(args[1].value_str, display);
 #endif
 
-	// device rebuild functionality available only with D3D
+		// device rebuild functionality available only with D3D
 #ifdef _WIN32
-	if (firstDisplayCreation) {
-		obs_enter_graphics();
+		if (firstDisplayCreation) {
+			obs_enter_graphics();
 
-		gs_device_loss callbacks;
-		callbacks.device_loss_release = &OnDeviceLost;
-		callbacks.device_loss_rebuild = &OnDeviceRebuilt;
-		callbacks.data = nullptr;
+			gs_device_loss callbacks;
+			callbacks.device_loss_release = &OnDeviceLost;
+			callbacks.device_loss_rebuild = &OnDeviceRebuilt;
+			callbacks.data = nullptr;
 
-		gs_register_loss_callbacks(&callbacks);
-		obs_leave_graphics();
-	}
+			gs_register_loss_callbacks(&callbacks);
+			obs_leave_graphics();
+		}
 #endif
+	} catch (const std::exception &e) {
+		std::string message(std::string("Display creation failed: ") + e.what());
+		std::cerr << message << std::endl;
+		blog(LOG_ERROR, "%s", message.data());
+	}
 
 	firstDisplayCreation = false;
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -354,8 +362,14 @@ void OBS_content::OBS_content_createSourcePreviewDisplay(void *data, const int64
 		return;
 	}
 
-	OBS::Display *display = new OBS::Display(windowHandle, OBS_MAIN_VIDEO_RENDERING, args[1].value_str, args[3].value_union.ui32, nullptr);
-	displays.insert_or_assign(args[2].value_str, display);
+	try {
+		OBS::Display *display = new OBS::Display(windowHandle, OBS_MAIN_VIDEO_RENDERING, args[1].value_str, args[3].value_union.ui32, nullptr);
+		displays.insert_or_assign(args[2].value_str, display);
+	} catch (const std::exception &e) {
+		std::string message(std::string("Source preview display creation failed: ") + e.what());
+		std::cerr << message << std::endl;
+		blog(LOG_ERROR, "%s", message.data());
+	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;

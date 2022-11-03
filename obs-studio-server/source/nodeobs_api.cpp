@@ -129,6 +129,7 @@ static bool mediaFileCaching = true;
 static uint32_t sdrWhiteLevel = 300;
 static uint32_t hdrNominalPeakLevel = 1000;
 static bool lowLatencyAudioBuffering = false;
+static bool forceGPURendering = true;
 static std::string processPriority = "Normal";
 
 void OBS_API::Register(ipc::server &srv)
@@ -166,6 +167,9 @@ void OBS_API::Register(ipc::server &srv)
 	cls->register_function(std::make_shared<ipc::function>("SetLowLatencyAudioBuffering", std::vector<ipc::type>{}, SetLowLatencyAudioBuffering));
 	cls->register_function(
 		std::make_shared<ipc::function>("GetLowLatencyAudioBufferingLegacy", std::vector<ipc::type>{}, GetLowLatencyAudioBufferingLegacy));
+	cls->register_function(std::make_shared<ipc::function>("GetForceGPURendering", std::vector<ipc::type>{}, GetForceGPURendering));
+	cls->register_function(std::make_shared<ipc::function>("SetForceGPURendering", std::vector<ipc::type>{}, SetForceGPURendering));
+	cls->register_function(std::make_shared<ipc::function>("GetForceGPURenderingLegacy", std::vector<ipc::type>{}, GetForceGPURenderingLegacy));
 
 	srv.register_collection(cls);
 	g_server = &srv;
@@ -1177,6 +1181,21 @@ void OBS_API::OBS_API_forceCrash(void *data, const int64_t id, const std::vector
 bool DisableAudioDucking(bool disable)
 {
 #ifdef WIN32
+
+	if (disable) {
+		// When windows detects communications activity / 0 - Mute all other sounds / 1 - Reduce all other by 80% / 2 - Reduce all other by 50% / 3 - Do nothing
+		DWORD nValue = 3;
+
+		HKEY hKey = 0;
+		HKEY hMainKey = HKEY_CURRENT_USER;
+		std::string sKeyPath = "Software\\Microsoft\\Multimedia\\Audio";
+
+		if (RegCreateKeyExA(hMainKey, sKeyPath.c_str(), 0, NULL, REG_OPTION_NON_VOLATILE, KEY_READ | KEY_WRITE, NULL, &hKey, NULL) == ERROR_SUCCESS) {
+			LSTATUS lStatus = ::RegSetValueExA(hKey, "UserDuckingPreference", 0, REG_DWORD, (const BYTE *)&nValue, (DWORD)sizeof(DWORD));
+			RegCloseKey(hKey);
+		}
+	}
+
 	ComPtr<IMMDeviceEnumerator> devEmum;
 	ComPtr<IMMDevice> device;
 	ComPtr<IAudioSessionManager2> sessionManager2;
@@ -2095,5 +2114,28 @@ void OBS_API::GetLowLatencyAudioBufferingLegacy(void *data, const int64_t id, co
 {
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value((uint32_t)config_get_bool(ConfigManager::getInstance().getGlobal(), "Audio", "LowLatencyAudioBuffering")));
+	AUTO_DEBUG;
+}
+
+void OBS_API::GetForceGPURendering(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
+{
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value((uint32_t)forceGPURendering));
+	AUTO_DEBUG;
+}
+
+void OBS_API::SetForceGPURendering(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
+{
+	forceGPURendering = args[0].value_union.ui32;
+	config_set_bool(ConfigManager::getInstance().getBasic(), "Video", "ForceGPUAsRenderDevice", forceGPURendering);
+	config_save_safe(ConfigManager::getInstance().getBasic(), "tmp", nullptr);
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
+}
+
+void OBS_API::GetForceGPURenderingLegacy(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
+{
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value((uint32_t)config_get_bool(ConfigManager::getInstance().getBasic(), "Video", "ForceGPUAsRenderDevice")));
 	AUTO_DEBUG;
 }

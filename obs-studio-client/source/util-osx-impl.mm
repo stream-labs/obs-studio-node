@@ -23,21 +23,19 @@ std::string g_server_working_dir;
 
 @implementation UtilImplObj
 
-UtilObjCInt::UtilObjCInt(void)
-    : self(NULL)
-{   }
+UtilObjCInt::UtilObjCInt(void) : self(NULL) {}
 
 UtilObjCInt::~UtilObjCInt(void)
 {
-    [(id)self dealloc];
+	[(id)self dealloc];
 }
 
 void UtilObjCInt::init(void)
 {
-    self = [[UtilImplObj alloc] init];
+	self = [[UtilImplObj alloc] init];
 
 	m_webcam_perm = false;
-	m_mic_perm    = false;
+	m_mic_perm = false;
 }
 
 void UtilObjCInt::getPermissionsStatus(bool &webcam, bool &mic)
@@ -51,7 +49,7 @@ void UtilObjCInt::getPermissionsStatus(bool &webcam, bool &mic)
 		mic = micStatus == AVAuthorizationStatusAuthorized;
 
 		m_webcam_perm = webcam;
-		m_mic_perm    = mic;
+		m_mic_perm = mic;
 	} else {
 		webcam = true;
 		mic = true;
@@ -61,20 +59,19 @@ void UtilObjCInt::getPermissionsStatus(bool &webcam, bool &mic)
 void UtilObjCInt::requestPermissions(void *async_cb, perms_cb cb)
 {
 	NSOperatingSystemVersion OSversion = [NSProcessInfo processInfo].operatingSystemVersion;
-	if ((OSversion.majorVersion >= 10 && OSversion.minorVersion >= 14) ||
-		OSversion.majorVersion > 10) {
+	if ((OSversion.majorVersion >= 10 && OSversion.minorVersion >= 14) || OSversion.majorVersion > 10) {
 		m_async_cb = async_cb;
-		[AVCaptureDevice requestAccessForMediaType:AVMediaTypeVideo completionHandler:^(BOOL granted)
-		{
-			m_webcam_perm = granted;
-			cb(m_async_cb, m_webcam_perm, m_mic_perm);
-		}];
+		[AVCaptureDevice requestAccessForMediaType:AVMediaTypeVideo
+					 completionHandler:^(BOOL granted) {
+						 m_webcam_perm = granted;
+						 cb(m_async_cb, m_webcam_perm, m_mic_perm);
+					 }];
 
-		[AVCaptureDevice requestAccessForMediaType:AVMediaTypeAudio completionHandler:^(BOOL granted)
-		{
-			m_mic_perm = granted;
-			cb(m_async_cb, m_webcam_perm, m_mic_perm);
-		}];
+		[AVCaptureDevice requestAccessForMediaType:AVMediaTypeAudio
+					 completionHandler:^(BOOL granted) {
+						 m_mic_perm = granted;
+						 cb(m_async_cb, m_webcam_perm, m_mic_perm);
+					 }];
 	}
 }
 
@@ -83,12 +80,13 @@ void UtilObjCInt::setServerWorkingDirectoryPath(std::string path)
 	g_server_working_dir = path;
 }
 
-bool replace(std::string& str, const std::string& from, const std::string& to) {
-    size_t start_pos = str.find(from);
-    if(start_pos == std::string::npos)
-        return false;
-    str.replace(start_pos, from.length(), to);
-    return true;
+bool replace(std::string &str, const std::string &from, const std::string &to)
+{
+	size_t start_pos = str.find(from);
+	if (start_pos == std::string::npos)
+		return false;
+	str.replace(start_pos, from.length(), to);
+	return true;
 }
 
 void UtilObjCInt::installPlugin()
@@ -102,9 +100,8 @@ void UtilObjCInt::installPlugin()
 	replace(arg, " ", "\\\\ ");
 	std::string cmd = "do shell script \"/bin/sh " + pathToScript + " " + arg + "\" with administrator privileges";
 
-	NSString *script = [NSString stringWithCString:cmd.c_str()
-	                            encoding:[NSString defaultCStringEncoding]];
-	NSAppleScript *run = [[NSAppleScript alloc]initWithSource:script];
+	NSString *script = [NSString stringWithCString:cmd.c_str() encoding:[NSString defaultCStringEncoding]];
+	NSAppleScript *run = [[NSAppleScript alloc] initWithSource:script];
 	[run executeAndReturnError:&error];
 	NSLog(@"errors: %@", error);
 }
@@ -112,12 +109,10 @@ void UtilObjCInt::installPlugin()
 void UtilObjCInt::uninstallPlugin()
 {
 	NSDictionary *error = [NSDictionary dictionary];
-	std::string cmd =
-		"do shell script \"rm -rf /Library/CoreMediaIO/Plug-Ins/DAL/vcam-plugin.plugin \" with administrator privileges";
+	std::string cmd = "do shell script \"rm -rf /Library/CoreMediaIO/Plug-Ins/DAL/vcam-plugin.plugin \" with administrator privileges";
 
-	NSString *script = [NSString stringWithCString:cmd.c_str()
-	                            encoding:[NSString defaultCStringEncoding]];
-	NSAppleScript *run = [[NSAppleScript alloc]initWithSource:script];
+	NSString *script = [NSString stringWithCString:cmd.c_str() encoding:[NSString defaultCStringEncoding]];
+	NSAppleScript *run = [[NSAppleScript alloc] initWithSource:script];
 	[run executeAndReturnError:&error];
 	NSLog(@"errors: %@", error);
 }
