@@ -212,7 +212,7 @@ void osn::Audio::GetMonitoringDevices(void *data, const int64_t id, const std::v
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value((uint32_t)1));
 	rval.push_back(ipc::value("Default"));
-	rval.push_back(ipc::value("Default"));
+	rval.push_back(ipc::value("default"));
 
 	auto enum_devices = [](void *param, const char *name, const char *id) {
 		std::vector<ipc::value> *rval = (std::vector<ipc::value> *)param;
