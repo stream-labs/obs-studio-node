@@ -30,7 +30,7 @@ endif()
 if(WIN32)
     download_project(
         PROJ crashpad
-        URL https://obs-studio-deployment.s3.us-west-2.amazonaws.com/crashpad-release-win-bce9a58c-nov-2022-x86_64.tar.gz
+        URL https://obsstudionodes3.streamlabs.com/crashpad/crashpad-release-win-bce9a58c-nov-2022-x86_64.tar.gz
         UPDATE_DISCONNECTED 1
     )
     set(crashpad_BUILD_BYPRODUCTS
@@ -51,7 +51,7 @@ if(WIN32)
 elseif(APPLE)
     download_project(
         PROJ crashpad
-        URL https://obs-studio-deployment.s3.us-west-2.amazonaws.com/crashpad-release-osx-bce9a58c-nov-2022-x86_64.zip
+        URL https://obsstudionodes3.streamlabs.com/crashpad/crashpad-release-osx-bce9a58c-nov-2022-x86_64.zip
         UPDATE_DISCONNECTED 1
     )
     set(crashpad_BUILD_BYPRODUCTS
