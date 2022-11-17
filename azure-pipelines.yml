@@ -7,7 +7,7 @@ trigger:
       - '*'
 
 variables:
-  RuntimeURL: https://electronjs.org/headers
+  RuntimeURL: https://artifacts.electronjs.org/headers/dist
   RuntimeName: iojs
   ElectronVersion: 17.4.11
   SLBuildDirectory: streamlabs-build
