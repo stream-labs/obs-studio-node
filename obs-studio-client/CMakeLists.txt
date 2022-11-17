@@ -2,7 +2,7 @@ PROJECT(obs_studio_client VERSION ${obs-studio-node_VERSION})
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-SET(NODEJS_URL " artifacts.electronjs.org/headers/dist" CACHE STRING "Node.JS URL")
+SET(NODEJS_URL "https://artifacts.electronjs.org/headers/dist" CACHE STRING "Node.JS URL")
 SET(NODEJS_NAME "iojs" CACHE STRING "Node.JS Name")
 SET(NODEJS_VERSION "v17.4.11" CACHE STRING "Node.JS Version")
 
