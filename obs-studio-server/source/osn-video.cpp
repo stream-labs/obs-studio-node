@@ -272,8 +272,8 @@ void osn::Video::SetVideoContext(void *data, const int64_t id, const std::vector
 #else
 	video.graphics_module = "libobs-opengl.dylib";
 #endif
-	video.fps_num = fpsNum;
-	video.fps_den = fpsDen;
+	video.fps_num = fpsNum ? fpsNum : 1;
+	video.fps_den = fpsDen ? fpsDen : 1;
 	video.base_width = baseWidth;
 	video.base_height = baseHeight;
 	video.output_width = outputWidth;
