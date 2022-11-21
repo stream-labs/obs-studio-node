@@ -137,7 +137,8 @@ void osn::Video::SetVideoContext(const Napi::CallbackInfo &info, const Napi::Val
 
 	std::vector<ipc::value> args;
 	SerializeVideoData(video, args);
-	conn->call("Video", "SetVideoContext", args);
+
+	conn->call_synchronous_helper("Video", "SetVideoContext", args);
 }
 
 Napi::Value osn::Video::GetLegacySettings(const Napi::CallbackInfo &info)
