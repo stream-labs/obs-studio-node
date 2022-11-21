@@ -432,4 +432,5 @@ void osn::Video::SetLegacySettings(void *data, const int64_t id, const std::vect
 	}
 
 	config_save_safe(ConfigManager::getInstance().getBasic(), "tmp", nullptr);
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 }
