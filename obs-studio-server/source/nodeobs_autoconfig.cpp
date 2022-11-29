@@ -537,14 +537,23 @@ void autoConfig::TestBandwidthThread(void)
 	bool gotError = false;
 
 	obs_video_info ovi;
-	obs_get_video_info(&ovi);
+	if (obs_get_video_info(&ovi)) {
+		obs_video_info old_ovi = ovi;
 
-	ovi.output_width = 128;
-	ovi.output_height = 128;
-	ovi.fps_num = 60;
-	ovi.fps_den = 1;
+		ovi.output_width = 128;
+		ovi.output_height = 128;
+		ovi.fps_num = 60;
+		ovi.fps_den = 1;
 
-	obs_reset_video(&ovi);
+		if (obs_reset_video(&ovi) != OBS_VIDEO_SUCCESS) {
+			obs_reset_video(&old_ovi);
+			sendErrorMessage("invalid_video_settings");
+			return;
+		}
+	} else {
+		sendErrorMessage("invalid_video_settings");
+		return;
+	}
 
 	const char *serverType = "rtmp_common";
 
@@ -1048,7 +1057,8 @@ bool autoConfig::TestSoftwareEncoding()
 		ovi.fps_num = fps_num;
 		ovi.fps_den = fps_den;
 
-		obs_reset_video(&ovi);
+		if (obs_reset_video(&ovi) != OBS_VIDEO_SUCCESS)
+			return false;
 
 		obs_encoder_set_video(vencoder, obs_get_video());
 		obs_encoder_set_audio(aencoder, obs_get_audio());
@@ -1311,14 +1321,21 @@ bool autoConfig::CheckSettings(void)
 	}
 
 	obs_video_info ovi;
-	obs_get_video_info(&ovi);
+	if (obs_get_video_info(&ovi)) {
+		obs_video_info old_ovi = ovi;
 
-	ovi.output_width = (uint32_t)idealResolutionCX;
-	ovi.output_height = (uint32_t)idealResolutionCY;
-	ovi.fps_num = idealFPSNum;
-	ovi.fps_den = 1;
+		ovi.output_width = (uint32_t)idealResolutionCX;
+		ovi.output_height = (uint32_t)idealResolutionCY;
+		ovi.fps_num = idealFPSNum;
+		ovi.fps_den = 1;
 
-	obs_reset_video(&ovi);
+		if (obs_reset_video(&ovi) != OBS_VIDEO_SUCCESS) {
+			obs_reset_video(&old_ovi);
+			return false;
+		}
+	} else {
+		return false;
+	}
 
 	OBSEncoder vencoder = obs_video_encoder_create(GetEncoderId(streamingEncoder), "test_encoder", nullptr, nullptr);
 	OBSEncoder aencoder = obs_audio_encoder_create("ffmpeg_aac", "test_aac", nullptr, 0, nullptr);
