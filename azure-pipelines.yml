@@ -181,6 +181,7 @@ jobs:
       OSN_ACCESS_KEY_ID: $(awsAccessKeyId)
       OSN_SECRET_ACCESS_KEY: $(awsSecretAccessKey)
       RELEASE_NAME: $(ReleaseName)
+    continueOnError: true
     displayName: 'Run tests'
 
   - script: ./ci/copy-files.cmd
@@ -273,6 +274,7 @@ jobs:
       OSN_ACCESS_KEY_ID: $(awsAccessKeyId)
       OSN_SECRET_ACCESS_KEY: $(awsSecretAccessKey)
       RELEASE_NAME: $(ReleaseName)
+    continueOnError: true
     displayName: 'Run tests'
 
   - script: 'python ./ci/sentry-osx.py'
