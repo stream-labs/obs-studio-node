@@ -2421,7 +2421,7 @@ void OBS_settings::getStandardRecordingSettings(SubCategory *subCategoryParamete
 		Parameter recSplitFileTime;
 		recSplitFileTime.name = "RecSplitFileTime";
 		recSplitFileTime.type = "OBS_PROPERTY_UINT";
-		recSplitFileTime.description = "Split Time (MB)";
+		recSplitFileTime.description = "Split Time (min)";
 
 		uint64_t recSplitFileTimeVal = config_get_uint(config, "AdvOut", "RecSplitFileTime");
 
@@ -2440,7 +2440,7 @@ void OBS_settings::getStandardRecordingSettings(SubCategory *subCategoryParamete
 		Parameter recSplitFileSize;
 		recSplitFileSize.name = "RecSplitFileSize";
 		recSplitFileSize.type = "OBS_PROPERTY_UINT";
-		recSplitFileSize.description = "Split Time (min)";
+		recSplitFileSize.description = "Split Size (MB)";
 
 		uint64_t recSplitFileSizeVal = config_get_uint(config, "AdvOut", "RecSplitFileSize");
 
