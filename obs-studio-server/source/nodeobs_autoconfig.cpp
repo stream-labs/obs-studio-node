@@ -223,7 +223,7 @@ void autoConfig::TestHardwareEncoding(void)
 	while (obs_enum_encoder_types(idx++, &id)) {
 		if (id == nullptr)
 			continue;
-		if (strcmp(id, "nvenc") == 0)
+		if (strcmp(id, "ffmpeg_nvenc") == 0)
 			hardwareEncodingAvailable = nvencAvailable = true;
 		else if (strcmp(id, "obs_qsv11") == 0)
 			hardwareEncodingAvailable = qsvAvailable = true;
@@ -1262,7 +1262,7 @@ inline const char *GetEncoderId(Encoder enc)
 {
 	switch (enc) {
 	case Encoder::NVENC:
-		return "nvenc";
+		return "ffmpeg_nvenc";
 	case Encoder::QSV:
 		return "obs_qsv11";
 	case Encoder::AMD:
@@ -1274,7 +1274,7 @@ inline const char *GetEncoderId(Encoder enc)
 	case Encoder::x264:
 		return "obs_x264";
 	default:
-		return "nvenc";
+		return "ffmpeg_nvenc";
 	}
 };
 
@@ -1282,7 +1282,7 @@ inline const char *GetEncoderDisplayName(Encoder enc)
 {
 	switch (enc) {
 	case Encoder::NVENC:
-		return ENCODER_NEW_NVENC;
+		return SIMPLE_ENCODER_NVENC;
 	case Encoder::QSV:
 		return SIMPLE_ENCODER_QSV;
 	case Encoder::AMD:
