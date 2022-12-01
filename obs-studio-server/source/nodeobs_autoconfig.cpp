@@ -81,6 +81,7 @@ std::string key;
 
 bool hardwareEncodingAvailable = false;
 bool nvencAvailable = false;
+bool jimnvencAvailable = false;
 bool qsvAvailable = false;
 bool vceAvailable = false;
 bool appleHWAvailable = false;
@@ -225,6 +226,8 @@ void autoConfig::TestHardwareEncoding(void)
 			continue;
 		if (strcmp(id, "ffmpeg_nvenc") == 0)
 			hardwareEncodingAvailable = nvencAvailable = true;
+		if (strcmp(id, "jim_nvenc") == 0)
+			hardwareEncodingAvailable = jimnvencAvailable = true;
 		else if (strcmp(id, "obs_qsv11") == 0)
 			hardwareEncodingAvailable = qsvAvailable = true;
 		else if (strcmp(id, "amd_amf_h264") == 0)
@@ -1193,7 +1196,7 @@ void autoConfig::TestStreamEncoderThread()
 		FindIdealHardwareResolution();
 
 	if (!softwareTested) {
-		if (nvencAvailable)
+		if (nvencAvailable || jimnvencAvailable)
 			streamingEncoder = Encoder::NVENC;
 		else if (qsvAvailable)
 			streamingEncoder = Encoder::QSV;
@@ -1233,7 +1236,7 @@ void autoConfig::TestRecordingEncoderThread()
 	bool recordingOnly = type == Type::Recording;
 
 	if (hardwareEncodingAvailable) {
-		if (nvencAvailable)
+		if (nvencAvailable || jimnvencAvailable)
 			recordingEncoder = Encoder::NVENC;
 		else if (qsvAvailable)
 			recordingEncoder = Encoder::QSV;
@@ -1262,7 +1265,7 @@ inline const char *GetEncoderId(Encoder enc)
 {
 	switch (enc) {
 	case Encoder::NVENC:
-		return "ffmpeg_nvenc";
+		return jimnvencAvailable ? "jim_nvenc" : "ffmpeg_nvenc";
 	case Encoder::QSV:
 		return "obs_qsv11";
 	case Encoder::AMD:
@@ -1274,7 +1277,7 @@ inline const char *GetEncoderId(Encoder enc)
 	case Encoder::x264:
 		return "obs_x264";
 	default:
-		return "ffmpeg_nvenc";
+		return jimnvencAvailable ? "jim_nvenc" : "ffmpeg_nvenc";
 	}
 };
 
