@@ -2421,7 +2421,7 @@ void OBS_settings::getStandardRecordingSettings(SubCategory *subCategoryParamete
 		Parameter recSplitFileTime;
 		recSplitFileTime.name = "RecSplitFileTime";
 		recSplitFileTime.type = "OBS_PROPERTY_UINT";
-		recSplitFileTime.description = "Split Time (MB)";
+		recSplitFileTime.description = "Split Time (min)";
 
 		uint64_t recSplitFileTimeVal = config_get_uint(config, "AdvOut", "RecSplitFileTime");
 
@@ -2440,7 +2440,7 @@ void OBS_settings::getStandardRecordingSettings(SubCategory *subCategoryParamete
 		Parameter recSplitFileSize;
 		recSplitFileSize.name = "RecSplitFileSize";
 		recSplitFileSize.type = "OBS_PROPERTY_UINT";
-		recSplitFileSize.description = "Split Time (min)";
+		recSplitFileSize.description = "Split Size (MB)";
 
 		uint64_t recSplitFileSizeVal = config_get_uint(config, "AdvOut", "RecSplitFileSize");
 
@@ -4325,7 +4325,7 @@ void getDevices(const char *source_id, const char *property_name, std::vector<ip
 }
 
 #ifdef WIN32
-void enumInputDevices(const GUID &type, std::vector<ipc::value> &rval)
+void enumVideoDevices(std::vector<ipc::value> &rval)
 {
 	ComPtr<ICreateDevEnum> deviceEnum;
 	ComPtr<IEnumMoniker> enumMoniker;
@@ -4340,7 +4340,7 @@ void enumInputDevices(const GUID &type, std::vector<ipc::value> &rval)
 		return;
 	}
 
-	hr = deviceEnum->CreateClassEnumerator(type, &enumMoniker, 0);
+	hr = deviceEnum->CreateClassEnumerator(CLSID_VideoInputDeviceCategory, &enumMoniker, 0);
 	if (FAILED(hr)) {
 		blog(LOG_ERROR, "CreateClassEnumerator failed");
 		return;
@@ -4408,7 +4408,7 @@ std::string GetDeviceName(IMMDevice *device)
 	return device_name;
 }
 
-void enumAudioOutputDevices(std::vector<ipc::value> &rval)
+void enumAudioDevices(std::vector<ipc::value> &rval, EDataFlow dataFlow)
 {
 	ComPtr<IMMDeviceEnumerator> enumerator;
 	ComPtr<IMMDeviceCollection> collection;
@@ -4420,7 +4420,7 @@ void enumAudioOutputDevices(std::vector<ipc::value> &rval)
 	if (FAILED(res))
 		blog(LOG_ERROR, "Failed to create enumerator");
 
-	res = enumerator->EnumAudioEndpoints(eRender, DEVICE_STATE_ACTIVE, collection.Assign());
+	res = enumerator->EnumAudioEndpoints(dataFlow, DEVICE_STATE_ACTIVE, collection.Assign());
 	if (FAILED(res))
 		blog(LOG_ERROR, "Failed to enumerate devices");
 
@@ -4464,7 +4464,7 @@ void OBS_settings::OBS_settings_getInputAudioDevices(void *data, const int64_t i
 	rval.push_back(ipc::value((uint32_t)1));
 	rval.push_back(ipc::value("Default"));
 	rval.push_back(ipc::value("default"));
-	enumInputDevices(CLSID_AudioInputDeviceCategory, rval);
+	enumAudioDevices(rval, eCapture);
 #elif __APPLE__
 	const char *source_id = "coreaudio_input_capture";
 	getDevices(source_id, "device_id", rval);
@@ -4481,7 +4481,7 @@ void OBS_settings::OBS_settings_getOutputAudioDevices(void *data, const int64_t 
 	rval.push_back(ipc::value((uint32_t)1));
 	rval.push_back(ipc::value("Default"));
 	rval.push_back(ipc::value("default"));
-	enumAudioOutputDevices(rval);
+	enumAudioDevices(rval, eRender);
 #elif __APPLE__
 	const char *source_id = "coreaudio_output_capture";
 	getDevices(source_id, "device_id", rval);
@@ -4496,7 +4496,7 @@ void OBS_settings::OBS_settings_getVideoDevices(void *data, const int64_t id, co
 
 #ifdef WIN32
 	rval.push_back(ipc::value((uint32_t)0));
-	enumInputDevices(CLSID_VideoInputDeviceCategory, rval);
+	enumVideoDevices(rval);
 #elif __APPLE__
 	const char *source_id = "av_capture_input";
 	const char *property_name = "device";

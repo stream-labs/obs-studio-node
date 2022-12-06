@@ -266,6 +266,9 @@ void osn::Video::SetVideoContext(void *data, const int64_t id, const std::vector
 	video.fps_num = args[0].value_union.ui32;
 	video.fps_den = args[1].value_union.ui32;
 
+	video.fps_num = video.fps_num ? video.fps_num : 1;
+	video.fps_den = video.fps_den ? video.fps_den : 1;
+
 	video.base_width = args[2].value_union.ui32;
 	video.base_height = args[3].value_union.ui32;
 	video.output_width = args[4].value_union.ui32;
@@ -477,4 +480,5 @@ void osn::Video::SetLegacySettings(void *data, const int64_t id, const std::vect
 	}
 
 	config_save_safe(ConfigManager::getInstance().getBasic(), "tmp", nullptr);
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 }

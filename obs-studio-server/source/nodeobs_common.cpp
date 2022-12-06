@@ -31,7 +31,7 @@
 #include <thread>
 
 std::map<std::string, OBS::Display *> displays;
-std::mutex displaysMutex;
+std::recursive_mutex displaysMutex;
 std::string sourceSelected;
 bool firstDisplayCreation = true;
 
