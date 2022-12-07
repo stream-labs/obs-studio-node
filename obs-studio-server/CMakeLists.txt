@@ -30,14 +30,46 @@ endif()
 if(WIN32)
     download_project(
         PROJ crashpad
-        URL https://obsstudionodes3.streamlabs.com/crashpad/crashpad-release-1.0.21-win-x64.tar.gz
+        URL https://obsstudionodes3.streamlabs.com/crashpad/crashpad-release-win-bce9a58c-nov-2022-x86_64.tar.gz
         UPDATE_DISCONNECTED 1
+    )
+    set(crashpad_BUILD_BYPRODUCTS
+        "<SOURCE_DIR>/lib/${CMAKE_STATIC_LIBRARY_PREFIX}base${CMAKE_STATIC_LIBRARY_SUFFIX}"
+        "<SOURCE_DIR>/lib/${CMAKE_STATIC_LIBRARY_PREFIX}util${CMAKE_STATIC_LIBRARY_SUFFIX}"
+        "<SOURCE_DIR>/lib/${CMAKE_STATIC_LIBRARY_PREFIX}common${CMAKE_STATIC_LIBRARY_SUFFIX}"
+        "<SOURCE_DIR>/lib/${CMAKE_STATIC_LIBRARY_PREFIX}client${CMAKE_STATIC_LIBRARY_SUFFIX}"
+        "<SOURCE_DIR>/bin/crashpad_database_util${CMAKE_EXECUTABLE_SUFFIX}"
+        "<SOURCE_DIR>/bin/crashpad_handler${CMAKE_EXECUTABLE_SUFFIX}"
+        "<SOURCE_DIR>/bin/crashpad_http_upload${CMAKE_EXECUTABLE_SUFFIX}"
+    )
+    set(crashpad_TARGET_LINK_LIBRARIES
+        crashpad_base
+        crashpad_common
+        crashpad_client
+        crashpad_util
     )
 elseif(APPLE)
     download_project(
         PROJ crashpad
-        URL https://obsstudionodes3.streamlabs.com/crashpad/crashpad-release-1.0.21-osx.zip
+        URL https://obsstudionodes3.streamlabs.com/crashpad/crashpad-release-osx-bce9a58c-nov-2022-x86_64.zip
         UPDATE_DISCONNECTED 1
+    )
+    set(crashpad_BUILD_BYPRODUCTS
+        "<SOURCE_DIR>/lib/${CMAKE_STATIC_LIBRARY_PREFIX}base${CMAKE_STATIC_LIBRARY_SUFFIX}"
+        "<SOURCE_DIR>/lib/${CMAKE_STATIC_LIBRARY_PREFIX}mig_output${CMAKE_STATIC_LIBRARY_SUFFIX}"
+        "<SOURCE_DIR>/lib/${CMAKE_STATIC_LIBRARY_PREFIX}util${CMAKE_STATIC_LIBRARY_SUFFIX}"
+        "<SOURCE_DIR>/lib/${CMAKE_STATIC_LIBRARY_PREFIX}common${CMAKE_STATIC_LIBRARY_SUFFIX}"
+        "<SOURCE_DIR>/lib/${CMAKE_STATIC_LIBRARY_PREFIX}client${CMAKE_STATIC_LIBRARY_SUFFIX}"
+        "<SOURCE_DIR>/bin/crashpad_database_util${CMAKE_EXECUTABLE_SUFFIX}"
+        "<SOURCE_DIR>/bin/crashpad_handler${CMAKE_EXECUTABLE_SUFFIX}"
+        "<SOURCE_DIR>/bin/crashpad_http_upload${CMAKE_EXECUTABLE_SUFFIX}"
+    )
+    set(crashpad_TARGET_LINK_LIBRARIES
+        crashpad_base
+        crashpad_common
+        crashpad_client
+        crashpad_mig_output
+        crashpad_util
     )
 endif()
 
@@ -49,12 +81,7 @@ ExternalProject_Add(
     BUILD_COMMAND ""
     CONFIGURE_COMMAND ""
     BUILD_BYPRODUCTS
-        "<SOURCE_DIR>/lib/${CMAKE_STATIC_LIBRARY_PREFIX}base${CMAKE_STATIC_LIBRARY_SUFFIX}"
-        "<SOURCE_DIR>/lib/${CMAKE_STATIC_LIBRARY_PREFIX}util${CMAKE_STATIC_LIBRARY_SUFFIX}"
-        "<SOURCE_DIR>/lib/${CMAKE_STATIC_LIBRARY_PREFIX}client${CMAKE_STATIC_LIBRARY_SUFFIX}"
-        "<SOURCE_DIR>/bin/crashpad_database_util${CMAKE_EXECUTABLE_SUFFIX}"
-        "<SOURCE_DIR>/bin/crashpad_handler${CMAKE_EXECUTABLE_SUFFIX}"
-        "<SOURCE_DIR>/bin/crashpad_http_upload${CMAKE_EXECUTABLE_SUFFIX}"
+        ${crashpad_BUILD_BYPRODUCTS}
 )
 
 # Our crashpad artifacts assume a particular format
@@ -63,26 +90,39 @@ ExternalProject_Add(
 # <dir>\include contains the primary include path
 # <dir>\include\third_party\mini_chromium contains chromium include files
 
+if (APPLE)
+    add_library(crashpad_mig_output STATIC IMPORTED)
+endif ()
 add_library(crashpad_util STATIC IMPORTED)
 add_library(crashpad_base STATIC IMPORTED)
+add_library(crashpad_common STATIC IMPORTED)
 add_library(crashpad_client STATIC IMPORTED)
 add_executable(crashpad_handler IMPORTED)
 add_executable(crashpad_database_util IMPORTED)
 add_executable(crashpad_http_upload IMPORTED)
 
-# From this, we get three total targets:
+# From this, we get the following targets:
 #   crashpad_base
+#   crashpad_mig_output (macOS only)
 #   crashpad_util
+#   crashpad_common
 #   crashpad_client
-# It's recommended to use util but not required as far as I know.
 
 ExternalProject_Get_Property(crashpad_ep source_dir)
 
 set_property(TARGET crashpad_base PROPERTY IMPORTED_LOCATION
     "${source_dir}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}base${CMAKE_STATIC_LIBRARY_SUFFIX}")
 
+if (APPLE)
+    set_property(TARGET crashpad_mig_output PROPERTY IMPORTED_LOCATION
+        "${source_dir}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}mig_output${CMAKE_STATIC_LIBRARY_SUFFIX}")
+endif ()
+
 set_property(TARGET crashpad_util PROPERTY IMPORTED_LOCATION
     "${source_dir}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}util${CMAKE_STATIC_LIBRARY_SUFFIX}")
+
+set_property(TARGET crashpad_common PROPERTY IMPORTED_LOCATION
+    "${source_dir}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}common${CMAKE_STATIC_LIBRARY_SUFFIX}")
 
 set_property(TARGET crashpad_client PROPERTY IMPORTED_LOCATION
     "${source_dir}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}client${CMAKE_STATIC_LIBRARY_SUFFIX}")
@@ -111,16 +151,18 @@ add_library(crashpad INTERFACE)
 target_link_libraries(
     crashpad
     INTERFACE
-        crashpad_base
-        crashpad_client
-        crashpad_util
+        ${crashpad_TARGET_LINK_LIBRARIES}
 )
 
 target_link_libraries(crashpad_util INTERFACE crashpad_client)
 
 add_dependencies(crashpad_base crashpad_ep)
+add_dependencies(crashpad_client crashpad_common)
 add_dependencies(crashpad_client crashpad_base)
 add_dependencies(crashpad_util crashpad_client)
+if (APPLE)
+    add_dependencies(crashpad_util crashpad_mig_output)
+endif ()
 
 if (APPLE)
     find_library(COREFOUNDATION CoreFoundation)
