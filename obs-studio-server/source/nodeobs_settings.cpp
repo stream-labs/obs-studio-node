@@ -1091,8 +1091,11 @@ void OBS_settings::getSimpleAvailableEncoders(std::vector<std::pair<std::string,
 			encoders->push_back(std::make_pair("Hardware (AMD, HEVC)", ipc::value(SIMPLE_ENCODER_AMD_HEVC)));
 	}
 
-	if (EncoderAvailable("jim_nvenc"))
-		encoders->push_back(std::make_pair("Hardware (NVENC, H.264)", ipc::value(SIMPLE_ENCODER_NVENC)));
+	if (EncoderAvailable(ADVANCED_ENCODER_NVENC))
+		encoders->push_back(std::make_pair("NVIDIA NVENC H.264", ipc::value(SIMPLE_ENCODER_NVENC)));
+
+	if (EncoderAvailable(ENCODER_NEW_NVENC))
+		encoders->push_back(std::make_pair("NVIDIA NVENC H.264 (new)", ipc::value(ENCODER_NEW_NVENC)));
 
 	const char *hevcEnc = EncoderAvailable("jim_hevc_nvenc") ? "jim_hevc_nvenc" : "ffmpeg_hevc_nvenc";
 	if (recording || isEncoderAvailableForStreaming(hevcEnc, OBS_service::getService())) {
