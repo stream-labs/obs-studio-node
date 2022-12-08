@@ -1096,14 +1096,10 @@ void OBS_settings::getSimpleAvailableEncoders(std::vector<std::pair<std::string,
 
 	const char *current_stream_encoder = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "StreamEncoder");
 	const char *current_rec_encoder = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecEncoder");
-	bool nvenc_used = false;
+	bool nvenc_used_streaming = (current_stream_encoder && strcmp(current_stream_encoder, "nvenc") == 0);
+	bool nvenc_used_recording = (current_rec_encoder && strcmp(current_rec_encoder, "nvenc") == 0);
 
-	if (current_stream_encoder && strcmp(current_stream_encoder, "nvenc") == 0)
-		nvenc_used = true;
-	if (current_rec_encoder && strcmp(current_rec_encoder, "nvenc") == 0)
-		nvenc_used = true;
-
-	if (nvenc_used && EncoderAvailable("ffmpeg_nvenc"))
+	if ((nvenc_used_streaming || nvenc_used_recording) && EncoderAvailable("ffmpeg_nvenc"))
 		encoders->push_back(std::make_pair("NVIDIA NVENC H.264", ipc::value(SIMPLE_ENCODER_NVENC)));
 
 	const char *hevcEnc = EncoderAvailable("jim_hevc_nvenc") ? "jim_hevc_nvenc" : "ffmpeg_hevc_nvenc";
