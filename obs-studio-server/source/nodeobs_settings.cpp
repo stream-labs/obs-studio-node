@@ -1091,16 +1091,20 @@ void OBS_settings::getSimpleAvailableEncoders(std::vector<std::pair<std::string,
 			encoders->push_back(std::make_pair("Hardware (AMD, HEVC)", ipc::value(SIMPLE_ENCODER_AMD_HEVC)));
 	}
 
-	if (EncoderAvailable("ffmpeg_nvenc"))
-		encoders->push_back(std::make_pair("Hardware (NVENC, H.264)", ipc::value(SIMPLE_ENCODER_NVENC)));
+	if (EncoderAvailable("jim_nvenc"))
+		encoders->push_back(std::make_pair("NVIDIA NVENC H.264 (new)", ipc::value(ENCODER_NEW_NVENC)));
 
 	const char *current_stream_encoder = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "StreamEncoder");
 	const char *current_rec_encoder = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecEncoder");
-	if (current_stream_encoder && strcmp(current_stream_encoder, "jim_nvenc") == 0 ||
-	    current_rec_encoder && strcmp(current_rec_encoder, "jim_nvenc") == 0) {
-		if (EncoderAvailable(ENCODER_NEW_NVENC))
-			encoders->push_back(std::make_pair("NVIDIA NVENC H.264 (new)", ipc::value(ENCODER_NEW_NVENC)));
-	}
+	bool nvenc_used = false;
+
+	if (current_stream_encoder && strcmp(current_stream_encoder, "nvenc") == 0)
+		nvenc_used = true;
+	if (current_rec_encoder && strcmp(current_rec_encoder, "nvenc") == 0)
+		nvenc_used = true;
+
+	if (nvenc_used && EncoderAvailable("ffmpeg_nvenc"))
+		encoders->push_back(std::make_pair("NVIDIA NVENC H.264", ipc::value(SIMPLE_ENCODER_NVENC)));
 
 	const char *hevcEnc = EncoderAvailable("jim_hevc_nvenc") ? "jim_hevc_nvenc" : "ffmpeg_hevc_nvenc";
 	if (recording || isEncoderAvailableForStreaming(hevcEnc, OBS_service::getService())) {
