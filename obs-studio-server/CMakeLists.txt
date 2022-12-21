@@ -430,6 +430,9 @@ if(WIN32)
     )
 
     target_compile_definitions(${PROJECT_NAME} PRIVATE)
+
+    target_link_options(${PROJECT_NAME} PUBLIC "$<$<CONFIG:DEBUG>:/DEBUG:FULL>")
+    target_link_options(${PROJECT_NAME} PUBLIC "$<$<CONFIG:RELWITHDEBINFO>:/DEBUG:FULL>")
 else()
     set_target_properties(
         ${PROJECT_NAME}
