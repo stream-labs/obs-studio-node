@@ -30,7 +30,7 @@ endif()
 if(WIN32)
     download_project(
         PROJ crashpad
-        URL https://obsstudionodes3.streamlabs.com/crashpad/crashpad-release-win-bce9a58c-nov-2022-x86_64.tar.gz
+        URL https://obsstudionodes3.streamlabs.com/crashpad/crashpad-release-win-bd479a12-dec-2022-x86_64.tar.gz
         UPDATE_DISCONNECTED 1
     )
     set(crashpad_BUILD_BYPRODUCTS
