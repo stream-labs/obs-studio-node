@@ -912,6 +912,8 @@ void OBS_API::OBS_API_initAPI(void *data, const int64_t id, const std::vector<ip
 	cpuUsageInfo = os_cpu_usage_info_start();
 	ConfigManager::getInstance().setAppdataPath(appdata);
 
+	browserAccel = config_get_bool(ConfigManager::getInstance().getGlobal(), "General", "BrowserHWAccel");
+
 	/* Set global private settings for whomever it concerns */
 	obs_data_t *private_settings = obs_data_create();
 	obs_data_set_bool(private_settings, "BrowserHWAccel", browserAccel);
