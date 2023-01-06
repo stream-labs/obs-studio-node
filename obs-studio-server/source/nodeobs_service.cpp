@@ -2611,7 +2611,12 @@ void OBS_service::OBS_service_createVirtualWebcam(void *data, const int64_t id, 
 	obs_data_set_int(settings, "height", ovi.output_height);
 	obs_data_set_double(settings, "fps", ovi.fps_num);
 
-	virtualWebcamOutput = obs_output_create("virtualcam_output", "Virtual Webcam", settings, NULL);
+#ifdef WIN32
+	const char *outputType = "virtualcam_output";
+#elif __APPLE__
+	const char *outputType = "virtual_output";
+#endif
+	virtualWebcamOutput = obs_output_create(outputType, "Virtual Webcam", settings, NULL);
 	obs_data_release(settings);
 }
 

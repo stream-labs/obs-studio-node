@@ -524,4 +524,8 @@ install(
 	DIRECTORY "${libobs_SOURCE_DIR}/OBS.app/Contents/PlugIns"
 	DESTINATION "./" USE_SOURCE_PERMISSIONS PATTERN "frontend*" EXCLUDE
 )
+install(
+    DIRECTORY "${libobs_SOURCE_DIR}/data/obs-plugins/slobs-virtual-cam/"
+    DESTINATION "./Plugins/slobs-virtual-cam.plugin/Contents/MacOS" USE_SOURCE_PERMISSIONS
+)
 endif()
