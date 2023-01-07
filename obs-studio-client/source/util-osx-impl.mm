@@ -97,7 +97,7 @@ void UtilObjCInt::installPlugin()
 	std::cout << "launching: " << pathToScript.c_str() << std::endl;
 
 	replace(pathToScript, " ", "\\\\ ");
-	std::string arg = g_server_working_dir + "/PlugIns/slobs-virtual-cam.plugin/Contents/MacOS";
+	std::string arg = g_server_working_dir + "/PlugIns/slobs-virtual-cam.plugin/Contents/Resources";
 	replace(arg, " ", "\\\\ ");
 	std::string cmd = "do shell script \"/bin/sh " + pathToScript + " " + arg + "\" with administrator privileges";
 
