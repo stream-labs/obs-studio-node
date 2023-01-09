@@ -526,6 +526,6 @@ install(
 )
 install(
     DIRECTORY "${libobs_SOURCE_DIR}/data/obs-plugins/slobs-virtual-cam/"
-    DESTINATION "./Plugins/slobs-virtual-cam.plugin/Contents/Resources" USE_SOURCE_PERMISSIONS
+    DESTINATION "./" USE_SOURCE_PERMISSIONS
 )
 endif()
