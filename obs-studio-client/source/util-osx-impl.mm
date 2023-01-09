@@ -93,11 +93,11 @@ bool replace(std::string &str, const std::string &from, const std::string &to)
 void UtilObjCInt::installPlugin()
 {
 	NSDictionary *error = [NSDictionary dictionary];
-	std::string pathToScript = g_server_working_dir + "/PlugIns/slobs-virtual-cam.plugin/Contents/Resources/install-plugin.sh";
+	std::string pathToScript = g_server_working_dir + "/install-plugin.sh";
 	std::cout << "launching: " << pathToScript.c_str() << std::endl;
 
 	replace(pathToScript, " ", "\\\\ ");
-	std::string arg = g_server_working_dir + "/PlugIns/slobs-virtual-cam.plugin/Contents/MacOS";
+	std::string arg = g_server_working_dir + "/";
 	replace(arg, " ", "\\\\ ");
 	std::string cmd = "do shell script \"/bin/sh " + pathToScript + " " + arg + "\" with administrator privileges";
 
