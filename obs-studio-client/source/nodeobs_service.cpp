@@ -26,6 +26,7 @@
 #include <string>
 #include "shared.hpp"
 #include "utility.hpp"
+#include "video.hpp"
 
 #ifdef WIN32
 
@@ -85,6 +86,23 @@ Napi::Value service::OBS_service_resetVideoContext(const Napi::CallbackInfo &inf
 	return info.Env().Undefined();
 }
 
+Napi::Value service::OBS_service_setVideoInfo(const Napi::CallbackInfo &info)
+{
+	osn::Video *canvas = Napi::ObjectWrap<osn::Video>::Unwrap(info[0].ToObject());
+	if (!canvas) {
+		Napi::TypeError::New(info.Env(), "Invalid canvas argument").ThrowAsJavaScriptException();
+		return info.Env().Undefined();
+	}
+
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
+
+	conn->call("NodeOBS_Service", "OBS_service_setVideoInfo", {ipc::value(canvas->canvasId), info[1].ToNumber().Int64Value()});
+
+	return info.Env().Undefined();
+}
+
 Napi::Value service::OBS_service_startStreaming(const Napi::CallbackInfo &info)
 {
 	if (!isWorkerRunning) {
@@ -97,6 +115,21 @@ Napi::Value service::OBS_service_startStreaming(const Napi::CallbackInfo &info)
 		return info.Env().Undefined();
 
 	conn->call("NodeOBS_Service", "OBS_service_startStreaming", {});
+	return info.Env().Undefined();
+}
+
+Napi::Value service::OBS_service_startStreamingSecond(const Napi::CallbackInfo &info)
+{
+	if (!isWorkerRunning) {
+		start_worker(info.Env(), cb.Value());
+		isWorkerRunning = true;
+	}
+
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
+
+	conn->call("NodeOBS_Service", "OBS_service_startStreamingSecond", {});
 	return info.Env().Undefined();
 }
 
@@ -139,6 +172,18 @@ Napi::Value service::OBS_service_stopStreaming(const Napi::CallbackInfo &info)
 		return info.Env().Undefined();
 
 	conn->call("NodeOBS_Service", "OBS_service_stopStreaming", {ipc::value(forceStop)});
+	return info.Env().Undefined();
+}
+
+Napi::Value service::OBS_service_stopStreamingSecond(const Napi::CallbackInfo &info)
+{
+	bool forceStop = info[0].ToBoolean().Value();
+
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
+
+	conn->call("NodeOBS_Service", "OBS_service_stopStreamingSecond", {ipc::value(forceStop)});
 	return info.Env().Undefined();
 }
 
@@ -458,11 +503,14 @@ void service::Init(Napi::Env env, Napi::Object exports)
 {
 	exports.Set(Napi::String::New(env, "OBS_service_resetAudioContext"), Napi::Function::New(env, service::OBS_service_resetAudioContext));
 	exports.Set(Napi::String::New(env, "OBS_service_resetVideoContext"), Napi::Function::New(env, service::OBS_service_resetVideoContext));
+	exports.Set(Napi::String::New(env, "OBS_service_setVideoInfo"), Napi::Function::New(env, service::OBS_service_setVideoInfo));
 	exports.Set(Napi::String::New(env, "OBS_service_startStreaming"), Napi::Function::New(env, service::OBS_service_startStreaming));
+	exports.Set(Napi::String::New(env, "OBS_service_startStreamingSecond"), Napi::Function::New(env, service::OBS_service_startStreamingSecond));
 	exports.Set(Napi::String::New(env, "OBS_service_startRecording"), Napi::Function::New(env, service::OBS_service_startRecording));
 	exports.Set(Napi::String::New(env, "OBS_service_startReplayBuffer"), Napi::Function::New(env, service::OBS_service_startReplayBuffer));
 	exports.Set(Napi::String::New(env, "OBS_service_stopRecording"), Napi::Function::New(env, service::OBS_service_stopRecording));
 	exports.Set(Napi::String::New(env, "OBS_service_stopStreaming"), Napi::Function::New(env, service::OBS_service_stopStreaming));
+	exports.Set(Napi::String::New(env, "OBS_service_stopStreamingSecond"), Napi::Function::New(env, service::OBS_service_stopStreamingSecond));
 	exports.Set(Napi::String::New(env, "OBS_service_stopReplayBuffer"), Napi::Function::New(env, service::OBS_service_stopReplayBuffer));
 	exports.Set(Napi::String::New(env, "OBS_service_connectOutputSignals"), Napi::Function::New(env, service::OBS_service_connectOutputSignals));
 	exports.Set(Napi::String::New(env, "OBS_service_removeCallback"), Napi::Function::New(env, service::OBS_service_removeCallback));

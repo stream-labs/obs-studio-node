@@ -47,11 +47,14 @@ void Init(Napi::Env env, Napi::Object exports);
 
 Napi::Value OBS_service_resetAudioContext(const Napi::CallbackInfo &info);
 Napi::Value OBS_service_resetVideoContext(const Napi::CallbackInfo &info);
+Napi::Value OBS_service_setVideoInfo(const Napi::CallbackInfo &info);
 
 Napi::Value OBS_service_startStreaming(const Napi::CallbackInfo &info);
+Napi::Value OBS_service_startStreamingSecond(const Napi::CallbackInfo &info);
 Napi::Value OBS_service_startRecording(const Napi::CallbackInfo &info);
 Napi::Value OBS_service_startReplayBuffer(const Napi::CallbackInfo &info);
 Napi::Value OBS_service_stopStreaming(const Napi::CallbackInfo &info);
+Napi::Value OBS_service_stopStreamingSecond(const Napi::CallbackInfo &info);
 Napi::Value OBS_service_stopRecording(const Napi::CallbackInfo &info);
 Napi::Value OBS_service_stopReplayBuffer(const Napi::CallbackInfo &info);
 

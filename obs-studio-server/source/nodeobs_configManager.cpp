@@ -303,13 +303,22 @@ config_t *ConfigManager::getBasic()
 
 	return basic;
 };
-std::string ConfigManager::getService()
+
+std::string ConfigManager::getService(size_t index)
 {
+	if (index == 0) {
 #ifdef WIN32
-	return appdata + "\\service.json";
+		return appdata + "\\service.json";
 #else
-	return appdata + "/service.json";
+		return appdata + "/service.json";
 #endif
+	} else {
+#ifdef WIN32
+		return appdata + "\\service1.json";
+#else
+		return appdata + "/service1.json";
+#endif
+	}
 };
 std::string ConfigManager::getStream()
 {

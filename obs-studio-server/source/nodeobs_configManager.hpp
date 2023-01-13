@@ -50,7 +50,7 @@ public:
 	void setAppdataPath(std::string path);
 	config_t *getGlobal();
 	config_t *getBasic();
-	std::string getService();
+	std::string getService(size_t index);
 	std::string getStream();
 	std::string getRecord();
 	void reloadConfig(void);

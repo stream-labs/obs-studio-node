@@ -162,7 +162,7 @@ private:
 
 	// Get each category
 	static std::vector<SubCategory> getGeneralSettings();
-	static std::vector<SubCategory> getStreamSettings();
+	static std::vector<SubCategory> getStreamSettings(size_t index);
 	static std::vector<SubCategory> getOutputSettings(CategoryTypes &);
 	static std::vector<SubCategory> getAudioSettings();
 	static std::vector<SubCategory> getVideoSettings();
@@ -170,7 +170,7 @@ private:
 
 	// Save each category
 	static void saveGeneralSettings(std::vector<SubCategory> generalSettings, std::string pathConfigDirectory);
-	static bool saveStreamSettings(std::vector<SubCategory> streamSettings);
+	static bool saveStreamSettings(std::vector<SubCategory> streamSettings, size_t index);
 	static void saveOutputSettings(std::vector<SubCategory> streamSettings);
 	static void saveAudioSettings(std::vector<SubCategory> audioSettings);
 	static void saveVideoSettings(std::vector<SubCategory> videoSettings);
