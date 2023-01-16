@@ -440,8 +440,8 @@ describe(testName, () => {
         obs.setSetting(EOBSSettingsCategories.Output, 'StreamEncoder', obs.os === 'win32' ? 'x264' : 'obs_x264');
         obs.setSetting(EOBSSettingsCategories.Output, 'FilePath', path.join(path.normalize(__dirname), '..', 'osnData'));
 
-        let socondStreamUserPoolHandler = new UserPoolHandler(testName + "secondStream");
-        let userStreamKey = await socondStreamUserPoolHandler.getStreamKey();
+        let secondStreamUserPoolHandler = new UserPoolHandler(testName + "secondStream");
+        let userStreamKey = await secondStreamUserPoolHandler.getStreamKey();
         obs.setSetting(EOBSSettingsCategories.StreamSecond, 'key', userStreamKey);
 
         const secondContext = osn.VideoFactory.create();
@@ -556,7 +556,9 @@ describe(testName, () => {
             expect(signalInfo.signal).to.equal(EOBSOutputSignal.Deactivate, GetErrorMessage(ETestErrorMsg.StreamOutput));
         }
 
-        await socondStreamUserPoolHandler.releaseUser();
+        await secondStreamUserPoolHandler.releaseUser();
+
+        secondContext.destroy();
     });
 
 });

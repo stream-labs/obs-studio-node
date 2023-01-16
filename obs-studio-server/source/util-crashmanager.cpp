@@ -1130,8 +1130,8 @@ std::string util::CrashManager::getAppState()
 	if (appState.compare("idle") == 0) {
 		std::string encoding_state = "";
 		std::string need_space = "";
-		if (OBS_service::getStreamingOutput(0)) {
-			if (OBS_service::isStreamingOutputActive(0) || OBS_service::isStreamingOutputActive(1)) {
+		if (OBS_service::getStreamingOutput(StreamServiceId::Main)) {
+			if (OBS_service::isStreamingOutputActive(StreamServiceId::Main) || OBS_service::isStreamingOutputActive(StreamServiceId::Second)) {
 				encoding_state += "activestreaming";
 			} else {
 				encoding_state += "inactivestreaming";

@@ -932,15 +932,15 @@ void OBS_API::OBS_API_initAPI(void *data, const int64_t id, const std::vector<ip
 		}
 	}
 
-	OBS_service::createService(0);
-	OBS_service::createStreamingOutput(0);
-	OBS_service::createService(1);
-	OBS_service::createStreamingOutput(1);
+	OBS_service::createService(StreamServiceId::Main);
+	OBS_service::createService(StreamServiceId::Second);
+	OBS_service::createStreamingOutput(StreamServiceId::Main);
+	OBS_service::createStreamingOutput(StreamServiceId::Second);
 	OBS_service::createRecordingOutput();
 	OBS_service::createReplayBufferOutput();
 
-	OBS_service::createVideoStreamingEncoder(0);
-	OBS_service::createVideoStreamingEncoder(1);
+	OBS_service::createVideoStreamingEncoder(StreamServiceId::Main);
+	OBS_service::createVideoStreamingEncoder(StreamServiceId::Second);
 	OBS_service::createVideoRecordingEncoder();
 
 	OBS_service::resetAudioContext();
@@ -997,7 +997,7 @@ void OBS_API::OBS_API_getPerformanceStatistics(void *data, const int64_t id, con
 	rval.push_back(ipc::value(getNumberOfDroppedFrames()));
 	rval.push_back(ipc::value(getDroppedFramesPercentage()));
 
-	getCurrentOutputStats(OBS_service::getStreamingOutput(0), streamingOutputStats);
+	getCurrentOutputStats(OBS_service::getStreamingOutput(StreamServiceId::Main), streamingOutputStats);
 	rval.push_back(ipc::value(streamingOutputStats.kbitsPerSec));
 	rval.push_back(ipc::value(streamingOutputStats.dataOutput));
 
@@ -1010,7 +1010,7 @@ void OBS_API::OBS_API_getPerformanceStatistics(void *data, const int64_t id, con
 	rval.push_back(ipc::value(getMemoryUsage()));
 	rval.push_back(ipc::value(getDiskSpaceAvailable()));
 
-	getCurrentOutputStats(OBS_service::getStreamingOutput(1), streamingOutputStats);
+	getCurrentOutputStats(OBS_service::getStreamingOutput(StreamServiceId::Second), streamingOutputStats);
 	rval.push_back(ipc::value(streamingOutputStats.kbitsPerSec));
 	rval.push_back(ipc::value(streamingOutputStats.dataOutput));
 	AUTO_DEBUG;
@@ -1508,13 +1508,13 @@ void OBS_API::destroyOBS_API(void)
 	OBS_service::waitReleaseWorker();
 
 	obs_encoder_t *streamingEncoder;
-	streamingEncoder = OBS_service::getStreamingEncoder(0);
+	streamingEncoder = OBS_service::getStreamingEncoder(StreamServiceId::Main);
 	if (streamingEncoder != NULL) {
 		obs_encoder_release(streamingEncoder);
 		streamingEncoder = nullptr;
 	}
 
-	streamingEncoder = OBS_service::getStreamingEncoder(1);
+	streamingEncoder = OBS_service::getStreamingEncoder(StreamServiceId::Second);
 	if (streamingEncoder != NULL) {
 		obs_encoder_release(streamingEncoder);
 		streamingEncoder = nullptr;
@@ -1545,13 +1545,13 @@ void OBS_API::destroyOBS_API(void)
 	}
 
 	obs_output_t *streamingOutput;
-	streamingOutput = OBS_service::getStreamingOutput(0);
+	streamingOutput = OBS_service::getStreamingOutput(StreamServiceId::Main);
 	if (streamingOutput != NULL) {
 		obs_output_release(streamingOutput);
 		streamingEncoder = nullptr;
 	}
 
-	streamingOutput = OBS_service::getStreamingOutput(1);
+	streamingOutput = OBS_service::getStreamingOutput(StreamServiceId::Second);
 	if (streamingOutput != NULL) {
 		obs_output_release(streamingOutput);
 		streamingEncoder = nullptr;
@@ -1579,13 +1579,13 @@ void OBS_API::destroyOBS_API(void)
 	}
 
 	obs_service_t *service;
-	service = OBS_service::getService(0);
+	service = OBS_service::getService(StreamServiceId::Main);
 	if (service != NULL) {
 		obs_service_release(service);
 		service = nullptr;
 	}
 
-	service = OBS_service::getService(1);
+	service = OBS_service::getService(StreamServiceId::Second);
 	if (service != NULL) {
 		obs_service_release(service);
 		service = nullptr;
@@ -1819,7 +1819,7 @@ double OBS_API::getCPU_Percentage(void)
 
 int OBS_API::getNumberOfDroppedFrames(void)
 {
-	obs_output_t *streamOutput = OBS_service::getStreamingOutput(0);
+	obs_output_t *streamOutput = OBS_service::getStreamingOutput(StreamServiceId::Main);
 
 	int totalDropped = 0;
 
@@ -1832,7 +1832,7 @@ int OBS_API::getNumberOfDroppedFrames(void)
 
 double OBS_API::getDroppedFramesPercentage(void)
 {
-	obs_output_t *streamOutput = OBS_service::getStreamingOutput(0);
+	obs_output_t *streamOutput = OBS_service::getStreamingOutput(StreamServiceId::Main);
 
 	double percent = 0;
 

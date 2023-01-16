@@ -385,9 +385,9 @@ void autoConfig::InitializeAutoConfig(void *data, const int64_t id, const std::v
 	serverName = "Auto (Recommended)";
 	server = "auto";
 
-	obs_output_t *streamOutput = OBS_service::getStreamingOutput(0);
+	obs_output_t *streamOutput = OBS_service::getStreamingOutput(StreamServiceId::Main);
 	if (streamOutput)
-		OBS_service::setStreamingOutput(nullptr, 0);
+		OBS_service::setStreamingOutput(nullptr, StreamServiceId::Main);
 
 	cancel = false;
 
@@ -594,7 +594,7 @@ void autoConfig::TestBandwidthThread(void)
 	obs_data_release(aencoder_settings);
 	obs_data_release(output_settings);
 
-	obs_service_t *currentService = OBS_service::getService(0);
+	obs_service_t *currentService = OBS_service::getService(StreamServiceId::Main);
 	if (currentService) {
 		obs_data_t *currentServiceSettings = obs_service_get_settings(currentService);
 		if (currentServiceSettings) {
@@ -1520,7 +1520,7 @@ void autoConfig::SaveStreamSettings()
 
 	const char *service_id = "rtmp_common";
 
-	obs_service_t *oldService = OBS_service::getService(0);
+	obs_service_t *oldService = OBS_service::getService(StreamServiceId::Main);
 	OBSData hotkeyData = obs_hotkeys_save_service(oldService);
 	obs_data_release(hotkeyData);
 
@@ -1536,7 +1536,7 @@ void autoConfig::SaveStreamSettings()
 	if (!newService)
 		return;
 
-	OBS_service::setService(newService, 0);
+	OBS_service::setService(newService, StreamServiceId::Main);
 	OBS_service::saveService();
 
 	/* ---------------------------------- */
