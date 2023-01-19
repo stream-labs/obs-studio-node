@@ -5,8 +5,11 @@ set -o errexit
 set -o pipefail
 set -o nounset
 
-
-VERBOSITY="--verbose"
+if [ ${#} -eq 1 ]; then
+    VERBOSITY="--verbose"
+else
+    VERBOSITY=""
+fi
 
 # Runs the Clang Formatter in parallel on the code base.
 # Return codes:
@@ -49,3 +52,5 @@ find . -type d \( \
     -name '*.c' -or \
     -name '*.cpp' \
  | xargs -L100 -P ${NPROC} "${CLANG_FORMAT}" ${VERBOSITY} -i -style=file -fallback-style=none
+
+git diff
