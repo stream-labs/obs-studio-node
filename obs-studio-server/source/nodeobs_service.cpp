@@ -2486,6 +2486,7 @@ void OBS_service::JSCallbackOutputSignal(void *data, calldata_t *params)
 	SignalInfo &signal = *reinterpret_cast<SignalInfo *>(data);
 
 	std::string signalReceived = signal.getSignal();
+	blog(LOG_DEBUG, "signal received: %s %s", signalReceived.c_str(), signal.getOutputType().c_str());
 
 	if (signalReceived.compare("stop") == 0) {
 		signal.setCode((int)calldata_int(params, "code"));

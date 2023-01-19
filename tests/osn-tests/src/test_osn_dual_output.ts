@@ -425,12 +425,12 @@ describe(testName, () => {
 
         osn.Global.setOutputSource(0, returnSource);
 
-        secondContext.destroy();
-
         sceneItem1.source.release();
         sceneItem1.remove();
         sceneItem2.remove();
         scene.release();
+
+        secondContext.destroy();
     });
 
 
@@ -550,7 +550,6 @@ describe(testName, () => {
         signalInfo = await obs.getNextSignalInfo(EOBSOutputType.Streaming, EOBSOutputSignal.Deactivate);
         expect(signalInfo.type).to.equal(EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
         expect(signalInfo.signal).to.equal(EOBSOutputSignal.Deactivate, GetErrorMessage(ETestErrorMsg.StreamOutput));
-
 
         await secondStreamUserPoolHandler.releaseUser();
 

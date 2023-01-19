@@ -47,16 +47,24 @@ Napi::FunctionReference service::cb;
 
 void service::start_worker(napi_env env, Napi::Function async_callback)
 {
+	if (isWorkerRunning)
+		return;
+
 	if (!worker_stop)
 		return;
 
 	worker_stop = false;
 	js_thread = Napi::ThreadSafeFunction::New(env, async_callback, "NodeOBS_Service", 0, 1, [](Napi::Env) {});
 	worker_thread = new std::thread(&service::worker);
+
+	isWorkerRunning = true;
 }
 
 void service::stop_worker(void)
 {
+	if (!isWorkerRunning)
+		return;
+
 	if (worker_stop != false)
 		return;
 
@@ -64,6 +72,8 @@ void service::stop_worker(void)
 	if (worker_thread->joinable()) {
 		worker_thread->join();
 	}
+
+	isWorkerRunning = false;
 }
 
 Napi::Value service::OBS_service_resetAudioContext(const Napi::CallbackInfo &info)
@@ -105,10 +115,7 @@ Napi::Value service::OBS_service_setVideoInfo(const Napi::CallbackInfo &info)
 
 Napi::Value service::OBS_service_startStreaming(const Napi::CallbackInfo &info)
 {
-	if (!isWorkerRunning) {
-		start_worker(info.Env(), cb.Value());
-		isWorkerRunning = true;
-	}
+	start_worker(info.Env(), cb.Value());
 
 	auto conn = GetConnection(info);
 	if (!conn)
@@ -120,10 +127,7 @@ Napi::Value service::OBS_service_startStreaming(const Napi::CallbackInfo &info)
 
 Napi::Value service::OBS_service_startStreamingSecond(const Napi::CallbackInfo &info)
 {
-	if (!isWorkerRunning) {
-		start_worker(info.Env(), cb.Value());
-		isWorkerRunning = true;
-	}
+	start_worker(info.Env(), cb.Value());
 
 	auto conn = GetConnection(info);
 	if (!conn)
@@ -135,10 +139,7 @@ Napi::Value service::OBS_service_startStreamingSecond(const Napi::CallbackInfo &
 
 Napi::Value service::OBS_service_startRecording(const Napi::CallbackInfo &info)
 {
-	if (!isWorkerRunning) {
-		start_worker(info.Env(), cb.Value());
-		isWorkerRunning = true;
-	}
+	start_worker(info.Env(), cb.Value());
 
 	auto conn = GetConnection(info);
 	if (!conn)
@@ -150,10 +151,7 @@ Napi::Value service::OBS_service_startRecording(const Napi::CallbackInfo &info)
 
 Napi::Value service::OBS_service_startReplayBuffer(const Napi::CallbackInfo &info)
 {
-	if (!isWorkerRunning) {
-		start_worker(info.Env(), cb.Value());
-		isWorkerRunning = true;
-	}
+	start_worker(info.Env(), cb.Value());
 
 	auto conn = GetConnection(info);
 	if (!conn)
@@ -347,9 +345,7 @@ void service::worker()
 
 Napi::Value service::OBS_service_removeCallback(const Napi::CallbackInfo &info)
 {
-	if (isWorkerRunning) {
-		stop_worker();
-	}
+	stop_worker();
 	return info.Env().Undefined();
 }
 
