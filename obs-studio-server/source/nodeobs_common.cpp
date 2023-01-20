@@ -270,7 +270,7 @@ void OBS_content::OBS_content_createDisplay(void *data, const int64_t id, const 
 		break;
 	}
 
-	obs_video_info *canvas = args[3].value_union.ui64 ? osn::Video::Manager::GetInstance().find(args[3].value_union.ui64) : nullptr;
+	obs_video_info *canvas = args[4].value_union.ui64 ? osn::Video::Manager::GetInstance().find(args[4].value_union.ui64) : nullptr;
 	try {
 #ifdef WIN32
 		displays.insert_or_assign(args[1].value_str, new OBS::Display(windowHandle, mode, args[3].value_union.ui32, canvas));
