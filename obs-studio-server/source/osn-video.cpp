@@ -285,16 +285,20 @@ void osn::Video::SetVideoContext(void *data, const int64_t id, const std::vector
 	video.gpu_conversion = true;
 	// ???? fpsType args[10].value_union.ui32
 
+	int ret = OBS_VIDEO_FAIL;
 	try {
-		int ret = obs_set_video_info(canvas, &video);
-		if (ret != OBS_VIDEO_SUCCESS) {
-			blog(LOG_ERROR, "Failed to set video context");
-		}
+		ret = obs_set_video_info(canvas, &video);
 	} catch (const char *error) {
 		blog(LOG_ERROR, error);
 	}
 
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	if (ret != OBS_VIDEO_SUCCESS) {
+		blog(LOG_ERROR, "Failed to set video context");
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
+	} else {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	}
+
 	AUTO_DEBUG;
 }
 
@@ -304,10 +308,11 @@ void osn::Video::AddVideoContext(void *data, const int64_t id, const std::vector
 		PRETTY_ERROR_RETURN(ErrorCode::Error, "Invalid number of arguments to set the video context.");
 	}
 	obs_video_info *canvas = obs_create_video_info();
-	utility::unique_id::id_t uid = osn::Video::Manager::GetInstance().allocate(canvas);
 
 	if (canvas == NULL)
 		PRETTY_ERROR_RETURN(ErrorCode::OutOfBounds, "Failed to add canvas.");
+
+	utility::unique_id::id_t uid = osn::Video::Manager::GetInstance().allocate(canvas);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value((uint64_t)uid));
@@ -326,14 +331,21 @@ void osn::Video::RemoveVideoContext(void *data, const int64_t id, const std::vec
 		PRETTY_ERROR_RETURN(ErrorCode::Error, "No video context is currently set.");
 	}
 
+	int ret = OBS_VIDEO_FAIL;
 	try {
-		obs_remove_video_info(canvas);
+		ret = obs_remove_video_info(canvas);
+
 	} catch (const char *error) {
 		blog(LOG_ERROR, error);
 	}
-	osn::Video::Manager::GetInstance().free(args[0].value_union.ui64);
 
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	if (ret != OBS_VIDEO_SUCCESS) {
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
+	} else {
+		osn::Video::Manager::GetInstance().free(args[0].value_union.ui64);
+		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	}
+
 	AUTO_DEBUG;
 }
 
