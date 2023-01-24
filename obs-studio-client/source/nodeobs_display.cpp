@@ -83,10 +83,10 @@ Napi::Value display::OBS_content_createDisplay(const Napi::CallbackInfo &info)
 
 	bool renderAtBottom = (info.Length() > 3) ? info[3].ToBoolean().Value() : false;
 
-	osn::Video *video = nullptr;
 	uint64_t canvasId = 0;
-	if (info.Length() >= 4) {
-		video = Napi::ObjectWrap<osn::Video>::Unwrap(info[3].ToObject());
+	if (info.Length() > 4) {
+		osn::Video *video = nullptr;
+		video = Napi::ObjectWrap<osn::Video>::Unwrap(info[4].ToObject());
 		canvasId = video->canvasId;
 	}
 
@@ -167,12 +167,19 @@ Napi::Value display::OBS_content_createSourcePreviewDisplay(const Napi::Callback
 	std::string key = info[2].ToString().Utf8Value();
 	bool renderAtBottom = (info.Length() > 3) ? info[3].ToBoolean().Value() : false;
 
+	uint64_t canvasId = 0;
+	if (info.Length() > 4) {
+		osn::Video *video = nullptr;
+		video = Napi::ObjectWrap<osn::Video>::Unwrap(info[4].ToObject());
+		canvasId = video->canvasId;
+	}
+
 	auto conn = GetConnection(info);
 	if (!conn)
 		return info.Env().Undefined();
 
 	conn->call("Display", "OBS_content_createSourcePreviewDisplay",
-		   {ipc::value((uint64_t)windowHandle), ipc::value(sourceName), ipc::value(key), ipc::value(renderAtBottom)});
+		   {ipc::value((uint64_t)windowHandle), ipc::value(sourceName), ipc::value(key), ipc::value(renderAtBottom), ipc::value(canvasId)});
 
 	return info.Env().Undefined();
 }

@@ -158,9 +158,10 @@ void OBS_content::Register(ipc::server &srv)
 
 	cls->register_function(std::make_shared<ipc::function>("OBS_content_setDayTheme", std::vector<ipc::type>{ipc::type::UInt32}, OBS_content_setDayTheme));
 
-	cls->register_function(std::make_shared<ipc::function>(
-		"OBS_content_createDisplay", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String, ipc::type::Int32, ipc::type::UInt32},
-		OBS_content_createDisplay));
+	cls->register_function(std::make_shared<ipc::function>("OBS_content_createDisplay",
+							       std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String, ipc::type::Int32, ipc::type::Int32,
+										      ipc::type::UInt64},
+							       OBS_content_createDisplay));
 
 	cls->register_function(
 		std::make_shared<ipc::function>("OBS_content_destroyDisplay", std::vector<ipc::type>{ipc::type::String}, OBS_content_destroyDisplay));
@@ -171,9 +172,10 @@ void OBS_content::Register(ipc::server &srv)
 	cls->register_function(std::make_shared<ipc::function>("OBS_content_getDisplayPreviewSize", std::vector<ipc::type>{ipc::type::String},
 							       OBS_content_getDisplayPreviewSize));
 
-	cls->register_function(std::make_shared<ipc::function>(
-		"OBS_content_createSourcePreviewDisplay", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String, ipc::type::String, ipc::type::UInt32},
-		OBS_content_createSourcePreviewDisplay));
+	cls->register_function(std::make_shared<ipc::function>("OBS_content_createSourcePreviewDisplay",
+							       std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String, ipc::type::String,
+										      ipc::type::UInt32, ipc::type::UInt64},
+							       OBS_content_createSourcePreviewDisplay));
 
 	cls->register_function(std::make_shared<ipc::function>(
 		"OBS_content_resizeDisplay", std::vector<ipc::type>{ipc::type::String, ipc::type::UInt32, ipc::type::UInt32}, OBS_content_resizeDisplay));
@@ -362,8 +364,10 @@ void OBS_content::OBS_content_createSourcePreviewDisplay(void *data, const int64
 		return;
 	}
 
+	obs_video_info *canvas = args[4].value_union.ui64 ? osn::Video::Manager::GetInstance().find(args[4].value_union.ui64) : nullptr;
+
 	try {
-		OBS::Display *display = new OBS::Display(windowHandle, OBS_MAIN_VIDEO_RENDERING, args[1].value_str, args[3].value_union.ui32, nullptr);
+		OBS::Display *display = new OBS::Display(windowHandle, OBS_MAIN_VIDEO_RENDERING, args[1].value_str, args[3].value_union.ui32, canvas);
 		displays.insert_or_assign(args[2].value_str, display);
 	} catch (const std::exception &e) {
 		std::string message(std::string("Source preview display creation failed: ") + e.what());
