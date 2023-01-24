@@ -634,7 +634,7 @@ void autoConfig::TestBandwidthThread(void)
 		keyToEvaluate += "?bandwidthtest";
 	}
 
-	if (serviceSelected == Service::YouTube) {	
+	if (serviceSelected == Service::YouTube) {
 		serverName = "Stream URL";
 		server = obs_service_get_url(currentService);
 	}
