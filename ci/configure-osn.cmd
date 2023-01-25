@@ -8,5 +8,6 @@ cmake -H. ^
         -DNODEJS_NAME=%RuntimeName% ^
         -DNODEJS_URL=%RuntimeURL% ^
         -DNODEJS_VERSION="v%ElectronVersion%" ^
-        -DLIBOBS_BUILD_TYPE=%ReleaseName%
+        -DLIBOBS_BUILD_TYPE=%ReleaseName% ^
+        -DCMAKE_PREFIX_PATH="%CD%/%SLBuildDirectory%/libobs-src/cmake/"
 

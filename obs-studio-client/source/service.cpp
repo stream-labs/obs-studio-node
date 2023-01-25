@@ -25,35 +25,25 @@
 
 Napi::FunctionReference osn::Service::constructor;
 
-Napi::Object osn::Service::Init(Napi::Env env, Napi::Object exports) {
+Napi::Object osn::Service::Init(Napi::Env env, Napi::Object exports)
+{
 	Napi::HandleScope scope(env);
-	Napi::Function func =
-		DefineClass(env,
-		"Service",
-		{
-			StaticMethod("types", &osn::Service::Types),
-			StaticMethod("create", &osn::Service::Create),
-			StaticAccessor("serviceContext",
-				&osn::Service::GetCurrent, &osn::Service::SetService),
+	Napi::Function func = DefineClass(
+		env, "Service",
+		{StaticMethod("types", &osn::Service::Types), StaticMethod("create", &osn::Service::Create), InstanceMethod("update", &osn::Service::Update),
 
-			InstanceMethod("update", &osn::Service::Update),
+		 InstanceAccessor("name", &osn::Service::GetName, nullptr), InstanceAccessor("properties", &osn::Service::GetProperties, nullptr),
+		 InstanceAccessor("settings", &osn::Service::GetSettings, nullptr),
 
-			InstanceAccessor("name", &osn::Service::GetName, nullptr),
-			InstanceAccessor("properties", &osn::Service::GetProperties, nullptr),
-			InstanceAccessor("settings", &osn::Service::GetSettings, nullptr),
-			InstanceAccessor("url", &osn::Service::GetURL, nullptr),
-			InstanceAccessor("key", &osn::Service::GetKey, nullptr),
-			InstanceAccessor("username", &osn::Service::GetUsername, nullptr),
-			InstanceAccessor("password", &osn::Service::GetPassword, nullptr),
-		});
+		 StaticAccessor("legacySettings", &osn::Service::GetLegacySettings, &osn::Service::SetLegacySettings)});
 	exports.Set("Service", func);
 	osn::Service::constructor = Napi::Persistent(func);
 	osn::Service::constructor.SuppressDestruct();
 	return exports;
 }
 
-osn::Service::Service(const Napi::CallbackInfo& info)
-	: Napi::ObjectWrap<osn::Service>(info) {
+osn::Service::Service(const Napi::CallbackInfo &info) : Napi::ObjectWrap<osn::Service>(info)
+{
 	Napi::Env env = info.Env();
 	Napi::HandleScope scope(env);
 	int length = info.Length();
@@ -63,10 +53,11 @@ osn::Service::Service(const Napi::CallbackInfo& info)
 		return;
 	}
 
-	this->serviceId = (uint64_t)info[0].ToNumber().Int64Value();
+	this->uid = (uint64_t)info[0].ToNumber().Int64Value();
 }
 
-Napi::Value osn::Service::Types(const Napi::CallbackInfo& info) {
+Napi::Value osn::Service::Types(const Napi::CallbackInfo &info)
+{
 	auto conn = GetConnection(info);
 	if (!conn)
 		return info.Env().Undefined();
@@ -85,7 +76,8 @@ Napi::Value osn::Service::Types(const Napi::CallbackInfo& info) {
 	return utilv8::ToValue<std::string>(info, types);
 }
 
-Napi::Value osn::Service::Create(const Napi::CallbackInfo& info) {
+Napi::Value osn::Service::Create(const Napi::CallbackInfo &info)
+{
 	std::string type = info[0].ToString().Utf8Value();
 	std::string name = info[1].ToString().Utf8Value();
 	Napi::String settings = Napi::String::New(info.Env(), "");
@@ -97,13 +89,13 @@ Napi::Value osn::Service::Create(const Napi::CallbackInfo& info) {
 	if (info.Length() >= 4) {
 		if (!info[3].IsUndefined()) {
 			Napi::Object hksobj = info[3].ToObject();
-			hotkeys = stringify.Call(json, { hksobj }).As<Napi::String>();
+			hotkeys = stringify.Call(json, {hksobj}).As<Napi::String>();
 		}
 	}
 	if (info.Length() >= 3) {
 		if (!info[2].IsUndefined()) {
 			Napi::Object setobj = info[2].ToObject();
-			settings = stringify.Call(json, { setobj }).As<Napi::String>();
+			settings = stringify.Call(json, {setobj}).As<Napi::String>();
 		}
 	}
 
@@ -130,57 +122,18 @@ Napi::Value osn::Service::Create(const Napi::CallbackInfo& info) {
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
 
-	auto instance =
-		osn::Service::constructor.New({
-			Napi::Number::New(info.Env(), response[1].value_union.ui64)
-			});
+	auto instance = osn::Service::constructor.New({Napi::Number::New(info.Env(), response[1].value_union.ui64)});
 
 	return instance;
 }
 
-Napi::Value osn::Service::GetCurrent(const Napi::CallbackInfo& info) {
+Napi::Value osn::Service::GetName(const Napi::CallbackInfo &info)
+{
 	auto conn = GetConnection(info);
 	if (!conn)
 		return info.Env().Undefined();
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Service", "GetCurrent", {});
-
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
-
-	auto instance =
-		osn::Service::constructor.New({
-			Napi::Number::New(info.Env(), response[1].value_union.ui64)
-			});
-
-	return instance;
-}
-
-void osn::Service::SetService(const Napi::CallbackInfo& info, const Napi::Value &value) {
-	osn::Service* service = Napi::ObjectWrap<osn::Service>::Unwrap(value.ToObject());
-
-	if (!service) {
-		Napi::TypeError::New(info.Env(), "Invalid service argument").ThrowAsJavaScriptException();
-		return;
-	}
-
-	auto conn = GetConnection(info);
-	if (!conn)
-		return;
-
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Service", "SetService", {service->serviceId});
-
-	if (!ValidateResponse(info, response))
-		return;
-}
-
-Napi::Value osn::Service::GetName(const Napi::CallbackInfo& info) {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("Service", "GetName", {ipc::value((uint64_t)this->serviceId)});
+	std::vector<ipc::value> response = conn->call_synchronous_helper("Service", "GetName", {ipc::value((uint64_t)this->uid)});
 
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
@@ -188,13 +141,13 @@ Napi::Value osn::Service::GetName(const Napi::CallbackInfo& info) {
 	return Napi::String::New(info.Env(), response[1].value_str);
 }
 
-Napi::Value osn::Service::GetProperties(const Napi::CallbackInfo& info) {
+Napi::Value osn::Service::GetProperties(const Napi::CallbackInfo &info)
+{
 	auto conn = GetConnection(info);
 	if (!conn)
 		return info.Env().Undefined();
 
-	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("Service", "GetProperties", {ipc::value(this->serviceId)});
+	std::vector<ipc::value> response = conn->call_synchronous_helper("Service", "GetProperties", {ipc::value(this->uid)});
 
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
@@ -206,37 +159,30 @@ Napi::Value osn::Service::GetProperties(const Napi::CallbackInfo& info) {
 
 	std::shared_ptr<property_map_t> pSomeObject = std::make_shared<property_map_t>(pmap);
 	auto prop_ptr = Napi::External<property_map_t>::New(info.Env(), pSomeObject.get());
-	auto instance =
-		osn::Properties::constructor.New({
-			prop_ptr,
-			Napi::Number::New(info.Env(), (uint32_t)this->serviceId)
-			});
+	auto instance = osn::Properties::constructor.New({prop_ptr, Napi::Number::New(info.Env(), (uint32_t)this->uid)});
 	return instance;
 }
 
-void osn::Service::Update(const Napi::CallbackInfo& info) {
+void osn::Service::Update(const Napi::CallbackInfo &info)
+{
 	Napi::Object jsonObj = info[0].ToObject();
-	bool shouldUpdate = true;
-
 	Napi::Object json = info.Env().Global().Get("JSON").As<Napi::Object>();
 	Napi::Function stringify = json.Get("stringify").As<Napi::Function>();
 
-	std::string jsondata = stringify.Call(json, { jsonObj }).As<Napi::String>();
+	std::string jsondata = stringify.Call(json, {jsonObj}).As<Napi::String>();
 
 	auto conn = GetConnection(info);
 	if (!conn)
 		return;
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper(
-		"Service",
-		"Update",
-		{ipc::value(this->serviceId), ipc::value(jsondata)});
+	std::vector<ipc::value> response = conn->call_synchronous_helper("Service", "Update", {ipc::value(this->uid), ipc::value(jsondata)});
 
 	if (!ValidateResponse(info, response))
 		return;
 }
 
-Napi::Value osn::Service::GetSettings(const Napi::CallbackInfo& info) {
+Napi::Value osn::Service::GetSettings(const Napi::CallbackInfo &info)
+{
 	Napi::Object json = info.Env().Global().Get("JSON").As<Napi::Object>();
 	Napi::Function parse = json.Get("parse").As<Napi::Function>();
 
@@ -244,8 +190,7 @@ Napi::Value osn::Service::GetSettings(const Napi::CallbackInfo& info) {
 	if (!conn)
 		return info.Env().Undefined();
 
-	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("Service", "GetSettings", {ipc::value(this->serviceId)});
+	std::vector<ipc::value> response = conn->call_synchronous_helper("Service", "GetSettings", {ipc::value(this->uid)});
 
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
@@ -255,58 +200,37 @@ Napi::Value osn::Service::GetSettings(const Napi::CallbackInfo& info) {
 	return jsonObj;
 }
 
-Napi::Value osn::Service::GetURL(const Napi::CallbackInfo& info) {
+Napi::Value osn::Service::GetLegacySettings(const Napi::CallbackInfo &info)
+{
 	auto conn = GetConnection(info);
 	if (!conn)
 		return info.Env().Undefined();
 
-	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("Service", "GetURL", {ipc::value((uint64_t)this->serviceId)});
+	std::vector<ipc::value> response = conn->call_synchronous_helper("Service", "GetLegacySettings", {});
 
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
 
-	return Napi::String::New(info.Env(), response[1].value_str);
+	auto instance = osn::Service::constructor.New({Napi::Number::New(info.Env(), response[1].value_union.ui64)});
+
+	return instance;
 }
 
-Napi::Value osn::Service::GetKey(const Napi::CallbackInfo& info) {
+void osn::Service::SetLegacySettings(const Napi::CallbackInfo &info, const Napi::Value &value)
+{
+	osn::Service *service = Napi::ObjectWrap<osn::Service>::Unwrap(value.ToObject());
+
+	if (!service) {
+		Napi::TypeError::New(info.Env(), "Invalid service argument").ThrowAsJavaScriptException();
+		return;
+	}
+
 	auto conn = GetConnection(info);
 	if (!conn)
-		return info.Env().Undefined();
+		return;
 
-	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("Service", "GetKey", {ipc::value((uint64_t)this->serviceId)});
-
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
-
-	return Napi::String::New(info.Env(), response[1].value_str);
-}
-
-Napi::Value osn::Service::GetUsername(const Napi::CallbackInfo& info) {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("Service", "GetUsername", {ipc::value((uint64_t)this->serviceId)});
+	std::vector<ipc::value> response = conn->call_synchronous_helper("Service", "SetLegacySettings", {service->uid});
 
 	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
-
-	return Napi::String::New(info.Env(), response[1].value_str);
-}
-
-Napi::Value osn::Service::GetPassword(const Napi::CallbackInfo& info) {
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	std::vector<ipc::value> response =
-		conn->call_synchronous_helper("Service", "GetPassword", {ipc::value((uint64_t)this->serviceId)});
-
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
-
-	return Napi::String::New(info.Env(), response[1].value_str);
+		return;
 }

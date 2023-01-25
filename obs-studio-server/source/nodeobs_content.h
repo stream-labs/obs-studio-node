@@ -35,94 +35,34 @@
 #include "nodeobs_api.h"
 #include "nodeobs_display.h"
 
-struct SourceInfo
-{
+struct SourceInfo {
 	uint32_t fader;
 	uint32_t volmeter;
 };
 
-class OBS_content
-{
-	public:
+class OBS_content {
+public:
 	OBS_content();
 	~OBS_content();
 
-	static void Register(ipc::server&);
+	static void Register(ipc::server &);
 
-	static void OBS_content_createDisplay(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	static void OBS_content_destroyDisplay(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
+	static void OBS_content_setDayTheme(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void OBS_content_createDisplay(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void OBS_content_destroyDisplay(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
 	static void OBS_content_shutdownDisplays();
-	static void OBS_content_getDisplayPreviewOffset(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	static void OBS_content_getDisplayPreviewSize(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	static void OBS_content_createSourcePreviewDisplay(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	static void OBS_content_resizeDisplay(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	static void OBS_content_moveDisplay(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	static void OBS_content_setPaddingSize(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	static void OBS_content_setPaddingColor(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	static void OBS_content_setBackgroundColor(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	static void OBS_content_setOutlineColor(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	static void OBS_content_setShouldDrawUI(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	static void OBS_content_setDrawGuideLines(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	static void OBS_content_setDrawRotationHandle(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
-	static void OBS_content_createIOSurface(
-	    void*                          data,
-	    const int64_t                  id,
-	    const std::vector<ipc::value>& args,
-	    std::vector<ipc::value>&       rval);
+	static void OBS_content_getDisplayPreviewOffset(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void OBS_content_getDisplayPreviewSize(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void OBS_content_createSourcePreviewDisplay(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void OBS_content_resizeDisplay(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void OBS_content_moveDisplay(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void OBS_content_setPaddingSize(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void OBS_content_setPaddingColor(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void OBS_content_setBackgroundColor(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void OBS_content_setOutlineColor(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void OBS_content_setCropOutlineColor(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void OBS_content_setShouldDrawUI(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void OBS_content_setDrawGuideLines(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void OBS_content_setDrawRotationHandle(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void OBS_content_createIOSurface(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
 };

@@ -22,79 +22,40 @@
 #include "obs.h"
 #include "utility.hpp"
 
-namespace osn
-{
-	class Fader
-	{
-		public:
-		class Manager : public utility::unique_object_manager<obs_fader_t>
-		{
-			friend class std::shared_ptr<Manager>;
+namespace osn {
+class Fader {
+public:
+	class Manager : public utility::unique_object_manager<obs_fader_t> {
+		friend class std::shared_ptr<Manager>;
 
-			protected:
-			Manager() {}
-			~Manager() {}
+	protected:
+		Manager() {}
+		~Manager() {}
 
-			public:
-			Manager(Manager const&) = delete;
-			Manager operator=(Manager const&) = delete;
+	public:
+		Manager(Manager const &) = delete;
+		Manager operator=(Manager const &) = delete;
 
-			public:
-			static Manager& GetInstance();
-		};
-
-		public:
-		static void Register(ipc::server&);
-		static void ClearFaders();
-
-		static void
-		    Create(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void
-		    Destroy(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-
-		static void GetDeziBel(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void SetDeziBel(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void GetDeflection(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void SetDeflection(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void GetMultiplier(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void SetMultiplier(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void
-		    Attach(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void
-		            Detach(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval);
-		static void AddCallback(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
-		static void RemoveCallback(
-		    void*                          data,
-		    const int64_t                  id,
-		    const std::vector<ipc::value>& args,
-		    std::vector<ipc::value>&       rval);
+	public:
+		static Manager &GetInstance();
 	};
+
+public:
+	static void Register(ipc::server &);
+	static void ClearFaders();
+
+	static void Create(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void Destroy(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+
+	static void GetDeziBel(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void SetDeziBel(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void GetDeflection(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void SetDeflection(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void GetMultiplier(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void SetMultiplier(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void Attach(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void Detach(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void AddCallback(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void RemoveCallback(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+};
 } // namespace osn

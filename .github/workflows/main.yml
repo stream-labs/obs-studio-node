@@ -16,13 +16,13 @@ env:
   InstallPath: "obs-studio-node"
   SLBUILDDIRECTORY: "streamlabs-build"
   RELEASE_BUCKET: "obsstudionodes3.streamlabs.com"
-  RuntimeURL: https://electronjs.org/headers
+  RuntimeURL: https://artifacts.electronjs.org/headers/dist
   RuntimeName: iojs
-  ElectronVersion: 13.4.0
+  ElectronVersion: 17.4.11
   SLGenerator: Visual Studio 17 2022
   SLDistributeDirectory: distribute
   SLFullDistributePath: "streamlabs-build/distribute"
-  LibOBSVersion: 27.6.10
+  LibOBSVersion: 28.2.42
   PACKAGE_NAME: osn
 
 jobs:

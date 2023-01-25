@@ -22,40 +22,37 @@
 #include <map>
 #include "utility-v8.hpp"
 
-struct SourceSizeInfo
-{
+struct SourceSizeInfo {
 	std::string name;
-	uint32_t    width;
-	uint32_t    height;
-	uint32_t    flags;
+	uint32_t width;
+	uint32_t height;
+	uint32_t flags;
 };
 
-struct SourceSizeInfoData
-{
-	std::vector<SourceSizeInfo*> items;
+struct SourceSizeInfoData {
+	std::vector<SourceSizeInfo *> items;
 };
 
-namespace globalCallback
-{
-	extern bool isWorkerRunning;
-	extern bool worker_stop;
-	extern uint32_t sleepIntervalMS;
-	extern std::thread* worker_thread;
-	extern Napi::ThreadSafeFunction js_thread;
-	extern bool m_all_workers_stop;
+namespace globalCallback {
+extern bool isWorkerRunning;
+extern bool worker_stop;
+extern uint32_t sleepIntervalMS;
+extern std::thread *worker_thread;
+extern Napi::ThreadSafeFunction js_thread;
+extern bool m_all_workers_stop;
 
-	extern std::mutex mtx_volmeters;
-	extern std::map<uint64_t, Napi::ThreadSafeFunction> volmeters;
+extern std::mutex mtx_volmeters;
+extern std::map<uint64_t, Napi::ThreadSafeFunction> volmeters;
 
-	void worker(void);
-	void start_worker(napi_env env, Napi::Function async_callback);
-	void stop_worker(void);
+void worker(void);
+void start_worker(napi_env env, Napi::Function async_callback);
+void stop_worker(void);
 
-	void add_volmeter(napi_env env, uint64_t id, Napi::Function cb);
-	void remove_volmeter(uint64_t id);
+void add_volmeter(napi_env env, uint64_t id, Napi::Function cb);
+void remove_volmeter(uint64_t id);
 
-	void Init(Napi::Env env, Napi::Object exports);
+void Init(Napi::Env env, Napi::Object exports);
 
-	Napi::Value RegisterGlobalCallback(const Napi::CallbackInfo& info);
-	Napi::Value RemoveGlobalCallback(const Napi::CallbackInfo& info);
+Napi::Value RegisterGlobalCallback(const Napi::CallbackInfo &info);
+Napi::Value RemoveGlobalCallback(const Napi::CallbackInfo &info);
 }
