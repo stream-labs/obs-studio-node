@@ -24,7 +24,7 @@
 
 enum class Type { Invalid, Streaming, Recording };
 
-enum class Service { Twitch, Hitbox, Beam, Other };
+enum class Service { Twitch, Hitbox, Beam, YouTube, Other };
 
 enum class Encoder { x264, NVENC, QSV, AMD, Stream, appleHW, appleHWM1 };
 
@@ -620,17 +620,23 @@ void autoConfig::TestBandwidthThread(void)
 			serviceSelected = Service::Hitbox;
 		else if (serviceName == "beam.pro")
 			serviceSelected = Service::Beam;
+		else if (serviceName.find("YouTube") != std::string::npos)
+			serviceSelected = Service::YouTube;
 		else
 			serviceSelected = Service::Other;
 	} else {
 		serviceSelected = Service::Other;
 	}
-
 	std::string keyToEvaluate = key;
 
 	if (serviceSelected == Service::Twitch) {
 		string_depad_key(key);
 		keyToEvaluate += "?bandwidthtest";
+	}
+
+	if (serviceSelected == Service::YouTube) {
+		serverName = "Stream URL";
+		server = obs_service_get_url(currentService);
 	}
 
 	obs_data_set_string(service_settings, "service", serviceName.c_str());
