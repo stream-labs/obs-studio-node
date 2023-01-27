@@ -34,14 +34,6 @@ enum class FPSType : int { PreferHighFPS, PreferHighRes, UseCurrent, fps30, fps6
 
 enum ThreadedTests : int { BandwidthTest, StreamEncoderTest, RecordingEncoderTest, SaveStreamSettings, SaveSettings, SetDefaultSettings, Count };
 
-struct Event {
-	// obs::CallbackInfo *cb_info;
-
-	std::string event;
-	std::string description;
-	int percentage;
-};
-
 class AutoConfigInfo {
 public:
 	AutoConfigInfo(std::string a_event, std::string a_description, double a_percentage)
@@ -118,62 +110,6 @@ struct ServerInfo {
 	inline ServerInfo() {}
 
 	inline ServerInfo(const char *name_, const char *address_) : name(name_), address(address_) {}
-};
-
-class TestMode {
-	obs_video_info ovi;
-	OBSSource source[6];
-
-	static void render_rand(void *, uint32_t cx, uint32_t cy)
-	{
-		gs_effect_t *solid = obs_get_base_effect(OBS_EFFECT_SOLID);
-		gs_eparam_t *randomvals[3] = {gs_effect_get_param_by_name(solid, "randomvals1"), gs_effect_get_param_by_name(solid, "randomvals2"),
-					      gs_effect_get_param_by_name(solid, "randomvals3")};
-
-		struct vec4 r;
-
-		for (int i = 0; i < 3; i++) {
-			vec4_set(&r, rand_float(true) * 100.0f, rand_float(true) * 100.0f, rand_float(true) * 50000.0f + 10000.0f, 0.0f);
-			gs_effect_set_vec4(randomvals[i], &r);
-		}
-
-		while (gs_effect_loop(solid, "Random"))
-			gs_draw_sprite(nullptr, 0, cx, cy);
-	}
-
-public:
-	inline TestMode()
-	{
-		obs_get_video_info(&ovi);
-		obs_add_main_render_callback(render_rand, this);
-
-		for (uint32_t i = 0; i < 6; i++) {
-			source[i] = obs_get_output_source(i);
-			obs_source_release(source[i]);
-			obs_set_output_source(i, nullptr);
-		}
-	}
-
-	inline ~TestMode()
-	{
-		for (uint32_t i = 0; i < 6; i++)
-			obs_set_output_source(i, source[i]);
-
-		obs_remove_main_render_callback(render_rand, this);
-		obs_reset_video(&ovi);
-	}
-
-	inline void SetVideo(int cx, int cy, int fps_num, int fps_den)
-	{
-		obs_video_info newOVI = ovi;
-
-		newOVI.output_width = (uint32_t)cx;
-		newOVI.output_height = (uint32_t)cy;
-		newOVI.fps_num = (uint32_t)fps_num;
-		newOVI.fps_den = (uint32_t)fps_den;
-
-		obs_reset_video(&newOVI);
-	}
 };
 
 void autoConfig::Register(ipc::server &srv)
@@ -347,6 +283,7 @@ void autoConfig::TerminateAutoConfig(void *data, const int64_t id, const std::ve
 {
 	StopThread();
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
 }
 
 void autoConfig::Query(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
@@ -388,6 +325,7 @@ void autoConfig::InitializeAutoConfig(void *data, const int64_t id, const std::v
 	cancel = false;
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
 }
 
 void autoConfig::StartBandwidthTest(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
@@ -395,6 +333,7 @@ void autoConfig::StartBandwidthTest(void *data, const int64_t id, const std::vec
 	asyncTests[ThreadedTests::BandwidthTest] = std::async(std::launch::async, TestBandwidthThread);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
 }
 
 void autoConfig::StartStreamEncoderTest(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
@@ -402,6 +341,7 @@ void autoConfig::StartStreamEncoderTest(void *data, const int64_t id, const std:
 	asyncTests[ThreadedTests::StreamEncoderTest] = std::async(std::launch::async, TestStreamEncoderThread);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
 }
 
 void autoConfig::StartRecordingEncoderTest(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
@@ -409,6 +349,7 @@ void autoConfig::StartRecordingEncoderTest(void *data, const int64_t id, const s
 	asyncTests[ThreadedTests::RecordingEncoderTest] = std::async(std::launch::async, TestRecordingEncoderThread);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
 }
 
 void autoConfig::StartSaveStreamSettings(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
@@ -416,6 +357,7 @@ void autoConfig::StartSaveStreamSettings(void *data, const int64_t id, const std
 	asyncTests[ThreadedTests::SaveStreamSettings] = std::async(std::launch::async, SaveStreamSettings);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
 }
 
 void autoConfig::StartSaveSettings(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
@@ -425,6 +367,7 @@ void autoConfig::StartSaveSettings(void *data, const int64_t id, const std::vect
 	cancel = false;
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
 }
 
 void autoConfig::StartCheckSettings(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
@@ -433,6 +376,7 @@ void autoConfig::StartCheckSettings(void *data, const int64_t id, const std::vec
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value((uint32_t)sucess));
+	AUTO_DEBUG;
 }
 
 void autoConfig::StartSetDefaultSettings(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
@@ -440,6 +384,7 @@ void autoConfig::StartSetDefaultSettings(void *data, const int64_t id, const std
 	asyncTests[ThreadedTests::SetDefaultSettings] = std::async(std::launch::async, SetDefaultSettings);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
 }
 
 int EvaluateBandwidth(ServerInfo &server, bool &connected, bool &stopped, bool &success, bool &errorOnStop, OBSData &service_settings, OBSService &service,
