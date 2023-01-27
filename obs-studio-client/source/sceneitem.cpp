@@ -566,20 +566,20 @@ Napi::Value osn::SceneItem::GetAlignment(const Napi::CallbackInfo &info)
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
 
-	bool flag = !!response[1].value_union.ui32;
+	uint32_t flag = response[1].value_union.ui32;
 
-	return Napi::Boolean::New(info.Env(), flag);
+	return Napi::Number::New(info.Env(), flag);
 }
 
 void osn::SceneItem::SetAlignment(const Napi::CallbackInfo &info, const Napi::Value &value)
 {
-	uint32_t visible = value.ToNumber().Uint32Value();
+	uint32_t flag = value.ToNumber().Uint32Value();
 
 	auto conn = GetConnection(info);
 	if (!conn)
 		return;
 
-	conn->call("SceneItem", "SetAlignment", std::vector<ipc::value>{ipc::value(this->itemId), ipc::value(visible)});
+	conn->call("SceneItem", "SetAlignment", std::vector<ipc::value>{ipc::value(this->itemId), ipc::value(flag)});
 }
 
 Napi::Value osn::SceneItem::GetBounds(const Napi::CallbackInfo &info)

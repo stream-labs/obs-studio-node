@@ -477,7 +477,9 @@ OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode,
 	m_parentWindow = reinterpret_cast<HWND>(windowHandle);
 	m_gsInitData.window.hwnd = reinterpret_cast<void *>(m_ourWindow);
 #endif
-	m_displayMtx.lock();
+
+	std::lock_guard lock(m_displayMtx);
+
 	m_display = obs_display_create(&m_gsInitData, 0x0);
 
 	if (!m_display) {
@@ -503,49 +505,51 @@ OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode,
 
 OBS::Display::~Display()
 {
-	m_displayMtx.lock();
-	obs_display_remove_draw_callback(m_display, DisplayCallback, this);
+	{
+		std::lock_guard lock(m_displayMtx);
 
-	if (m_source) {
-		obs_source_dec_showing(m_source);
-		obs_source_release(m_source);
+		obs_display_remove_draw_callback(m_display, DisplayCallback, this);
+
+		if (m_source) {
+			obs_source_dec_showing(m_source);
+			obs_source_release(m_source);
+		}
+
+		if (m_textVertices) {
+			delete m_textVertices;
+		}
+
+		if (m_textTexture) {
+			obs_enter_graphics();
+			gs_texture_destroy(m_textTexture);
+			obs_leave_graphics();
+		}
+
+		if (m_overflowNightTexture) {
+			obs_enter_graphics();
+			gs_texture_destroy(m_overflowNightTexture);
+			obs_leave_graphics();
+		}
+
+		if (m_overflowDayTexture) {
+			obs_enter_graphics();
+			gs_texture_destroy(m_overflowDayTexture);
+			obs_leave_graphics();
+		}
+
+		m_leftSolidOutline.reset();
+		m_topSolidOutline.reset();
+		m_rightSolidOutline.reset();
+		m_bottomSolidOutline.reset();
+		m_cropOutline.reset();
+		m_boxLine = nullptr;
+		m_boxTris = nullptr;
+		m_rotHandleLine.reset();
+		m_rotHandleCircle.reset();
+
+		if (m_display)
+			obs_display_destroy(m_display);
 	}
-
-	if (m_textVertices) {
-		delete m_textVertices;
-	}
-
-	if (m_textTexture) {
-		obs_enter_graphics();
-		gs_texture_destroy(m_textTexture);
-		obs_leave_graphics();
-	}
-
-	if (m_overflowNightTexture) {
-		obs_enter_graphics();
-		gs_texture_destroy(m_overflowNightTexture);
-		obs_leave_graphics();
-	}
-
-	if (m_overflowDayTexture) {
-		obs_enter_graphics();
-		gs_texture_destroy(m_overflowDayTexture);
-		obs_leave_graphics();
-	}
-
-	m_leftSolidOutline.reset();
-	m_topSolidOutline.reset();
-	m_rightSolidOutline.reset();
-	m_bottomSolidOutline.reset();
-	m_cropOutline.reset();
-	m_boxLine = nullptr;
-	m_boxTris = nullptr;
-	m_rotHandleLine.reset();
-	m_rotHandleCircle.reset();
-
-	if (m_display)
-		obs_display_destroy(m_display);
-	m_displayMtx.unlock();
 
 #ifdef _WIN32
 	SystemWorkerThread::DestroyWindowMessageQuestion question;

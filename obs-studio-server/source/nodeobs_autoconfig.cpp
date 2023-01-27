@@ -24,7 +24,7 @@
 
 enum class Type { Invalid, Streaming, Recording };
 
-enum class Service { Twitch, Hitbox, Beam, Other };
+enum class Service { Twitch, Hitbox, Beam, YouTube, Other };
 
 enum class Encoder { x264, NVENC, QSV, AMD, Stream, appleHW, appleHWM1 };
 
@@ -33,14 +33,6 @@ enum class Quality { Stream, High };
 enum class FPSType : int { PreferHighFPS, PreferHighRes, UseCurrent, fps30, fps60 };
 
 enum ThreadedTests : int { BandwidthTest, StreamEncoderTest, RecordingEncoderTest, SaveStreamSettings, SaveSettings, SetDefaultSettings, Count };
-
-struct Event {
-	// obs::CallbackInfo *cb_info;
-
-	std::string event;
-	std::string description;
-	int percentage;
-};
 
 class AutoConfigInfo {
 public:
@@ -119,67 +111,6 @@ struct ServerInfo {
 
 	inline ServerInfo(const char *name_, const char *address_) : name(name_), address(address_) {}
 };
-/*
-class TestMode
-{
-	obs_video_info * ovi;
-	OBSSource      source[6];
-
-	static void render_rand(void *, uint32_t cx, uint32_t cy)
-	{
-		gs_effect_t *solid = obs_get_base_effect(OBS_EFFECT_SOLID);
-		gs_eparam_t *randomvals[3] = {gs_effect_get_param_by_name(solid, "randomvals1"), gs_effect_get_param_by_name(solid, "randomvals2"),
-					      gs_effect_get_param_by_name(solid, "randomvals3")};
-
-		struct vec4 r;
-
-		for (int i = 0; i < 3; i++) {
-			vec4_set(&r, rand_float(true) * 100.0f, rand_float(true) * 100.0f, rand_float(true) * 50000.0f + 10000.0f, 0.0f);
-			gs_effect_set_vec4(randomvals[i], &r);
-		}
-
-		while (gs_effect_loop(solid, "Random"))
-			gs_draw_sprite(nullptr, 0, cx, cy);
-	}
-
-public:
-	inline TestMode()
-	{
-		ovi = obs_create_video_info();
-		obs_add_main_render_callback(render_rand, this);
-
-		for (uint32_t i = 0; i < 6; i++) {
-			source[i] = obs_get_output_source(i);
-			obs_source_release(source[i]);
-			obs_set_output_source(i, nullptr);
-		}
-	}
-
-	inline ~TestMode()
-	{
-		for (uint32_t i = 0; i < 6; i++)
-			obs_set_output_source(i, source[i]);
-
-		obs_remove_main_render_callback(render_rand, this);
-
-		obs_remove_video_info(ovi);
-		obs_reset_video();
-	}
-
-	inline void SetVideo(int cx, int cy, int fps_num, int fps_den)
-	{
-		obs_video_info video = {0};
-		video.base_width    = 1280;
-		video.base_height   = 720;
-		video.output_width  = (uint32_t)cx;
-		video.output_height = (uint32_t)cy;
-		video.fps_num       = (uint32_t)fps_num;
-		video.fps_den       = (uint32_t)fps_den;
-		video.initialized   = true;
-		obs_set_video_info(ovi, &video);
-	}
-};
-*/
 void autoConfig::Register(ipc::server &srv)
 {
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("AutoConfig");
@@ -351,6 +282,7 @@ void autoConfig::TerminateAutoConfig(void *data, const int64_t id, const std::ve
 {
 	StopThread();
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
 }
 
 void autoConfig::Query(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
@@ -392,6 +324,7 @@ void autoConfig::InitializeAutoConfig(void *data, const int64_t id, const std::v
 	cancel = false;
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
 }
 
 void autoConfig::StartBandwidthTest(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
@@ -399,6 +332,7 @@ void autoConfig::StartBandwidthTest(void *data, const int64_t id, const std::vec
 	asyncTests[ThreadedTests::BandwidthTest] = std::async(std::launch::async, TestBandwidthThread);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
 }
 
 void autoConfig::StartStreamEncoderTest(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
@@ -406,6 +340,7 @@ void autoConfig::StartStreamEncoderTest(void *data, const int64_t id, const std:
 	asyncTests[ThreadedTests::StreamEncoderTest] = std::async(std::launch::async, TestStreamEncoderThread);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
 }
 
 void autoConfig::StartRecordingEncoderTest(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
@@ -413,6 +348,7 @@ void autoConfig::StartRecordingEncoderTest(void *data, const int64_t id, const s
 	asyncTests[ThreadedTests::RecordingEncoderTest] = std::async(std::launch::async, TestRecordingEncoderThread);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
 }
 
 void autoConfig::StartSaveStreamSettings(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
@@ -420,6 +356,7 @@ void autoConfig::StartSaveStreamSettings(void *data, const int64_t id, const std
 	asyncTests[ThreadedTests::SaveStreamSettings] = std::async(std::launch::async, SaveStreamSettings);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
 }
 
 void autoConfig::StartSaveSettings(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
@@ -429,6 +366,7 @@ void autoConfig::StartSaveSettings(void *data, const int64_t id, const std::vect
 	cancel = false;
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
 }
 
 void autoConfig::StartCheckSettings(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
@@ -437,6 +375,7 @@ void autoConfig::StartCheckSettings(void *data, const int64_t id, const std::vec
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value((uint32_t)sucess));
+	AUTO_DEBUG;
 }
 
 void autoConfig::StartSetDefaultSettings(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
@@ -444,6 +383,7 @@ void autoConfig::StartSetDefaultSettings(void *data, const int64_t id, const std
 	asyncTests[ThreadedTests::SetDefaultSettings] = std::async(std::launch::async, SetDefaultSettings);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
 }
 
 int EvaluateBandwidth(ServerInfo &server, bool &connected, bool &stopped, bool &success, bool &errorOnStop, OBSData &service_settings, OBSService &service,
@@ -631,17 +571,23 @@ void autoConfig::TestBandwidthThread(void)
 			serviceSelected = Service::Hitbox;
 		else if (serviceName == "beam.pro")
 			serviceSelected = Service::Beam;
+		else if (serviceName.find("YouTube") != std::string::npos)
+			serviceSelected = Service::YouTube;
 		else
 			serviceSelected = Service::Other;
 	} else {
 		serviceSelected = Service::Other;
 	}
-
 	std::string keyToEvaluate = key;
 
 	if (serviceSelected == Service::Twitch) {
 		string_depad_key(key);
 		keyToEvaluate += "?bandwidthtest";
+	}
+
+	if (serviceSelected == Service::YouTube) {
+		serverName = "Stream URL";
+		server = obs_service_get_url(currentService);
 	}
 
 	obs_data_set_string(service_settings, "service", serviceName.c_str());

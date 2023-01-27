@@ -30,7 +30,7 @@ endif()
 if(WIN32)
     download_project(
         PROJ crashpad
-        URL https://obsstudionodes3.streamlabs.com/crashpad/crashpad-release-win-bce9a58c-nov-2022-x86_64.tar.gz
+        URL https://obsstudionodes3.streamlabs.com/crashpad/crashpad-release-win-bd479a12-dec-2022-x86_64.tar.gz
         UPDATE_DISCONNECTED 1
     )
     set(crashpad_BUILD_BYPRODUCTS
@@ -430,6 +430,9 @@ if(WIN32)
     )
 
     target_compile_definitions(${PROJECT_NAME} PRIVATE)
+
+    target_link_options(${PROJECT_NAME} PUBLIC "$<$<CONFIG:DEBUG>:/DEBUG:FULL>")
+    target_link_options(${PROJECT_NAME} PUBLIC "$<$<CONFIG:RELWITHDEBINFO>:/DEBUG:FULL>")
 else()
     set_target_properties(
         ${PROJECT_NAME}
@@ -523,5 +526,9 @@ else ()
 install(
 	DIRECTORY "${libobs_SOURCE_DIR}/OBS.app/Contents/PlugIns"
 	DESTINATION "./" USE_SOURCE_PERMISSIONS PATTERN "frontend*" EXCLUDE
+)
+install(
+    DIRECTORY "${libobs_SOURCE_DIR}/data/obs-plugins/slobs-virtual-cam/"
+    DESTINATION "./data/obs-plugins/slobs-virtual-cam" USE_SOURCE_PERMISSIONS
 )
 endif()
