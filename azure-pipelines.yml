@@ -240,12 +240,22 @@ jobs:
 
   strategy:
     matrix:
-      Release:
+      Release-x86_64:
         BuildConfig: RelWithDebInfo
         ReleaseName: release
-      Debug:
+        Architecture: x86_64
+      Debug-x86_64:
         BuildConfig: Debug
         ReleaseName: debug
+        Architecture: x86_64
+      Release-arm64:
+        BuildConfig: RelWithDebInfo
+        ReleaseName: release
+        Architecture: arm64
+      Debug-arm64:
+        BuildConfig: Debug
+        ReleaseName: debug
+        Architecture: arm64
   steps:
   - powershell: Write-Host "##vso[task.setvariable variable=tagartifact]osn-$((git describe --tags --abbrev=0) | Out-String)"
     displayName: 'Get current tag'
@@ -257,6 +267,8 @@ jobs:
     displayName: 'Update submodules'
 
   - script: './ci/configure-osn-osx.sh'
+    env:
+      CMAKE_OSX_ARCHITECTURES: ${Architecture}
     displayName: 'Configure obs-studio-node'
 
   - script: 'node ci/bump-version.js'
@@ -266,7 +278,8 @@ jobs:
   - script: ./ci/build-osn-osx.sh
     env:
       SENTRY_AUTH_TOKEN: $(sentryAuth)
-    displayName: 'Build obs-studio-node'
+      CMAKE_OSX_ARCHITECTURES: ${Architecture}
+    displayName: 'Build obs-studio-node'      
 
   - script: 'yarn run test'
     env:
@@ -289,13 +302,13 @@ jobs:
       includeRootFolder: true
       archiveType: tar
       tarCompression: gz
-      archiveFile: '$(SLBuildDirectory)/$(SLDistributeDirectory)/$(tagartifact)-$(ReleaseName)-osx.tar.gz'
+      archiveFile: '$(SLBuildDirectory)/$(SLDistributeDirectory)/$(tagartifact)-$(ReleaseName)-osx-${Architecture}.tar.gz'
     displayName: 'Generate build artifact'
 
   - task: PublishBuildArtifacts@1
     inputs:
-      pathtoPublish: $(SLBuildDirectory)/$(SLDistributeDirectory)/$(tagartifact)-$(ReleaseName)-osx.tar.gz
-      artifactName: $(tagartifact)-$(ReleaseName)-osx.tar.gz
+      pathtoPublish: $(SLBuildDirectory)/$(SLDistributeDirectory)/$(tagartifact)-$(ReleaseName)-osx-${Architecture}.tar.gz
+      artifactName: $(tagartifact)-$(ReleaseName)-osx-${Architecture}.tar.gz
     displayName: 'Publish build artifact'
 
   - task: ArchiveFiles@2
@@ -304,14 +317,14 @@ jobs:
       includeRootFolder: true
       archiveType: tar
       tarCompression: gz
-      archiveFile: '$(tagartifact)-$(ReleaseName)-osx.tar.gz'
+      archiveFile: '$(tagartifact)-$(ReleaseName)-osx-${Architecture}.tar.gz'
       condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
     displayName: 'Generate tag artifact'
 
   - task: PublishBuildArtifacts@1
     inputs:
-      pathtoPublish: $(Build.SourcesDirectory)/$(tagartifact)-$(ReleaseName)-osx.tar.gz
-      artifactName: $(tagartifact)-$(ReleaseName)-osx.tar.gz
+      pathtoPublish: $(Build.SourcesDirectory)/$(tagartifact)-$(ReleaseName)-osx-${Architecture}.tar.gz
+      artifactName: $(tagartifact)-$(ReleaseName)-osx-${Architecture}.tar.gz
     displayName: 'Publish tag artifact'
     condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
 
@@ -320,7 +333,7 @@ jobs:
       awsCredentials: 'Streamlabs AWS'
       regionName: 'us-west-2'
       bucketName: 'obsstudionodes3.streamlabs.com'
-      globExpressions: '$(tagartifact)-$(ReleaseName)-osx.tar.gz'
+      globExpressions: '$(tagartifact)-$(ReleaseName)-osx-${Architecture}.tar.gz'
       filesAcl: 'public-read'
     displayName: 'Upload tag artifact to S3'
     condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
