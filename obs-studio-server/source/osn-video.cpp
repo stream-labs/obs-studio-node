@@ -80,7 +80,7 @@ void osn::Video::GetVideoContext(void *data, const int64_t id, const std::vector
 	rval.push_back(ipc::value(video->colorspace));
 	rval.push_back(ipc::value(video->range));
 	rval.push_back(ipc::value(video->scale_type));
-	// ??? FPSType
+	rval.push_back(ipc::value(video->fps_type));
 
 	AUTO_DEBUG;
 }
@@ -283,7 +283,7 @@ void osn::Video::SetVideoContext(void *data, const int64_t id, const std::vector
 	video.scale_type = (obs_scale_type)args[9].value_union.ui32;
 	video.adapter = 0;
 	video.gpu_conversion = true;
-	// ???? fpsType args[10].value_union.ui32
+	video.fps_type = args[10].value_union.ui32;
 
 	int ret = OBS_VIDEO_FAIL;
 	try {
