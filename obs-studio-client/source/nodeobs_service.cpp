@@ -120,8 +120,14 @@ Napi::Value service::OBS_service_startStreaming(const Napi::CallbackInfo &info)
 	auto conn = GetConnection(info);
 	if (!conn)
 		return info.Env().Undefined();
+	if (info.Length() == 1 && info[0].ToNumber().Int64Value() == 1) {
+		conn->call("NodeOBS_Service", "OBS_service_startStreamingSecond", {});
+	} else if (info.Length() == 1 && info[0].ToNumber().Int64Value() == 0) {
+		conn->call("NodeOBS_Service", "OBS_service_startStreaming", {});
+	} else {
+		conn->call("NodeOBS_Service", "OBS_service_startStreaming", {});
+	}
 
-	conn->call("NodeOBS_Service", "OBS_service_startStreaming", {});
 	return info.Env().Undefined();
 }
 
@@ -168,6 +174,13 @@ Napi::Value service::OBS_service_stopStreaming(const Napi::CallbackInfo &info)
 	auto conn = GetConnection(info);
 	if (!conn)
 		return info.Env().Undefined();
+	if (info.Length() == 2 && info[1].ToNumber().Int64Value() == 1) {
+		conn->call("NodeOBS_Service", "OBS_service_stopStreamingSecond", {ipc::value(forceStop)});
+	} else if (info.Length() == 2 && info[1].ToNumber().Int64Value() == 0) {
+		conn->call("NodeOBS_Service", "OBS_service_stopStreaming", {ipc::value(forceStop)});
+	} else {
+		conn->call("NodeOBS_Service", "OBS_service_stopStreaming", {ipc::value(forceStop)});
+	}
 
 	conn->call("NodeOBS_Service", "OBS_service_stopStreaming", {ipc::value(forceStop)});
 	return info.Env().Undefined();
