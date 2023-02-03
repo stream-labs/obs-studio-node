@@ -260,9 +260,6 @@ jobs:
   - powershell: Write-Host "##vso[task.setvariable variable=tagartifact]osn-$((git describe --tags --abbrev=0) | Out-String)"
     displayName: 'Get current tag'
 
-  - script: arch -arm64 bash
-    displayName: 'Test arm64'
-
   - script: './ci/install-dependencies-osx.sh'
     displayName: 'Install dependencies'
 
