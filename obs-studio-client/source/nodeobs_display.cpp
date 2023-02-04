@@ -83,11 +83,11 @@ Napi::Value display::OBS_content_createDisplay(const Napi::CallbackInfo &info)
 
 	bool renderAtBottom = (info.Length() > 3) ? info[3].ToBoolean().Value() : false;
 
-	uint64_t canvasId = 0;
+	uint64_t canvasId = osn::Video::nonCavasId;
 	if (info.Length() > 4) {
-		osn::Video *video = nullptr;
-		video = Napi::ObjectWrap<osn::Video>::Unwrap(info[4].ToObject());
-		canvasId = video->canvasId;
+		osn::Video *video = Napi::ObjectWrap<osn::Video>::Unwrap(info[4].ToObject());
+		if (video)
+			canvasId = video->canvasId;
 	}
 
 	auto conn = GetConnection(info);
@@ -167,11 +167,11 @@ Napi::Value display::OBS_content_createSourcePreviewDisplay(const Napi::Callback
 	std::string key = info[2].ToString().Utf8Value();
 	bool renderAtBottom = (info.Length() > 3) ? info[3].ToBoolean().Value() : false;
 
-	uint64_t canvasId = 0;
+	uint64_t canvasId = osn::Video::nonCavasId;
 	if (info.Length() > 4) {
-		osn::Video *video = nullptr;
-		video = Napi::ObjectWrap<osn::Video>::Unwrap(info[4].ToObject());
-		canvasId = video->canvasId;
+		osn::Video *video = Napi::ObjectWrap<osn::Video>::Unwrap(info[4].ToObject());
+		if (video)
+			canvasId = video->canvasId;
 	}
 
 	auto conn = GetConnection(info);

@@ -66,21 +66,21 @@ void osn::Video::GetTotalFrames(void *data, const int64_t id, const std::vector<
 
 void osn::Video::GetVideoContext(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
-	obs_video_info *video = osn::Video::Manager::GetInstance().find(args[0].value_union.ui64);
+	obs_video_info *canvas = osn::Video::Manager::GetInstance().find(args[0].value_union.ui64);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 
-	rval.push_back(ipc::value(video->fps_num));
-	rval.push_back(ipc::value(video->fps_den));
-	rval.push_back(ipc::value(video->base_width));
-	rval.push_back(ipc::value(video->base_height));
-	rval.push_back(ipc::value(video->output_width));
-	rval.push_back(ipc::value(video->output_height));
-	rval.push_back(ipc::value(video->output_format));
-	rval.push_back(ipc::value(video->colorspace));
-	rval.push_back(ipc::value(video->range));
-	rval.push_back(ipc::value(video->scale_type));
-	rval.push_back(ipc::value(video->fps_type));
+	rval.push_back(ipc::value(canvas->fps_num));
+	rval.push_back(ipc::value(canvas->fps_den));
+	rval.push_back(ipc::value(canvas->base_width));
+	rval.push_back(ipc::value(canvas->base_height));
+	rval.push_back(ipc::value(canvas->output_width));
+	rval.push_back(ipc::value(canvas->output_height));
+	rval.push_back(ipc::value(canvas->output_format));
+	rval.push_back(ipc::value(canvas->colorspace));
+	rval.push_back(ipc::value(canvas->range));
+	rval.push_back(ipc::value(canvas->scale_type));
+	rval.push_back(ipc::value(canvas->fps_type));
 
 	AUTO_DEBUG;
 }

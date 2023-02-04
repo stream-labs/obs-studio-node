@@ -274,7 +274,8 @@ Napi::Value osn::Scene::AddSource(const Napi::CallbackInfo &info)
 	}
 	if (info.Length() >= 3) {
 		osn::Video *video = Napi::ObjectWrap<osn::Video>::Unwrap(info[2].ToObject());
-		params.push_back(ipc::value(video->canvasId));
+		if (video)
+			params.push_back(ipc::value(video->canvasId));
 	}
 	auto conn = GetConnection(info);
 	if (!conn)
