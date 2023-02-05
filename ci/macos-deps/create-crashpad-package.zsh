@@ -6,7 +6,7 @@
 #       - Switch to that version, for example: sudo xcode-select --switch /Applications/Xcode-13.4.app/
 # 3. ./create-crashpad-package.zsh --architecture=arm64
 # 4. ./create-crashpad-package.zsh --architecture=x86_64
-# 5. Go to https://chromium.googlesource.com/crashpad/crashpad/+/HEAD/doc/developing.md
+# 5. Go to https://chromium.googlesource.com/crashpad/crashpad/+/HEAD/doc/developing.md if anything fails
 
 install_depot_tools() {
     # mkdir depot_tools
