@@ -37,6 +37,10 @@ iF(APPLE)
 	else()
 		set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15")
 	endif()
+	# See CMake issue # 21854
+	# https://gitlab.kitware.com/cmake/cmake/-/issues/21854
+	# This is necessary because CMAKE_INSTALL_NAME_TOOL is used for obs64 (i.e. obs-studio-server).
+	set(CMAKE_XCODE_ATTRIBUTE_OTHER_CODE_SIGN_FLAGS "-o linker-signed")
 ENDIF()
 
 if(WIN32)
