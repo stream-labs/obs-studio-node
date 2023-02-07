@@ -145,16 +145,20 @@ Napi::Value osn::Video::get(const Napi::CallbackInfo &info)
 	if (!conn)
 		return info.Env().Undefined();
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Video", "GetVideoContext", {ipc::value((uint64_t)this->canvasId)});
+	if (!isLastVideoValid) {
+		lastVideo = conn->call_synchronous_helper("Video", "GetVideoContext", {ipc::value((uint64_t)this->canvasId)});
 
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
+		if (!ValidateResponse(info, lastVideo))
+			return info.Env().Undefined();
 
-	if (!(response.size() == 11 || response.size() == 12))
-		return info.Env().Undefined();
+		if (!(lastVideo.size() == 11 || lastVideo.size() == 12))
+			return info.Env().Undefined();
+		isLastVideoValid = true;
+	}
 
 	Napi::Object video = Napi::Object::New(info.Env());
-	CreateVideo(info, response, video, 1);
+	CreateVideo(info, lastVideo, video, 1);
+
 	return video;
 }
 
@@ -176,6 +180,9 @@ void osn::Video::set(const Napi::CallbackInfo &info, const Napi::Value &value)
 	args.push_back(this->canvasId);
 
 	std::vector<ipc::value> response = conn->call_synchronous_helper("Video", "SetVideoContext", args);
+
+	lastVideo.resize(0);
+	isLastVideoValid = false;
 }
 
 Napi::Value osn::Video::GetLegacySettings(const Napi::CallbackInfo &info)

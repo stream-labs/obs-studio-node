@@ -26,6 +26,10 @@ public:
 	uint64_t canvasId = 0;
 	constexpr static uint64_t nonCavasId = std::numeric_limits<uint64_t>::max();
 
+private:
+	std::vector<ipc::value> lastVideo;
+	bool isLastVideoValid = false;
+
 public:
 	static Napi::FunctionReference constructor;
 	static Napi::Object Init(Napi::Env env, Napi::Object exports);
