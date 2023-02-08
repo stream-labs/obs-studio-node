@@ -268,7 +268,7 @@ jobs:
 
   - script: './ci/configure-osn-osx.sh'
     env:
-      CMAKE_OSX_ARCHITECTURES: $(Architecture)
+      ARCHITECTURE: $(Architecture)
     displayName: 'Configure obs-studio-node'
 
   - script: 'node ci/bump-version.js'
@@ -278,7 +278,6 @@ jobs:
   - script: ./ci/build-osn-osx.sh
     env:
       SENTRY_AUTH_TOKEN: $(sentryAuth)
-      CMAKE_OSX_ARCHITECTURES: $(Architecture)
     displayName: 'Build obs-studio-node'      
 
   - script: 'yarn run test'
