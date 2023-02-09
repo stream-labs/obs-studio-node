@@ -296,6 +296,10 @@ void osn::Video::SetVideoContext(void *data, const int64_t id, const std::vector
 		blog(LOG_ERROR, "Failed to set video context");
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
 	} else {
+		const float sdr_white_level = (float)config_get_uint(ConfigManager::getInstance().getBasic(), "Video", "SdrWhiteLevel");
+		const float hdr_nominal_peak_level = (float)config_get_uint(ConfigManager::getInstance().getBasic(), "Video", "HdrNominalPeakLevel");
+		obs_set_video_levels(sdr_white_level, hdr_nominal_peak_level);
+
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	}
 
