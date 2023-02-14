@@ -15,7 +15,7 @@ variables:
   SLDistributeDirectory: distribute
   SLFullDistributePath: $(SLBuildDirectory)\$(SLDistributeDirectory)
 #  LibOBSVersion: 28.2.45
-  LibOBSVersion: 28.2.46_m1test1
+  LibOBSVersion: m1test2
 
 jobs:
 - job: 'WindowsRelease'
