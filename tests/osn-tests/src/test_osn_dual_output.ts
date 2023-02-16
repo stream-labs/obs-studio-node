@@ -461,18 +461,18 @@ describe(testName, () => {
         };
         secondContext.video = secondVideoInfo;
 
-        osn.NodeObs.OBS_service_setVideoInfo(context, 0);
-        osn.NodeObs.OBS_service_setVideoInfo(secondContext, 1);
+        osn.NodeObs.OBS_service_setVideoInfo(context, "horizontal");
+        osn.NodeObs.OBS_service_setVideoInfo(secondContext, "vertical");
 
         let signalInfo: IOBSOutputSignalInfo;
 
         //start first stream
-        osn.NodeObs.OBS_service_startStreaming();
+        osn.NodeObs.OBS_service_startStreaming("horizontal");
 
         signalInfo = await obs.getNextSignalInfo(EOBSOutputType.Streaming, EOBSOutputSignal.Starting);
         expect(signalInfo.type).to.equal(EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
         expect(signalInfo.signal).to.equal(EOBSOutputSignal.Starting, GetErrorMessage(ETestErrorMsg.StreamOutput));
-        expect(signalInfo.service).to.equal(0, GetErrorMessage(ETestErrorMsg.StreamOutput));
+        expect(signalInfo.service).to.equal("default", GetErrorMessage(ETestErrorMsg.StreamOutput));
 
         signalInfo = await obs.getNextSignalInfo(EOBSOutputType.Streaming, EOBSOutputSignal.Activate);
 
@@ -488,12 +488,12 @@ describe(testName, () => {
         expect(signalInfo.signal).to.equal(EOBSOutputSignal.Start, GetErrorMessage(ETestErrorMsg.StreamOutput));
 
         //start second stream
-        osn.NodeObs.OBS_service_startStreamingSecond();
+        osn.NodeObs.OBS_service_startStreaming("vertical");
 
         signalInfo = await obs.getNextSignalInfo(EOBSOutputType.Streaming, EOBSOutputSignal.Starting);
         expect(signalInfo.type).to.equal(EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
         expect(signalInfo.signal).to.equal(EOBSOutputSignal.Starting, GetErrorMessage(ETestErrorMsg.StreamOutput));
-        expect(signalInfo.service).to.equal(1, GetErrorMessage(ETestErrorMsg.StreamOutput));
+        expect(signalInfo.service).to.equal("vertical", GetErrorMessage(ETestErrorMsg.StreamOutput));
 
         signalInfo = await obs.getNextSignalInfo(EOBSOutputType.Streaming, EOBSOutputSignal.Activate);
 
@@ -512,7 +512,7 @@ describe(testName, () => {
         await sleep(500);
 
         //stop first stream
-        osn.NodeObs.OBS_service_stopStreaming(false);
+        osn.NodeObs.OBS_service_stopStreaming(false,"horizontal");
 
         signalInfo = await obs.getNextSignalInfo(EOBSOutputType.Streaming, EOBSOutputSignal.Stopping);
 
@@ -533,7 +533,7 @@ describe(testName, () => {
         expect(signalInfo.signal).to.equal(EOBSOutputSignal.Deactivate, GetErrorMessage(ETestErrorMsg.StreamOutput));
 
         //stop second stream
-        osn.NodeObs.OBS_service_stopStreamingSecond(false);
+        osn.NodeObs.OBS_service_stopStreaming(false,"vertical");
 
         signalInfo = await obs.getNextSignalInfo(EOBSOutputType.Streaming, EOBSOutputSignal.Stopping);
 

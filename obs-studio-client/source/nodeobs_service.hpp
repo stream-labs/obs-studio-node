@@ -52,11 +52,9 @@ Napi::Value OBS_service_resetVideoContext(const Napi::CallbackInfo &info);
 Napi::Value OBS_service_setVideoInfo(const Napi::CallbackInfo &info);
 
 Napi::Value OBS_service_startStreaming(const Napi::CallbackInfo &info);
-Napi::Value OBS_service_startStreamingSecond(const Napi::CallbackInfo &info);
 Napi::Value OBS_service_startRecording(const Napi::CallbackInfo &info);
 Napi::Value OBS_service_startReplayBuffer(const Napi::CallbackInfo &info);
 Napi::Value OBS_service_stopStreaming(const Napi::CallbackInfo &info);
-Napi::Value OBS_service_stopStreamingSecond(const Napi::CallbackInfo &info);
 Napi::Value OBS_service_stopRecording(const Napi::CallbackInfo &info);
 Napi::Value OBS_service_stopReplayBuffer(const Napi::CallbackInfo &info);
 
@@ -66,6 +64,8 @@ Napi::Value OBS_service_processReplayBufferHotkey(const Napi::CallbackInfo &info
 Napi::Value OBS_service_getLastReplay(const Napi::CallbackInfo &info);
 Napi::Value OBS_service_getLastRecording(const Napi::CallbackInfo &info);
 void OBS_service_splitFile(const Napi::CallbackInfo &info);
+long getServiceIdByName(std::string serviceName);
+std::string getServiceNameById(long serviceId);
 
 Napi::Value OBS_service_createVirtualWebcam(const Napi::CallbackInfo &info);
 Napi::Value OBS_service_removeVirtualWebcam(const Napi::CallbackInfo &info);

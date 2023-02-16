@@ -88,13 +88,10 @@ void OBS_service::Register(ipc::server &srv)
 	cls->register_function(std::make_shared<ipc::function>("OBS_service_resetVideoContext", std::vector<ipc::type>{}, OBS_service_resetVideoContext));
 	cls->register_function(std::make_shared<ipc::function>("OBS_service_setVideoInfo", std::vector<ipc::type>{}, OBS_service_setVideoInfo));
 	cls->register_function(std::make_shared<ipc::function>("OBS_service_startStreaming", std::vector<ipc::type>{}, OBS_service_startStreaming));
-	cls->register_function(std::make_shared<ipc::function>("OBS_service_startStreamingSecond", std::vector<ipc::type>{}, OBS_service_startStreamingSecond));
 	cls->register_function(std::make_shared<ipc::function>("OBS_service_startRecording", std::vector<ipc::type>{}, OBS_service_startRecording));
 	cls->register_function(std::make_shared<ipc::function>("OBS_service_startReplayBuffer", std::vector<ipc::type>{}, OBS_service_startReplayBuffer));
 	cls->register_function(
 		std::make_shared<ipc::function>("OBS_service_stopStreaming", std::vector<ipc::type>{ipc::type::Int32}, OBS_service_stopStreaming));
-	cls->register_function(
-		std::make_shared<ipc::function>("OBS_service_stopStreamingSecond", std::vector<ipc::type>{ipc::type::Int32}, OBS_service_stopStreamingSecond));
 	cls->register_function(std::make_shared<ipc::function>("OBS_service_stopRecording", std::vector<ipc::type>{}, OBS_service_stopRecording));
 	cls->register_function(
 		std::make_shared<ipc::function>("OBS_service_stopReplayBuffer", std::vector<ipc::type>{ipc::type::Int32}, OBS_service_stopReplayBuffer));
@@ -148,30 +145,15 @@ void OBS_service::OBS_service_setVideoInfo(void *data, const int64_t id, const s
 }
 void OBS_service::OBS_service_startStreaming(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
-	if (isStreamingOutputActive(StreamServiceId::Main)) {
+	StreamServiceId serviceid = static_cast<StreamServiceId>(args[0].value_union.i64);
+
+	if (isStreamingOutputActive(serviceid)) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 		AUTO_DEBUG;
 		return;
 	}
 
-	if (!startStreaming(StreamServiceId::Main)) {
-		PRETTY_ERROR_RETURN(ErrorCode::Error, "Failed to start streaming!");
-	} else {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	}
-
-	AUTO_DEBUG;
-}
-
-void OBS_service::OBS_service_startStreamingSecond(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
-{
-	if (isStreamingOutputActive(StreamServiceId::Second)) {
-		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-		AUTO_DEBUG;
-		return;
-	}
-
-	if (!startStreaming(StreamServiceId::Second)) {
+	if (!startStreaming(serviceid)) {
 		PRETTY_ERROR_RETURN(ErrorCode::Error, "Failed to start streaming!");
 	} else {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -214,14 +196,7 @@ void OBS_service::OBS_service_startReplayBuffer(void *data, const int64_t id, co
 
 void OBS_service::OBS_service_stopStreaming(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
-	stopStreaming((bool)args[0].value_union.i32, StreamServiceId::Main);
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	AUTO_DEBUG;
-}
-
-void OBS_service::OBS_service_stopStreamingSecond(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
-{
-	stopStreaming((bool)args[0].value_union.i32, StreamServiceId::Second);
+	stopStreaming((bool)args[0].value_union.i32, static_cast<StreamServiceId>(args[1].value_union.i64));
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }
