@@ -451,8 +451,8 @@ describe(testName, () => {
             fpsDen: 2,
             baseWidth: 1080,
             baseHeight: 1920,
-            outputWidth: 1080,
-            outputHeight: 1920,
+            outputWidth: 720,
+            outputHeight: 1280,
             outputFormat: osn.EVideoFormat.NV12,
             colorspace: osn.EColorSpace.CS709,
             range: osn.ERangeType.Full,
@@ -472,6 +472,7 @@ describe(testName, () => {
         signalInfo = await obs.getNextSignalInfo(EOBSOutputType.Streaming, EOBSOutputSignal.Starting);
         expect(signalInfo.type).to.equal(EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
         expect(signalInfo.signal).to.equal(EOBSOutputSignal.Starting, GetErrorMessage(ETestErrorMsg.StreamOutput));
+        expect(signalInfo.service).to.equal(0, GetErrorMessage(ETestErrorMsg.StreamOutput));
 
         signalInfo = await obs.getNextSignalInfo(EOBSOutputType.Streaming, EOBSOutputSignal.Activate);
 
@@ -492,6 +493,7 @@ describe(testName, () => {
         signalInfo = await obs.getNextSignalInfo(EOBSOutputType.Streaming, EOBSOutputSignal.Starting);
         expect(signalInfo.type).to.equal(EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
         expect(signalInfo.signal).to.equal(EOBSOutputSignal.Starting, GetErrorMessage(ETestErrorMsg.StreamOutput));
+        expect(signalInfo.service).to.equal(1, GetErrorMessage(ETestErrorMsg.StreamOutput));
 
         signalInfo = await obs.getNextSignalInfo(EOBSOutputType.Streaming, EOBSOutputSignal.Activate);
 

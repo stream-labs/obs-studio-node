@@ -287,7 +287,7 @@ void service::OBS_service_splitFile(const Napi::CallbackInfo &info)
 void service::worker()
 {
 	const static int maximum_signals_in_queue = 100;
-	auto callback = [](Napi::Env env, Napi::Function jsCallback, SignalInfo *data) {
+	auto callback = [](Napi::Env env, Napi::Function jsCallback, ServiceSignalInfo *data) {
 		try {
 			Napi::Object result = Napi::Object::New(env);
 
@@ -295,6 +295,7 @@ void service::worker()
 			result.Set(Napi::String::New(env, "signal"), Napi::String::New(env, data->signal));
 			result.Set(Napi::String::New(env, "code"), Napi::Number::New(env, data->code));
 			result.Set(Napi::String::New(env, "error"), Napi::String::New(env, data->errorMessage));
+			result.Set(Napi::String::New(env, "service"), Napi::Number::New(env, data->service));
 
 			jsCallback.Call({result});
 		} catch (...) {
@@ -304,7 +305,7 @@ void service::worker()
 		data->sent = true;
 	};
 	size_t totalSleepMS = 0;
-	std::vector<SignalInfo *> signalsList;
+	std::vector<ServiceSignalInfo *> signalsList;
 	while (!worker_stop) {
 		auto tp_start = std::chrono::high_resolution_clock::now();
 
@@ -312,21 +313,22 @@ void service::worker()
 		auto conn = Controller::GetInstance().GetConnection();
 		if (conn) {
 			std::vector<ipc::value> response = conn->call_synchronous_helper("NodeOBS_Service", "Query", {});
-			if (response.size() && (response.size() == 5) && signalsList.size() < maximum_signals_in_queue) {
+			if (response.size() && (response.size() == 6) && signalsList.size() < maximum_signals_in_queue) {
 				ErrorCode error = (ErrorCode)response[0].value_union.ui64;
 				if (error == ErrorCode::Ok) {
-					SignalInfo *data = new SignalInfo{"", "", 0, ""};
+					ServiceSignalInfo *data = new ServiceSignalInfo{"", "", 0, ""};
 					data->outputType = response[1].value_str;
 					data->signal = response[2].value_str;
 					data->code = response[3].value_union.i32;
 					data->errorMessage = response[4].value_str;
+					data->service = response[5].value_union.i32;
 					data->sent = false;
 					data->tosend = true;
 					signalsList.push_back(data);
 				}
 			}
 
-			std::vector<SignalInfo *>::iterator i = signalsList.begin();
+			std::vector<ServiceSignalInfo *>::iterator i = signalsList.begin();
 			while (i != signalsList.end()) {
 				if ((*i)->tosend) {
 					(*i)->tosend = false;

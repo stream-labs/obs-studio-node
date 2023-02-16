@@ -25,6 +25,7 @@ export interface IOBSOutputSignalInfo {
     signal: EOBSOutputSignal;
     code: osn.EOutputCode;
     error: string;
+    service: number;
 }
 
 export interface IConfigProgress {

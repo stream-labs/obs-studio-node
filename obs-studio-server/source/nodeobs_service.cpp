@@ -2475,6 +2475,7 @@ void OBS_service::Query(void *data, const int64_t id, const std::vector<ipc::val
 	rval.push_back(ipc::value(outputSignal.front().getSignal()));
 	rval.push_back(ipc::value(outputSignal.front().getCode()));
 	rval.push_back(ipc::value(outputSignal.front().getErrorMessage()));
+	rval.push_back(ipc::value(static_cast<int32_t>(outputSignal.front().getIndex())));
 
 	outputSignal.pop();
 

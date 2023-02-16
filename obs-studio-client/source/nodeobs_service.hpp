@@ -21,11 +21,13 @@
 #include <thread>
 #include "utility-v8.hpp"
 
-struct SignalInfo {
+struct ServiceSignalInfo {
 	std::string outputType;
 	std::string signal;
 	int code;
 	std::string errorMessage;
+	int service;
+
 	bool sent;
 	bool tosend;
 };
