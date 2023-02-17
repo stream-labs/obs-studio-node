@@ -259,7 +259,7 @@ void service::OBS_service_splitFile(const Napi::CallbackInfo &info)
 	conn->call("NodeOBS_Service", "OBS_service_splitFile", {});
 }
 
-long service::getServiceIdByName(std::string serviceName)
+int service::getServiceIdByName(std::string serviceName)
 {
 	if (serviceName == "horizontal" || serviceName == "default") {
 		return 0;
@@ -269,7 +269,7 @@ long service::getServiceIdByName(std::string serviceName)
 	return 0;
 }
 
-std::string service::getServiceNameById(long serviceId)
+std::string service::getServiceNameById(int serviceId)
 {
 	if (serviceId == 0) {
 		return "default";
