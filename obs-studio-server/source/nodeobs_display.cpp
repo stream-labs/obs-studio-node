@@ -1310,6 +1310,11 @@ bool OBS::Display::DrawSelectedOverflow(obs_scene_t *scene, obs_sceneitem_t *ite
 	if (obs_sceneitem_locked(item))
 		return true;
 
+	OBS::Display *dp = reinterpret_cast<OBS::Display *>(param);
+
+	if (dp->m_canvas != obs_sceneitem_get_canvas(item))
+		return true;
+
 	obs_source_t *itemSource = obs_sceneitem_get_source(item);
 	uint32_t flags = obs_source_get_output_flags(itemSource);
 	bool isOnlyAudio = (flags & OBS_SOURCE_VIDEO) == 0;
@@ -1323,8 +1328,6 @@ bool OBS::Display::DrawSelectedOverflow(obs_scene_t *scene, obs_sceneitem_t *ite
 
 	if (!obs_sceneitem_selected(item) || isOnlyAudio || ((itemWidth <= 0) && (itemHeight <= 0)))
 		return true;
-
-	OBS::Display *dp = reinterpret_cast<OBS::Display *>(param);
 
 	matrix4 boxTransform;
 	matrix4 invBoxTransform;
