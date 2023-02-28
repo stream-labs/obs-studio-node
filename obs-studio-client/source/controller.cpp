@@ -376,6 +376,7 @@ std::shared_ptr<ipc::client> Controller::connect(const std::string &uri)
 void Controller::disconnect()
 {
 	if (m_isServer) {
+		m_connection->m_shutting_down = true;
 		m_connection->call_synchronous_helper("System", "Shutdown", {});
 		m_isServer = false;
 	}
