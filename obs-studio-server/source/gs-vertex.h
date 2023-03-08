@@ -18,7 +18,9 @@
 
 #pragma once
 #include <inttypes.h>
+#if !defined(__aarch64__)
 #include <xmmintrin.h>
+#endif
 #include "gs-limits.h"
 extern "C" {
 #pragma warning(push)

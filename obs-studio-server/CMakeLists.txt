@@ -51,7 +51,7 @@ if(WIN32)
 elseif(APPLE)
     download_project(
         PROJ crashpad
-        URL https://obsstudionodes3.streamlabs.com/crashpad/crashpad-release-osx-bce9a58c-nov-2022-x86_64.zip
+        URL https://obsstudionodes3.streamlabs.com/crashpad/crashpad-osx-3215ed90-b230201-${CMAKE_OSX_ARCHITECTURES}.zip
         UPDATE_DISCONNECTED 1
     )
     set(crashpad_BUILD_BYPRODUCTS
@@ -194,7 +194,7 @@ set(
 if(WIN32)
 	set (OBS_URL_EXTENSION "")
 elseif(APPLE)
-	set (OBS_URL_EXTENSION "-x86_64")
+	set (OBS_URL_EXTENSION "-${CMAKE_OSX_ARCHITECTURES}")
 endif()
 
 string(

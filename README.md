@@ -15,8 +15,8 @@ You will need to have the following installed:
 ### Windows
 Building on windows requires additional software:
 
-* [Visual Studio 2019 or 2017](https://visualstudio.microsoft.com/)
-* [Windows SDK](https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk) (may be installed with Visual Studio 2017 Installer)
+* [Visual Studio 2019 or 2022](https://visualstudio.microsoft.com/)
+* [Windows SDK](https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk) (may be installed with Visual Studio 2022 Installer)
 
 ### Example Build
 We use a flexible cmake script to be as broad and generic as possible in order to prevent the need to constantly manage the cmake script for custom uses, while also providing sane defaults. It follows a pretty standard cmake layout and you may execute it however you want.
@@ -127,4 +127,5 @@ In obs-studio-node root folder:
 Some tests interact with Twitch and we use a user pool service to get users but in case we are not able to fetch a user from it, we use the stream key provided by an environment variable. Create an environment variable called SLOBS_BE_STREAMKEY with the stream key of a Twitch account of your choosing.
 
 * To run all the tests do `yarn run test` 
-* To run only run one test do `yarn run test --grep describe_name_value` where `describe_name_value` is the name of the test passed to the describe call in each test file. Example: `yarn run test --grep nodeobs_api`
+* To run only run one test do `yarn run test --grep describe_name_value` where `describe_name_value` is the name of the test passed to the describe call in each test file. Examples: `yarn run test --grep nodeobs_api` or `yarn run test -g "Start streaming"`
+
