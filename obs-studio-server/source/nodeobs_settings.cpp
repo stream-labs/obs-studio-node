@@ -908,7 +908,6 @@ bool OBS_settings::saveStreamSettings(std::vector<SubCategory> streamSettings, S
 
 	SubCategory sc;
 	bool serviceChanged = false;
-	bool serviceTypeChanged = false;
 	bool serviceSettingsInvalid = false;
 
 	for (int i = 0; i < streamSettings.size(); i++) {
@@ -933,7 +932,14 @@ bool OBS_settings::saveStreamSettings(std::vector<SubCategory> streamSettings, S
 					newserviceTypeValue = value;
 					settings = obs_service_defaults(newserviceTypeValue.c_str());
 					if (currentStreamType.compare(newserviceTypeValue) != 0) {
-						serviceTypeChanged = true;
+
+						if (newserviceTypeValue.compare("rtmp_common") == 0) {
+							obs_data_set_string(settings, "streamType", "rtmp_common");
+							obs_data_set_string(settings, "service", "Twitch");
+							obs_data_set_bool(settings, "show_all", 0);
+							obs_data_set_string(settings, "server", "auto");
+							obs_data_set_string(settings, "key", "");
+						}
 					}
 				}
 
@@ -965,18 +971,6 @@ bool OBS_settings::saveStreamSettings(std::vector<SubCategory> streamSettings, S
 		if (settings)
 			obs_data_release(settings);
 		return false;
-	}
-
-	if (serviceTypeChanged) {
-		settings = obs_service_defaults(newserviceTypeValue.c_str());
-
-		if (newserviceTypeValue.compare("rtmp_common") == 0) {
-			obs_data_set_string(settings, "streamType", "rtmp_common");
-			obs_data_set_string(settings, "service", "Twitch");
-			obs_data_set_bool(settings, "show_all", 0);
-			obs_data_set_string(settings, "server", "auto");
-			obs_data_set_string(settings, "key", "");
-		}
 	}
 
 	obs_data_t *hotkeyData = obs_hotkeys_save_service(currentService);
