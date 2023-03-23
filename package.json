@@ -35,7 +35,7 @@
     "electron-mocha": "^8.2.2",
     "mocha": "^7.1.0",
     "mocha-junit-reporter": "^1.22.0",
-    "node-addon-api": "^5.1.0",
+    "node-addon-api": "^6.0.0",
     "request": "^2.88.0",
     "ts-node": "^7.0.1",
     "typedoc": "^0.16.11",
