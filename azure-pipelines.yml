@@ -9,7 +9,7 @@ trigger:
 variables:
   RuntimeURL: https://artifacts.electronjs.org/headers/dist
   RuntimeName: iojs
-  ElectronVersion: 17.4.11
+  ElectronVersion: 22.3.3
   SLBuildDirectory: streamlabs-build
   SLGenerator: Visual Studio 16 2019
   SLDistributeDirectory: distribute
