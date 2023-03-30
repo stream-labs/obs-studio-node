@@ -41,7 +41,7 @@ You may specify a custom archive of your own. However, some changes need to be m
 
 * `ENABLE_SCRIPTING` must be set to `false`
 * `ENABLE_UI` must be set to `false`
-* `QTDIR` should *not* be specified as we do not use QT.
+* `QTDIR` should *not* be specified.
 
 If you don't know how to build obs-studio from source, you may find instructions [here](https://github.com/obsproject/obs-studio/wiki/Install-Instructions#windows-build-directions).
 
