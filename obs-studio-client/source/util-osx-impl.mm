@@ -75,7 +75,7 @@ void UtilObjCInt::requestPermissions(void *async_cb, perms_cb cb)
 	}
 }
 
-void UtilObjCInt::setServerWorkingDirectoryPath(const std::string& path)
+void UtilObjCInt::setServerWorkingDirectoryPath(std::string path)
 {
 	path.erase(path.length() - strlen("/bin"));
 	g_server_working_dir = path;
