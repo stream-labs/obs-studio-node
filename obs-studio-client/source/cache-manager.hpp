@@ -163,7 +163,7 @@ public:
 		}
 		return nullptr;
 	}
-	T Retrieve(std::string name)
+	T Retrieve(const std::string& name)
 	{
 		if (name.size() > 0) {
 			if (typeid(T) == typeid(SceneInfo *)) {

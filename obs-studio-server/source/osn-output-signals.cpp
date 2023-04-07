@@ -19,7 +19,7 @@
 #include "osn-output-signals.hpp"
 #include "nodeobs_api.h"
 
-void osn::OutputSignals::createOutput(std::string type, std::string name)
+void osn::OutputSignals::createOutput(const std::string& type, const std::string& name)
 {
 	deleteOutput();
 	output = obs_output_create(type.c_str(), name.c_str(), nullptr, nullptr);

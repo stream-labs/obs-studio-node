@@ -410,7 +410,7 @@ std::wstring util::CrashManager::GetMemoryDumpName()
 }
 #endif
 
-bool util::CrashManager::Initialize(char *path, std::string appdata)
+bool util::CrashManager::Initialize(char *path, const std::string& appdata)
 {
 #ifdef ENABLE_CRASHREPORT
 	appStateFile = appdata + "\\appState";
@@ -568,7 +568,7 @@ void util::CrashManager::HandleExit() noexcept
 	}
 }
 
-void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noexcept
+void util::CrashManager::HandleCrash(const std::string& _crashInfo, bool callAbort) noexcept
 {
 	const bool uploadedFullDump = SignalMemoryDump();
 
@@ -680,7 +680,7 @@ void util::CrashManager::HandleCrash(std::string _crashInfo, bool callAbort) noe
 #endif
 }
 
-void util::CrashManager::SetReportServerUrl(std::string url)
+void util::CrashManager::SetReportServerUrl(const std::string& url)
 {
 	// dev environment
 	//url = "https://o114354.ingest.sentry.io/api/252950/minidump/?sentry_key=8f444a81edd446b69ce75421d5e91d4d";
@@ -694,18 +694,18 @@ void util::CrashManager::SetReportServerUrl(std::string url)
 	}
 }
 
-void util::CrashManager::SetVersionName(std::string name)
+void util::CrashManager::SetVersionName(const std::string& name)
 {
 	std::cout << "version name " << name.c_str() << std::endl;
 	annotations.insert({{"sentry[release]", name}});
 }
 
-void util::CrashManager::SetUsername(std::string name)
+void util::CrashManager::SetUsername(const std::string& name)
 {
 	annotations.insert({{"sentry[user][username]", name}});
 }
 
-bool util::CrashManager::TryHandleCrash(std::string _format, std::string _crashMessage)
+bool util::CrashManager::TryHandleCrash(const std::string& _format, const std::string& _crashMessage)
 {
 #ifdef WIN32
 	// This method can only be called by the obs-studio crash handler method, this means that
@@ -716,7 +716,7 @@ bool util::CrashManager::TryHandleCrash(std::string _format, std::string _crashM
 
 	bool crashIsHandled = false;
 	for (auto &handledCrashes : handledOBSCrashes) {
-		if (std::string(_format).find(handledCrashes) != std::string::npos) {
+		if (_format.find(handledCrashes) != std::string::npos) {
 			crashIsHandled = true;
 			break;
 		}
@@ -1120,7 +1120,7 @@ void util::CrashManager::ClearBreadcrumbs()
 #endif
 }
 
-void util::CrashManager::setAppState(std::string newState)
+void util::CrashManager::setAppState(const std::string& newState)
 {
 	appState = newState;
 }
@@ -1157,7 +1157,7 @@ std::string util::CrashManager::getAppState()
 	return appState;
 }
 
-void util::CrashManager::ProcessPreServerCall(std::string cname, std::string fname, const std::vector<ipc::value> &args)
+void util::CrashManager::ProcessPreServerCall(const std::string& cname, const std::string& fname, const std::vector<ipc::value> &args)
 {
 	std::string jsonEntry = cname + std::string("::") + fname;
 
@@ -1171,7 +1171,7 @@ void util::CrashManager::ProcessPreServerCall(std::string cname, std::string fna
 	RegisterAction(jsonEntry);
 }
 
-void util::CrashManager::ProcessPostServerCall(std::string cname, std::string fname, const std::vector<ipc::value> &args)
+void util::CrashManager::ProcessPostServerCall(const std::string& cname, const std::string& fname, const std::vector<ipc::value> &args)
 {
 	if (args.size() == 0) {
 		AddWarning(std::string("No return params on method ") + fname + std::string(" for class ") + cname);
