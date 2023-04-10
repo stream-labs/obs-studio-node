@@ -213,5 +213,5 @@ public:
 	Napi::Value ButtonClicked(const Napi::CallbackInfo &info);
 };
 
-property_map_t ProcessProperties(const std::vector<ipc::value>& data, size_t index);
+property_map_t ProcessProperties(const std::vector<ipc::value> &data, size_t index);
 }

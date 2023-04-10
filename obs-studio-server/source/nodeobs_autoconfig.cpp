@@ -36,7 +36,7 @@ enum ThreadedTests : int { BandwidthTest, StreamEncoderTest, RecordingEncoderTes
 
 class AutoConfigInfo {
 public:
-	AutoConfigInfo(const std::string& a_event, const std::string& a_description, double a_percentage)
+	AutoConfigInfo(const std::string &a_event, const std::string &a_description, double a_percentage)
 	{
 		event = a_event;
 		description = a_description;
@@ -466,7 +466,7 @@ int EvaluateBandwidth(ServerInfo &server, bool &connected, bool &stopped, bool &
 	return 0;
 }
 
-void sendErrorMessage(const std::string& message)
+void sendErrorMessage(const std::string &message)
 {
 	eventsMutex.lock();
 	events.push(AutoConfigInfo("error", message, 0));

@@ -114,8 +114,7 @@ public:
 		HWND m_windowHandle = NULL;
 	};
 
-	struct DestroyWindowMessageAnswer : MessageAnswer {
-	};
+	struct DestroyWindowMessageAnswer : MessageAnswer {};
 
 	SystemWorkerThread() : m_thread(&OBS::Display::SystemWorkerThread::Thread, this) {}
 	~SystemWorkerThread()
@@ -494,7 +493,7 @@ OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode,
 	obs_display_add_draw_callback(m_display, DisplayCallback, this);
 }
 
-OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode, const std::string& sourceName, bool renderAtBottom)
+OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode, const std::string &sourceName, bool renderAtBottom)
 	: Display(windowHandle, mode, renderAtBottom)
 {
 	m_source = obs_get_source_by_name(sourceName.c_str());

@@ -65,7 +65,7 @@ util::MetricsProvider::~MetricsProvider()
 	}
 }
 
-bool util::MetricsProvider::Initialize(const std::string& pipe_name, std::string current_version, bool send_messages_async)
+bool util::MetricsProvider::Initialize(const std::string &pipe_name, std::string current_version, bool send_messages_async)
 {
 	m_Pipe = CreateFileA(pipe_name.c_str(), GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 
@@ -124,7 +124,7 @@ void util::MetricsProvider::StartPolling(bool send_messages_async)
 	});
 }
 
-void util::MetricsProvider::SendStatus(const std::string& status)
+void util::MetricsProvider::SendStatus(const std::string &status)
 {
 	MetricsMessage message = {};
 	message.type = MessageType::Status;
@@ -133,7 +133,7 @@ void util::MetricsProvider::SendStatus(const std::string& status)
 	PrepareMessage(message);
 }
 
-void util::MetricsProvider::SendTag(const std::string& tag, const std::string& value)
+void util::MetricsProvider::SendTag(const std::string &tag, const std::string &value)
 {
 	MetricsMessage message = {};
 	message.type = MessageType::Tag;

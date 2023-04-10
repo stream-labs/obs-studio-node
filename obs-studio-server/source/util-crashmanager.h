@@ -44,7 +44,7 @@ public:
 	enum OBSLogType { General, Errors, Warnings };
 
 public:
-	bool Initialize(char *path, const std::string& app_state_path);
+	bool Initialize(char *path, const std::string &app_state_path);
 	void Configure();
 	void OpenConsole();
 
@@ -54,19 +54,19 @@ public:
 	static void AddBreadcrumb(const std::string &message);
 	static void ClearBreadcrumbs();
 	static void DisableReports();
-	static void setAppState(const std::string& newState);
+	static void setAppState(const std::string &newState);
 	static std::string getAppState();
 	static void SaveToAppStateFile();
 
 	// Return our global instance of the metrics provider, it's always valid
 	static MetricsProvider *const GetMetricsProvider();
 
-	static void ProcessPreServerCall(const std::string& cname, const std::string& fname, const std::vector<ipc::value> &args);
-	static void ProcessPostServerCall(const std::string& cname, const std::string& fname, const std::vector<ipc::value> &args);
+	static void ProcessPreServerCall(const std::string &cname, const std::string &fname, const std::vector<ipc::value> &args);
+	static void ProcessPostServerCall(const std::string &cname, const std::string &fname, const std::vector<ipc::value> &args);
 
-	static void SetVersionName(const std::string& name);
-	static void SetReportServerUrl(const std::string& url);
-	static void SetUsername(const std::string& name);
+	static void SetVersionName(const std::string &name);
+	static void SetReportServerUrl(const std::string &url);
+	static void SetUsername(const std::string &name);
 
 	static bool InitializeMemoryDump();
 	static bool SignalMemoryDump();
@@ -83,9 +83,9 @@ private:
 	static nlohmann::json ComputeActions();
 	static nlohmann::json ComputeWarnings();
 	static bool SetupCrashpad();
-	static bool TryHandleCrash(const std::string& format, const std::string& crashMessage);
+	static bool TryHandleCrash(const std::string &format, const std::string &crashMessage);
 	static void HandleExit() noexcept;
-	static void HandleCrash(const std::string& crashInfo, bool callAbort = true) noexcept;
+	static void HandleCrash(const std::string &crashInfo, bool callAbort = true) noexcept;
 };
 
 }; // namespace util
