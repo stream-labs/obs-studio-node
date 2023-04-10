@@ -47,12 +47,12 @@ public:
 	// Connect this client with the crash handler pipe indicated by 'pipe_name', optionally
 	// you can pass the current SLOBS version (parameter 'current_version') and set if the
 	// IPC messages should be send synchronously or asynchronously (parameter 'send_messages_async')
-	bool Initialize(std::string pipe_name, std::string current_version = "unknown", bool send_messages_async = true);
+	bool Initialize(const std::string &pipe_name, std::string current_version = "unknown", bool send_messages_async = true);
 
 	// Send an status to the crash handler, if SLOBS crashes unexpectedly this status will be
 	// the same of the report.
 	// Blaming someone (see below) will ignore any status sent.
-	void SendStatus(std::string status);
+	void SendStatus(const std::string &status);
 
 	// Blame methods will make a report be generated even if SLOBS closes successfully, they
 	// are a good choice when some handled error happened but the log is still wanted.
@@ -65,7 +65,7 @@ public:
 
 private:
 	void StartPolling(bool send_messages_async = true);
-	void SendTag(std::string tag, std::string value);
+	void SendTag(const std::string &tag, const std::string &value);
 	void PrepareMessage(MetricsMessage &message);
 	bool SendPipeMessage(MetricsMessage &message);
 

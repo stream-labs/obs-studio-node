@@ -111,7 +111,7 @@ std::wstring from_utf8_to_utf16_wide(const char *from, size_t length)
 	return converter.from_bytes(from, from_end);
 }
 
-std::string read_app_state_data(std::string app_state_path)
+std::string read_app_state_data(const std::string &app_state_path)
 {
 	std::ostringstream buffer;
 	std::ifstream state_file(app_state_path, std::ios::in);
@@ -123,7 +123,7 @@ std::string read_app_state_data(std::string app_state_path)
 	return "";
 }
 
-void write_app_state_data(std::string app_state_path, std::string updated_status)
+void write_app_state_data(const std::string &app_state_path, std::string updated_status)
 {
 	std::ofstream out_state_file;
 	out_state_file.open(app_state_path, std::ios::trunc | std::ios::out);
@@ -134,7 +134,7 @@ void write_app_state_data(std::string app_state_path, std::string updated_status
 	}
 }
 
-void limit_log_file_size(const std::string log_file, size_t limit)
+void limit_log_file_size(const std::string &log_file, size_t limit)
 {
 	long size = 0;
 	FILE *fp = fopen(log_file.c_str(), "r");

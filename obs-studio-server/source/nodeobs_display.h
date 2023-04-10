@@ -57,7 +57,7 @@ public:
 		enum obs_video_rendering_mode mode, // Create a Main Preview one
 		bool renderAtBottom);
 	Display(uint64_t windowHandle, enum obs_video_rendering_mode mode,
-		std::string sourceName, // Create a Source-Specific one
+		const std::string &sourceName, // Create a Source-Specific one
 		bool renderAtBottom);
 	~Display();
 

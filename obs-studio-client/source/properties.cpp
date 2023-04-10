@@ -593,7 +593,7 @@ Napi::Value osn::PropertyObject::ButtonClicked(const Napi::CallbackInfo &info)
 	return Napi::Boolean::New(info.Env(), true);
 }
 
-osn::property_map_t osn::ProcessProperties(const std::vector<ipc::value> data, size_t index)
+osn::property_map_t osn::ProcessProperties(const std::vector<ipc::value> &data, size_t index)
 {
 	osn::property_map_t pmap;
 	for (size_t idx = index; idx < data.size(); ++idx) {
