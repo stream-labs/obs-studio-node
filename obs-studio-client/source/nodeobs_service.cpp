@@ -256,7 +256,7 @@ void service::worker()
 		auto conn = Controller::GetInstance().GetConnection();
 		if (conn) {
 			std::vector<ipc::value> response = conn->call_synchronous_helper("NodeOBS_Service", "Query", {});
-			if (response.size() && (response.size() == 5) && signalsList.size() < maximum_signals_in_queue) {
+			if ((response.size() == 5) && signalsList.size() < maximum_signals_in_queue) {
 				ErrorCode error = (ErrorCode)response[0].value_union.ui64;
 				if (error == ErrorCode::Ok) {
 					SignalInfo *data = new SignalInfo{"", "", 0, ""};
@@ -437,7 +437,7 @@ Napi::Value service::OBS_service_isVirtualCamPluginInstalled(const Napi::Callbac
 	error = RegOpenKeyEx(HKEY_CLASSES_ROOT, L"CLSID\\{27B05C2D-93DC-474A-A5DA-9BBA34CB2A9C}\\InprocServer32", 0, KEY_READ | KEY_QUERY_VALUE, &OpenResult);
 	if (error == ERROR_SUCCESS && OpenResult) {
 		dwRet = RegQueryValueExW(OpenResult, TEXT(""), NULL, NULL, (LPBYTE)buf, &dwBufSize);
-		if (dwRet == ERROR_SUCCESS && buf) {
+		if (dwRet == ERROR_SUCCESS) {
 			std::wstring fileName = std::wstring(buf);
 			fileName = fileName.substr(fileName.find_last_of(L"/\\") + 1);
 			if (fileName.compare(L"obs-virtualsource.dll") == 0)
