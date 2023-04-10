@@ -425,16 +425,18 @@ bool util::CrashManager::Initialize(char *path, const std::string &appdata)
 	// Handler for obs errors (mainly for bcrash() calls)
 	base_set_crash_handler(
 		[](const char *format, va_list args, void *param) {
-			std::string errorMessage;
-			if (format == nullptr)
+			std::string strFormat, errorMessage;
+			if (format == nullptr) {
 				errorMessage = "unknown error";
-			else
+			} else {
 				errorMessage = FormatVAString(format, args);
+				strFormat = format;
+			}
 
 			// Check if this crash error is handled internally (if this is a known
 			// error that we can't do anything about it, just let the application
 			// crash normally
-			if (!TryHandleCrash(std::string(format), errorMessage))
+			if (!TryHandleCrash(strFormat, errorMessage))
 				HandleCrash(errorMessage);
 		},
 		nullptr);
