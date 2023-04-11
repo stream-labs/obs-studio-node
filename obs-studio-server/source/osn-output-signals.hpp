@@ -50,7 +50,7 @@ public:
 public:
 	std::condition_variable cvStop;
 	std::mutex mtxOutputStop;
-	void createOutput(std::string type, std::string name);
+	void createOutput(const std::string &type, const std::string &name);
 	void deleteOutput();
 	void startOutput();
 };

@@ -384,7 +384,7 @@ void osn::Streaming::setReconnectLegacySettings()
 
 void osn::Streaming::setNetworkLegacySettings()
 {
-	if (network)
+	if (!network)
 		return;
 
 	config_set_string(ConfigManager::getInstance().getBasic(), "Output", "BindIP", network->bindIP.c_str());

@@ -412,6 +412,7 @@ static std::vector<char> nodeobs_log_formatted_message(const char *format, va_li
 	va_list argcopy;
 	va_copy(argcopy, args);
 	int length = vsnprintf(NULL, 0, format, argcopy);
+	va_end(argcopy);
 #endif
 	if (length <= 0)
 		return std::vector<char>();

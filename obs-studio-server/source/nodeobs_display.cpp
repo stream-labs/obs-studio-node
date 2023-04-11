@@ -496,7 +496,7 @@ OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode,
 	UpdatePreviewArea();
 }
 
-OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode, std::string sourceName, bool renderAtBottom, obs_video_info *canvas)
+OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode, const std::string &sourceName, bool renderAtBottom, obs_video_info *canvas)
 	: Display(windowHandle, mode, renderAtBottom, canvas)
 {
 	m_source = obs_get_source_by_name(sourceName.c_str());

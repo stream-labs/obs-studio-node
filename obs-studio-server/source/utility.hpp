@@ -48,7 +48,7 @@
 	}
 
 namespace utility {
-std::string osn_current_version(std::string _version = "");
+std::string osn_current_version(const std::string &_version = "");
 
 class unique_id {
 public:
