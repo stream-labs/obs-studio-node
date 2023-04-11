@@ -338,7 +338,7 @@ std::shared_ptr<ipc::client> Controller::connect(const std::string &uri)
 
 	std::shared_ptr<ipc::client> cl;
 	using std::chrono::high_resolution_clock;
-	high_resolution_clock::time_point begin_time = high_resolution_clock::now();
+	//high_resolution_clock::time_point begin_time = high_resolution_clock::now();
 	while (!cl) {
 		try {
 			std::string path;
