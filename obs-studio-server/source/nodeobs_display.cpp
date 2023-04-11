@@ -653,7 +653,6 @@ void OBS::Display::setSizeCall(int step)
 		break;
 	}
 
-	
 	// Resize Window
 	if (step > 0) {
 		ret = SetWindowPos(m_ourWindow, NULL, use_x, use_y, use_width, use_height, SWP_NOCOPYBITS | SWP_NOACTIVATE | SWP_NOZORDER | SWP_HIDEWINDOW);
