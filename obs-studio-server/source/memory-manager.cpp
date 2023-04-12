@@ -84,8 +84,6 @@ void MemoryManager::calculateRawSize(source_info *si)
 
 bool MemoryManager::shouldCacheSource(source_info *si)
 {
-	bool should_cache = false;
-
 	obs_data_t *settings = obs_source_get_settings(si->source);
 
 	bool looping = obs_data_get_bool(settings, "looping");

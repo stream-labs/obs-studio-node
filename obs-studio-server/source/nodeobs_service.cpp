@@ -1608,8 +1608,6 @@ void OBS_service::saveService(obs_service_t *service, StreamServiceId serviceId)
 			blog(LOG_WARNING, "Failed to save service");
 
 		obs_service_update(service, settings);
-
-		serviceType = obs_service_get_type(service);
 	}
 	obs_data_release(settings);
 	obs_data_release(data);
@@ -1730,8 +1728,6 @@ void OBS_service::updateVideoStreamingEncoder(bool isSimpleMode, StreamServiceId
 
 		obs_data_set_string(aacSettings, "rate_control", "CBR");
 		obs_data_set_int(aacSettings, "bitrate", audioBitrate);
-
-		const char *url = obs_service_get_url(services[serviceId]);
 
 		obs_service_apply_encoder_settings(services[serviceId], h264Settings, aacSettings);
 

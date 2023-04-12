@@ -746,7 +746,7 @@ Napi::Value osn::SceneItem::GetTransformInfo(const Napi::CallbackInfo &info)
 		return info.Env().Undefined();
 
 	/* Guess we forgot about alignment, not sure where this goes */
-	uint32_t alignment = response[7].value_union.ui32;
+	//uint32_t alignment = response[7].value_union.ui32;
 
 	Napi::Object positionObj = Napi::Object::New(info.Env());
 	positionObj.Set("x", Napi::Number::New(info.Env(), response[1].value_union.fp32));

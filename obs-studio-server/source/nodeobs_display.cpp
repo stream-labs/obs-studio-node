@@ -621,6 +621,9 @@ bool isNewerThanWindows7()
 
 void OBS::Display::setSizeCall(int step)
 {
+	BOOL ret = true;
+
+#if defined(_WIN32)
 	int use_x, use_y;
 	int use_width, use_height;
 	const float presizes[] = {1, 1.05, 1.25, 1.5, 2.0, 3.0};
@@ -650,9 +653,7 @@ void OBS::Display::setSizeCall(int step)
 		break;
 	}
 
-	BOOL ret = true;
 	// Resize Window
-#if defined(_WIN32)
 	if (step > 0) {
 		ret = SetWindowPos(m_ourWindow, NULL, use_x, use_y, use_width, use_height, SWP_NOCOPYBITS | SWP_NOACTIVATE | SWP_NOZORDER | SWP_HIDEWINDOW);
 	} else {
@@ -1633,7 +1634,6 @@ void OBS::Display::DisplayWndClass()
 
 LRESULT CALLBACK OBS::Display::DisplayWndProc(_In_ HWND hwnd, _In_ UINT uMsg, _In_ WPARAM wParam, _In_ LPARAM lParam)
 {
-	OBS::Display *self = nullptr;
 	switch (uMsg) {
 	case WM_NCHITTEST:
 		return HTTRANSPARENT;

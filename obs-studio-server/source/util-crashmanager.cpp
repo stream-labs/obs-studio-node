@@ -502,9 +502,6 @@ bool util::CrashManager::SetupCrashpad()
 		return false;
 	}
 
-	// Define if this is a preview or live version
-	bool isPreview = OBS_API::getCurrentVersion().find("preview") != std::string::npos;
-
 #ifdef ENABLE_CRASHREPORT
 
 #if defined(_WIN32)
