@@ -959,8 +959,6 @@ void OBS_API::OBS_API_initAPI(void *data, const int64_t id, const std::vector<ip
 	if (currentOutputMode)
 		simple = strcmp(currentOutputMode, "Simple") == 0;
 
-	//enum obs_replay_buffer_rendering_mode mode = OBS_STREAMING_REPLAY_BUFFER_RENDERING;
-
 	bool useStreamOutput = config_get_bool(ConfigManager::getInstance().getBasic(), simple ? "SimpleOutput" : "AdvOut", "replayBufferUseStreamOutput");
 
 	obs_set_replay_buffer_rendering_mode(useStreamOutput ? OBS_STREAMING_REPLAY_BUFFER_RENDERING : OBS_RECORDING_REPLAY_BUFFER_RENDERING);

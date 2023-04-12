@@ -1520,7 +1520,6 @@ void autoConfig::SaveSettings()
 	if (fpsType != FPSType::UseCurrent) {
 		config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSType", 0);
 		config_set_string(ConfigManager::getInstance().getBasic(), "Video", "FPSCommon", std::to_string(idealFPSNum).c_str());
-		//std::string fpsvalue = config_get_string(ConfigManager::getInstance().getBasic(), "Video", "FPSCommon");
 	}
 
 	config_save_safe(ConfigManager::getInstance().getBasic(), "tmp", nullptr);

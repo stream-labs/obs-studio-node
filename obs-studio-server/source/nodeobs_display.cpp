@@ -1634,7 +1634,6 @@ void OBS::Display::DisplayWndClass()
 
 LRESULT CALLBACK OBS::Display::DisplayWndProc(_In_ HWND hwnd, _In_ UINT uMsg, _In_ WPARAM wParam, _In_ LPARAM lParam)
 {
-	//OBS::Display *self = nullptr;
 	switch (uMsg) {
 	case WM_NCHITTEST:
 		return HTTRANSPARENT;
