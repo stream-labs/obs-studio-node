@@ -49,7 +49,7 @@ If you don't know how to build obs-studio from source, you may find instructions
 #### cppcheck 
 
 Install cppcheck from http://cppcheck.sourceforge.net/ and add cppcheck folder to PATH 
-To run check from console:  
+To run check from command line:  
 ```
 cd build 
 cmake --build . --target CPPCHECK
