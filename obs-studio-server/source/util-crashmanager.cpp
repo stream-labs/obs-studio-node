@@ -717,12 +717,12 @@ void util::CrashManager::SaveBriefCrashInfoToFile()
 	crashBriefInfoFilename += L"brief-crash-info.json";
 
 	std::string serialized = briefInfo.dump(4);
-	
+
 	std::ofstream briefInfoFile;
-  	briefInfoFile.open(crashBriefInfoFilename);
-  	briefInfoFile << serialized;
+	briefInfoFile.open(crashBriefInfoFilename);
+	briefInfoFile << serialized;
 	briefInfoFile.flush();
-  	briefInfoFile.close();
+	briefInfoFile.close();
 }
 
 void util::CrashManager::SetReportServerUrl(const std::string &url)
