@@ -86,6 +86,9 @@ private:
 	static bool TryHandleCrash(const std::string &format, const std::string &crashMessage);
 	static void HandleExit() noexcept;
 	static void HandleCrash(const std::string &crashInfo, bool callAbort = true) noexcept;
+#ifdef _WIN32
+	static void SaveBriefCrashInfoToFile();
+#endif
 };
 
 }; // namespace util

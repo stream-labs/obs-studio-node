@@ -21,6 +21,7 @@
 
 #include <chrono>
 #include <codecvt>
+#include <fstream>
 #include <iostream>
 #include <locale>
 #include <map>
@@ -59,6 +60,8 @@
 #include "client/settings.h"
 #endif
 
+#include "nlohmann/json.hpp"
+
 //////////////////////
 // STATIC VARIABLES //
 //////////////////////
@@ -81,6 +84,7 @@ std::string appState = "starting"; // "starting","idle","encoding","shutdown"
 std::string reportServerUrl = "";
 // Crashpad variables
 #ifdef ENABLE_CRASHREPORT
+std::wstring globalAppData_path;
 std::wstring appdata_path;
 crashpad::CrashpadClient client;
 std::unique_ptr<crashpad::CrashReportDatabase> database;
@@ -413,6 +417,10 @@ std::wstring util::CrashManager::GetMemoryDumpName()
 bool util::CrashManager::Initialize(char *path, const std::string &appdata)
 {
 #ifdef ENABLE_CRASHREPORT
+	using convert_typeX = std::codecvt_utf8<wchar_t>;
+	std::wstring_convert<convert_typeX, wchar_t> converterX;
+
+	globalAppData_path = converterX.from_bytes(appdata);
 	appStateFile = appdata + "\\appState";
 
 	annotations.insert({{"crashpad_status", "internal crash handler missed"}});
@@ -655,6 +663,8 @@ void util::CrashManager::HandleCrash(const std::string &_crashInfo, bool callAbo
 		annotations.insert({{"sentry[tags][s3dmp]", dmpNameA.c_str()}});
 	}
 
+	SaveBriefCrashInfoToFile();
+
 	insideCrashMethod = true;
 	try {
 		if (!insideRewindCallstack) {
@@ -680,6 +690,39 @@ void util::CrashManager::HandleCrash(const std::string &_crashInfo, bool callAbo
 	insideCrashMethod = false;
 
 #endif
+}
+
+void util::CrashManager::SaveBriefCrashInfoToFile()
+{
+	nlohmann::json briefInfo;
+
+	briefInfo["app_state"] = appState;
+
+	if (auto it = annotations.find("sentry[user][username]"); it != annotations.end()) {
+		briefInfo["username"] = (*it).second;
+	}
+
+	//if (auto it = annotations.find("Crash reason"); it != annotations.end()) {
+	//	briefInfo["crash_reason"] = (*it).second;
+	//}
+
+	if (auto it = annotations.find("sentry[tags][s3dmp]"); it != annotations.end()) {
+		briefInfo["s3dmp"] = (*it).second;
+	}
+
+	std::wstring crashBriefInfoFilename(globalAppData_path);
+	if (*crashBriefInfoFilename.rbegin() != L'/' && *crashBriefInfoFilename.rbegin() != L'\\') {
+		crashBriefInfoFilename += L"\\";
+	}
+	crashBriefInfoFilename += L"brief-crash-info.json";
+
+	std::string serialized = briefInfo.dump(4);
+	
+	std::ofstream briefInfoFile;
+  	briefInfoFile.open(crashBriefInfoFilename);
+  	briefInfoFile << serialized;
+	briefInfoFile.flush();
+  	briefInfoFile.close();
 }
 
 void util::CrashManager::SetReportServerUrl(const std::string &url)
