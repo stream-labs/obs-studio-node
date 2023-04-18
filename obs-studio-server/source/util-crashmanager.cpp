@@ -694,6 +694,7 @@ void util::CrashManager::HandleCrash(const std::string &_crashInfo, bool callAbo
 
 void util::CrashManager::SaveBriefCrashInfoToFile()
 {
+#ifdef ENABLE_CRASHREPORT
 	nlohmann::json briefInfo;
 
 	briefInfo["app_state"] = appState;
@@ -723,6 +724,7 @@ void util::CrashManager::SaveBriefCrashInfoToFile()
 	briefInfoFile << serialized;
 	briefInfoFile.flush();
 	briefInfoFile.close();
+#endif
 }
 
 void util::CrashManager::SetReportServerUrl(const std::string &url)
