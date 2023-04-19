@@ -662,8 +662,9 @@ void util::CrashManager::HandleCrash(const std::string &_crashInfo, bool callAbo
 		annotations.insert({{"sentry[tags][memorydump]", "true"}});
 		annotations.insert({{"sentry[tags][s3dmp]", dmpNameA.c_str()}});
 	}
-
+#if defined(_WIN32)
 	SaveBriefCrashInfoToFile();
+#endif
 
 	insideCrashMethod = true;
 	try {
@@ -692,6 +693,7 @@ void util::CrashManager::HandleCrash(const std::string &_crashInfo, bool callAbo
 #endif
 }
 
+#if defined(_WIN32)
 void util::CrashManager::SaveBriefCrashInfoToFile()
 {
 #ifdef ENABLE_CRASHREPORT
@@ -726,6 +728,7 @@ void util::CrashManager::SaveBriefCrashInfoToFile()
 	briefInfoFile.close();
 #endif
 }
+#endif
 
 void util::CrashManager::SetReportServerUrl(const std::string &url)
 {
