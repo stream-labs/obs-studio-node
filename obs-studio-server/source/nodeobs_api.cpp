@@ -1479,6 +1479,28 @@ void OBS_API::StopCrashHandler(void *data, const int64_t id, const std::vector<i
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }
+struct release_sources {
+	std::mutex mtx;
+	int num_sources = 0;
+	std::chrono::steady_clock::time_point start_time;
+
+	void static signal_handler(void *param, calldata_t *data)
+	{
+		struct release_sources *sources = (struct release_sources *)param;
+		std::lock_guard<std::mutex> lock(sources->mtx);
+		sources->num_sources--;
+	}
+
+	void add_to_delete(obs_source_t *source)
+	{
+		if (obs_source_get_type(source) != OBS_SOURCE_TYPE_SCENE) {
+			signal_handler_connect(obs_source_get_signal_handler(source), "destroy", signal_handler, this);
+
+			std::lock_guard<std::mutex> lock(mtx);
+			num_sources++;
+		}
+	}
+};
 
 void OBS_API::InformCrashHandler(const int crash_id)
 {
@@ -1714,9 +1736,12 @@ void OBS_API::destroyOBS_API(void)
 			}
 		}
 
+		release_sources release_sources;
 		// Release all remaining sources that are not transitions
 		for (int i = 0; i < sources.size(); i++) {
 			if (sources[i] && obs_source_get_type(sources[i]) != OBS_SOURCE_TYPE_TRANSITION) {
+				release_sources.add_to_delete(sources[i]);
+
 				obs_source_release(sources[i]);
 				sources[i] = nullptr;
 			}
@@ -1743,6 +1768,21 @@ void OBS_API::destroyOBS_API(void)
 
 		util::CrashManager::DisableReports();
 #endif
+
+		release_sources.start_time = std::chrono::steady_clock::now();
+		while (true) {
+			{
+				std::lock_guard<std::mutex> lock(release_sources.mtx);
+				if (release_sources.num_sources <= 0)
+					break;
+			}
+
+			if (std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - release_sources.start_time).count() > 10)
+				break;
+
+			std::this_thread::sleep_for(std::chrono::milliseconds(100));
+		}
+
 		blog(LOG_DEBUG, "OBS_API::destroyOBS_API unreleased objects detected before obs_shutdown, objects allocated %d", bnum_allocs());
 		// Try-catch should suppress any error message that could be thrown to the user
 		try {
