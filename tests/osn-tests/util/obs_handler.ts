@@ -2,7 +2,7 @@ import * as osn from '../osn';
 import { logInfo, logWarning } from '../util/logger';
 import { UserPoolHandler } from './user_pool_handler';
 import { CacheUploader } from '../util/cache-uploader'
-import { EOBSOutputType, EOBSOutputSignal, EOBSSettingsCategories} from '../util/obs_enums'
+import { EOBSOutputType, EOBSOutputSignal, EOBSSettingsCategories } from '../util/obs_enums'
 const WaitQueue = require('wait-queue');
 
 // Interfaces
@@ -25,6 +25,7 @@ export interface IOBSOutputSignalInfo {
     signal: EOBSOutputSignal;
     code: osn.EOutputCode;
     error: string;
+    service: string;
 }
 
 export interface IConfigProgress {
@@ -76,7 +77,7 @@ export class OBSHandler {
     private hasUserFromPool: boolean = false;
     private osnTestName: string;
     signals = new WaitQueue();
-    private progress = new  WaitQueue();
+    private progress = new WaitQueue();
     inputTypes: string[];
     filterTypes: string[];
     transitionTypes: string[];
@@ -106,13 +107,13 @@ export class OBSHandler {
             osn.NodeObs.IPC.host(this.pipeName);
             osn.NodeObs.SetWorkingDirectory(this.workingDirectory);
             initResult = osn.NodeObs.OBS_API_initAPI(this.language, this.obsPath, this.version, this.crashServer);
-        } catch(e) {
+        } catch (e) {
             throw Error('Exception when initializing OBS process: ' + e);
         }
 
         if (initResult != osn.EVideoCodes.Success) {
             throw Error('OBS process initialization failed with code ' + initResult);
-        }  
+        }
 
         logInfo(this.osnTestName, 'OBS started successfully');
     }
@@ -123,14 +124,14 @@ export class OBSHandler {
         try {
             osn.NodeObs.OBS_service_removeCallback();
             osn.NodeObs.IPC.disconnect();
-        } catch(e) {
+        } catch (e) {
             throw Error('Exception when shutting down OBS process: ' + e);
         }
 
         logInfo(this.osnTestName, 'OBS shutdown successfully');
     }
-	
-	instantiateUserPool(testName: string) {
+
+    instantiateUserPool(testName: string) {
         this.userPoolHandler = new UserPoolHandler(testName);
     }
 
@@ -141,7 +142,7 @@ export class OBSHandler {
             logInfo(this.osnTestName, 'Getting stream key from user pool');
             this.userStreamKey = await this.userPoolHandler.getStreamKey();
             this.hasUserFromPool = true;
-        } catch(e) {
+        } catch (e) {
             logWarning(this.osnTestName, e);
             logWarning(this.osnTestName, 'Using predefined stream key');
             this.userStreamKey = process.env.SLOBS_BE_STREAMKEY;
@@ -169,7 +170,7 @@ export class OBSHandler {
     async uploadTestCache() {
         try {
             await this.cacheUploader.uploadCache();
-        } catch(e) {
+        } catch (e) {
             logWarning(this.osnTestName, e);
         }
     };
@@ -206,7 +207,7 @@ export class OBSHandler {
             osn.NodeObs.OBS_settings_saveSettings(category, settings);
         }
     }
-	
+
     getSetting(category: string, parameter: string): any {
         let value: any;
 
@@ -242,9 +243,9 @@ export class OBSHandler {
     getNextSignalInfo(output: string, signal: string): Promise<IOBSOutputSignalInfo> {
         return new Promise((resolve, reject) => {
             this.signals.shift().then(
-                function(signalInfo) {
+                function (signalInfo) {
                     resolve(signalInfo)
-                  }
+                }
             );
             setTimeout(() => reject(new Error(output.replace(/^\w/, c => c.toUpperCase()) + ' ' + signal + ' signal timeout')), 30000);
         }
@@ -257,17 +258,17 @@ export class OBSHandler {
                 this.progress.push(progressInfo);
             }
         },
-        {
-            service_name: 'Twitch',
-        });
+            {
+                service_name: 'Twitch',
+            });
     }
 
     getNextProgressInfo(autoconfigStep: string): Promise<IConfigProgress> {
         return new Promise((resolve, reject) => {
             this.progress.shift().then(
-                function(progressInfo) {
+                function (progressInfo) {
                     resolve(progressInfo)
-                  }
+                }
             );
             setTimeout(() => reject(new Error(autoconfigStep + ' step timeout')), 50000);
         });

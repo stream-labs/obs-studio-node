@@ -30,6 +30,8 @@ void osn::IAdvancedRecording::Register(ipc::server &srv)
 	cls->register_function(std::make_shared<ipc::function>("GetVideoEncoder", std::vector<ipc::type>{ipc::type::UInt64}, GetVideoEncoder));
 	cls->register_function(
 		std::make_shared<ipc::function>("SetVideoEncoder", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64}, SetVideoEncoder));
+	cls->register_function(std::make_shared<ipc::function>("GetVideoCanvas", std::vector<ipc::type>{ipc::type::UInt64}, GetVideoCanvas));
+	cls->register_function(std::make_shared<ipc::function>("SetVideoCanvas", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64}, SetVideoCanvas));
 	cls->register_function(std::make_shared<ipc::function>("GetMixer", std::vector<ipc::type>{ipc::type::UInt64}, GetMixer));
 	cls->register_function(std::make_shared<ipc::function>("SetMixer", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32}, SetMixer));
 	cls->register_function(std::make_shared<ipc::function>("GetRescaling", std::vector<ipc::type>{ipc::type::UInt64}, GetRescaling));
@@ -183,6 +185,12 @@ bool osn::AdvancedRecording::UpdateEncoders()
 	if (!videoEncoder)
 		return false;
 
+	if (obs_get_multiple_rendering()) {
+		obs_encoder_set_video_mix(videoEncoder, obs_video_mix_get(canvas, OBS_RECORDING_VIDEO_RENDERING));
+	} else {
+		obs_encoder_set_video_mix(videoEncoder, obs_video_mix_get(canvas, OBS_MAIN_VIDEO_RENDERING));
+	}
+
 	return true;
 }
 
@@ -214,10 +222,6 @@ void osn::IAdvancedRecording::Start(void *data, const int64_t id, const std::vec
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Invalid video encoder.");
 	}
 
-	bool doMultipleRendering = obs_get_multiple_rendering();
-	obs_encoder_set_video_mix(recording->videoEncoder, doMultipleRendering ? OBS_RECORDING_VIDEO_RENDERING : OBS_MAIN_VIDEO_RENDERING);
-	obs_encoder_set_video(recording->videoEncoder, doMultipleRendering ? obs_get_record_video() : obs_get_video());
-
 	obs_output_set_video_encoder(recording->output, recording->videoEncoder);
 
 	std::string path = recording->path;
@@ -226,7 +230,8 @@ void osn::IAdvancedRecording::Start(void *data, const int64_t id, const std::vec
 	if (lastChar != '/' && lastChar != '\\')
 		path += "/";
 
-	path += GenerateSpecifiedFilename(recording->format, recording->noSpace, recording->fileFormat);
+	path += GenerateSpecifiedFilename(recording->format, recording->noSpace, recording->fileFormat, recording->canvas->base_width,
+					  recording->canvas->base_height);
 
 	if (!recording->overwrite)
 		FindBestFilename(path, recording->noSpace);

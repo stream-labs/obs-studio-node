@@ -502,9 +502,6 @@ bool util::CrashManager::SetupCrashpad()
 		return false;
 	}
 
-	// Define if this is a preview or live version
-	bool isPreview = OBS_API::getCurrentVersion().find("preview") != std::string::npos;
-
 #ifdef ENABLE_CRASHREPORT
 
 #if defined(_WIN32)
@@ -1132,8 +1129,8 @@ std::string util::CrashManager::getAppState()
 	if (appState.compare("idle") == 0) {
 		std::string encoding_state = "";
 		std::string need_space = "";
-		if (OBS_service::getStreamingOutput()) {
-			if (OBS_service::isStreamingOutputActive()) {
+		if (OBS_service::getStreamingOutput(StreamServiceId::Main)) {
+			if (OBS_service::isStreamingOutputActive(StreamServiceId::Main) || OBS_service::isStreamingOutputActive(StreamServiceId::Second)) {
 				encoding_state += "activestreaming";
 			} else {
 				encoding_state += "inactivestreaming";

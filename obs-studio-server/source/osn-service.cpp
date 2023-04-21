@@ -150,7 +150,6 @@ void osn::Service::GetProperties(void *data, const int64_t id, const std::vector
 	obs_properties_t *prp = obs_service_properties(service);
 	obs_data *settings = obs_service_get_settings(service);
 
-	bool update = false;
 	utility::ProcessProperties(prp, settings, rval);
 
 	obs_properties_destroy(prp);
@@ -190,7 +189,7 @@ void osn::Service::GetSettings(void *data, const int64_t id, const std::vector<i
 
 obs_service_t *osn::Service::GetLegacyServiceSettings()
 {
-	obs_data_t *serviceData = obs_data_create_from_json_file_safe(ConfigManager::getInstance().getService().c_str(), "bak");
+	obs_data_t *serviceData = obs_data_create_from_json_file_safe(ConfigManager::getInstance().getService(0).c_str(), "bak");
 
 	std::string type = obs_data_get_string(serviceData, "type");
 	obs_data_t *settings = obs_data_get_obj(serviceData, "settings");
@@ -229,7 +228,7 @@ void osn::Service::SetLegacyServiceSettings(obs_service_t *service)
 	obs_data_set_string(serviceData, "type", obs_service_get_type(service));
 	obs_data_set_obj(serviceData, "settings", settings);
 
-	if (!obs_data_save_json_safe(serviceData, ConfigManager::getInstance().getService().c_str(), "tmp", "bak")) {
+	if (!obs_data_save_json_safe(serviceData, ConfigManager::getInstance().getService(0).c_str(), "tmp", "bak")) {
 		blog(LOG_WARNING, "Failed to save service");
 	}
 

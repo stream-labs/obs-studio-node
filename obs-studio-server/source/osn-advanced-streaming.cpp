@@ -34,6 +34,8 @@ void osn::IAdvancedStreaming::Register(ipc::server &srv)
 	cls->register_function(std::make_shared<ipc::function>("GetVideoEncoder", std::vector<ipc::type>{ipc::type::UInt64}, GetVideoEncoder));
 	cls->register_function(
 		std::make_shared<ipc::function>("SetVideoEncoder", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64}, SetVideoEncoder));
+	cls->register_function(std::make_shared<ipc::function>("GetVideoCanvas", std::vector<ipc::type>{ipc::type::UInt64}, GetVideoCanvas));
+	cls->register_function(std::make_shared<ipc::function>("SetVideoCanvas", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64}, SetVideoCanvas));
 	cls->register_function(std::make_shared<ipc::function>("GetEnforceServiceBirate", std::vector<ipc::type>{ipc::type::UInt64}, GetEnforceServiceBirate));
 	cls->register_function(std::make_shared<ipc::function>("SetEnforceServiceBirate", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32},
 							       SetEnforceServiceBirate));
@@ -346,6 +348,12 @@ void osn::AdvancedStreaming::UpdateEncoders()
 
 	obs_encoder_update(videoEncoder, settings);
 	obs_data_release(settings);
+
+	if (obs_get_multiple_rendering()) {
+		obs_encoder_set_video_mix(videoEncoder, obs_video_mix_get(canvas, OBS_STREAMING_VIDEO_RENDERING));
+	} else {
+		obs_encoder_set_video_mix(videoEncoder, obs_video_mix_get(canvas, OBS_MAIN_VIDEO_RENDERING));
+	}
 }
 
 void osn::IAdvancedStreaming::Start(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
@@ -386,10 +394,6 @@ void osn::IAdvancedStreaming::Start(void *data, const int64_t id, const std::vec
 
 	if (streaming->rescaling)
 		obs_encoder_set_scaled_size(streaming->videoEncoder, streaming->outputWidth, streaming->outputHeight);
-
-	bool doMultipleRendering = obs_get_multiple_rendering();
-	obs_encoder_set_video_mix(streaming->videoEncoder, doMultipleRendering ? OBS_STREAMING_VIDEO_RENDERING : OBS_MAIN_VIDEO_RENDERING);
-	obs_encoder_set_video(streaming->videoEncoder, doMultipleRendering ? obs_get_stream_video() : obs_get_video());
 
 	obs_output_set_video_encoder(streaming->output, streaming->videoEncoder);
 

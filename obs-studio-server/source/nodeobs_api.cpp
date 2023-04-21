@@ -146,6 +146,7 @@ void OBS_API::Register(ipc::server &srv)
 	cls->register_function(std::make_shared<ipc::function>("OBS_API_ProcessHotkeyStatus", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32},
 							       ProcessHotkeyStatus));
 	cls->register_function(std::make_shared<ipc::function>("SetUsername", std::vector<ipc::type>{ipc::type::String}, SetUsername));
+	cls->register_function(std::make_shared<ipc::function>("OBS_API_forceCrash", std::vector<ipc::type>{}, OBS_API_forceCrash));
 	cls->register_function(std::make_shared<ipc::function>("SetBrowserAcceleration", std::vector<ipc::type>{ipc::type::UInt32}, SetBrowserAcceleration));
 	cls->register_function(std::make_shared<ipc::function>("GetBrowserAcceleration", std::vector<ipc::type>{}, GetBrowserAcceleration));
 	cls->register_function(std::make_shared<ipc::function>("GetBrowserAccelerationLegacy", std::vector<ipc::type>{}, GetBrowserAccelerationLegacy));
@@ -345,6 +346,7 @@ static void DeleteOldestFile(const char *location, unsigned maxLogs)
 #else
 #include <unistd.h>
 #endif
+#include <osn-error.hpp>
 
 outdated_driver_error *outdated_driver_error::inst = nullptr;
 
@@ -919,18 +921,6 @@ void OBS_API::OBS_API_initAPI(void *data, const int64_t id, const std::vector<ip
 	obs_apply_private_data(private_settings);
 	obs_data_release(private_settings);
 
-	int videoError = OBS_service::resetVideoContext(false, true);
-	if (videoError != OBS_VIDEO_SUCCESS) {
-#ifdef WIN32
-		util::CrashManager::GetMetricsProvider()->BlameUser();
-
-		rval.push_back(ipc::value((uint64_t)ErrorCode::Error));
-		rval.push_back(ipc::value(videoError));
-		AUTO_DEBUG;
-		return;
-#endif
-	}
-
 	addModulePaths();
 	struct obs_module_failure_info mfi;
 	obs_load_all_modules2(&mfi);
@@ -943,16 +933,18 @@ void OBS_API::OBS_API_initAPI(void *data, const int64_t id, const std::vector<ip
 		}
 	}
 
-	OBS_service::createService();
-	OBS_service::createStreamingOutput();
+	OBS_service::createService(StreamServiceId::Main);
+	OBS_service::createService(StreamServiceId::Second);
+	OBS_service::createStreamingOutput(StreamServiceId::Main);
+	OBS_service::createStreamingOutput(StreamServiceId::Second);
 	OBS_service::createRecordingOutput();
 	OBS_service::createReplayBufferOutput();
 
-	OBS_service::createVideoStreamingEncoder();
+	OBS_service::createVideoStreamingEncoder(StreamServiceId::Main);
+	OBS_service::createVideoStreamingEncoder(StreamServiceId::Second);
 	OBS_service::createVideoRecordingEncoder();
 
 	OBS_service::resetAudioContext();
-	OBS_service::resetVideoContext();
 
 	OBS_service::setupAudioEncoder();
 
@@ -967,8 +959,6 @@ void OBS_API::OBS_API_initAPI(void *data, const int64_t id, const std::vector<ip
 
 	if (currentOutputMode)
 		simple = strcmp(currentOutputMode, "Simple") == 0;
-
-	enum obs_replay_buffer_rendering_mode mode = OBS_STREAMING_REPLAY_BUFFER_RENDERING;
 
 	bool useStreamOutput = config_get_bool(ConfigManager::getInstance().getBasic(), simple ? "SimpleOutput" : "AdvOut", "replayBufferUseStreamOutput");
 
@@ -1006,7 +996,7 @@ void OBS_API::OBS_API_getPerformanceStatistics(void *data, const int64_t id, con
 	rval.push_back(ipc::value(getNumberOfDroppedFrames()));
 	rval.push_back(ipc::value(getDroppedFramesPercentage()));
 
-	getCurrentOutputStats(OBS_service::getStreamingOutput(), streamingOutputStats);
+	getCurrentOutputStats(OBS_service::getStreamingOutput(StreamServiceId::Main), streamingOutputStats);
 	rval.push_back(ipc::value(streamingOutputStats.kbitsPerSec));
 	rval.push_back(ipc::value(streamingOutputStats.dataOutput));
 
@@ -1018,6 +1008,10 @@ void OBS_API::OBS_API_getPerformanceStatistics(void *data, const int64_t id, con
 	rval.push_back(ipc::value(getAverageTimeToRenderFrame()));
 	rval.push_back(ipc::value(getMemoryUsage()));
 	rval.push_back(ipc::value(getDiskSpaceAvailable()));
+
+	getCurrentOutputStats(OBS_service::getStreamingOutput(StreamServiceId::Second), streamingOutputStats);
+	rval.push_back(ipc::value(streamingOutputStats.kbitsPerSec));
+	rval.push_back(ipc::value(streamingOutputStats.dataOutput));
 	AUTO_DEBUG;
 }
 
@@ -1512,7 +1506,14 @@ void OBS_API::destroyOBS_API(void)
 	OBS_service::stopAllOutputs();
 	OBS_service::waitReleaseWorker();
 
-	obs_encoder_t *streamingEncoder = OBS_service::getStreamingEncoder();
+	obs_encoder_t *streamingEncoder;
+	streamingEncoder = OBS_service::getStreamingEncoder(StreamServiceId::Main);
+	if (streamingEncoder != NULL) {
+		obs_encoder_release(streamingEncoder);
+		streamingEncoder = nullptr;
+	}
+
+	streamingEncoder = OBS_service::getStreamingEncoder(StreamServiceId::Second);
 	if (streamingEncoder != NULL) {
 		obs_encoder_release(streamingEncoder);
 		streamingEncoder = nullptr;
@@ -1542,7 +1543,14 @@ void OBS_API::destroyOBS_API(void)
 		archiveEncoder = nullptr;
 	}
 
-	obs_output_t *streamingOutput = OBS_service::getStreamingOutput();
+	obs_output_t *streamingOutput;
+	streamingOutput = OBS_service::getStreamingOutput(StreamServiceId::Main);
+	if (streamingOutput != NULL) {
+		obs_output_release(streamingOutput);
+		streamingEncoder = nullptr;
+	}
+
+	streamingOutput = OBS_service::getStreamingOutput(StreamServiceId::Second);
 	if (streamingOutput != NULL) {
 		obs_output_release(streamingOutput);
 		streamingEncoder = nullptr;
@@ -1569,7 +1577,14 @@ void OBS_API::destroyOBS_API(void)
 		virtualWebcamOutput = nullptr;
 	}
 
-	obs_service_t *service = OBS_service::getService();
+	obs_service_t *service;
+	service = OBS_service::getService(StreamServiceId::Main);
+	if (service != NULL) {
+		obs_service_release(service);
+		service = nullptr;
+	}
+
+	service = OBS_service::getService(StreamServiceId::Second);
 	if (service != NULL) {
 		obs_service_release(service);
 		service = nullptr;
@@ -1803,7 +1818,7 @@ double OBS_API::getCPU_Percentage(void)
 
 int OBS_API::getNumberOfDroppedFrames(void)
 {
-	obs_output_t *streamOutput = OBS_service::getStreamingOutput();
+	obs_output_t *streamOutput = OBS_service::getStreamingOutput(StreamServiceId::Main);
 
 	int totalDropped = 0;
 
@@ -1816,7 +1831,7 @@ int OBS_API::getNumberOfDroppedFrames(void)
 
 double OBS_API::getDroppedFramesPercentage(void)
 {
-	obs_output_t *streamOutput = OBS_service::getStreamingOutput();
+	obs_output_t *streamOutput = OBS_service::getStreamingOutput(StreamServiceId::Main);
 
 	double percent = 0;
 
