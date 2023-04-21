@@ -16,7 +16,7 @@ You will need to have the following installed:
 Building on windows requires additional software:
 
 * [Visual Studio 2019 or 2022](https://visualstudio.microsoft.com/)
-* [Windows SDK](https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk) (may be installed with Visual Studio 2022 Installer)
+* [Windows SDK](https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk) (may be installed by Visual Studio 2022 Installer)
 
 ### Example Build
 We use a flexible cmake script to be as broad and generic as possible in order to prevent the need to constantly manage the cmake script for custom uses, while also providing sane defaults. It follows a pretty standard cmake layout and you may execute it however you want.
