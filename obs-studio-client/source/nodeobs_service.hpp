@@ -21,11 +21,13 @@
 #include <thread>
 #include "utility-v8.hpp"
 
-struct SignalInfo {
+struct ServiceSignalInfo {
 	std::string outputType;
 	std::string signal;
 	int code;
 	std::string errorMessage;
+	int service;
+
 	bool sent;
 	bool tosend;
 };
@@ -47,6 +49,7 @@ void Init(Napi::Env env, Napi::Object exports);
 
 Napi::Value OBS_service_resetAudioContext(const Napi::CallbackInfo &info);
 Napi::Value OBS_service_resetVideoContext(const Napi::CallbackInfo &info);
+Napi::Value OBS_service_setVideoInfo(const Napi::CallbackInfo &info);
 
 Napi::Value OBS_service_startStreaming(const Napi::CallbackInfo &info);
 Napi::Value OBS_service_startRecording(const Napi::CallbackInfo &info);
@@ -61,6 +64,8 @@ Napi::Value OBS_service_processReplayBufferHotkey(const Napi::CallbackInfo &info
 Napi::Value OBS_service_getLastReplay(const Napi::CallbackInfo &info);
 Napi::Value OBS_service_getLastRecording(const Napi::CallbackInfo &info);
 void OBS_service_splitFile(const Napi::CallbackInfo &info);
+int getServiceIdByName(std::string serviceName);
+std::string getServiceNameById(int serviceId);
 
 Napi::Value OBS_service_createVirtualWebcam(const Napi::CallbackInfo &info);
 Napi::Value OBS_service_removeVirtualWebcam(const Napi::CallbackInfo &info);

@@ -126,15 +126,6 @@ void osn::ISimpleReplayBuffer::Start(void *data, const int64_t id, const std::ve
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Invalid video encoder.");
 	}
 
-	if (obs_get_multiple_rendering()) {
-		obs_encoder_set_video_mix(videoEncoder, replayBuffer->usesStream ? OBS_STREAMING_VIDEO_RENDERING : OBS_RECORDING_VIDEO_RENDERING);
-		obs_encoder_set_video(videoEncoder, replayBuffer->usesStream ? obs_get_stream_video() : obs_get_record_video());
-	} else {
-		obs_encoder_set_video_mix(videoEncoder, OBS_MAIN_VIDEO_RENDERING);
-		obs_encoder_set_video(videoEncoder, obs_get_video());
-	}
-
-	obs_encoder_set_video(videoEncoder, obs_get_video());
 	obs_output_set_video_encoder(replayBuffer->output, videoEncoder);
 
 	if (!replayBuffer->path.size()) {

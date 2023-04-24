@@ -14,16 +14,33 @@ const testName = 'osn-input';
 describe(testName, () => {
     let obs: OBSHandler;
     let hasTestFailed: boolean = false;
+    let context: osn.IVideo;
 
     // Initialize OBS process
     before(function() {
         logInfo(testName, 'Starting ' + testName + ' tests');
         deleteConfigFiles();
         obs = new OBSHandler(testName);
+        context = osn.VideoFactory.create();
+        const firstVideoInfo: osn.IVideoInfo = {
+            fpsNum: 60,
+            fpsDen: 1,
+            baseWidth: 1920,
+            baseHeight: 1080,
+            outputWidth: 1280,
+            outputHeight: 720,
+            outputFormat: osn.EVideoFormat.NV12,
+            colorspace: osn.EColorSpace.CS709,
+            range: osn.ERangeType.Full,
+            scaleType: osn.EScaleType.Bilinear,
+            fpsType: osn.EFPSType.Fractional
+        };
+        context.video = firstVideoInfo;
     });
 
     // Shutdown OBS process
     after(async function() {
+        context.destroy();
         obs.shutdown();
 
         if (hasTestFailed === true) {
@@ -136,6 +153,7 @@ describe(testName, () => {
                     settings['capture_cursor'] = false;
                     settings['method'] = 0;
                     settings['monitor_wgc'] = 0;
+                    settings['compatibility'] = false;
                     break;
                 }
                 case 'window_capture': {

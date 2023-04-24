@@ -31,7 +31,11 @@ struct signalInfo {
 
 class OutputSignals {
 public:
-	OutputSignals() { output = nullptr; }
+	OutputSignals()
+	{
+		output = nullptr;
+		canvas = nullptr;
+	}
 	virtual ~OutputSignals() {}
 
 public:
@@ -39,6 +43,7 @@ public:
 	std::queue<signalInfo> signalsReceived;
 	std::vector<std::string> signals;
 	obs_output_t *output;
+	obs_video_info *canvas;
 
 	void ConnectSignals();
 

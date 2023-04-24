@@ -12,13 +12,15 @@ const testName = 'osn-simple-streaming';
 describe(testName, () => {
     let obs: OBSHandler;
     let hasTestFailed: boolean = false;
+    let context: osn.IVideo;
 
     // Initialize OBS process
     before(async() => {
         logInfo(testName, 'Starting ' + testName + ' tests');
         deleteConfigFiles();
         obs = new OBSHandler(testName);
-        osn.VideoFactory.videoContext = {
+        context = osn.VideoFactory.create();
+        const firstVideoInfo: osn.IVideoInfo = {
             fpsNum: 60,
             fpsDen: 1,
             baseWidth: 1920,
@@ -31,6 +33,7 @@ describe(testName, () => {
             scaleType: osn.EScaleType.Bilinear,
             fpsType: osn.EFPSType.Fractional
         };
+        context.video = firstVideoInfo;
 
         obs.instantiateUserPool(testName);
 
@@ -40,6 +43,7 @@ describe(testName, () => {
 
     // Shutdown OBS process
     after(async function() {
+        context.destroy();
         // Releasing user got from pool
         await obs.releaseUser();
 
@@ -80,6 +84,7 @@ describe(testName, () => {
         stream.enableTwitchVOD = true;
         stream.useAdvanced = true;
         stream.customEncSettings = 'test';
+        stream.video = context;
 
         expect(stream.enforceServiceBitrate).to.equal(
             false, "Invalid enforceServiceBitrate value");
@@ -104,6 +109,7 @@ describe(testName, () => {
             osn.ReconnectFactory.create();
         stream.network =
             osn.NetworkFactory.create();
+        stream.video = context;
         stream.audioEncoder = osn.AudioEncoderFactory.create();
         stream.signalHandler = (signal) => {obs.signals.push(signal)};
 
@@ -178,6 +184,7 @@ describe(testName, () => {
             osn.ReconnectFactory.create();
         stream.network =
             osn.NetworkFactory.create();
+        stream.video = context;
         stream.audioEncoder = osn.AudioEncoderFactory.create();
         stream.signalHandler = (signal) => {obs.signals.push(signal)};
 

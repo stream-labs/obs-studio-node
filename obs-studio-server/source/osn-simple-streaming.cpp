@@ -33,6 +33,8 @@ void osn::ISimpleStreaming::Register(ipc::server &srv)
 	cls->register_function(std::make_shared<ipc::function>("GetVideoEncoder", std::vector<ipc::type>{ipc::type::UInt64}, GetVideoEncoder));
 	cls->register_function(
 		std::make_shared<ipc::function>("SetVideoEncoder", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64}, SetVideoEncoder));
+	cls->register_function(std::make_shared<ipc::function>("GetVideoCanvas", std::vector<ipc::type>{ipc::type::UInt64}, GetVideoCanvas));
+	cls->register_function(std::make_shared<ipc::function>("SetVideoCanvas", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64}, SetVideoCanvas));
 	cls->register_function(std::make_shared<ipc::function>("GetAudioEncoder", std::vector<ipc::type>{ipc::type::UInt64}, GetAudioEncoder));
 	cls->register_function(
 		std::make_shared<ipc::function>("SetAudioEncoder", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64}, SetAudioEncoder));
@@ -315,6 +317,12 @@ void osn::SimpleStreaming::UpdateEncoders()
 
 	obs_data_release(videoEncSettings);
 	obs_data_release(audioEncSettings);
+
+	if (obs_get_multiple_rendering()) {
+		obs_encoder_set_video_mix(videoEncoder, obs_video_mix_get(canvas, OBS_STREAMING_VIDEO_RENDERING));
+	} else {
+		obs_encoder_set_video_mix(videoEncoder, obs_video_mix_get(canvas, OBS_MAIN_VIDEO_RENDERING));
+	}
 }
 
 void osn::ISimpleStreaming::Start(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
@@ -350,10 +358,6 @@ void osn::ISimpleStreaming::Start(void *data, const int64_t id, const std::vecto
 	streaming->UpdateEncoders();
 	obs_encoder_set_audio(streaming->audioEncoder, obs_get_audio());
 	obs_output_set_audio_encoder(streaming->output, streaming->audioEncoder, 0);
-
-	bool doMultipleRendering = obs_get_multiple_rendering();
-	obs_encoder_set_video_mix(streaming->videoEncoder, doMultipleRendering ? OBS_STREAMING_VIDEO_RENDERING : OBS_MAIN_VIDEO_RENDERING);
-	obs_encoder_set_video(streaming->videoEncoder, doMultipleRendering ? obs_get_stream_video() : obs_get_video());
 
 	obs_output_set_video_encoder(streaming->output, streaming->videoEncoder);
 
@@ -499,7 +503,7 @@ void osn::ISimpleStreaming::GetLegacySettings(void *data, const int64_t id, cons
 	osn::SimpleStreaming *streaming = new osn::SimpleStreaming();
 
 	streaming->videoEncoder = GetLegacyVideoEncoderSettings();
-	;
+
 	osn::VideoEncoder::Manager::GetInstance().allocate(streaming->videoEncoder);
 
 	streaming->audioEncoder = GetLegacyAudioEncoderSettings();

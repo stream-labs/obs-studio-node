@@ -55,10 +55,10 @@ public:
 
 	Display(uint64_t windowHandle,
 		enum obs_video_rendering_mode mode, // Create a Main Preview one
-		bool renderAtBottom);
+		bool renderAtBottom, obs_video_info *canvas);
 	Display(uint64_t windowHandle, enum obs_video_rendering_mode mode,
 		const std::string &sourceName, // Create a Source-Specific one
-		bool renderAtBottom);
+		bool renderAtBottom, obs_video_info *canvas);
 	~Display();
 
 	void SetPosition(uint32_t x, uint32_t y);
@@ -168,6 +168,7 @@ private:
 	bool m_renderAtBottom = false;
 
 	enum obs_video_rendering_mode m_renderingMode = OBS_MAIN_VIDEO_RENDERING;
+	struct obs_video_info *m_canvas;
 
 #if defined(_WIN32)
 	class SystemWorkerThread;

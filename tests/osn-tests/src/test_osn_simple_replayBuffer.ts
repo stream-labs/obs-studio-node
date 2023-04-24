@@ -13,13 +13,14 @@ const testName = 'osn-simple-replay-buffer';
 describe(testName, () => {
     let obs: OBSHandler;
     let hasTestFailed: boolean = false;
-
+    let context: osn.IVideo;
     // Initialize OBS process
     before(async() => {
         logInfo(testName, 'Starting ' + testName + ' tests');
         deleteConfigFiles();
         obs = new OBSHandler(testName);
-        osn.VideoFactory.videoContext = {
+        context = osn.VideoFactory.create();
+        const firstVideoInfo: osn.IVideoInfo = {
             fpsNum: 60,
             fpsDen: 1,
             baseWidth: 1920,
@@ -32,6 +33,7 @@ describe(testName, () => {
             scaleType: osn.EScaleType.Bilinear,
             fpsType: osn.EFPSType.Fractional
         };
+        context.video = firstVideoInfo;
 
         obs.instantiateUserPool(testName);
 
@@ -41,6 +43,8 @@ describe(testName, () => {
 
     // Shutdown OBS process
     after(async function() {
+        context.destroy();
+
         // Releasing user got from pool
         await obs.releaseUser();
 
@@ -93,6 +97,7 @@ describe(testName, () => {
         replayBuffer.format = osn.ERecordingFormat.MOV;
         replayBuffer.overwrite = true;
         replayBuffer.noSpace = false;
+        replayBuffer.video = context;
         replayBuffer.duration = 60;
         replayBuffer.prefix = 'Prefix';
         replayBuffer.suffix = 'Suffix';
@@ -118,12 +123,13 @@ describe(testName, () => {
         osn.SimpleReplayBufferFactory.destroy(replayBuffer);
     });
 
-    it('Start replay buffer - Use Recording', async () => {
+    it('Start simple replay buffer - Use Recording', async () => {
         const replayBuffer = osn.SimpleReplayBufferFactory.create();
         replayBuffer.path = path.join(path.normalize(__dirname), '..', 'osnData');
         replayBuffer.format = osn.ERecordingFormat.MP4;
         replayBuffer.overwrite = false;
         replayBuffer.noSpace = false;
+        replayBuffer.video = context;
         replayBuffer.signalHandler = (signal) => {obs.signals.push(signal)};
         replayBuffer.duration = 60;
         replayBuffer.prefix = 'Prefix';
@@ -133,6 +139,7 @@ describe(testName, () => {
         recording.path = path.join(path.normalize(__dirname), '..', 'osnData');
         recording.format = osn.ERecordingFormat.MP4;
         recording.quality = osn.ERecordingQuality.HighQuality;
+        recording.video = context;
         recording.videoEncoder =
             osn.VideoEncoderFactory.create('obs_x264', 'video-encoder');
         recording.audioEncoder = osn.AudioEncoderFactory.create();
@@ -190,19 +197,20 @@ describe(testName, () => {
         const expectedPrefix = lastFile[lastFile.length - 1].startsWith('Prefix');
         const expectedSuffix = lastFile[lastFile.length - 1].endsWith('Suffix.mp4');
 
-        expect(expectedPrefix).to.equal(true, 'Wrong prefix when saving the replay buffer');
-        expect(expectedSuffix).to.equal(true, 'Wrong suffix when saving the replay buffer');
+        expect(expectedPrefix).to.equal(true, 'Wrong prefix when saving the simple replay buffer');
+        expect(expectedSuffix).to.equal(true, 'Wrong suffix when saving the simple replay buffer');
 
         osn.SimpleReplayBufferFactory.destroy(replayBuffer);
         osn.SimpleRecordingFactory.destroy(recording);
     });
 
-    it('Start replay buffer - Use Stream through Recording', async () => {
+    it('Start simple replay buffer - Use Stream through Recording', async () => {
         const replayBuffer = osn.SimpleReplayBufferFactory.create();
         replayBuffer.path = path.join(path.normalize(__dirname), '..', 'osnData');
         replayBuffer.format = osn.ERecordingFormat.MP4;
         replayBuffer.overwrite = false;
         replayBuffer.noSpace = false;
+        replayBuffer.video = context;
         replayBuffer.signalHandler = (signal) => {obs.signals.push(signal)};
         replayBuffer.duration = 60;
         replayBuffer.prefix = 'Prefix';
@@ -212,12 +220,14 @@ describe(testName, () => {
         recording.path = path.join(path.normalize(__dirname), '..', 'osnData');
         recording.format = osn.ERecordingFormat.MP4;
         recording.quality = osn.ERecordingQuality.Stream;
+        recording.video = context;
         recording.lowCPU = false;
         recording.overwrite = false;
         recording.noSpace = false;
         recording.signalHandler = (signal) => {obs.signals.push(signal)};
 
         const stream = osn.SimpleStreamingFactory.create();
+        stream.video = context;
         stream.videoEncoder =
             osn.VideoEncoderFactory.create('obs_x264', 'video-encoder');
         stream.service = osn.ServiceFactory.legacySettings;
@@ -376,8 +386,8 @@ describe(testName, () => {
         const expectedPrefix = lastFile[lastFile.length - 1].startsWith('Prefix');
         const expectedSuffix = lastFile[lastFile.length - 1].endsWith('Suffix.mp4');
 
-        expect(expectedPrefix).to.equal(true, 'Wrong prefix when saving the replay buffer');
-        expect(expectedSuffix).to.equal(true, 'Wrong suffix when saving the replay buffer');
+        expect(expectedPrefix).to.equal(true, 'Wrong prefix when saving the simple replay buffer');
+        expect(expectedSuffix).to.equal(true, 'Wrong suffix when saving the simple replay buffer');
 
         osn.SimpleReplayBufferFactory.destroy(replayBuffer);
         osn.SimpleRecordingFactory.destroy(recording);

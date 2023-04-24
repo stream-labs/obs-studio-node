@@ -40,6 +40,7 @@ Napi::Object osn::AdvancedStreaming::Init(Napi::Env env, Napi::Object exports)
 		 InstanceAccessor("delay", &osn::AdvancedStreaming::GetDelay, &osn::AdvancedStreaming::SetDelay),
 		 InstanceAccessor("reconnect", &osn::AdvancedStreaming::GetReconnect, &osn::AdvancedStreaming::SetReconnect),
 		 InstanceAccessor("network", &osn::AdvancedStreaming::GetNetwork, &osn::AdvancedStreaming::SetNetwork),
+		 InstanceAccessor("video", &osn::AdvancedStreaming::GetCanvas, &osn::AdvancedStreaming::SetCanvas),
 
 		 InstanceAccessor("audioTrack", &osn::AdvancedStreaming::GetAudioTrack, &osn::AdvancedStreaming::SetAudioTrack),
 		 InstanceAccessor("twitchTrack", &osn::AdvancedStreaming::GetTwitchTrack, &osn::AdvancedStreaming::SetTwitchTrack),

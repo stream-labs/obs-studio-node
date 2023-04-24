@@ -27,6 +27,7 @@
 #include "shared.hpp"
 #include "utility.hpp"
 #include "callback-manager.hpp"
+#include "video.hpp"
 
 #ifdef WIN32
 static BOOL CALLBACK EnumChromeWindowsProc(HWND hwnd, LPARAM lParam)
@@ -79,13 +80,22 @@ Napi::Value display::OBS_content_createDisplay(const Napi::CallbackInfo &info)
 
 	std::string key = info[1].ToString().Utf8Value();
 	int32_t mode = info[2].ToNumber().Int32Value();
+
 	bool renderAtBottom = (info.Length() > 3) ? info[3].ToBoolean().Value() : false;
+
+	uint64_t canvasId = osn::Video::nonCavasId;
+	if (info.Length() > 4) {
+		osn::Video *video = Napi::ObjectWrap<osn::Video>::Unwrap(info[4].ToObject());
+		if (video)
+			canvasId = video->canvasId;
+	}
 
 	auto conn = GetConnection(info);
 	if (!conn)
 		return info.Env().Undefined();
 
-	conn->call("Display", "OBS_content_createDisplay", {ipc::value((uint64_t)windowHandle), ipc::value(key), ipc::value(mode), ipc::value(renderAtBottom)});
+	conn->call("Display", "OBS_content_createDisplay",
+		   {ipc::value((uint64_t)windowHandle), ipc::value(key), ipc::value(mode), ipc::value(renderAtBottom), ipc::value(canvasId)});
 
 	return info.Env().Undefined();
 }
@@ -157,12 +167,19 @@ Napi::Value display::OBS_content_createSourcePreviewDisplay(const Napi::Callback
 	std::string key = info[2].ToString().Utf8Value();
 	bool renderAtBottom = (info.Length() > 3) ? info[3].ToBoolean().Value() : false;
 
+	uint64_t canvasId = osn::Video::nonCavasId;
+	if (info.Length() > 4) {
+		osn::Video *video = Napi::ObjectWrap<osn::Video>::Unwrap(info[4].ToObject());
+		if (video)
+			canvasId = video->canvasId;
+	}
+
 	auto conn = GetConnection(info);
 	if (!conn)
 		return info.Env().Undefined();
 
 	conn->call("Display", "OBS_content_createSourcePreviewDisplay",
-		   {ipc::value((uint64_t)windowHandle), ipc::value(sourceName), ipc::value(key), ipc::value(renderAtBottom)});
+		   {ipc::value((uint64_t)windowHandle), ipc::value(sourceName), ipc::value(key), ipc::value(renderAtBottom), ipc::value(canvasId)});
 
 	return info.Env().Undefined();
 }
