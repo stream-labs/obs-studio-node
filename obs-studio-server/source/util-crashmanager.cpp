@@ -716,7 +716,7 @@ void util::CrashManager::SaveBriefCrashInfoToFile()
 #else
 	using convert_typeX = std::codecvt_utf8<wchar_t>;
 	std::wstring_convert<convert_typeX, wchar_t> converterX;
-	briefCrashInfoFile.open(converterX.to_bytes(briefCrashInfoFilename);
+	briefCrashInfoFile.open(converterX.to_bytes(briefCrashInfoFilename));
 #endif
 
 	briefCrashInfoFile << serialized;
@@ -771,7 +771,7 @@ void util::CrashManager::DeleteBriefCrashInfoFile()
 	if (*briefCrashInfoFilename.rbegin() != L'/' && *briefCrashInfoFilename.rbegin() != L'\\') {
 		briefCrashInfoFilename += L"\\";
 	}
-	briefCrashInfoToFilename += briefCrashInfoBasename;
+	briefCrashInfoFilename += briefCrashInfoBasename;
 
 	using convert_typeX = std::codecvt_utf8<wchar_t>;
 	std::wstring_convert<convert_typeX, wchar_t> converterX;
