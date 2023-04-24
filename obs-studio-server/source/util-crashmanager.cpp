@@ -718,7 +718,7 @@ void util::CrashManager::SaveBriefCrashInfoToFile()
 	std::wstring_convert<convert_typeX, wchar_t> converterX;
 	briefCrashInfoFile.open(converterX.to_bytes(briefCrashInfoFilename);
 #endif
-	
+
 	briefCrashInfoFile << serialized;
 	briefCrashInfoFile.flush();
 	briefCrashInfoFile.close();
