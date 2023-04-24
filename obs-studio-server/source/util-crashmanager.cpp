@@ -93,6 +93,7 @@ base::FilePath db;
 base::FilePath handler;
 std::vector<std::string> arguments;
 std::string workingDirectory;
+nlohmann::json briefCrashInfo;
 #endif
 
 std::string appStateFile;
@@ -661,7 +662,12 @@ void util::CrashManager::HandleCrash(const std::string &_crashInfo, bool callAbo
 		std::transform(dmpNameW.begin(), dmpNameW.end(), std::back_inserter(dmpNameA), [](wchar_t c) { return (char)c; });
 		annotations.insert({{"sentry[tags][memorydump]", "true"}});
 		annotations.insert({{"sentry[tags][s3dmp]", dmpNameA.c_str()}});
+		briefInfo["s3dmp"] = dmpNameA;
 	}
+
+	briefInfo["app_state"] = getAppState();
+	briefInfo["username"] = OBS_API::getUsername();
+
 #if defined(_WIN32)
 	SaveBriefCrashInfoToFile();
 #endif
@@ -697,22 +703,6 @@ void util::CrashManager::HandleCrash(const std::string &_crashInfo, bool callAbo
 void util::CrashManager::SaveBriefCrashInfoToFile()
 {
 #ifdef ENABLE_CRASHREPORT
-	nlohmann::json briefInfo;
-
-	briefInfo["app_state"] = appState;
-
-	if (auto it = annotations.find("sentry[user][username]"); it != annotations.end()) {
-		briefInfo["username"] = (*it).second;
-	}
-
-	//if (auto it = annotations.find("Crash reason"); it != annotations.end()) {
-	//	briefInfo["crash_reason"] = (*it).second;
-	//}
-
-	if (auto it = annotations.find("sentry[tags][s3dmp]"); it != annotations.end()) {
-		briefInfo["s3dmp"] = (*it).second;
-	}
-
 	std::wstring crashBriefInfoFilename(globalAppData_path);
 	if (*crashBriefInfoFilename.rbegin() != L'/' && *crashBriefInfoFilename.rbegin() != L'\\') {
 		crashBriefInfoFilename += L"\\";
