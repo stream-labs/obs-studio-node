@@ -662,11 +662,11 @@ void util::CrashManager::HandleCrash(const std::string &_crashInfo, bool callAbo
 		std::transform(dmpNameW.begin(), dmpNameW.end(), std::back_inserter(dmpNameA), [](wchar_t c) { return (char)c; });
 		annotations.insert({{"sentry[tags][memorydump]", "true"}});
 		annotations.insert({{"sentry[tags][s3dmp]", dmpNameA.c_str()}});
-		briefInfo["s3dmp"] = dmpNameA;
+		briefCrashInfo["s3dmp"] = dmpNameA;
 	}
 
-	briefInfo["app_state"] = getAppState();
-	briefInfo["username"] = OBS_API::getUsername();
+	briefCrashInfo["app_state"] = getAppState();
+	briefCrashInfo["username"] = OBS_API::getUsername();
 
 #if defined(_WIN32)
 	SaveBriefCrashInfoToFile();
@@ -709,7 +709,7 @@ void util::CrashManager::SaveBriefCrashInfoToFile()
 	}
 	crashBriefInfoFilename += L"brief-crash-info.json";
 
-	std::string serialized = briefInfo.dump(4);
+	std::string serialized = briefCrashInfo.dump(4);
 
 	std::ofstream briefInfoFile;
 	briefInfoFile.open(crashBriefInfoFilename);
