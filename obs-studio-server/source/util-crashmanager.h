@@ -77,6 +77,12 @@ public:
 	static std::wstring GetMemoryDumpPath();
 	static std::wstring GetMemoryDumpName();
 
+#if !defined(_WIN32)
+	static void UpdateBriefCrashInfoAppState();
+	static void UpdateBriefCrashInfoUsername();
+	static void DeleteBriefCrashInfoFile();
+#endif
+
 private:
 	static nlohmann::json RequestOBSLog(OBSLogType type);
 	static nlohmann::json ComputeBreadcrumbs();
@@ -86,9 +92,8 @@ private:
 	static bool TryHandleCrash(const std::string &format, const std::string &crashMessage);
 	static void HandleExit() noexcept;
 	static void HandleCrash(const std::string &crashInfo, bool callAbort = true) noexcept;
-#ifdef _WIN32
 	static void SaveBriefCrashInfoToFile();
-#endif
+	static void UpdateBriefCrashInfo();
 };
 
 }; // namespace util
