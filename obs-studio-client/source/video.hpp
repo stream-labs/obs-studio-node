@@ -23,16 +23,28 @@
 namespace osn {
 class Video : public Napi::ObjectWrap<osn::Video> {
 public:
+	uint64_t canvasId = 0;
+	constexpr static uint64_t nonCavasId = std::numeric_limits<uint64_t>::max();
+
+private:
+	std::vector<ipc::value> lastVideo;
+	bool isLastVideoValid = false;
+
+public:
 	static Napi::FunctionReference constructor;
 	static Napi::Object Init(Napi::Env env, Napi::Object exports);
 	Video(const Napi::CallbackInfo &info);
 
-	static Napi::Value GetSkippedFrames(const Napi::CallbackInfo &info);
-	static Napi::Value GetEncodedFrames(const Napi::CallbackInfo &info);
+	Napi::Value GetSkippedFrames(const Napi::CallbackInfo &info);
+	Napi::Value GetEncodedFrames(const Napi::CallbackInfo &info);
 
-	static Napi::Value GetVideoContext(const Napi::CallbackInfo &info);
-	static void SetVideoContext(const Napi::CallbackInfo &info, const Napi::Value &value);
-	static Napi::Value GetLegacySettings(const Napi::CallbackInfo &info);
-	static void SetLegacySettings(const Napi::CallbackInfo &info, const Napi::Value &value);
+	static Napi::Value Create(const Napi::CallbackInfo &info);
+	void Destroy(const Napi::CallbackInfo &info);
+
+	Napi::Value get(const Napi::CallbackInfo &info);
+	void set(const Napi::CallbackInfo &info, const Napi::Value &value);
+
+	Napi::Value GetLegacySettings(const Napi::CallbackInfo &info);
+	void SetLegacySettings(const Napi::CallbackInfo &info, const Napi::Value &value);
 };
 }

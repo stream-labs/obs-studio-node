@@ -80,6 +80,7 @@ export const enum EOBSTransitionTypes {
 export const enum EOBSSettingsCategories {
     General = 'General',
     Stream = 'Stream',
+    StreamSecond = 'StreamSecond',
     Output = 'Output',
     Audio = 'Audio',
     Video = 'Video',
