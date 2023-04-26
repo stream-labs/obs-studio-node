@@ -807,11 +807,13 @@ char *osn_generate_formatted_filename(const char *extension, bool space, const c
 	if (!space)
 		dstr_replace(&sf, " ", "_");
 
-	std::string resolution = std::to_string(width) + std::string("x") + std::to_string(height) + std::string("_");
-	dstr_cat(&sf, resolution.c_str());
+	if(width > 0 && height > 0) {
+		std::string resolution = std::to_string(width) + std::string("x") + std::to_string(height) + std::string("-");
+		dstr_cat(&sf, resolution.c_str());
 
-	dstr_cat_ch(&sf, (char)(rand() % 9 + 0x30));
-	dstr_cat_ch(&sf, (char)(rand() % 9 + 0x30));
+		dstr_cat_ch(&sf, (char)(rand() % 9 + 0x30));
+		dstr_cat_ch(&sf, (char)(rand() % 9 + 0x30));
+	}
 
 	dstr_cat_ch(&sf, '.');
 	dstr_cat(&sf, extension);
@@ -1266,7 +1268,7 @@ void OBS_service::updateVideoRecordingEncoder(bool isSimpleMode)
 	if (obs_get_multiple_rendering()) {
 		obs_encoder_set_video_mix(videoRecordingEncoder, obs_video_mix_get(0, OBS_RECORDING_VIDEO_RENDERING));
 	} else {
-		obs_encoder_set_video_mix(videoRecordingEncoder, obs_video_mix_get(0, OBS_RECORDING_VIDEO_RENDERING));
+		obs_encoder_set_video_mix(videoRecordingEncoder, obs_video_mix_get(0, OBS_MAIN_VIDEO_RENDERING));
 	}
 }
 
@@ -1323,11 +1325,7 @@ bool OBS_service::startRecording(void)
 	if (recordingOutput)
 		obs_output_release(recordingOutput);
 
-	recordingOutput = obs_output_create("ffmpeg_muxer", "simple_file_output", nullptr, nullptr);
-	if (!recordingOutput)
-		return false;
-
-	connectOutputSignals(StreamServiceId::Main);
+	createRecordingOutput();
 
 	std::string currentOutputMode = config_get_string(ConfigManager::getInstance().getBasic(), "Output", "Mode");
 	bool isSimpleMode = currentOutputMode.compare("Simple") == 0;
