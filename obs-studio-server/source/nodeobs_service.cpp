@@ -807,7 +807,7 @@ char *osn_generate_formatted_filename(const char *extension, bool space, const c
 	if (!space)
 		dstr_replace(&sf, " ", "_");
 
-	if(width > 0 && height > 0) {
+	if (width > 0 && height > 0) {
 		std::string resolution = std::to_string(width) + std::string("x") + std::to_string(height) + std::string("-");
 		dstr_cat(&sf, resolution.c_str());
 
