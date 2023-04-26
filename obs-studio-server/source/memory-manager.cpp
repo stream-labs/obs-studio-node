@@ -45,7 +45,6 @@ MemoryManager::~MemoryManager()
 	watcher.stop = true;
 	if (watcher.worker.joinable())
 		watcher.worker.join();
-
 	blog(LOG_INFO, "MemoryManager: destructor finished");
 }
 
