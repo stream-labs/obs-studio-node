@@ -98,6 +98,11 @@ std::string workingDirectory;
 static nlohmann::json briefCrashInfo;
 static std::mutex briefCrashInfoMutex;
 static std::wstring_view briefCrashInfoBasename(L"brief-crash-info.json");
+#ifdef _WIN32
+static std::wstring_view pathSeparator(L"\\");
+#else
+static std::wstring_view pathSeparator(L"/");
+#endif
 #endif
 
 std::string appStateFile;
@@ -706,7 +711,7 @@ void util::CrashManager::SaveBriefCrashInfoToFile()
 
 	std::wstring briefCrashInfoFilename(globalAppData_path);
 	if (*briefCrashInfoFilename.rbegin() != L'/' && *briefCrashInfoFilename.rbegin() != L'\\') {
-		briefCrashInfoFilename += L"\\";
+		briefCrashInfoFilename += pathSeparator;
 	}
 	briefCrashInfoFilename += briefCrashInfoBasename;
 
@@ -769,7 +774,7 @@ void util::CrashManager::DeleteBriefCrashInfoFile()
 
 	std::wstring briefCrashInfoFilename(globalAppData_path);
 	if (*briefCrashInfoFilename.rbegin() != L'/' && *briefCrashInfoFilename.rbegin() != L'\\') {
-		briefCrashInfoFilename += L"\\";
+		briefCrashInfoFilename += pathSeparator;
 	}
 	briefCrashInfoFilename += briefCrashInfoBasename;
 
@@ -1230,6 +1235,9 @@ void util::CrashManager::ClearBreadcrumbs()
 void util::CrashManager::setAppState(const std::string &newState)
 {
 	appState = newState;
+#if !defined(_WIN32)
+	UpdateBriefCrashInfoAppState();
+#endif
 }
 
 std::string util::CrashManager::getAppState()
