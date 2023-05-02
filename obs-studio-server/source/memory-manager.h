@@ -59,6 +59,7 @@ private:
 public:
 	MemoryManager(MemoryManager const &) = delete;
 	void operator=(MemoryManager const &) = delete;
+	virtual ~MemoryManager();
 
 private:
 	std::map<const char *, source_info *> sources;

@@ -38,6 +38,17 @@ MemoryManager::MemoryManager()
 #endif
 }
 
+MemoryManager::~MemoryManager()
+{
+	blog(LOG_INFO, "MemoryManager: destructor called");
+
+	watcher.stop = true;
+	if (watcher.worker.joinable())
+		watcher.worker.join();
+
+	blog(LOG_INFO, "MemoryManager: destructor finished");
+}
+
 void MemoryManager::calculateRawSize(source_info *si)
 {
 	calldata_t cd = {0};
@@ -84,8 +95,6 @@ void MemoryManager::calculateRawSize(source_info *si)
 
 bool MemoryManager::shouldCacheSource(source_info *si)
 {
-	bool should_cache = false;
-
 	obs_data_t *settings = obs_source_get_settings(si->source);
 
 	bool looping = obs_data_get_bool(settings, "looping");

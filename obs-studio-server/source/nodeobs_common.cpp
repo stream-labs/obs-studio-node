@@ -26,6 +26,7 @@
 
 #include "osn-error.hpp"
 #include "shared.hpp"
+#include "osn-video.hpp"
 
 #include <thread>
 
@@ -88,8 +89,8 @@ static bool CenterAlignSelectedItems(obs_scene_t *scene, obs_sceneitem_t *item, 
 	if (!obs_sceneitem_selected(item))
 		return true;
 
-	obs_video_info ovi;
-	obs_get_video_info(&ovi);
+	obs_video_info ovi = {0};
+	obs_get_video_info_scene_item(item, &ovi);
 
 	obs_transform_info itemInfo;
 	vec2_set(&itemInfo.pos, 0.0f, 0.0f);
@@ -157,9 +158,10 @@ void OBS_content::Register(ipc::server &srv)
 
 	cls->register_function(std::make_shared<ipc::function>("OBS_content_setDayTheme", std::vector<ipc::type>{ipc::type::UInt32}, OBS_content_setDayTheme));
 
-	cls->register_function(std::make_shared<ipc::function>(
-		"OBS_content_createDisplay", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String, ipc::type::Int32, ipc::type::UInt32},
-		OBS_content_createDisplay));
+	cls->register_function(std::make_shared<ipc::function>("OBS_content_createDisplay",
+							       std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String, ipc::type::Int32, ipc::type::Int32,
+										      ipc::type::UInt64},
+							       OBS_content_createDisplay));
 
 	cls->register_function(
 		std::make_shared<ipc::function>("OBS_content_destroyDisplay", std::vector<ipc::type>{ipc::type::String}, OBS_content_destroyDisplay));
@@ -170,9 +172,10 @@ void OBS_content::Register(ipc::server &srv)
 	cls->register_function(std::make_shared<ipc::function>("OBS_content_getDisplayPreviewSize", std::vector<ipc::type>{ipc::type::String},
 							       OBS_content_getDisplayPreviewSize));
 
-	cls->register_function(std::make_shared<ipc::function>(
-		"OBS_content_createSourcePreviewDisplay", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String, ipc::type::String, ipc::type::UInt32},
-		OBS_content_createSourcePreviewDisplay));
+	cls->register_function(std::make_shared<ipc::function>("OBS_content_createSourcePreviewDisplay",
+							       std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String, ipc::type::String,
+										      ipc::type::UInt32, ipc::type::UInt64},
+							       OBS_content_createSourcePreviewDisplay));
 
 	cls->register_function(std::make_shared<ipc::function>(
 		"OBS_content_resizeDisplay", std::vector<ipc::type>{ipc::type::String, ipc::type::UInt32, ipc::type::UInt32}, OBS_content_resizeDisplay));
@@ -269,9 +272,10 @@ void OBS_content::OBS_content_createDisplay(void *data, const int64_t id, const 
 		break;
 	}
 
+	obs_video_info *canvas = osn::Video::Manager::GetInstance().find(args[4].value_union.ui64);
 	try {
 #ifdef WIN32
-		displays.insert_or_assign(args[1].value_str, new OBS::Display(windowHandle, mode, args[3].value_union.ui32));
+		displays.insert_or_assign(args[1].value_str, new OBS::Display(windowHandle, mode, args[3].value_union.ui32, canvas));
 		if (!IsWindows8OrGreater()) {
 			BOOL enabled = FALSE;
 			DwmIsCompositionEnabled(&enabled);
@@ -280,7 +284,7 @@ void OBS_content::OBS_content_createDisplay(void *data, const int64_t id, const 
 			}
 		}
 #else
-		OBS::Display *display = new OBS::Display(windowHandle, mode, args[3].value_union.i32);
+		OBS::Display *display = new OBS::Display(windowHandle, mode, args[3].value_union.i32, canvas);
 		displays.insert_or_assign(args[1].value_str, display);
 #endif
 
@@ -360,8 +364,9 @@ void OBS_content::OBS_content_createSourcePreviewDisplay(void *data, const int64
 		return;
 	}
 
+	obs_video_info *canvas = osn::Video::Manager::GetInstance().find(args[4].value_union.ui64);
 	try {
-		OBS::Display *display = new OBS::Display(windowHandle, OBS_MAIN_VIDEO_RENDERING, args[1].value_str, args[3].value_union.ui32);
+		OBS::Display *display = new OBS::Display(windowHandle, OBS_MAIN_VIDEO_RENDERING, args[1].value_str, args[3].value_union.ui32, canvas);
 		displays.insert_or_assign(args[2].value_str, display);
 	} catch (const std::exception &e) {
 		std::string message(std::string("Source preview display creation failed: ") + e.what());

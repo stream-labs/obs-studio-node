@@ -14,13 +14,14 @@ const testName = 'osn-simple-recording';
 describe(testName, () => {
     let obs: OBSHandler;
     let hasTestFailed: boolean = false;
-
+    let context: osn.IVideo;
     // Initialize OBS process
     before(async() => {
         logInfo(testName, 'Starting ' + testName + ' tests');
         deleteConfigFiles();
         obs = new OBSHandler(testName);
-        osn.VideoFactory.videoContext = {
+        context = osn.VideoFactory.create();
+        const firstVideoInfo: osn.IVideoInfo = {
             fpsNum: 60,
             fpsDen: 1,
             baseWidth: 1920,
@@ -33,6 +34,7 @@ describe(testName, () => {
             scaleType: osn.EScaleType.Bilinear,
             fpsType: osn.EFPSType.Fractional
         };
+        context.video = firstVideoInfo;
 
         obs.instantiateUserPool(testName);
 
@@ -42,6 +44,7 @@ describe(testName, () => {
 
     // Shutdown OBS process
     after(async function() {
+        context.destroy();
         // Releasing user got from pool
         await obs.releaseUser();
 
@@ -89,6 +92,7 @@ describe(testName, () => {
         recording.path = path.join(path.normalize(__dirname), '..', 'osnData');
         recording.format = ERecordingFormat.MOV;
         recording.quality = ERecordingQuality.HighQuality;
+        recording.video = context;
         recording.videoEncoder =
             osn.VideoEncoderFactory.create('obs_x264', 'video-encoder');
         recording.lowCPU = true;
@@ -112,7 +116,7 @@ describe(testName, () => {
         osn.SimpleRecordingFactory.destroy(recording);
     });
 
-    it('Start recording - Stream', async () => {
+    it('Start simple recording - Stream', async () => {
         const recording = osn.SimpleRecordingFactory.create();
         recording.path = path.join(path.normalize(__dirname), '..', 'osnData');
         recording.format = ERecordingFormat.MP4;
@@ -120,9 +124,11 @@ describe(testName, () => {
         recording.lowCPU = false;
         recording.overwrite = false;
         recording.noSpace = false;
+        recording.video = context;
         recording.signalHandler = (signal) => {obs.signals.push(signal)};
 
         const stream = osn.SimpleStreamingFactory.create();
+        stream.video = context;
         stream.videoEncoder =
             osn.VideoEncoderFactory.create('obs_x264', 'video-encoder');
         stream.service = osn.ServiceFactory.legacySettings;
@@ -240,11 +246,12 @@ describe(testName, () => {
         osn.SimpleStreamingFactory.destroy(stream);
     });
 
-    it('Start recording - HighQuality', async () => {
+    it('Start simple recording - HighQuality', async () => {
         const recording = osn.SimpleRecordingFactory.create();
         recording.path = path.join(path.normalize(__dirname), '..', 'osnData');
         recording.format = ERecordingFormat.MP4;
         recording.quality = ERecordingQuality.HighQuality;
+        recording.video = context;
         recording.videoEncoder =
             osn.VideoEncoderFactory.create('obs_x264', 'video-encoder');
         recording.lowCPU = false;
@@ -308,11 +315,12 @@ describe(testName, () => {
         osn.SimpleRecordingFactory.destroy(recording);
     });
 
-    it('Start recording - HigherQuality', async () => {
+    it('Start simple recording - HigherQuality', async () => {
         const recording = osn.SimpleRecordingFactory.create();
         recording.path = path.join(path.normalize(__dirname), '..', 'osnData');
         recording.format = ERecordingFormat.MP4;
         recording.quality = ERecordingQuality.HigherQuality;
+        recording.video = context;
         recording.videoEncoder =
             osn.VideoEncoderFactory.create('obs_x264', 'video-encoder');
         recording.lowCPU = false;
@@ -376,11 +384,12 @@ describe(testName, () => {
         osn.SimpleRecordingFactory.destroy(recording);
     });
 
-    it('Start recording - Lossless', async () => {
+    it('Start simple recording - Lossless', async () => {
         const recording = osn.SimpleRecordingFactory.create();
         recording.path = path.join(path.normalize(__dirname), '..', 'osnData');
         recording.format = ERecordingFormat.MP4;
         recording.quality = ERecordingQuality.Lossless;
+        recording.video = context;
         recording.lowCPU = false;
         recording.overwrite = false;
         recording.noSpace = false;

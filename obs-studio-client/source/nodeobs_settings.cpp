@@ -409,6 +409,7 @@ std::vector<std::string> settings::getListCategories(void)
 
 	categories.push_back("General");
 	categories.push_back("Stream");
+	categories.push_back("StreamSecond");
 	categories.push_back("Output");
 	categories.push_back("Audio");
 	categories.push_back("Video");

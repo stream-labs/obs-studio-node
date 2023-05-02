@@ -49,6 +49,7 @@ Napi::Object osn::AdvancedRecording::Init(Napi::Env env, Napi::Object exports)
 		 InstanceAccessor("splitTime", &osn::AdvancedRecording::GetSplitTime, &osn::AdvancedRecording::SetSplitTime),
 		 InstanceAccessor("splitSize", &osn::AdvancedRecording::GetSplitSize, &osn::AdvancedRecording::SetSplitSize),
 		 InstanceAccessor("fileResetTimestamps", &osn::AdvancedRecording::GetFileResetTimestamps, &osn::AdvancedRecording::SetFileResetTimestamps),
+		 InstanceAccessor("video", &osn::AdvancedRecording::GetCanvas, &osn::AdvancedRecording::SetCanvas),
 
 		 InstanceMethod("start", &osn::AdvancedRecording::Start),
 		 InstanceMethod("stop", &osn::AdvancedRecording::Stop),

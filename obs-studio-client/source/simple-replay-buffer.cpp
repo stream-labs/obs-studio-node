@@ -45,6 +45,7 @@ Napi::Object osn::SimpleReplayBuffer::Init(Napi::Env env, Napi::Object exports)
 			     InstanceAccessor("usesStream", &osn::SimpleReplayBuffer::GetUsesStream, &osn::SimpleReplayBuffer::SetUsesStream),
 			     InstanceAccessor("streaming", &osn::SimpleReplayBuffer::GetStreaming, &osn::SimpleReplayBuffer::SetStreaming),
 			     InstanceAccessor("recording", &osn::SimpleReplayBuffer::GetRecording, &osn::SimpleReplayBuffer::SetRecording),
+			     InstanceAccessor("video", &osn::SimpleReplayBuffer::GetCanvas, &osn::SimpleReplayBuffer::SetCanvas),
 
 			     InstanceMethod("start", &osn::SimpleReplayBuffer::Start),
 			     InstanceMethod("stop", &osn::SimpleReplayBuffer::Stop),

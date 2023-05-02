@@ -32,6 +32,8 @@ protected:
 
 	Napi::Value GetService(const Napi::CallbackInfo &info);
 	void SetService(const Napi::CallbackInfo &info, const Napi::Value &value);
+	Napi::Value GetCanvas(const Napi::CallbackInfo &info);
+	void SetCanvas(const Napi::CallbackInfo &info, const Napi::Value &value);
 	Napi::Value GetVideoEncoder(const Napi::CallbackInfo &info);
 	void SetVideoEncoder(const Napi::CallbackInfo &info, const Napi::Value &value);
 	Napi::Value GetEnforceServiceBirate(const Napi::CallbackInfo &info);

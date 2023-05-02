@@ -990,13 +990,11 @@ bool obs::EditableListProperty::read(std::vector<char> const &buf)
 		return false;
 	}
 
-	size_t length = 0;
-
 	size_t offset = Property::size();
 	field_type = ListType(buf[offset]);
 	offset += sizeof(uint8_t);
 
-	length = reinterpret_cast<const size_t &>(buf[offset]);
+	size_t length = reinterpret_cast<const size_t &>(buf[offset]);
 	offset += sizeof(size_t);
 	if (length > 0) {
 		filter = std::string(&buf[offset], length);
