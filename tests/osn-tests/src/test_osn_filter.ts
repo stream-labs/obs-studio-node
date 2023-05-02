@@ -175,6 +175,14 @@ describe(testName, () => {
                     settings['sdr_white_level_nits'] = 400;
                     break;
                 }
+                case 'basic_eq_filter': {
+                    settings = filterSettings.basicEq;
+                    break;
+                }
+                case 'upward_compressor_filter': {
+                    settings = filterSettings.upwardCompressor;
+                    break;
+                }
             }
 
             const filter = osn.FilterFactory.create(filterType, 'filter', settings);
