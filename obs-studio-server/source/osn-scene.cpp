@@ -20,6 +20,7 @@
 #include <list>
 #include "osn-error.hpp"
 #include "osn-sceneitem.hpp"
+#include "osn-video.hpp"
 #include "shared.hpp"
 
 void osn::Scene::Register(ipc::server &srv)
@@ -36,13 +37,15 @@ void osn::Scene::Register(ipc::server &srv)
 	cls->register_function(
 		std::make_shared<ipc::function>("Duplicate", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String, ipc::type::Int32}, Duplicate));
 
-	cls->register_function(std::make_shared<ipc::function>("AddSource", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64}, AddSource));
+	cls->register_function(std::make_shared<ipc::function>("AsSource", std::vector<ipc::type>{ipc::type::UInt64}, AsSource));
+	cls->register_function(
+		std::make_shared<ipc::function>("AddSource", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64, ipc::type::UInt64}, AddSource));
 
 	cls->register_function(std::make_shared<ipc::function>(
 		"AddSourceWithTransform",
 		std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64, ipc::type::Double, ipc::type::Double, ipc::type::Int32, ipc::type::Double,
 				       ipc::type::Double, ipc::type::Double, ipc::type::Int64, ipc::type::Int64, ipc::type::Int64, ipc::type::Int64,
-				       ipc::type::Int32, ipc::type::Int32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32},
+				       ipc::type::Int32, ipc::type::Int32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt64},
 		AddSource));
 
 	cls->register_function(std::make_shared<ipc::function>("FindItemByName", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String}, FindItemByName));
@@ -286,6 +289,12 @@ void osn::Scene::AddSource(void *data, const int64_t id, const std::vector<ipc::
 		obs_sceneitem_set_scale_filter(item, (enum obs_scale_type)args[14].value_union.ui32);
 		obs_sceneitem_set_blending_mode(item, (enum obs_blending_type)args[15].value_union.ui32);
 		obs_sceneitem_set_blending_method(item, (enum obs_blending_method)args[16].value_union.ui32);
+
+		if (args.size() >= 18) {
+			obs_video_info *canvas = osn::Video::Manager::GetInstance().find(args[17].value_union.ui64);
+			if (canvas)
+				obs_sceneitem_set_canvas(item, canvas);
+		}
 	}
 
 	obs_sceneitem_addref(item);
@@ -293,6 +302,7 @@ void osn::Scene::AddSource(void *data, const int64_t id, const std::vector<ipc::
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value((uint64_t)uid));
 	rval.push_back(ipc::value(obs_sceneitem_get_id(item)));
+
 	AUTO_DEBUG;
 }
 

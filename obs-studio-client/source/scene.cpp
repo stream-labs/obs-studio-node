@@ -23,6 +23,7 @@
 #include "controller.hpp"
 #include "osn-error.hpp"
 #include "input.hpp"
+#include "video.hpp"
 #include "ipc-value.hpp"
 #include "sceneitem.hpp"
 #include "shared.hpp"
@@ -271,7 +272,11 @@ Napi::Value osn::Scene::AddSource(const Napi::CallbackInfo &info)
 		params.push_back(ipc::value(transform.Get("blendingMode").ToNumber().Uint32Value()));
 		params.push_back(ipc::value(transform.Get("blendingMethod").ToNumber().Uint32Value()));
 	}
-
+	if (info.Length() >= 3) {
+		osn::Video *video = Napi::ObjectWrap<osn::Video>::Unwrap(info[2].ToObject());
+		if (video)
+			params.push_back(ipc::value(video->canvasId));
+	}
 	auto conn = GetConnection(info);
 	if (!conn)
 		return info.Env().Undefined();

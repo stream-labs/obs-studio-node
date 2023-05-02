@@ -16,7 +16,7 @@ You will need to have the following installed:
 Building on windows requires additional software:
 
 * [Visual Studio 2019 or 2022](https://visualstudio.microsoft.com/)
-* [Windows SDK](https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk) (may be installed with Visual Studio 2022 Installer)
+* [Windows SDK](https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk) (may be installed by Visual Studio 2022 Installer)
 
 ### Example Build
 We use a flexible cmake script to be as broad and generic as possible in order to prevent the need to constantly manage the cmake script for custom uses, while also providing sane defaults. It follows a pretty standard cmake layout and you may execute it however you want.
@@ -41,7 +41,7 @@ You may specify a custom archive of your own. However, some changes need to be m
 
 * `ENABLE_SCRIPTING` must be set to `false`
 * `ENABLE_UI` must be set to `false`
-* `QTDIR` should *not* be specified.
+* `QTDIR` should *not* be specified as it is not used.
 
 If you don't know how to build obs-studio from source, you may find instructions [here](https://github.com/obsproject/obs-studio/wiki/Install-Instructions#windows-build-directions).
 
@@ -49,7 +49,7 @@ If you don't know how to build obs-studio from source, you may find instructions
 #### cppcheck 
 
 Install cppcheck from http://cppcheck.sourceforge.net/ and add cppcheck folder to PATH 
-To run check from console:  
+To run check from command line:  
 ```
 cd build 
 cmake --build . --target CPPCHECK

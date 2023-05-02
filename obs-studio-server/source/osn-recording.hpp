@@ -54,6 +54,7 @@ class IRecording : public IFileOutput {
 public:
 	static void GetVideoEncoder(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
 	static void SetVideoEncoder(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+
 	static void Query(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
 	static void SplitFile(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
 	static void GetEnableFileSplit(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
@@ -67,7 +68,7 @@ public:
 	static void GetFileResetTimestamps(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
 	static void SetFileResetTimestamps(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
 
-	static std::string GenerateSpecifiedFilename(const std::string &extension, bool noSpace, const std::string &format);
+	static std::string GenerateSpecifiedFilename(const std::string &extension, bool noSpace, const std::string &format, int width, int height);
 	static void FindBestFilename(std::string &strPath, bool noSpace);
 
 	static obs_encoder_t *duplicate_encoder(obs_encoder_t *src, uint64_t trackIndex = 0);

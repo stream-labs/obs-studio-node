@@ -138,4 +138,14 @@ let hdrTonemap: ISettings = {
     sdr_white_level_nits: 300,
     transform: 0
 }
-export {hdrTonemap};
+export { hdrTonemap };
+
+let basicEq: ISettings = {
+    low: 0.0,
+    mid: 0.0,
+    high: 0.0
+}
+export { basicEq };
+
+let upwardCompressor: ISettings = { "attack_time": 10, "detector": "RMS", "knee_width": 10, "output_gain": 0, "ratio": 0.5, "release_time": 50, "threshold": -20 }
+export { upwardCompressor };
