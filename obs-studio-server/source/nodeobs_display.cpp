@@ -477,21 +477,21 @@ OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode,
 	m_parentWindow = reinterpret_cast<HWND>(windowHandle);
 	m_gsInitData.window.hwnd = reinterpret_cast<void *>(m_ourWindow);
 #endif
+	{
+		std::lock_guard lock(m_displayMtx);
 
-	std::lock_guard lock(m_displayMtx);
+		m_display = obs_display_create(&m_gsInitData, 0x0);
 
-	m_display = obs_display_create(&m_gsInitData, 0x0);
+		if (!m_display) {
+			blog(LOG_INFO, "Failed to create the display");
+			throw std::runtime_error("unable to create display");
+		}
 
-	if (!m_display) {
-		blog(LOG_INFO, "Failed to create the display");
-		throw std::runtime_error("unable to create display");
+		m_renderingMode = mode;
+		m_canvas = canvas;
+
+		obs_display_add_draw_callback(m_display, DisplayCallback, this);
 	}
-
-	m_renderingMode = mode;
-	m_canvas = canvas;
-
-	obs_display_add_draw_callback(m_display, DisplayCallback, this);
-	m_displayMtx.unlock();
 
 	UpdatePreviewArea();
 }
