@@ -558,8 +558,10 @@ obs_video_info OBS_service::prepareOBSVideoInfo(bool reload, bool defaultConf)
 			ovi.output_height = ovi.base_height;
 		}
 
-		ovi.output_width = 1280;
-		ovi.output_height = 720;
+		if (ovi.output_width == 0 || ovi.output_height == 0) {
+			ovi.output_width = 1280;
+			ovi.output_height = 720;
+		}
 
 		if (!defaultConf) {
 			config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "OutputCX", ovi.output_width);

@@ -316,6 +316,8 @@ void osn::Video::AddVideoContext(void *data, const int64_t id, const std::vector
 	if (canvas == NULL)
 		PRETTY_ERROR_RETURN(ErrorCode::OutOfBounds, "Failed to add canvas.");
 
+	SetDefaultResolution(canvas);
+
 	utility::unique_id::id_t uid = osn::Video::Manager::GetInstance().allocate(canvas);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -351,6 +353,54 @@ void osn::Video::RemoveVideoContext(void *data, const int64_t id, const std::vec
 	}
 
 	AUTO_DEBUG;
+}
+
+void osn::Video::SetDefaultResolution(obs_video_info *ovi)
+{
+	static const double vals[] = {1.0, 1.25, (1.0 / 0.75), 1.5, (1.0 / 0.6), 1.75, 2.0, 2.25, 2.5, 2.75, 3.0};
+	static const size_t numVals = sizeof(vals) / sizeof(double);
+
+	ovi->base_width = ovi->base_height = ovi->output_width = ovi->output_height = 0;
+
+	std::vector<std::pair<uint32_t, uint32_t>> resolutions = OBS_API::availableResolutions();
+	uint32_t limit_cx = 1920;
+	uint32_t limit_cy = 1080;
+
+	for (int i = 0; i < resolutions.size(); i++) {
+		uint32_t nbPixels = resolutions.at(i).first * resolutions.at(i).second;
+		if (int(ovi->base_width * ovi->base_height) < nbPixels && nbPixels <= limit_cx * limit_cy) {
+			ovi->base_width = resolutions.at(i).first;
+			ovi->base_height = resolutions.at(i).second;
+		}
+	}
+
+	if (ovi->base_width == 0 || ovi->base_height == 0) {
+		ovi->base_width = 1920;
+		ovi->base_height = 1080;
+	}
+
+	if (ovi->base_width > 1280 && ovi->base_height > 720) {
+		int idx = 0;
+		do {
+			double use_val = 1.0;
+			if (idx < numVals) {
+				use_val = vals[idx];
+			} else {
+				use_val = vals[numVals - 1] + double(numVals - idx + 1) / 2.0;
+			}
+			ovi->output_width = uint32_t(double(ovi->base_width) / use_val);
+			ovi->output_height = uint32_t(double(ovi->base_height) / use_val);
+			idx++;
+		} while (ovi->output_width > 1280 && ovi->output_height > 720);
+	} else {
+		ovi->output_width = ovi->base_width;
+		ovi->output_height = ovi->base_height;
+	}
+
+	if (ovi->output_width == 0 || ovi->output_height == 0) {
+		ovi->output_width = 1280;
+		ovi->output_height = 720;
+	}
 }
 
 osn::Video::Manager &osn::Video::Manager::GetInstance()
