@@ -485,13 +485,24 @@ void autoConfig::TestBandwidthThread(void)
 	bool errorOnStop = false;
 	bool gotError = false;
 
-	obs_video_info video;
-	obs_get_video_info(&video);
+	obs_video_info video = {0};
+	bool have_users_info = obs_get_video_info(&video);
+
+	obs_video_info *ovi = obs_create_video_info();
+
+	if (!have_users_info) {
+		video = *ovi;
+		video.fps_num = 60;
+		video.fps_den = 1;
+	} else {
+		video.fps_num = ovi->fps_num;
+		video.fps_den = ovi->fps_den;
+	}
+
 	video.base_width = 1280;
 	video.base_height = 720;
 	video.output_width = 128;
 	video.output_height = 128;
-	obs_video_info *ovi = obs_create_video_info();
 
 	int ret = obs_set_video_info(ovi, &video);
 	if (ret != OBS_VIDEO_SUCCESS) {
@@ -1298,15 +1309,22 @@ bool autoConfig::CheckSettings(void)
 		return false;
 	}
 
-	obs_video_info video;
-	obs_get_video_info(&video);
+	obs_video_info video = {0};
+	bool have_users_info = obs_get_video_info(&video);
+
+	obs_video_info *ovi = obs_create_video_info();
+
+	if (!have_users_info) {
+		video = *ovi;
+	}
+
 	video.base_width = 1280;
 	video.base_height = 720;
 	video.output_width = (uint32_t)idealResolutionCX;
 	video.output_height = (uint32_t)idealResolutionCY;
 	video.fps_num = idealFPSNum;
+	video.fps_den = 1;
 	video.initialized = true;
-	obs_video_info *ovi = obs_create_video_info();
 	int ret = obs_set_video_info(ovi, &video);
 	if (ret != OBS_VIDEO_SUCCESS) {
 		eventsMutex.lock();
