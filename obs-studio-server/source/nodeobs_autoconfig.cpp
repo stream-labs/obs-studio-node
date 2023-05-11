@@ -389,13 +389,9 @@ void autoConfig::StartSetDefaultSettings(void *data, const int64_t id, const std
 int EvaluateBandwidth(ServerInfo &server, bool &connected, bool &stopped, bool &success, bool &errorOnStop, OBSData &service_settings, OBSService &service,
 		      OBSOutput &output, OBSData &vencoder_settings)
 {
-	// auto &server = servers[i];
-
 	connected = false;
 	stopped = false;
 	errorOnStop = false;
-
-	// int per = int((i + 1) * 100 / servers.size());
 
 	obs_data_set_string(service_settings, "server", server.address.c_str());
 	obs_service_update(service, service_settings);
@@ -452,7 +448,7 @@ int EvaluateBandwidth(ServerInfo &server, bool &connected, bool &stopped, bool &
 	uint64_t bitrate = 0;
 
 	if (total_time > 0) {
-		bitrate = (uint64_t)total_bytes * 8 * 1000000000 / total_time / 1000;
+		bitrate = (uint64_t)total_bytes * 8U * 1000000000U / total_time / 1000U;
 	}
 
 	startingBitrate = (int)obs_data_get_int(vencoder_settings, "bitrate");
@@ -489,15 +485,24 @@ void autoConfig::TestBandwidthThread(void)
 	bool errorOnStop = false;
 	bool gotError = false;
 
+	obs_video_info video = {0};
+	bool have_users_info = obs_get_video_info(&video);
+
 	obs_video_info *ovi = obs_create_video_info();
-	obs_video_info video = *ovi;
+
+	if (!have_users_info) {
+		video = *ovi;
+		video.fps_num = 60;
+		video.fps_den = 1;
+	} else {
+		video.fps_num = ovi->fps_num;
+		video.fps_den = ovi->fps_den;
+	}
+
 	video.base_width = 1280;
 	video.base_height = 720;
 	video.output_width = 128;
 	video.output_height = 128;
-	video.output_format = VIDEO_FORMAT_NV12;
-	video.fps_num = 60;
-	video.fps_den = 1;
 
 	int ret = obs_set_video_info(ovi, &video);
 	if (ret != OBS_VIDEO_SUCCESS) {
@@ -1304,13 +1309,19 @@ bool autoConfig::CheckSettings(void)
 		return false;
 	}
 
+	obs_video_info video = {0};
+	bool have_users_info = obs_get_video_info(&video);
+
 	obs_video_info *ovi = obs_create_video_info();
-	obs_video_info video = *ovi;
+
+	if (!have_users_info) {
+		video = *ovi;
+	}
+
 	video.base_width = 1280;
 	video.base_height = 720;
 	video.output_width = (uint32_t)idealResolutionCX;
 	video.output_height = (uint32_t)idealResolutionCY;
-	video.output_format = VIDEO_FORMAT_NV12;
 	video.fps_num = idealFPSNum;
 	video.fps_den = 1;
 	video.initialized = true;
