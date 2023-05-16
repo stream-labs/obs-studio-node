@@ -47,6 +47,7 @@ public:
 	static void global_source_activate_cb(void *ptr, calldata_t *cd);
 	static void global_source_deactivate_cb(void *ptr, calldata_t *cd);
 	static void global_source_destroy_cb(void *ptr, calldata_t *cd);
+	static void global_source_remove_cb(void *ptr, calldata_t *cd);
 
 	static void attach_source_signals(obs_source_t *src);
 	static void detach_source_signals(obs_source_t *src);
