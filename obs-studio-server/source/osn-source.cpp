@@ -52,7 +52,6 @@ void osn::Source::attach_source_signals(obs_source_t *src)
 	if (!sh)
 		return;
 	signal_handler_connect(sh, "destroy", osn::Source::global_source_destroy_cb, nullptr);
-	signal_handler_connect(sh, "remove", osn::Source::global_source_remove_cb, nullptr);
 }
 
 void osn::Source::detach_source_signals(obs_source_t *src)
@@ -60,7 +59,6 @@ void osn::Source::detach_source_signals(obs_source_t *src)
 	signal_handler_t *sh = obs_source_get_signal_handler(src);
 	if (!sh)
 		return;
-	signal_handler_disconnect(sh, "remove", osn::Source::global_source_remove_cb, nullptr);
 	signal_handler_disconnect(sh, "destroy", osn::Source::global_source_destroy_cb, nullptr);
 }
 
@@ -106,16 +104,6 @@ void osn::Source::global_source_destroy_cb(void *ptr, calldata_t *cd)
 	detach_source_signals(source);
 	osn::Source::Manager::GetInstance().free(source);
 	MemoryManager::GetInstance().unregisterSource(source);
-}
-
-void osn::Source::global_source_remove_cb(void *ptr, calldata_t *cd)
-{
-	obs_source_t *source = nullptr;
-	if (!calldata_get_ptr(cd, "source", &source)) {
-		throw std::runtime_error("calldata did not contain source pointer");
-	}
-
-	obs_source_release(source);
 }
 
 void osn::Source::Register(ipc::server &srv)
@@ -189,8 +177,7 @@ void osn::Source::Remove(void *data, const int64_t id, const std::vector<ipc::va
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
 
-	if (!obs_source_removed(src))
-		obs_source_remove(src);
+	obs_source_remove(src);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
@@ -204,12 +191,7 @@ void osn::Source::Release(void *data, const int64_t id, const std::vector<ipc::v
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
 
-	if (obs_source_get_type(src) == OBS_SOURCE_TYPE_TRANSITION) {
-		obs_source_release(src);
-	} else {
-		if (!obs_source_removed(src))
-			obs_source_remove(src);
-	}
+	obs_source_release(src);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
