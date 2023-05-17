@@ -1716,7 +1716,7 @@ void OBS_API::destroyOBS_API(void)
 			}
 		});
 
-		if(sources .size() > 0 || releasing_counter.num_sources > 0)
+		if (sources.size() > 0 || releasing_counter.num_sources > 0)
 			blog(LOG_INFO, "OBS_API::destroyOBS_API sources to destroy %d, to wait %d", sources.size(), releasing_counter.num_sources);
 
 		for (const auto &source : sources) {
