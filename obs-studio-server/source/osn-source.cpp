@@ -189,8 +189,7 @@ void osn::Source::Remove(void *data, const int64_t id, const std::vector<ipc::va
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
 
-	if (!obs_source_removed(src))
-		obs_source_remove(src);
+	obs_source_remove(src);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
@@ -207,8 +206,7 @@ void osn::Source::Release(void *data, const int64_t id, const std::vector<ipc::v
 	if (obs_source_get_type(src) == OBS_SOURCE_TYPE_TRANSITION) {
 		obs_source_release(src);
 	} else {
-		if (!obs_source_removed(src))
-			obs_source_remove(src);
+		obs_source_remove(src);
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
