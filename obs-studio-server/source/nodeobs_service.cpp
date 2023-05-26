@@ -459,8 +459,19 @@ int OBS_service::resetVideoContext(bool reload, bool retryWithDefaultConf)
 	return errorcode;
 }
 
+void OBS_service::stopConnectingOutputs()
+{
+	for (auto &itr : streamingOutput) {
+		if (obs_output_connecting(itr))
+			obs_output_stop(itr);
+	}
+}
+
 int OBS_service::doResetVideoContext(obs_video_info *ovi)
 {
+	// Cannot disrupt video ptr inside obs while outputs are connecting
+	stopConnectingOutputs();
+
 	try {
 		if (!base_canvas)
 			base_canvas = obs_create_video_info();
