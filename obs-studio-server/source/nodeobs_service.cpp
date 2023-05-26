@@ -463,7 +463,7 @@ void OBS_service::stopConnectingOutputs()
 {
 	for (auto &itr : streamingOutput) {
 		if (obs_output_connecting(itr))
-			obs_output_stop(itr);
+			obs_output_force_stop(itr);
 	}
 }
 
