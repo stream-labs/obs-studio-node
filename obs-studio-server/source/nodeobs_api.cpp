@@ -1770,6 +1770,8 @@ void OBS_API::destroyOBS_API(void)
 		// Remove the 'destruction' callback. Otherwise, it will try to
 		// access data released by |obs_shutdown| which leads to crashes.
 		obs_wait_for_destroy_queue();
+		blog(LOG_WARNING, "OBS_API::destroyOBS_API - obs_wait_for_destroy_queue has finished, osn::Source::Manager::GetInstance() size is %d",
+		     osn::Source::Manager::GetInstance().size());
 		osn::Source::Manager::GetInstance().for_each([&sources](obs_source_t *source) { osn::Source::detach_source_signals(source); });
 
 #ifdef WIN32
