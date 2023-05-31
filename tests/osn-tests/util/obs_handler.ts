@@ -84,12 +84,16 @@ export class OBSHandler {
     os: string;
 
     userStreamKey: string;
+    defaultVideoContext: osn.IVideo;
 
-    constructor(testName: string) {
+    constructor(testName: string, needDefaultVideoContext: boolean = true) {
         this.os = process.platform;
         this.osnTestName = testName;
         this.cacheUploader = new CacheUploader(testName, this.obsPath);
         this.startup();
+        if (needDefaultVideoContext) {
+            this.createDefaultVideoContext();
+        }
         this.inputTypes = osn.InputFactory.types();
         const index = this.inputTypes.indexOf('syphon-input', 0);
         if (index > -1) {
@@ -119,6 +123,10 @@ export class OBSHandler {
     }
 
     shutdown() {
+        if(this.defaultVideoContext) {
+            this.destroyDefaultVideoContext();
+        }
+
         logInfo(this.osnTestName, 'Shutting down OBS');
 
         try {
@@ -272,5 +280,30 @@ export class OBSHandler {
             );
             setTimeout(() => reject(new Error(autoconfigStep + ' step timeout')), 50000);
         });
+    }
+
+    createDefaultVideoContext() {
+        let context: osn.IVideo;
+        context = osn.VideoFactory.create();
+        const firstVideoInfo: osn.IVideoInfo = {
+            fpsNum: 60,
+            fpsDen: 1,
+            baseWidth: 1920,
+            baseHeight: 1080,
+            outputWidth: 1280,
+            outputHeight: 720,
+            outputFormat: osn.EVideoFormat.NV12,
+            colorspace: osn.EColorSpace.CS709,
+            range: osn.ERangeType.Full,
+            scaleType: osn.EScaleType.Bilinear,
+            fpsType: osn.EFPSType.Fractional
+        };
+        context.video = firstVideoInfo;
+        this.defaultVideoContext = context;
+    }
+
+    destroyDefaultVideoContext() {
+        this.defaultVideoContext.destroy();
+        this.defaultVideoContext = null;
     }
 }
