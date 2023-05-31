@@ -290,8 +290,7 @@ SubCategory OBS_settings::serializeSettingsData(const std::string &nameSubCatego
 				const char *currentValue = NULL;
 				currentValue = config_get_string(config, section.c_str(), param.name.c_str());
 				if (section.compare("Video") == 0) {
-					if (param.name.compare("ColorSpace") == 0 || 
-					    param.name.compare("ColorFormat") == 0 ||
+					if (param.name.compare("ColorSpace") == 0 || param.name.compare("ColorFormat") == 0 ||
 					    param.name.compare("ColorRange") == 0) {
 						currentValue = config_get_string(config, "AdvVideo", param.name.c_str());
 					}
