@@ -287,6 +287,8 @@ void osn::Video::SetVideoContext(void *data, const int64_t id, const std::vector
 
 	int ret = OBS_VIDEO_FAIL;
 	try {
+		// Cannot disrupt video ptr inside obs while outputs are connecting
+		OBS_service::stopConnectingOutputs();
 		ret = obs_set_video_info(canvas, &video);
 	} catch (const char *error) {
 		blog(LOG_ERROR, error);
@@ -339,6 +341,10 @@ void osn::Video::RemoveVideoContext(void *data, const int64_t id, const std::vec
 
 	int ret = OBS_VIDEO_FAIL;
 	try {
+
+		// Cannot disrupt video ptr inside obs while outputs are connecting
+		OBS_service::stopConnectingOutputs();
+
 		ret = obs_remove_video_info(canvas);
 
 	} catch (const char *error) {
