@@ -21,6 +21,7 @@
 #include "nodeobs_api.h"
 #include "shared.hpp"
 #include "memory-manager.h"
+#include "osn-video.hpp"
 
 #ifdef WIN32
 #include <windows.h>
@@ -286,7 +287,23 @@ SubCategory OBS_settings::serializeSettingsData(const std::string &nameSubCatego
 		} else {
 			if (param.type.compare("OBS_PROPERTY_LIST") == 0 || param.type.compare("OBS_PROPERTY_PATH") == 0 ||
 			    param.type.compare("OBS_PROPERTY_EDIT_PATH") == 0 || param.type.compare("OBS_PROPERTY_EDIT_TEXT") == 0) {
-				const char *currentValue = config_get_string(config, section.c_str(), param.name.c_str());
+				const char *currentValue = NULL;
+				currentValue = config_get_string(config, section.c_str(), param.name.c_str());
+				if (section.compare("Video") == 0) {
+					if (param.name.compare("ColorSpace") == 0) {
+						struct obs_video_info ovi;
+						if (obs_get_video_info(&ovi))
+							currentValue = osn::Video::GetColorSpace(ovi.colorspace);
+					} else if (param.name.compare("ColorFormat") == 0) {
+						struct obs_video_info ovi;
+						if (obs_get_video_info(&ovi))
+							currentValue = osn::Video::GetOutputFormat(ovi.output_format);
+					} else if (param.name.compare("ColorRange") == 0) {
+						struct obs_video_info ovi;
+						if (obs_get_video_info(&ovi))
+							currentValue = osn::Video::GetColorRange(ovi.range);
+					}
+				}
 
 				if (currentValue != NULL) {
 					param.currentValue.resize(strlen(currentValue));
@@ -3700,9 +3717,6 @@ std::vector<SubCategory> OBS_settings::getAdvancedSettings()
 
 #endif
 	//Video
-	const char *videoColorFormat = config_get_string(ConfigManager::getInstance().getBasic(), "Video", "ColorFormat");
-	const char *videoColorSpace = config_get_string(ConfigManager::getInstance().getBasic(), "Video", "ColorSpace");
-	const char *videoColorRange = config_get_string(ConfigManager::getInstance().getBasic(), "Video", "ColorRange");
 
 	//Color Format
 	std::vector<std::pair<std::string, ipc::value>> colorFormat;
@@ -4152,7 +4166,7 @@ std::vector<SubCategory> OBS_settings::getSettings(std::string nameCategory, Cat
 	} else if (nameCategory.compare("Audio") == 0) {
 		settings = getAudioSettings();
 	} else if (nameCategory.compare("Video") == 0) {
-		settings = getVideoSettings();
+		//settings = getVideoSettings();
 	} else if (nameCategory.compare("Advanced") == 0) {
 		settings = getAdvancedSettings();
 	}
@@ -4188,8 +4202,11 @@ bool OBS_settings::saveSettings(std::string nameCategory, std::vector<SubCategor
 	} else if (nameCategory.compare("Advanced") == 0) {
 		saveAdvancedSettings(settings);
 
-		if (!OBS_service::isStreamingOutputActive(StreamServiceId::Main) && !OBS_service::isStreamingOutputActive(StreamServiceId::Second))
-			OBS_service::resetVideoContext();
+		if (!OBS_service::isStreamingOutputActive(StreamServiceId::Main) && !OBS_service::isStreamingOutputActive(StreamServiceId::Second)) {
+			struct obs_video_info ovi;
+			obs_get_video_info(&ovi);
+			obs_reset_video(&ovi);
+		}
 
 		OBS_API::setAudioDeviceMonitoring();
 	}
@@ -4281,6 +4298,27 @@ void OBS_settings::saveGenericSettings(std::vector<SubCategory> genericSettings,
 						}
 						config_set_string(config, section.c_str(), "MonitoringDeviceName", monDevName.c_str());
 						config_set_string(config, section.c_str(), "MonitoringDeviceId", monDevId.c_str());
+					} else if (name.compare("ColorSpace") == 0) {
+						video_colorspace colorspace = osn::Video::ColorSpaceFromStr(value);
+						int video_contexts = obs_get_video_info_count();
+						blog(LOG_INFO, "[ADV_VIDEO] video_contexts: %d", video_contexts);
+
+						osn::Video::Manager::GetInstance().for_each([colorspace](obs_video_info *ovi) {
+							blog(LOG_INFO, "[ADV_VIDEO] ColorSpace: %d", colorspace);
+							ovi->colorspace = colorspace;
+						});
+					} else if (name.compare("ColorFormat") == 0) {
+						video_format outputFormat = osn::Video::OutputFormFromStr(value);
+						osn::Video::Manager::GetInstance().for_each([outputFormat](obs_video_info *ovi) {
+							blog(LOG_INFO, "[ADV_VIDEO] ColorFormat: %d", outputFormat);
+							ovi->output_format = outputFormat;
+						});
+					} else if (name.compare("ColorRange") == 0) {
+						video_range_type colorRange = osn::Video::ColoRangeFromStr(value);
+						osn::Video::Manager::GetInstance().for_each([colorRange](obs_video_info *ovi) {
+							blog(LOG_INFO, "[ADV_VIDEO] ColorRange: %d", colorRange);
+							ovi->range = colorRange;
+						});
 					} else {
 						config_set_string(config, section.c_str(), name.c_str(), value.c_str());
 					}
