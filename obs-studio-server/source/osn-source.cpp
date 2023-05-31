@@ -205,6 +205,21 @@ void osn::Source::Release(void *data, const int64_t id, const std::vector<ipc::v
 
 	if (obs_source_get_type(src) == OBS_SOURCE_TYPE_TRANSITION) {
 		obs_source_release(src);
+	} else if (obs_source_get_type(src) == OBS_SOURCE_TYPE_SCENE) {
+		blog(LOG_INFO, "Releasing scene %s", obs_source_get_name(src));
+		std::list<obs_sceneitem_t *> items;
+		auto cb = [](obs_scene_t *scene, obs_sceneitem_t *item, void *data) {
+			if (item) {
+				obs_sceneitem_release(item);
+				obs_sceneitem_remove(item);
+			}
+			return true;
+		};
+		obs_scene_t *scene = obs_scene_from_source(src);
+		if (scene)
+			obs_scene_enum_items(scene, cb, nullptr);
+
+		obs_source_release(src);
 	} else {
 		obs_source_remove(src);
 	}

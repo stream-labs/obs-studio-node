@@ -1453,6 +1453,16 @@ void OBS_API::WaitCrashHandlerClose(bool waitBeforeClosing)
 	}
 }
 
+void debug_enum_sources(std::string inside)
+{
+	auto PreEnum = [](void *data, obs_source_t *source) -> bool {
+		blog(LOG_INFO, "[ENUM] obs_enum_%s %s %p , removed %d", (char *)data, obs_source_get_name(source), source, obs_source_removed(source) ? 1 : 0);
+		return true;
+	};
+	obs_enum_sources(PreEnum, (void *)(std::string("sources ") + inside).c_str());
+	obs_enum_scenes(PreEnum, (void *)(std::string("scenes ") + inside).c_str());
+}
+
 void OBS_API::StopCrashHandler(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
 	util::CrashManager::setAppState("shutdown");
@@ -1800,6 +1810,8 @@ void OBS_API::destroyOBS_API(void)
 
 			std::this_thread::sleep_for(std::chrono::milliseconds(100));
 		}
+
+		debug_enum_sources(" on shutdown");
 
 		blog(LOG_DEBUG, "OBS_API::destroyOBS_API unreleased objects detected before obs_shutdown, objects allocated %d", bnum_allocs());
 		// Try-catch should suppress any error message that could be thrown to the user
