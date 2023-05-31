@@ -285,9 +285,15 @@ void osn::Video::SetVideoContext(void *data, const int64_t id, const std::vector
 	video.output_width &= 0xFFFFFFFC;
 	video.output_height &= 0xFFFFFFFE;
 
-	video.output_format = (video_format)args[6].value_union.ui32;
-	video.colorspace = (video_colorspace)args[7].value_union.ui32;
-	video.range = (video_range_type)args[8].value_union.ui32;
+	if (0) {
+		video.output_format = (video_format)args[6].value_union.ui32;
+		video.colorspace = (video_colorspace)args[7].value_union.ui32;
+		video.range = (video_range_type)args[8].value_union.ui32;
+	} else {
+		video.output_format = OutputFormFromStr(config_get_string(ConfigManager::getInstance().getBasic(), "AdvVideo", "ColorFormat"));
+		video.colorspace = ColorSpaceFromStr(config_get_string(ConfigManager::getInstance().getBasic(), "AdvVideo", "ColorSpace"));
+		video.range = ColoRangeFromStr(config_get_string(ConfigManager::getInstance().getBasic(), "AdvVideo", "ColorRange"));
+	}
 	video.scale_type = (obs_scale_type)args[9].value_union.ui32;
 	video.adapter = 0;
 	video.gpu_conversion = true;
