@@ -111,7 +111,7 @@ static enum obs_scale_type ScaleTypeFromStr(const std::string &value)
 	return OBS_SCALE_BILINEAR;
 }
 
-static const char *GetOutputFormat(const enum video_format &outputFormat)
+const char *osn::Video::GetOutputFormat(const enum video_format &outputFormat)
 {
 	switch (outputFormat) {
 	case VIDEO_FORMAT_I420:
@@ -146,12 +146,16 @@ static const char *GetOutputFormat(const enum video_format &outputFormat)
 		return "YUVA";
 	case VIDEO_FORMAT_AYUV:
 		return "AYUV";
+	case VIDEO_FORMAT_I010:
+		return "I010";
+	case VIDEO_FORMAT_P010:
+		return "P010";
 	default:
 		return "I420";
 	}
 }
 
-static enum video_format OutputFormFromStr(const std::string &value)
+enum video_format osn::Video::OutputFormFromStr(const std::string &value)
 {
 	if (value.compare("I420") == 0)
 		return VIDEO_FORMAT_I420;
@@ -185,11 +189,15 @@ static enum video_format OutputFormFromStr(const std::string &value)
 		return VIDEO_FORMAT_YUVA;
 	else if (value.compare("AYUV") == 0)
 		return VIDEO_FORMAT_AYUV;
+	else if (value.compare("I010") == 0)
+		return VIDEO_FORMAT_I010;
+	else if (value.compare("P010") == 0)
+		return VIDEO_FORMAT_P010;
 
 	return VIDEO_FORMAT_I420;
 }
 
-static const char *GetColorSpace(const enum video_colorspace &colorSpace)
+const char *osn::Video::GetColorSpace(const enum video_colorspace &colorSpace)
 {
 	switch (colorSpace) {
 	case VIDEO_CS_DEFAULT:
@@ -209,7 +217,7 @@ static const char *GetColorSpace(const enum video_colorspace &colorSpace)
 	}
 }
 
-static enum video_colorspace ColorSpaceFromStr(const std::string &value)
+enum video_colorspace osn::Video::ColorSpaceFromStr(const std::string &value)
 {
 	if (value.compare("709") == 0)
 		return VIDEO_CS_709;
@@ -225,7 +233,7 @@ static enum video_colorspace ColorSpaceFromStr(const std::string &value)
 	return VIDEO_CS_DEFAULT;
 }
 
-static const char *GetColorRange(const enum video_range_type &colorRange)
+const char *osn::Video::GetColorRange(const enum video_range_type &colorRange)
 {
 	switch (colorRange) {
 	case VIDEO_RANGE_DEFAULT:
@@ -239,7 +247,7 @@ static const char *GetColorRange(const enum video_range_type &colorRange)
 	}
 }
 
-static enum video_range_type ColoRangeFromStr(const std::string &value)
+enum video_range_type osn::Video::ColoRangeFromStr(const std::string &value)
 {
 	if (value.compare("Partial") == 0)
 		return VIDEO_RANGE_PARTIAL;
@@ -277,9 +285,15 @@ void osn::Video::SetVideoContext(void *data, const int64_t id, const std::vector
 	video.output_width &= 0xFFFFFFFC;
 	video.output_height &= 0xFFFFFFFE;
 
-	video.output_format = (video_format)args[6].value_union.ui32;
-	video.colorspace = (video_colorspace)args[7].value_union.ui32;
-	video.range = (video_range_type)args[8].value_union.ui32;
+	if (0) {
+		video.output_format = (video_format)args[6].value_union.ui32;
+		video.colorspace = (video_colorspace)args[7].value_union.ui32;
+		video.range = (video_range_type)args[8].value_union.ui32;
+	} else {
+		video.output_format = OutputFormFromStr(config_get_string(ConfigManager::getInstance().getBasic(), "AdvVideo", "ColorFormat"));
+		video.colorspace = ColorSpaceFromStr(config_get_string(ConfigManager::getInstance().getBasic(), "AdvVideo", "ColorSpace"));
+		video.range = ColoRangeFromStr(config_get_string(ConfigManager::getInstance().getBasic(), "AdvVideo", "ColorRange"));
+	}
 	video.scale_type = (obs_scale_type)args[9].value_union.ui32;
 	video.adapter = 0;
 	video.gpu_conversion = true;
