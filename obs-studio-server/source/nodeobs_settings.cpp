@@ -3589,7 +3589,6 @@ static bool ConvertResText(const char *res, uint32_t &cx, uint32_t &cy)
 
 void OBS_settings::saveVideoSettings(std::vector<SubCategory> videoSettings)
 {
-#ifndef REPLACED_BY_MULTI_CANVAS
 	SubCategory sc = videoSettings.at(0);
 
 	//Base resolution
@@ -3665,7 +3664,6 @@ void OBS_settings::saveVideoSettings(std::vector<SubCategory> videoSettings)
 	}
 
 	config_save_safe(ConfigManager::getInstance().getBasic(), "tmp", nullptr);
-#endif //REPLACED_BY_MULTI_CANVAS
 }
 
 std::vector<SubCategory> OBS_settings::getAdvancedSettings()
@@ -4193,7 +4191,7 @@ bool OBS_settings::saveSettings(std::string nameCategory, std::vector<SubCategor
 		saveAdvancedSettings(settings);
 
 		if (!OBS_service::isStreamingOutputActive(StreamServiceId::Main) && !OBS_service::isStreamingOutputActive(StreamServiceId::Second)) {
-			struct obs_video_info ovi;
+			struct obs_video_info ovi = {0};
 			obs_get_video_info(&ovi);
 			obs_reset_video(&ovi);
 
@@ -4295,7 +4293,6 @@ void OBS_settings::saveGenericSettings(std::vector<SubCategory> genericSettings,
 					} else if (name.compare("ColorSpace") == 0) {
 						config_set_string(config, "AdvVideo", name.c_str(), value.c_str());
 						video_colorspace colorspace = osn::Video::ColorSpaceFromStr(value);
-						int video_contexts = obs_get_video_info_count();
 						osn::Video::Manager::GetInstance().for_each(
 							[colorspace](obs_video_info *ovi) { ovi->colorspace = colorspace; });
 					} else if (name.compare("ColorFormat") == 0) {

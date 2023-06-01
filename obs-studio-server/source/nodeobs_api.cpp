@@ -1520,7 +1520,7 @@ void OBS_API::InformCrashHandler(const int crash_id)
 void OBS_API::destroyOBS_API(void)
 {
 	blog(LOG_DEBUG, "OBS_API::destroyOBS_API started, objects allocated %d", bnum_allocs());
-
+	debug_enum_sources(" on destroyOBS_API");
 	os_cpu_usage_info_destroy(cpuUsageInfo);
 
 #ifdef _WIN32
