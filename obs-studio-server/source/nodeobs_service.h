@@ -220,6 +220,7 @@ public:
 	static void updateFfmpegOutput(bool isSimpleMode, obs_output_t *output);
 	static void UpdateFFmpegCustomOutput(void);
 	static void updateReplayBufferOutput(bool isSimpleMode, bool useStreamEncoder);
+	static void stopConnectingOutputs();
 
 	static std::string GetDefaultVideoSavePath(void);
 
