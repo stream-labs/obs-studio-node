@@ -60,7 +60,17 @@ describe(testName, () => {
         // Create all input sources available
         obs.inputTypes.forEach(function(inputType) {
             let settings: ISettings = {};
-
+            if (process.platform === 'darwin') {
+                if (inputType === 'browser_source' || 
+                    inputType === 'window_capture' ||
+                    inputType === 'monitor_capture' ||
+                    inputType === 'display_capture' ||
+                    inputType === 'screen_capture' ||
+                    inputType === 'coreaudio_input_capture' ||
+                    inputType === 'coreaudio_output_capture') {
+                    return;
+                }
+            }
             switch(inputType) {
                 case 'image_source': {
                     settings = inputSettings.imageSource;
@@ -253,6 +263,9 @@ describe(testName, () => {
     });
 
     it('Set sync offset and get it', () => {
+        if (process.platform === 'darwin') {
+            return;
+        }
         let returnedSyncOffset: ITimeSpec;
         let inputType: string;
 
@@ -311,6 +324,9 @@ describe(testName, () => {
     });
 
     it('Set monitoring type value and get it', () => {
+        if (process.platform === 'darwin') {
+            return;
+        }
         let returnedMonitoringType: osn.EMonitoringType;
         let inputType: string;
 

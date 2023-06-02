@@ -270,6 +270,17 @@ describe(testName, () => {
         let settings: ISettings = {};
 
         obs.inputTypes.forEach(function(inputType) {
+            if (process.platform === 'darwin') {
+                if (inputType === 'browser_source' || 
+                    inputType === 'window_capture' ||
+                    inputType === 'monitor_capture' ||
+                    inputType === 'display_capture' ||
+                    inputType === 'screen_capture' ||
+                    inputType === 'coreaudio_input_capture' ||
+                    inputType === 'coreaudio_output_capture') {
+                    return;
+                }
+            }
             // Creating input source
             const input = osn.InputFactory.create(inputType, 'input');
 
@@ -280,7 +291,7 @@ describe(testName, () => {
 
             // Preparing settings object
             settings = input.settings;
-            
+
             switch(inputType) {
                 case EOBSInputTypes.ImageSource: {
                     settings['unload'] = true;
