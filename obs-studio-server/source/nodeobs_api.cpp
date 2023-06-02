@@ -103,7 +103,7 @@ enum crashHandlerCommand { REGISTER = 0, UNREGISTER = 1, REGISTERMEMORYDUMP = 2,
 
 struct NodeOBSLogParam final {
 	std::fstream logStream;
-	bool enableDebugLogs = false;
+	bool enableDebugLogs = true;
 };
 
 std::string g_moduleDirectory = "";
