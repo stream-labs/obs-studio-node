@@ -283,18 +283,19 @@ export class OBSHandler {
     }
 
     createDefaultVideoContext() {
+        logInfo(this.osnTestName, 'createDefaultVideoContext called');
         let context: osn.IVideo;
         context = osn.VideoFactory.create();
         const firstVideoInfo: osn.IVideoInfo = {
             fpsNum: 60,
             fpsDen: 1,
-            baseWidth: 1920,
-            baseHeight: 1080,
+            baseWidth: 1280,
+            baseHeight: 720,
             outputWidth: 1280,
             outputHeight: 720,
             outputFormat: osn.EVideoFormat.NV12,
             colorspace: osn.EColorSpace.CS709,
-            range: osn.ERangeType.Full,
+            range: osn.ERangeType.Partial,
             scaleType: osn.EScaleType.Bilinear,
             fpsType: osn.EFPSType.Fractional
         };

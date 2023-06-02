@@ -259,6 +259,7 @@ enum video_range_type osn::Video::ColoRangeFromStr(const std::string &value)
 
 void osn::Video::SetVideoContext(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
+	blog(LOG_INFO, "[VIDEO_CANVAS] Set video context called");
 	if (args.size() != 12) {
 		PRETTY_ERROR_RETURN(ErrorCode::Error, "Invalid number of arguments to set the video context.");
 	}
@@ -307,6 +308,11 @@ void osn::Video::SetVideoContext(void *data, const int64_t id, const std::vector
 	} catch (const char *error) {
 		blog(LOG_ERROR, error);
 	}
+	
+	auto canvases = obs_get_video_info_count();
+
+	blog(LOG_INFO, "[VIDEO_CANVAS] Set video context: %p ret %d now total %d", canvas, ret, canvases);
+	
 
 	if (ret != OBS_VIDEO_SUCCESS) {
 		blog(LOG_ERROR, "Failed to set video context");
