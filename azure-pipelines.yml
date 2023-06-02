@@ -235,7 +235,7 @@ jobs:
 
 - job: 'MacOSX'
   pool:
-    vmImage: 'macOS-12'
+    vmImage: 'macOS-13'
 
   strategy:
     matrix:
