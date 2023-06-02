@@ -284,9 +284,8 @@ export class OBSHandler {
 
     createDefaultVideoContext() {
         logInfo(this.osnTestName, 'createDefaultVideoContext called');
-        let context: osn.IVideo;
-        context = osn.VideoFactory.create();
-        const firstVideoInfo: osn.IVideoInfo = {
+        this.defaultVideoContext = osn.VideoFactory.create();
+        const defaultVideoInfo: osn.IVideoInfo = {
             fpsNum: 60,
             fpsDen: 1,
             baseWidth: 1280,
@@ -299,8 +298,7 @@ export class OBSHandler {
             scaleType: osn.EScaleType.Bilinear,
             fpsType: osn.EFPSType.Fractional
         };
-        context.video = firstVideoInfo;
-        this.defaultVideoContext = context;
+        this.defaultVideoContext.video = defaultVideoInfo;
     }
 
     destroyDefaultVideoContext() {

@@ -330,6 +330,7 @@ void osn::Video::SetVideoContext(void *data, const int64_t id, const std::vector
 
 void osn::Video::AddVideoContext(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
+	blog(LOG_INFO, "[VIDEO_CANVAS] Add video context called");
 	if (args.size() != 0) {
 		PRETTY_ERROR_RETURN(ErrorCode::Error, "Invalid number of arguments to set the video context.");
 	}
