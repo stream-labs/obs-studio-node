@@ -92,7 +92,6 @@
 
 #include <fstream>
 
-
 #define BUFFSIZE 512
 #define CONNECTING_STATE 0
 #define READING_STATE 1
@@ -104,7 +103,7 @@ enum crashHandlerCommand { REGISTER = 0, UNREGISTER = 1, REGISTERMEMORYDUMP = 2,
 
 struct NodeOBSLogParam final {
 	std::fstream logStream;
-	bool enableDebugLogs = false;
+	bool enableDebugLogs = true;
 };
 
 std::string g_moduleDirectory = "";
