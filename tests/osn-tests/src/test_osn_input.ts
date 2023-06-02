@@ -46,6 +46,7 @@ describe(testName, () => {
     it('Create all types of input', () => {
         // Create all input sources available
         obs.inputTypes.forEach(function(inputType) {
+            if(obs.skipSource(inputType)) { return;}
             const input = osn.InputFactory.create(inputType, 'input');
 
             // Checking if input source was created correctly
@@ -59,18 +60,9 @@ describe(testName, () => {
     it('Create all types of input with settings parameter', () => {
         // Create all input sources available
         obs.inputTypes.forEach(function(inputType) {
+            if(obs.skipSource(inputType)) { return;}
             let settings: ISettings = {};
-            if (process.platform === 'darwin') {
-                if (inputType === 'browser_source' || 
-                    inputType === 'window_capture' ||
-                    inputType === 'monitor_capture' ||
-                    inputType === 'display_capture' ||
-                    inputType === 'screen_capture' ||
-                    inputType === 'coreaudio_input_capture' ||
-                    inputType === 'coreaudio_output_capture') {
-                    return;
-                }
-            }
+
             switch(inputType) {
                 case 'image_source': {
                     settings = inputSettings.imageSource;
@@ -223,6 +215,7 @@ describe(testName, () => {
         let inputFromName: IInput;
 
         obs.inputTypes.forEach(function(inputType) {
+            if(obs.skipSource(inputType)) { return;}
             // Creating input source
             const name = 'input';
             const input = osn.InputFactory.create(inputType, name);
@@ -371,6 +364,7 @@ describe(testName, () => {
 
         // Creating all video sources available
         obs.inputTypes.forEach(function(inputType) {
+            if(obs.skipSource(inputType)) { return;}
             const videoSource = !!(osn.ESourceOutputFlags.Video & osn.Global.getOutputFlagsFromId(inputType));
 
             if (videoSource) {
@@ -466,6 +460,7 @@ describe(testName, () => {
 
         // Create all async sources available
         obs.inputTypes.forEach(function(inputType) {
+            if(obs.skipSource(inputType)) { return;}
             const asyncSource = !!(osn.ESourceOutputFlags.Async & osn.Global.getOutputFlagsFromId(inputType));
             const audioSource = !!(osn.ESourceOutputFlags.Audio & osn.Global.getOutputFlagsFromId(inputType));
 
@@ -532,6 +527,7 @@ describe(testName, () => {
 
         // Creating all audio sources available
         obs.inputTypes.forEach(function(inputType) {
+            if(obs.skipSource(inputType)) { return;}
             const audioSource = !!(osn.ESourceOutputFlags.Audio & osn.Global.getOutputFlagsFromId(inputType));
 
             if (audioSource) {

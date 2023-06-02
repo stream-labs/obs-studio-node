@@ -305,4 +305,20 @@ export class OBSHandler {
         this.defaultVideoContext.destroy();
         this.defaultVideoContext = null;
     }
+
+    skipSource(inputType: string) 
+    {
+        if (process.platform === 'darwin') {
+            if (inputType === 'browser_source' || 
+                inputType === 'window_capture' ||
+                inputType === 'monitor_capture' ||
+                inputType === 'display_capture' ||
+                inputType === 'screen_capture' ||
+                inputType === 'coreaudio_input_capture' ||
+                inputType === 'coreaudio_output_capture') {
+                return true;
+            }
+        }
+        return false
+    }
 }

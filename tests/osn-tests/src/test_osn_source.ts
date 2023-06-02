@@ -44,6 +44,7 @@ describe(testName, () => {
 
     it('Get all osn-source info from all input types', () => {
         obs.inputTypes.forEach(function(inputType) {
+            if(obs.skipSource(inputType)) { return;}
             // Creating input source
             const input = osn.InputFactory.create(inputType, 'input');
 
@@ -270,17 +271,7 @@ describe(testName, () => {
         let settings: ISettings = {};
 
         obs.inputTypes.forEach(function(inputType) {
-            if (process.platform === 'darwin') {
-                if (inputType === 'browser_source' || 
-                    inputType === 'window_capture' ||
-                    inputType === 'monitor_capture' ||
-                    inputType === 'display_capture' ||
-                    inputType === 'screen_capture' ||
-                    inputType === 'coreaudio_input_capture' ||
-                    inputType === 'coreaudio_output_capture') {
-                    return;
-                }
-            }
+            if(obs.skipSource(inputType)) { return;}
             // Creating input source
             const input = osn.InputFactory.create(inputType, 'input');
 
@@ -552,6 +543,7 @@ describe(testName, () => {
 
     it('Set flags and get them for all input source types', () => {
         obs.inputTypes.forEach(function(inputType) {
+            if(obs.skipSource(inputType)) { return;}
             // Creating input source
             const input = osn.InputFactory.create(inputType, 'input');
 
@@ -576,6 +568,7 @@ describe(testName, () => {
 
     it('Set muted and get it for all input source types', () => {
         obs.inputTypes.forEach(function(inputType) {
+            if(obs.skipSource(inputType)) { return;}
             // Creating input source
             const input = osn.InputFactory.create(inputType, 'input');
 
