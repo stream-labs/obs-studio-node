@@ -399,11 +399,11 @@ void GetFPSCommon(bool defaultConf, uint32_t &num, uint32_t &den)
 void GetConfigFPS(bool defaultConf, uint32_t &num, uint32_t &den)
 {
 	uint64_t type = basicConfigGetUInt("Video", "FPSType", defaultConf);
-	if (type == 1) //"Integer"
+	if (type == 1)      //"Integer"
 		GetFPSInteger(defaultConf, num, den);
 	else if (type == 2) //"Fraction"
 		GetFPSFraction(defaultConf, num, den);
-	else if (false) //"Nanoseconds", currently not implemented
+	else if (false)     //"Nanoseconds", currently not implemented
 		GetFPSNanoseconds(defaultConf, num, den);
 	else
 		GetFPSCommon(defaultConf, num, den);
@@ -462,6 +462,8 @@ int OBS_service::resetVideoContext(bool reload, bool retryWithDefaultConf)
 void OBS_service::stopConnectingOutputs()
 {
 	for (auto &itr : streamingOutput) {
+		if (itr == nullptr)
+			continue;
 		if (obs_output_connecting(itr))
 			obs_output_force_stop(itr);
 	}

@@ -308,11 +308,10 @@ void osn::Video::SetVideoContext(void *data, const int64_t id, const std::vector
 	} catch (const char *error) {
 		blog(LOG_ERROR, error);
 	}
-	
+
 	auto canvases = obs_get_video_info_count();
 
 	blog(LOG_INFO, "[VIDEO_CANVAS] Set video context: %p ret %d now total %d", canvas, ret, canvases);
-	
 
 	if (ret != OBS_VIDEO_SUCCESS) {
 		blog(LOG_ERROR, "Failed to set video context");
