@@ -43,9 +43,9 @@ void osn::VideoEncoder::Create(void *data, const int64_t id, const std::vector<i
 {
 	std::string encoderId = args[0].value_str;
 	std::string name = args[1].value_str;
-	
+
 	std::string settingsJson = args[2].value_str;
-	if (settingsJson.empty()) 
+	if (settingsJson.empty())
 		settingsJson = "{}";
 	obs_data_t *settings = obs_data_create_from_json(settingsJson.c_str());
 
