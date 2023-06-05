@@ -445,11 +445,9 @@ OBS::Display::Display()
 	m_resizeOuterColorVec4 = ConvertColorToVec4(m_resizeOuterColor);
 	m_resizeInnerColorVec4 = ConvertColorToVec4(m_resizeInnerColor);
 	m_rotationHandleColorVec4 = ConvertColorToVec4(m_rotationHandleColor);
-
-	UpdatePreviewArea();
 }
 
-OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode, bool renderAtBottom) : Display()
+OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode, bool renderAtBottom, obs_video_info *canvas) : Display()
 {
 	m_renderAtBottom = renderAtBottom;
 #ifdef _WIN32
@@ -479,22 +477,27 @@ OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode,
 	m_parentWindow = reinterpret_cast<HWND>(windowHandle);
 	m_gsInitData.window.hwnd = reinterpret_cast<void *>(m_ourWindow);
 #endif
-	m_displayMtx.lock();
-	m_display = obs_display_create(&m_gsInitData, 0x0);
+	{
+		std::lock_guard lock(m_displayMtx);
 
-	if (!m_display) {
-		blog(LOG_INFO, "Failed to create the display");
-		throw std::runtime_error("unable to create display");
+		m_display = obs_display_create(&m_gsInitData, 0x0);
+
+		if (!m_display) {
+			blog(LOG_INFO, "Failed to create the display");
+			throw std::runtime_error("unable to create display");
+		}
+
+		m_renderingMode = mode;
+		m_canvas = canvas;
+
+		obs_display_add_draw_callback(m_display, DisplayCallback, this);
 	}
 
-	m_renderingMode = mode;
-
-	obs_display_add_draw_callback(m_display, DisplayCallback, this);
-	m_displayMtx.unlock();
+	UpdatePreviewArea();
 }
 
-OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode, std::string sourceName, bool renderAtBottom)
-	: Display(windowHandle, mode, renderAtBottom)
+OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode, const std::string &sourceName, bool renderAtBottom, obs_video_info *canvas)
+	: Display(windowHandle, mode, renderAtBottom, canvas)
 {
 	m_source = obs_get_source_by_name(sourceName.c_str());
 	obs_source_inc_showing(m_source);
@@ -502,49 +505,51 @@ OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode,
 
 OBS::Display::~Display()
 {
-	m_displayMtx.lock();
-	obs_display_remove_draw_callback(m_display, DisplayCallback, this);
+	{
+		std::lock_guard lock(m_displayMtx);
 
-	if (m_source) {
-		obs_source_dec_showing(m_source);
-		obs_source_release(m_source);
+		obs_display_remove_draw_callback(m_display, DisplayCallback, this);
+
+		if (m_source) {
+			obs_source_dec_showing(m_source);
+			obs_source_release(m_source);
+		}
+
+		if (m_textVertices) {
+			delete m_textVertices;
+		}
+
+		if (m_textTexture) {
+			obs_enter_graphics();
+			gs_texture_destroy(m_textTexture);
+			obs_leave_graphics();
+		}
+
+		if (m_overflowNightTexture) {
+			obs_enter_graphics();
+			gs_texture_destroy(m_overflowNightTexture);
+			obs_leave_graphics();
+		}
+
+		if (m_overflowDayTexture) {
+			obs_enter_graphics();
+			gs_texture_destroy(m_overflowDayTexture);
+			obs_leave_graphics();
+		}
+
+		m_leftSolidOutline.reset();
+		m_topSolidOutline.reset();
+		m_rightSolidOutline.reset();
+		m_bottomSolidOutline.reset();
+		m_cropOutline.reset();
+		m_boxLine = nullptr;
+		m_boxTris = nullptr;
+		m_rotHandleLine.reset();
+		m_rotHandleCircle.reset();
+
+		if (m_display)
+			obs_display_destroy(m_display);
 	}
-
-	if (m_textVertices) {
-		delete m_textVertices;
-	}
-
-	if (m_textTexture) {
-		obs_enter_graphics();
-		gs_texture_destroy(m_textTexture);
-		obs_leave_graphics();
-	}
-
-	if (m_overflowNightTexture) {
-		obs_enter_graphics();
-		gs_texture_destroy(m_overflowNightTexture);
-		obs_leave_graphics();
-	}
-
-	if (m_overflowDayTexture) {
-		obs_enter_graphics();
-		gs_texture_destroy(m_overflowDayTexture);
-		obs_leave_graphics();
-	}
-
-	m_leftSolidOutline.reset();
-	m_topSolidOutline.reset();
-	m_rightSolidOutline.reset();
-	m_bottomSolidOutline.reset();
-	m_cropOutline.reset();
-	m_boxLine = nullptr;
-	m_boxTris = nullptr;
-	m_rotHandleLine.reset();
-	m_rotHandleCircle.reset();
-
-	if (m_display)
-		obs_display_destroy(m_display);
-	m_displayMtx.unlock();
 
 #ifdef _WIN32
 	SystemWorkerThread::DestroyWindowMessageQuestion question;
@@ -616,6 +621,9 @@ bool isNewerThanWindows7()
 
 void OBS::Display::setSizeCall(int step)
 {
+	BOOL ret = true;
+
+#if defined(_WIN32)
 	int use_x, use_y;
 	int use_width, use_height;
 	const float presizes[] = {1, 1.05, 1.25, 1.5, 2.0, 3.0};
@@ -645,9 +653,7 @@ void OBS::Display::setSizeCall(int step)
 		break;
 	}
 
-	BOOL ret = true;
 	// Resize Window
-#if defined(_WIN32)
 	if (step > 0) {
 		ret = SetWindowPos(m_ourWindow, NULL, use_x, use_y, use_width, use_height, SWP_NOCOPYBITS | SWP_NOACTIVATE | SWP_NOZORDER | SWP_HIDEWINDOW);
 	} else {
@@ -1096,6 +1102,11 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t *scene, obs_sceneitem_t *item,
 	if (obs_sceneitem_locked(item))
 		return true;
 
+	OBS::Display *dp = reinterpret_cast<OBS::Display *>(param);
+
+	if (dp->m_canvas != obs_sceneitem_get_canvas(item))
+		return true;
+
 	obs_source_t *itemSource = obs_sceneitem_get_source(item);
 	uint32_t flags = obs_source_get_output_flags(itemSource);
 	bool isOnlyAudio = (flags & OBS_SOURCE_VIDEO) == 0;
@@ -1132,8 +1143,6 @@ bool OBS::Display::DrawSelectedSource(obs_scene_t *scene, obs_sceneitem_t *item,
 		if (!visible)
 			return true;
 	}
-
-	OBS::Display *dp = reinterpret_cast<OBS::Display *>(param);
 
 	vec4 color;
 	gs_effect_t *solid = obs_get_base_effect(OBS_EFFECT_SOLID);
@@ -1302,6 +1311,11 @@ bool OBS::Display::DrawSelectedOverflow(obs_scene_t *scene, obs_sceneitem_t *ite
 	if (obs_sceneitem_locked(item))
 		return true;
 
+	OBS::Display *dp = reinterpret_cast<OBS::Display *>(param);
+
+	if (dp->m_canvas != obs_sceneitem_get_canvas(item))
+		return true;
+
 	obs_source_t *itemSource = obs_sceneitem_get_source(item);
 	uint32_t flags = obs_source_get_output_flags(itemSource);
 	bool isOnlyAudio = (flags & OBS_SOURCE_VIDEO) == 0;
@@ -1315,8 +1329,6 @@ bool OBS::Display::DrawSelectedOverflow(obs_scene_t *scene, obs_sceneitem_t *ite
 
 	if (!obs_sceneitem_selected(item) || isOnlyAudio || ((itemWidth <= 0) && (itemHeight <= 0)))
 		return true;
-
-	OBS::Display *dp = reinterpret_cast<OBS::Display *>(param);
 
 	matrix4 boxTransform;
 	matrix4 invBoxTransform;
@@ -1378,7 +1390,7 @@ void OBS::Display::DisplayCallback(void *displayPtr, uint32_t cx, uint32_t cy)
 	dp->UpdatePreviewArea();
 
 	// Get proper source/base size.
-	uint32_t sourceW, sourceH;
+	uint32_t sourceW = 0, sourceH = 0;
 	if (dp->m_source) {
 		sourceW = obs_source_get_width(dp->m_source);
 		sourceH = obs_source_get_height(dp->m_source);
@@ -1387,11 +1399,11 @@ void OBS::Display::DisplayCallback(void *displayPtr, uint32_t cx, uint32_t cy)
 		if (sourceH == 0)
 			sourceH = 1;
 	} else {
-		obs_video_info ovi;
-		obs_get_video_info(&ovi);
+		if (dp->m_canvas) {
+			sourceW = dp->m_canvas->base_width;
+			sourceH = dp->m_canvas->base_height;
+		}
 
-		sourceW = ovi.base_width;
-		sourceH = ovi.base_height;
 		if (sourceW == 0)
 			sourceW = 1;
 		if (sourceH == 0)
@@ -1469,17 +1481,7 @@ void OBS::Display::DisplayCallback(void *displayPtr, uint32_t cx, uint32_t cy)
 			obs_set_video_rendering_mode(dp->m_renderingMode);
 		obs_source_video_render(dp->m_source);
 	} else {
-		switch (dp->m_renderingMode) {
-		case OBS_MAIN_VIDEO_RENDERING:
-			obs_render_main_texture();
-			break;
-		case OBS_STREAMING_VIDEO_RENDERING:
-			obs_render_streaming_texture();
-			break;
-		case OBS_RECORDING_VIDEO_RENDERING:
-			obs_render_recording_texture();
-			break;
-		}
+		obs_render_texture(dp->m_canvas, dp->m_renderingMode);
 	}
 
 	//------------------------------------------------------------------------------
@@ -1550,16 +1552,15 @@ obs_source_t *OBS::Display::GetSourceForUIEffects()
 void OBS::Display::UpdatePreviewArea()
 {
 	int32_t offsetX = 0, offsetY = 0;
-	uint32_t sourceW, sourceH;
+	uint32_t sourceW = 0, sourceH = 0;
 	if (m_source) {
 		sourceW = obs_source_get_width(m_source);
 		sourceH = obs_source_get_height(m_source);
 	} else {
-		obs_video_info ovi;
-		obs_get_video_info(&ovi);
-
-		sourceW = ovi.base_width;
-		sourceH = ovi.base_height;
+		if (m_canvas) {
+			sourceW = m_canvas->base_width;
+			sourceH = m_canvas->base_height;
+		}
 	}
 
 	if (sourceW == 0)
@@ -1626,7 +1627,6 @@ void OBS::Display::DisplayWndClass()
 
 LRESULT CALLBACK OBS::Display::DisplayWndProc(_In_ HWND hwnd, _In_ UINT uMsg, _In_ WPARAM wParam, _In_ LPARAM lParam)
 {
-	OBS::Display *self = nullptr;
 	switch (uMsg) {
 	case WM_NCHITTEST:
 		return HTTRANSPARENT;

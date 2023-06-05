@@ -88,7 +88,7 @@ protected:
 			auto conn = Controller::GetInstance().GetConnection();
 			if (conn) {
 				std::vector<ipc::value> response = conn->call_synchronous_helper(name, "Query", {ipc::value(refID)});
-				if (response.size() && (response.size() == 5) && signalsList.size() < maximum_signals_in_queue) {
+				if ((response.size() == 5) && signalsList.size() < maximum_signals_in_queue) {
 					ErrorCode error = (ErrorCode)response[0].value_union.ui64;
 					if (error == ErrorCode::Ok) {
 						SignalOutput *data = new SignalOutput{"", "", 0, ""};

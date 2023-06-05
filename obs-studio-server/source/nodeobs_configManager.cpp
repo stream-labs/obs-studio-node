@@ -27,12 +27,12 @@
 #include "shared.hpp"
 #include "nodeobs_service.h"
 
-void ConfigManager::setAppdataPath(std::string path)
+void ConfigManager::setAppdataPath(const std::string &path)
 {
 	appdata = path;
 }
 
-config_t *ConfigManager::getConfig(std::string name)
+config_t *ConfigManager::getConfig(const std::string &name)
 {
 	config_t *config = nullptr;
 	std::string file = appdata + name;
@@ -243,12 +243,16 @@ void initBasicDefault(config_t *config)
 	config_set_default_string(config, "Video", "ColorFormat", "NV12");
 	config_set_default_string(config, "Video", "ColorSpace", "709");
 	config_set_default_string(config, "Video", "ColorRange", "Partial");
+	config_set_default_string(config, "AdvVideo", "ColorFormat", "NV12");
+	config_set_default_string(config, "AdvVideo", "ColorSpace", "709");
+	config_set_default_string(config, "AdvVideo", "ColorRange", "Partial");
 	config_set_default_uint(config, "Video", "SdrWhiteLevel", 300);
 	config_set_default_uint(config, "Video", "HdrNominalPeakLevel", 1000);
 	config_set_default_bool(config, "Video", "ForceGPUAsRenderDevice", true);
 
 	config_set_default_string(config, "Audio", "MonitoringDeviceId", "default");
 	config_set_default_string(config, "Audio", "MonitoringDeviceName", "Default");
+	config_set_default_bool(config, "Audio", "LowLatencyAudioBuffering", false);
 
 	if (config_get_uint(config, "Audio", "SampleRate") == 0) {
 		config_set_uint(config, "Audio", "SampleRate", 44100);
@@ -302,13 +306,22 @@ config_t *ConfigManager::getBasic()
 
 	return basic;
 };
-std::string ConfigManager::getService()
+
+std::string ConfigManager::getService(size_t index)
 {
+	if (index == 0) {
 #ifdef WIN32
-	return appdata + "\\service.json";
+		return appdata + "\\service.json";
 #else
-	return appdata + "/service.json";
+		return appdata + "/service.json";
 #endif
+	} else {
+#ifdef WIN32
+		return appdata + "\\service1.json";
+#else
+		return appdata + "/service1.json";
+#endif
+	}
 };
 std::string ConfigManager::getStream()
 {

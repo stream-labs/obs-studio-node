@@ -114,6 +114,8 @@ Napi::Value api::OBS_API_getPerformanceStatistics(const Napi::CallbackInfo &info
 	}
 	statistics.Set(Napi::String::New(info.Env(), "diskSpaceAvailable"), Napi::String::New(info.Env(), diskSpaceAvailable));
 
+	statistics.Set(Napi::String::New(info.Env(), "streamingBandwidthSecond"), Napi::Number::New(info.Env(), response[12].value_union.fp64));
+	statistics.Set(Napi::String::New(info.Env(), "streamingDataOutputSecond"), Napi::Number::New(info.Env(), response[13].value_union.fp64));
 	return statistics;
 }
 

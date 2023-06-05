@@ -19,7 +19,7 @@
 #include "utility.hpp"
 #include "obs-property.hpp"
 
-std::string utility::osn_current_version(std::string _version)
+std::string utility::osn_current_version(const std::string &_version)
 {
 	static std::string current_version = "";
 	if (_version != "")

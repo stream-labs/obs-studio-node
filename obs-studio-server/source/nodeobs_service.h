@@ -73,21 +73,33 @@
 
 #define MAX_AUDIO_MIXES 6
 
+enum StreamServiceId : int { Main = 0, Second = 1 };
+
 class SignalInfo {
 private:
 	std::string m_outputType;
 	std::string m_signal;
-	int m_code;
+	int m_code = 0;
 	std::string m_errorMessage;
+	StreamServiceId m_index = StreamServiceId::Main;
 
 public:
 	SignalInfo(){};
+	SignalInfo(std::string outputType, std::string signal, StreamServiceId serviceId)
+	{
+		m_outputType = outputType;
+		m_signal = signal;
+		m_code = 0;
+		m_errorMessage = "";
+		m_index = serviceId;
+	}
 	SignalInfo(std::string outputType, std::string signal)
 	{
 		m_outputType = outputType;
 		m_signal = signal;
 		m_code = 0;
 		m_errorMessage = "";
+		m_index = StreamServiceId::Main;
 	}
 	std::string getOutputType(void) { return m_outputType; };
 	std::string getSignal(void) { return m_signal; };
@@ -96,6 +108,7 @@ public:
 	void setCode(int code) { m_code = code; };
 	std::string getErrorMessage(void) { return m_errorMessage; };
 	void setErrorMessage(std::string errorMessage) { m_errorMessage = errorMessage; };
+	StreamServiceId getIndex(void) { return m_index; };
 };
 
 class OBS_service {
@@ -107,6 +120,7 @@ public:
 
 	static void OBS_service_resetAudioContext(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
 	static void OBS_service_resetVideoContext(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+	static void OBS_service_setVideoInfo(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
 	static void OBS_service_startStreaming(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
 	static void OBS_service_startRecording(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
 	static void OBS_service_startReplayBuffer(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
@@ -126,14 +140,14 @@ public:
 	static void OBS_service_stopVirtualWebcan(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
 
 private:
-	static bool startStreaming(void);
-	static void stopStreaming(bool forceStop);
+	static bool startStreaming(StreamServiceId serviceId);
+	static void stopStreaming(bool forceStop, StreamServiceId serviceId);
 	static bool startRecording(void);
 	static bool startReplayBuffer(void);
 	static void stopReplayBuffer(bool forceStop);
 	static void stopRecording(void);
 
-	static void releaseStreamingOutput(void);
+	static void releaseStreamingOutput(StreamServiceId serviceId);
 
 	static void LoadRecordingPreset_h264(const char *encoder);
 	static void LoadRecordingPreset_Lossless(void);
@@ -148,19 +162,20 @@ private:
 
 public:
 	// Service
-	static bool createService();
-	static obs_service_t *getService(void);
-	static void setService(obs_service_t *newService);
+	static bool createService(StreamServiceId serviceId);
+	static obs_service_t *getService(StreamServiceId serviceId);
+	static void setService(obs_service_t *newService, StreamServiceId serviceId);
 	static void saveService(void);
-	static void updateService(void);
+	static void saveService(obs_service_t *service, StreamServiceId serviceId);
+	static void updateService(StreamServiceId serviceId);
 
 	// Encoders
 	static bool createAudioEncoder(obs_encoder_t **audioEncoder, std::string &id, int bitrate, const char *name, size_t idx);
-	static bool createVideoStreamingEncoder();
+	static bool createVideoStreamingEncoder(StreamServiceId serviceId);
 	static void createSimpleAudioStreamingEncoder();
 	static bool createVideoRecordingEncoder();
-	static obs_encoder_t *getStreamingEncoder(void);
-	static void setStreamingEncoder(obs_encoder_t *encoder);
+	static obs_encoder_t *getStreamingEncoder(StreamServiceId serviceId);
+	static void setStreamingEncoder(obs_encoder_t *encoder, StreamServiceId serviceId);
 	static obs_encoder_t *getRecordingEncoder(void);
 	static void setRecordingEncoder(obs_encoder_t *encoder);
 	static obs_encoder_t *getAudioSimpleStreamingEncoder(void);
@@ -174,11 +189,12 @@ public:
 	static obs_encoder_t *getArchiveEncoder(void);
 
 	// Outputs
-	static bool createStreamingOutput(void);
+	static std::string getStreamingOutputName(StreamServiceId serviceId);
+	static bool createStreamingOutput(StreamServiceId serviceId);
 	static bool createRecordingOutput(void);
 	static void createReplayBufferOutput(void);
-	static obs_output_t *getStreamingOutput(void);
-	static void setStreamingOutput(obs_output_t *output);
+	static obs_output_t *getStreamingOutput(StreamServiceId serviceId);
+	static void setStreamingOutput(obs_output_t *output, StreamServiceId serviceId);
 	static obs_output_t *getRecordingOutput(void);
 	static void setRecordingOutput(obs_output_t *output);
 	static obs_output_t *getReplayBufferOutput(void);
@@ -188,14 +204,14 @@ public:
 	static void waitReleaseWorker(void);
 
 	// Update settings
-	static void updateStreamingOutput();
+	static void updateStreamingOutput(StreamServiceId serviceId);
 
 	// Update video encoders
-	static void updateStreamingEncoders(bool isSimpleMode);
-	static bool updateRecordingEncoders(bool isSimpleMode);
+	static void updateStreamingEncoders(bool isSimpleMode, StreamServiceId serviceId);
+	static bool updateRecordingEncoders(bool isSimpleMode, StreamServiceId serviceId);
 
-	static void updateVideoStreamingEncoder(bool isSimpleMode);
-	static void updateAudioStreamingEncoder(bool isSimpleMode);
+	static void updateVideoStreamingEncoder(bool isSimpleMode, StreamServiceId serviceId);
+	static void updateAudioStreamingEncoder(bool isSimpleMode, StreamServiceId serviceId);
 	static void updateAudioRecordingEncoder(bool isSimpleMode);
 	static void updateVideoRecordingEncoder(bool isSimpleMode);
 	static void updateAudioTracks(void);
@@ -204,17 +220,18 @@ public:
 	static void updateFfmpegOutput(bool isSimpleMode, obs_output_t *output);
 	static void UpdateFFmpegCustomOutput(void);
 	static void updateReplayBufferOutput(bool isSimpleMode, bool useStreamEncoder);
+	static void stopConnectingOutputs();
 
 	static std::string GetDefaultVideoSavePath(void);
 
-	static bool isStreamingOutputActive(void);
+	static bool isStreamingOutputActive(StreamServiceId serviceId);
 	static bool isRecordingOutputActive(void);
 	static bool isReplayBufferOutputActive(void);
 
 	// Reset contexts
 	static bool resetAudioContext(bool reload = false);
 	static int resetVideoContext(bool reload = false, bool retryWithDefaultConf = false);
-	static int doResetVideoContext(const obs_video_info &ovi);
+	static int doResetVideoContext(obs_video_info *ovi);
 
 	// Prepare the obs_video_info object for video context reset/initialization.
 	// The user configuration information will be re-read from files if |reload| is true.
@@ -224,12 +241,13 @@ public:
 	// Copy the successfully applied default video configuration to
 	// the user configuration, then save it to basic.ini.
 	static void keepFallbackVideoConfig(const obs_video_info &ovi);
+	static void setVideoInfo(obs_video_info *ovi, StreamServiceId serviceId);
 
 	static int GetSimpleAudioBitrate(void);
 	static int GetAdvancedAudioBitrate(int i);
 
 	// Output signals
-	static void connectOutputSignals(void);
+	static void connectOutputSignals(StreamServiceId serviceId);
 	static void JSCallbackOutputSignal(void *data, calldata_t *);
 
 	static bool useRecordingPreset();

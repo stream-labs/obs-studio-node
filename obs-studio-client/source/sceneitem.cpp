@@ -28,6 +28,7 @@
 #include "sceneitem.hpp"
 #include "shared.hpp"
 #include "utility.hpp"
+#include "video.hpp"
 
 Napi::FunctionReference osn::SceneItem::constructor;
 
@@ -43,6 +44,7 @@ Napi::Object osn::SceneItem::Init(Napi::Env env, Napi::Object exports)
 				    InstanceAccessor("selected", &osn::SceneItem::IsSelected, &osn::SceneItem::SetSelected),
 				    InstanceAccessor("streamVisible", &osn::SceneItem::IsStreamVisible, &osn::SceneItem::SetStreamVisible),
 				    InstanceAccessor("recordingVisible", &osn::SceneItem::IsRecordingVisible, &osn::SceneItem::SetRecordingVisible),
+				    InstanceAccessor("video", &osn::SceneItem::GetCanvas, &osn::SceneItem::SetCanvas),
 				    InstanceAccessor("position", &osn::SceneItem::GetPosition, &osn::SceneItem::SetPosition),
 				    InstanceAccessor("rotation", &osn::SceneItem::GetRotation, &osn::SceneItem::SetRotation),
 				    InstanceAccessor("scale", &osn::SceneItem::GetScale, &osn::SceneItem::SetScale),
@@ -385,6 +387,38 @@ void osn::SceneItem::SetPosition(const Napi::CallbackInfo &info, const Napi::Val
 	sid->posY = y;
 }
 
+Napi::Value osn::SceneItem::GetCanvas(const Napi::CallbackInfo &info)
+{
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
+
+	std::vector<ipc::value> response = conn->call_synchronous_helper("SceneItem", "GetCanvas", {ipc::value(this->itemId)});
+
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
+
+	auto instance = osn::Video::constructor.New({Napi::Number::New(info.Env(), response[1].value_union.ui64)});
+
+	return instance;
+}
+
+void osn::SceneItem::SetCanvas(const Napi::CallbackInfo &info, const Napi::Value &value)
+{
+	osn::Video *canvas = Napi::ObjectWrap<osn::Video>::Unwrap(value.ToObject());
+
+	if (!canvas) {
+		Napi::TypeError::New(info.Env(), "Invalid canvas argument").ThrowAsJavaScriptException();
+		return;
+	}
+
+	auto conn = GetConnection(info);
+	if (!conn)
+		return;
+
+	conn->call("SceneItem", "SetCanvas", {ipc::value(this->itemId), ipc::value(canvas->canvasId)});
+}
+
 Napi::Value osn::SceneItem::GetRotation(const Napi::CallbackInfo &info)
 {
 	SceneItemData *sid = CacheManager<SceneItemData *>::getInstance().Retrieve(this->itemId);
@@ -532,20 +566,20 @@ Napi::Value osn::SceneItem::GetAlignment(const Napi::CallbackInfo &info)
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
 
-	bool flag = !!response[1].value_union.ui32;
+	uint32_t flag = response[1].value_union.ui32;
 
-	return Napi::Boolean::New(info.Env(), flag);
+	return Napi::Number::New(info.Env(), flag);
 }
 
 void osn::SceneItem::SetAlignment(const Napi::CallbackInfo &info, const Napi::Value &value)
 {
-	uint32_t visible = value.ToNumber().Uint32Value();
+	uint32_t flag = value.ToNumber().Uint32Value();
 
 	auto conn = GetConnection(info);
 	if (!conn)
 		return;
 
-	conn->call("SceneItem", "SetAlignment", std::vector<ipc::value>{ipc::value(this->itemId), ipc::value(visible)});
+	conn->call("SceneItem", "SetAlignment", std::vector<ipc::value>{ipc::value(this->itemId), ipc::value(flag)});
 }
 
 Napi::Value osn::SceneItem::GetBounds(const Napi::CallbackInfo &info)
@@ -712,7 +746,7 @@ Napi::Value osn::SceneItem::GetTransformInfo(const Napi::CallbackInfo &info)
 		return info.Env().Undefined();
 
 	/* Guess we forgot about alignment, not sure where this goes */
-	uint32_t alignment = response[7].value_union.ui32;
+	//uint32_t alignment = response[7].value_union.ui32;
 
 	Napi::Object positionObj = Napi::Object::New(info.Env());
 	positionObj.Set("x", Napi::Number::New(info.Env(), response[1].value_union.fp32));

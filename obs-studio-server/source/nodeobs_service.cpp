@@ -25,13 +25,15 @@
 #include "osn-error.hpp"
 #include "shared.hpp"
 #include "utility.hpp"
+#include <osn-video.hpp>
 
 #ifdef __APPLE__
 #include <sys/types.h>
 #include <sys/stat.h>
 #endif
 
-obs_output_t *streamingOutput = nullptr;
+std::vector<obs_output_t *> streamingOutput = {nullptr, nullptr};
+
 obs_output_t *recordingOutput = nullptr;
 obs_output_t *replayBufferOutput = nullptr;
 
@@ -40,13 +42,16 @@ obs_output_t *virtualWebcamOutput = nullptr;
 obs_encoder_t *audioSimpleStreamingEncoder = nullptr;
 obs_encoder_t *audioSimpleRecordingEncoder = nullptr;
 obs_encoder_t *audioAdvancedStreamingEncoder = nullptr;
-obs_encoder_t *videoStreamingEncoder = nullptr;
+std::vector<obs_encoder_t *> videoStreamingEncoder = {nullptr, nullptr};
+std::vector<obs_video_info_t *> videoInfo = {nullptr, nullptr};
 obs_encoder_t *videoRecordingEncoder = nullptr;
-obs_service_t *service = nullptr;
+std::vector<obs_service_t *> services = {nullptr, nullptr};
+
 obs_encoder_t *streamArchiveEncVod = nullptr;
 
 obs_encoder_t *aacTracks[MAX_AUDIO_MIXES];
 std::string aacEncodersID[MAX_AUDIO_MIXES];
+obs_video_info *base_canvas = nullptr;
 
 std::string aacSimpleRecEncID;
 std::string aacStreamEncID;
@@ -57,7 +62,7 @@ bool usingRecordingPreset = true;
 bool recordingConfigured = false;
 bool ffmpegOutput = false;
 bool lowCPUx264 = false;
-bool isStreaming = false;
+std::vector<bool> isStreaming = {false, false};
 bool isRecording = false;
 bool isReplayBufferActive = false;
 bool rpUsesRec = false;
@@ -81,6 +86,7 @@ void OBS_service::Register(ipc::server &srv)
 
 	cls->register_function(std::make_shared<ipc::function>("OBS_service_resetAudioContext", std::vector<ipc::type>{}, OBS_service_resetAudioContext));
 	cls->register_function(std::make_shared<ipc::function>("OBS_service_resetVideoContext", std::vector<ipc::type>{}, OBS_service_resetVideoContext));
+	cls->register_function(std::make_shared<ipc::function>("OBS_service_setVideoInfo", std::vector<ipc::type>{}, OBS_service_setVideoInfo));
 	cls->register_function(std::make_shared<ipc::function>("OBS_service_startStreaming", std::vector<ipc::type>{}, OBS_service_startStreaming));
 	cls->register_function(std::make_shared<ipc::function>("OBS_service_startRecording", std::vector<ipc::type>{}, OBS_service_startRecording));
 	cls->register_function(std::make_shared<ipc::function>("OBS_service_startReplayBuffer", std::vector<ipc::type>{}, OBS_service_startReplayBuffer));
@@ -129,15 +135,25 @@ void OBS_service::OBS_service_resetVideoContext(void *data, const int64_t id, co
 	AUTO_DEBUG;
 }
 
+void OBS_service::OBS_service_setVideoInfo(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
+{
+	obs_video_info *canvas = osn::Video::Manager::GetInstance().find(args[0].value_union.ui64);
+	setVideoInfo(canvas, static_cast<StreamServiceId>(args[1].value_union.i64));
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+
+	AUTO_DEBUG;
+}
 void OBS_service::OBS_service_startStreaming(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
-	if (isStreamingOutputActive()) {
+	StreamServiceId serviceid = static_cast<StreamServiceId>(args[0].value_union.i64);
+
+	if (isStreamingOutputActive(serviceid)) {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 		AUTO_DEBUG;
 		return;
 	}
 
-	if (!startStreaming()) {
+	if (!startStreaming(serviceid)) {
 		PRETTY_ERROR_RETURN(ErrorCode::Error, "Failed to start streaming!");
 	} else {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
@@ -180,7 +196,7 @@ void OBS_service::OBS_service_startReplayBuffer(void *data, const int64_t id, co
 
 void OBS_service::OBS_service_stopStreaming(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
-	stopStreaming((bool)args[0].value_union.i32);
+	stopStreaming((bool)args[0].value_union.i32, static_cast<StreamServiceId>(args[1].value_union.i64));
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }
@@ -401,11 +417,12 @@ static const size_t numVals = sizeof(vals) / sizeof(double);
 int OBS_service::resetVideoContext(bool reload, bool retryWithDefaultConf)
 {
 	obs_video_info ovi = prepareOBSVideoInfo(reload, false);
+	int errorcode = OBS_VIDEO_NOT_SUPPORTED;
 
 	config_save_safe(ConfigManager::getInstance().getBasic(), "tmp", nullptr);
 
 	blog(LOG_INFO, "About to reset the video context with the user configuration");
-	int errorcode = doResetVideoContext(ovi);
+	errorcode = doResetVideoContext(&ovi);
 
 	// OBS_VIDEO_NOT_SUPPORTED: any of the following functions fails:
 	//   gl_init_extensions,
@@ -425,7 +442,7 @@ int OBS_service::resetVideoContext(bool reload, bool retryWithDefaultConf)
 		ovi = prepareOBSVideoInfo(false, true);
 
 		blog(LOG_INFO, "About to reset the video context with the default configuration");
-		errorcode = doResetVideoContext(ovi);
+		errorcode = doResetVideoContext(&ovi);
 		if (errorcode == OBS_VIDEO_SUCCESS) {
 			keepFallbackVideoConfig(ovi);
 		} else {
@@ -442,15 +459,26 @@ int OBS_service::resetVideoContext(bool reload, bool retryWithDefaultConf)
 	return errorcode;
 }
 
-int OBS_service::doResetVideoContext(const obs_video_info &ovi)
+void OBS_service::stopConnectingOutputs()
 {
+	for (auto &itr : streamingOutput) {
+		if (obs_output_connecting(itr))
+			obs_output_force_stop(itr);
+	}
+}
+
+int OBS_service::doResetVideoContext(obs_video_info *ovi)
+{
+	// Cannot disrupt video ptr inside obs while outputs are connecting
+	stopConnectingOutputs();
+
 	try {
-		// obs_reset_video may change some parameters. For example,
-		// ovi->output_width &= 0xFFFFFFFC;
-		// ovi->output_height &= 0xFFFFFFFE;
-		// So just make a temporary copy and then forget about it.
-		obs_video_info tmp = ovi;
-		return obs_reset_video(&tmp);
+		if (!base_canvas)
+			base_canvas = obs_create_video_info();
+
+		int ret = obs_set_video_info(base_canvas, ovi);
+
+		return ret;
 	} catch (const char *error) {
 		blog(LOG_ERROR, error);
 		return OBS_VIDEO_FAIL;
@@ -474,7 +502,7 @@ static inline enum video_colorspace GetVideoColorSpaceFromName(const char *name)
 
 obs_video_info OBS_service::prepareOBSVideoInfo(bool reload, bool defaultConf)
 {
-	obs_video_info ovi = {};
+	obs_video_info ovi = {0};
 #ifdef _WIN32
 	ovi.graphics_module = "libobs-d3d11.dll";
 #else
@@ -541,8 +569,10 @@ obs_video_info OBS_service::prepareOBSVideoInfo(bool reload, bool defaultConf)
 			ovi.output_height = ovi.base_height;
 		}
 
-		ovi.output_width = 1280;
-		ovi.output_height = 720;
+		if (ovi.output_width == 0 || ovi.output_height == 0) {
+			ovi.output_width = 1280;
+			ovi.output_height = 720;
+		}
 
 		if (!defaultConf) {
 			config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "OutputCX", ovi.output_width);
@@ -626,6 +656,11 @@ void OBS_service::keepFallbackVideoConfig(const obs_video_info &ovi)
 	config_save_safe(ConfigManager::getInstance().getBasic(), "tmp", nullptr);
 }
 
+void OBS_service::setVideoInfo(obs_video_info *ovi, StreamServiceId serviceId)
+{
+	videoInfo[serviceId] = ovi;
+}
+
 const char *FindAudioEncoderFromCodec(const char *type)
 {
 	const char *alt_enc_id = nullptr;
@@ -665,7 +700,7 @@ bool OBS_service::createAudioEncoder(obs_encoder_t **audioEncoder, std::string &
 	return false;
 }
 
-bool OBS_service::createVideoStreamingEncoder()
+bool OBS_service::createVideoStreamingEncoder(StreamServiceId serviceId)
 {
 	const char *encoder = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "StreamEncoder");
 
@@ -673,16 +708,17 @@ bool OBS_service::createVideoStreamingEncoder()
 		encoder = "obs_x264";
 	}
 
-	if (videoStreamingEncoder != NULL) {
-		obs_encoder_release(videoStreamingEncoder);
+	if (videoStreamingEncoder[serviceId] != NULL) {
+		obs_encoder_release(videoStreamingEncoder[serviceId]);
 	}
 
-	videoStreamingEncoder = obs_video_encoder_create(encoder, "streaming_h264", nullptr, nullptr);
-	if (videoStreamingEncoder == nullptr) {
+	videoStreamingEncoder[serviceId] = obs_video_encoder_create(encoder, "streaming_h264", nullptr, nullptr);
+	if (videoStreamingEncoder[serviceId] == nullptr) {
 		return false;
 	}
 
-	updateVideoStreamingEncoder(true);
+	updateVideoStreamingEncoder(true, serviceId);
+
 	return true;
 }
 
@@ -732,7 +768,7 @@ static void erase_ch(struct dstr *str, size_t pos)
 	*str = new_str;
 }
 
-char *os_generate_formatted_filename(const char *extension, bool space, const char *format)
+char *osn_generate_formatted_filename(const char *extension, bool space, const char *format, int width, int height)
 {
 	time_t now = time(0);
 	struct tm *cur_time;
@@ -784,6 +820,14 @@ char *os_generate_formatted_filename(const char *extension, bool space, const ch
 	if (!space)
 		dstr_replace(&sf, " ", "_");
 
+	if (width > 0 && height > 0) {
+		std::string resolution = std::to_string(width) + std::string("x") + std::to_string(height) + std::string("-");
+		dstr_cat(&sf, resolution.c_str());
+
+		dstr_cat_ch(&sf, (char)(rand() % 9 + 0x30));
+		dstr_cat_ch(&sf, (char)(rand() % 9 + 0x30));
+	}
+
 	dstr_cat_ch(&sf, '.');
 	dstr_cat(&sf, extension);
 	dstr_free(&c);
@@ -794,17 +838,16 @@ char *os_generate_formatted_filename(const char *extension, bool space, const ch
 	return sf.array;
 }
 
-std::string GenerateSpecifiedFilename(const char *extension, bool noSpace, const char *format)
+std::string GenerateSpecifiedFilename(const char *extension, bool noSpace, const char *format, int width, int height)
 {
-	char *filename = os_generate_formatted_filename(extension, !noSpace, format);
+	char *filename = osn_generate_formatted_filename(extension, !noSpace, format, width, height);
 	if (filename == nullptr) {
 		throw "Invalid filename";
 	}
 
 	std::string result(filename);
-
+	result = result;
 	bfree(filename);
-
 	return result;
 }
 
@@ -856,6 +899,7 @@ bool OBS_service::createVideoRecordingEncoder()
 	if (videoRecordingEncoder != NULL) {
 		obs_encoder_release(videoRecordingEncoder);
 	}
+
 	videoRecordingEncoder = obs_video_encoder_create("obs_x264", "simple_h264_recording", nullptr, nullptr);
 	if (videoRecordingEncoder == nullptr) {
 		return false;
@@ -864,7 +908,7 @@ bool OBS_service::createVideoRecordingEncoder()
 	return true;
 }
 
-bool OBS_service::createService()
+bool OBS_service::createService(StreamServiceId serviceId)
 {
 	const char *type = nullptr;
 	obs_data_t *data = nullptr;
@@ -873,9 +917,9 @@ bool OBS_service::createService()
 	struct stat buffer;
 
 	auto CreateNewService = [&]() {
-		service = obs_service_create("rtmp_common", "default_service", nullptr, nullptr);
+		obs_service_t *service = obs_service_create("rtmp_common", "default_service", nullptr, nullptr);
 		if (service == nullptr) {
-			return false;
+			return (obs_service_t *)nullptr;
 		}
 
 		data = obs_data_create();
@@ -889,18 +933,19 @@ bool OBS_service::createService()
 
 		obs_data_set_string(data, "type", obs_service_get_type(service));
 		obs_data_set_obj(data, "settings", settings);
+		return service;
 	};
 
-	bool fileExist = (os_stat(ConfigManager::getInstance().getService().c_str(), &buffer) == 0);
+	bool fileExist = (os_stat(ConfigManager::getInstance().getService(serviceId).c_str(), &buffer) == 0);
 	if (!fileExist) {
-		CreateNewService();
+		services[serviceId] = CreateNewService();
 
 	} else {
 		// Verify if the service.json was corrupted
-		data = obs_data_create_from_json_file_safe(ConfigManager::getInstance().getService().c_str(), "bak");
+		data = obs_data_create_from_json_file_safe(ConfigManager::getInstance().getService(serviceId).c_str(), "bak");
 		if (data == nullptr) {
 			blog(LOG_WARNING, "Failed to create data from service json, using default properties!");
-			CreateNewService();
+			services[serviceId] = CreateNewService();
 		} else {
 			obs_data_set_default_string(data, "type", "rtmp_common");
 			type = obs_data_get_string(data, "type");
@@ -915,12 +960,12 @@ bool OBS_service::createService()
 				obs_data_release(settings);
 
 				blog(LOG_WARNING, "Failed to retrieve a valid service type from the data, using default properties!");
-				CreateNewService();
+				services[serviceId] = CreateNewService();
 
 				// Create the service normally since the service.json info looks valid
 			} else {
-				service = obs_service_create(type, "default_service", settings, hotkey_data);
-				if (service == nullptr) {
+				services[serviceId] = obs_service_create(type, "default_service", settings, hotkey_data);
+				if (services[serviceId] == nullptr) {
 					obs_data_release(data);
 					obs_data_release(hotkey_data);
 					obs_data_release(settings);
@@ -933,8 +978,8 @@ bool OBS_service::createService()
 		}
 	}
 
-	if (!obs_data_save_json_safe(data, ConfigManager::getInstance().getService().c_str(), "tmp", "bak")) {
-		blog(LOG_WARNING, "Failed to save service %s", ConfigManager::getInstance().getService().c_str());
+	if (!obs_data_save_json_safe(data, ConfigManager::getInstance().getService(serviceId).c_str(), "tmp", "bak")) {
+		blog(LOG_WARNING, "Failed to save service %s", ConfigManager::getInstance().getService(serviceId).c_str());
 	}
 
 	obs_data_release(settings);
@@ -943,18 +988,30 @@ bool OBS_service::createService()
 	return true;
 }
 
-bool OBS_service::createStreamingOutput(void)
+std::string OBS_service::getStreamingOutputName(StreamServiceId serviceId)
 {
-	const char *type = obs_service_get_output_type(service);
+	switch (serviceId) {
+	case StreamServiceId::Main:
+		return "simple_stream";
+	case StreamServiceId::Second:
+		return "simple_stream_second";
+	default:
+		return "simple_stream";
+	}
+}
+
+bool OBS_service::createStreamingOutput(StreamServiceId serviceId)
+{
+	const char *type = obs_service_get_output_type(services[serviceId]);
 	if (!type)
 		type = "rtmp_output";
 
-	streamingOutput = obs_output_create(type, "simple_stream", nullptr, nullptr);
-	if (streamingOutput == nullptr) {
+	streamingOutput[serviceId] = obs_output_create(type, getStreamingOutputName(serviceId).c_str(), nullptr, nullptr);
+	if (streamingOutput[serviceId] == nullptr) {
 		return false;
 	}
 
-	connectOutputSignals();
+	connectOutputSignals(serviceId);
 
 	return true;
 }
@@ -966,7 +1023,7 @@ bool OBS_service::createRecordingOutput(void)
 		return false;
 	}
 
-	connectOutputSignals();
+	connectOutputSignals(StreamServiceId::Main);
 
 	return true;
 }
@@ -974,7 +1031,7 @@ bool OBS_service::createRecordingOutput(void)
 void OBS_service::createReplayBufferOutput(void)
 {
 	replayBufferOutput = obs_output_create("replay_buffer", "ReplayBuffer", nullptr, nullptr);
-	connectOutputSignals();
+	connectOutputSignals(StreamServiceId::Main);
 }
 
 void OBS_service::setupAudioEncoder(void)
@@ -998,58 +1055,58 @@ void OBS_service::clearAudioEncoder(void)
 	}
 }
 
-void OBS_service::updateStreamingEncoders(bool isSimpleMode)
+void OBS_service::updateStreamingEncoders(bool isSimpleMode, StreamServiceId serviceId)
 {
-	if (!isStreaming) {
-		updateAudioStreamingEncoder(isSimpleMode);
-		updateVideoStreamingEncoder(isSimpleMode);
+	if (!isStreaming[serviceId]) {
+		updateAudioStreamingEncoder(isSimpleMode, serviceId);
+		updateVideoStreamingEncoder(isSimpleMode, serviceId);
 	}
 }
 
-bool OBS_service::startStreaming(void)
+bool OBS_service::startStreaming(StreamServiceId serviceId)
 {
-	const char *type = obs_service_get_output_type(service);
+	const char *type = obs_service_get_output_type(services[serviceId]);
 	if (!type)
 		type = "rtmp_output";
 
-	if (streamingOutput)
-		obs_output_release(streamingOutput);
+	if (streamingOutput[serviceId])
+		obs_output_release(streamingOutput[serviceId]);
 
-	streamingOutput = obs_output_create(type, "simple_stream", nullptr, nullptr);
-	if (!streamingOutput)
+	streamingOutput[serviceId] = obs_output_create(type, getStreamingOutputName(serviceId).c_str(), nullptr, nullptr);
+	if (!streamingOutput[serviceId])
 		return false;
 
-	connectOutputSignals();
+	connectOutputSignals(serviceId);
 
 	std::string currentOutputMode = config_get_string(ConfigManager::getInstance().getBasic(), "Output", "Mode");
 	bool isSimpleMode = currentOutputMode.compare("Simple") == 0;
 
-	updateStreamingEncoders(isSimpleMode);
-	updateService();
-	updateStreamingOutput();
+	updateStreamingEncoders(isSimpleMode, serviceId);
+	updateService(serviceId);
+	updateStreamingOutput(serviceId);
 
-	obs_output_set_video_encoder(streamingOutput, videoStreamingEncoder);
+	obs_output_set_video_encoder(streamingOutput[serviceId], videoStreamingEncoder[serviceId]);
 
 	if (isSimpleMode)
-		obs_output_set_audio_encoder(streamingOutput, audioSimpleStreamingEncoder, 0);
+		obs_output_set_audio_encoder(streamingOutput[serviceId], audioSimpleStreamingEncoder, 0);
 	else
-		obs_output_set_audio_encoder(streamingOutput, audioAdvancedStreamingEncoder, 0);
+		obs_output_set_audio_encoder(streamingOutput[serviceId], audioAdvancedStreamingEncoder, 0);
 
 	twitchSoundtrackEnabled = startTwitchSoundtrackAudio();
 	if (!twitchSoundtrackEnabled)
 		setupVodTrack(isSimpleMode);
 
 	outdated_driver_error::instance()->set_active(true);
-	isStreaming = obs_output_start(streamingOutput);
+	isStreaming[serviceId] = obs_output_start(streamingOutput[serviceId]);
 	outdated_driver_error::instance()->set_active(false);
-	if (!isStreaming) {
+	if (!isStreaming[serviceId]) {
 		SignalInfo signal = SignalInfo("streaming", "stop");
 		std::string outdated_driver_error = outdated_driver_error::instance()->get_error();
 		if (outdated_driver_error.size() != 0) {
 			signal.setErrorMessage(outdated_driver_error);
 			signal.setCode(OBS_OUTPUT_OUTDATED_DRIVER);
 		} else {
-			const char *error = obs_output_get_last_error(streamingOutput);
+			const char *error = obs_output_get_last_error(streamingOutput[serviceId]);
 			if (error) {
 				signal.setErrorMessage(error);
 				blog(LOG_INFO, "Last streaming error: %s", error);
@@ -1060,17 +1117,17 @@ bool OBS_service::startStreaming(void)
 		std::unique_lock<std::mutex> ulock(signalMutex);
 		outputSignal.push(signal);
 	}
-	return isStreaming;
+	return isStreaming[serviceId];
 }
 
-void OBS_service::updateAudioStreamingEncoder(bool isSimpleMode)
+void OBS_service::updateAudioStreamingEncoder(bool isSimpleMode, StreamServiceId serviceId)
 {
 	const char *codec = nullptr;
 
-	if (streamingOutput) {
-		codec = obs_output_get_supported_audio_codecs(streamingOutput);
+	if (streamingOutput[serviceId]) {
+		codec = obs_output_get_supported_audio_codecs(streamingOutput[serviceId]);
 	} else {
-		const char *type = obs_service_get_output_type(service);
+		const char *type = obs_service_get_output_type(services[serviceId]);
 		if (!type)
 			type = "rtmp_output";
 
@@ -1222,15 +1279,13 @@ void OBS_service::updateVideoRecordingEncoder(bool isSimpleMode)
 		}
 	}
 	if (obs_get_multiple_rendering()) {
-		obs_encoder_set_video_mix(videoRecordingEncoder, OBS_RECORDING_VIDEO_RENDERING);
-		obs_encoder_set_video(videoRecordingEncoder, obs_get_record_video());
+		obs_encoder_set_video_mix(videoRecordingEncoder, obs_video_mix_get(0, OBS_RECORDING_VIDEO_RENDERING));
 	} else {
-		obs_encoder_set_video_mix(videoRecordingEncoder, OBS_MAIN_VIDEO_RENDERING);
-		obs_encoder_set_video(videoRecordingEncoder, obs_get_video());
+		obs_encoder_set_video_mix(videoRecordingEncoder, obs_video_mix_get(0, OBS_MAIN_VIDEO_RENDERING));
 	}
 }
 
-bool OBS_service::updateRecordingEncoders(bool isSimpleMode)
+bool OBS_service::updateRecordingEncoders(bool isSimpleMode, StreamServiceId serviceId)
 {
 	std::string simpleQuality = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecQuality");
 	std::string advancedQuality = config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "RecEncoder");
@@ -1244,8 +1299,8 @@ bool OBS_service::updateRecordingEncoders(bool isSimpleMode)
 		ffmpegOutput = false;
 
 		if (isSimpleMode) {
-			if (!isStreaming)
-				updateAudioStreamingEncoder(isSimpleMode);
+			if (!isStreaming[serviceId])
+				updateAudioStreamingEncoder(isSimpleMode, serviceId);
 
 			if (!obs_get_multiple_rendering())
 				useStreamEncoder = true;
@@ -1258,17 +1313,15 @@ bool OBS_service::updateRecordingEncoders(bool isSimpleMode)
 			updateAudioRecordingEncoder(isSimpleMode);
 		}
 
-		if (!isStreaming)
-			updateVideoStreamingEncoder(isSimpleMode);
+		if (!isStreaming[serviceId])
+			updateVideoStreamingEncoder(isSimpleMode, serviceId);
 
 		if (!obs_get_multiple_rendering()) {
-			obs_encoder_set_video_mix(videoStreamingEncoder, OBS_MAIN_VIDEO_RENDERING);
-			obs_encoder_set_video(videoStreamingEncoder, obs_get_video());
+			obs_encoder_set_video_mix(videoStreamingEncoder[serviceId], obs_video_mix_get(0, OBS_MAIN_VIDEO_RENDERING));
 			useStreamEncoder = true;
 		} else {
-			duplicate_encoder(&videoRecordingEncoder, videoStreamingEncoder);
-			obs_encoder_set_video_mix(videoRecordingEncoder, OBS_RECORDING_VIDEO_RENDERING);
-			obs_encoder_set_video(videoRecordingEncoder, obs_get_record_video());
+			duplicate_encoder(&videoRecordingEncoder, videoStreamingEncoder[serviceId]);
+			obs_encoder_set_video_mix(videoRecordingEncoder, obs_video_mix_get(0, OBS_RECORDING_VIDEO_RENDERING));
 			useStreamEncoder = false;
 		}
 	} else {
@@ -1285,11 +1338,7 @@ bool OBS_service::startRecording(void)
 	if (recordingOutput)
 		obs_output_release(recordingOutput);
 
-	recordingOutput = obs_output_create("ffmpeg_muxer", "simple_file_output", nullptr, nullptr);
-	if (!recordingOutput)
-		return false;
-
-	connectOutputSignals();
+	createRecordingOutput();
 
 	std::string currentOutputMode = config_get_string(ConfigManager::getInstance().getBasic(), "Output", "Mode");
 	bool isSimpleMode = currentOutputMode.compare("Simple") == 0;
@@ -1304,12 +1353,12 @@ bool OBS_service::startRecording(void)
 	} else {
 		if (!(obs_get_multiple_rendering() && obs_get_replay_buffer_rendering_mode() == OBS_RECORDING_REPLAY_BUFFER_RENDERING &&
 		      isReplayBufferActive)) {
-			useStreamEncoder = updateRecordingEncoders(isSimpleMode);
+			useStreamEncoder = updateRecordingEncoders(isSimpleMode, StreamServiceId::Main);
 		}
 	}
 	updateFfmpegOutput(isSimpleMode, recordingOutput);
 
-	obs_output_set_video_encoder(recordingOutput, useStreamEncoder ? videoStreamingEncoder : videoRecordingEncoder);
+	obs_output_set_video_encoder(recordingOutput, useStreamEncoder ? videoStreamingEncoder[0] : videoRecordingEncoder);
 	if (isSimpleMode) {
 		obs_output_set_audio_encoder(recordingOutput, useStreamEncoder ? audioSimpleStreamingEncoder : audioSimpleRecordingEncoder, 0);
 	} else {
@@ -1327,6 +1376,7 @@ bool OBS_service::startRecording(void)
 	isRecording = obs_output_start(recordingOutput);
 	outdated_driver_error::instance()->set_active(false);
 	if (!isRecording) {
+		blog(LOG_INFO, "Recording start failed recording error");
 		SignalInfo signal = SignalInfo("recording", "stop");
 		std::string outdated_driver_error = outdated_driver_error::instance()->get_error();
 		if (outdated_driver_error.size() != 0) {
@@ -1346,23 +1396,23 @@ bool OBS_service::startRecording(void)
 	return isRecording;
 }
 
-void OBS_service::stopStreaming(bool forceStop)
+void OBS_service::stopStreaming(bool forceStop, StreamServiceId serviceId)
 {
-	if (!obs_output_active(streamingOutput) && !obs_output_reconnecting(streamingOutput)) {
+	if (!obs_output_active(streamingOutput[serviceId]) && !obs_output_reconnecting(streamingOutput[serviceId])) {
 		blog(LOG_WARNING, "stopStreaming was ignored as stream not active or reconnecting");
 		return;
 	}
 
 	if (forceStop)
-		obs_output_force_stop(streamingOutput);
+		obs_output_force_stop(streamingOutput[serviceId]);
 	else
-		obs_output_stop(streamingOutput);
+		obs_output_stop(streamingOutput[serviceId]);
 
 	waitReleaseWorker();
 
-	releaseWorker = std::thread(releaseStreamingOutput);
+	releaseWorker = std::thread(releaseStreamingOutput, serviceId);
 
-	isStreaming = false;
+	isStreaming[serviceId] = false;
 }
 
 void OBS_service::stopRecording(void)
@@ -1455,22 +1505,22 @@ bool OBS_service::startReplayBuffer(void)
 	if (!replayBufferOutput)
 		return false;
 
-	connectOutputSignals();
+	connectOutputSignals(StreamServiceId::Main);
 
 	std::string currentOutputMode = config_get_string(ConfigManager::getInstance().getBasic(), "Output", "Mode");
 	bool isSimpleMode = currentOutputMode.compare("Simple") == 0;
 	bool useStreamEncoder = false;
 
 	if (obs_get_multiple_rendering() && obs_get_replay_buffer_rendering_mode() == OBS_STREAMING_REPLAY_BUFFER_RENDERING) {
-		updateStreamingEncoders(isSimpleMode);
+		updateStreamingEncoders(isSimpleMode, StreamServiceId::Main);
 		useStreamEncoder = true;
 		rpUsesStream = true;
 	} else if (obs_get_multiple_rendering() && obs_get_replay_buffer_rendering_mode() == OBS_RECORDING_REPLAY_BUFFER_RENDERING) {
 		if (!isRecording)
-			updateRecordingEncoders(isSimpleMode);
+			updateRecordingEncoders(isSimpleMode, StreamServiceId::Main);
 		rpUsesRec = true;
 	} else {
-		useStreamEncoder = isRecording ? !usingRecordingPreset : updateRecordingEncoders(isSimpleMode);
+		useStreamEncoder = isRecording ? !usingRecordingPreset : updateRecordingEncoders(isSimpleMode, StreamServiceId::Main);
 
 		rpUsesRec = true;
 	}
@@ -1478,7 +1528,7 @@ bool OBS_service::startReplayBuffer(void)
 	updateFfmpegOutput(isSimpleMode, replayBufferOutput);
 	updateReplayBufferOutput(isSimpleMode, useStreamEncoder);
 
-	obs_output_set_video_encoder(replayBufferOutput, useStreamEncoder ? videoStreamingEncoder : videoRecordingEncoder);
+	obs_output_set_video_encoder(replayBufferOutput, useStreamEncoder ? videoStreamingEncoder[0] : videoRecordingEncoder);
 	if (isSimpleMode) {
 		obs_output_set_audio_encoder(replayBufferOutput, useStreamEncoder ? audioSimpleStreamingEncoder : audioSimpleRecordingEncoder, 0);
 	} else {
@@ -1529,19 +1579,30 @@ void OBS_service::stopReplayBuffer(bool forceStop)
 		obs_output_stop(replayBufferOutput);
 }
 
-obs_service_t *OBS_service::getService(void)
+obs_service_t *OBS_service::getService(StreamServiceId serviceId)
 {
-	const char *serviceType = obs_service_get_type(service);
-	return service;
+	if (serviceId <= services.size() && obs_service_get_type(services[serviceId]))
+		return services[serviceId];
+	else
+		return nullptr;
 }
 
-void OBS_service::setService(obs_service_t *newService)
+void OBS_service::setService(obs_service_t *newService, StreamServiceId serviceId)
 {
-	obs_service_release(service);
-	service = newService;
+	if (serviceId >= services.size())
+		return;
+
+	obs_service_release(services[serviceId]);
+	services[serviceId] = newService;
 }
 
 void OBS_service::saveService(void)
+{
+	saveService(services[StreamServiceId::Main], StreamServiceId::Main);
+	saveService(services[StreamServiceId::Second], StreamServiceId::Second);
+}
+
+void OBS_service::saveService(obs_service_t *service, StreamServiceId serviceId)
 {
 	if (!service)
 		return;
@@ -1555,20 +1616,18 @@ void OBS_service::saveService(void)
 		obs_data_set_string(data, "type", serviceType);
 		obs_data_set_obj(data, "settings", settings);
 
-		if (!obs_data_save_json_safe(data, ConfigManager::getInstance().getService().c_str(), "tmp", "bak"))
+		if (!obs_data_save_json_safe(data, ConfigManager::getInstance().getService(serviceId).c_str(), "tmp", "bak"))
 			blog(LOG_WARNING, "Failed to save service");
 
 		obs_service_update(service, settings);
-
-		serviceType = obs_service_get_type(service);
 	}
 	obs_data_release(settings);
 	obs_data_release(data);
 }
 
-bool OBS_service::isStreamingOutputActive(void)
+bool OBS_service::isStreamingOutputActive(StreamServiceId serviceId)
 {
-	return obs_output_active(streamingOutput);
+	return obs_output_active(streamingOutput[serviceId]);
 }
 
 bool OBS_service::isRecordingOutputActive(void)
@@ -1612,9 +1671,9 @@ bool OBS_service::EncoderAvailable(const char *encoder)
 	return false;
 }
 
-void OBS_service::updateVideoStreamingEncoder(bool isSimpleMode)
+void OBS_service::updateVideoStreamingEncoder(bool isSimpleMode, StreamServiceId serviceId)
 {
-	if (videoStreamingEncoder && obs_encoder_active(videoStreamingEncoder))
+	if (videoStreamingEncoder[serviceId] && obs_encoder_active(videoStreamingEncoder[serviceId]))
 		return;
 
 	if (isSimpleMode) {
@@ -1658,11 +1717,11 @@ void OBS_service::updateVideoStreamingEncoder(bool isSimpleMode)
 			if (presetType)
 				preset = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", presetType);
 
-			if (videoStreamingEncoder != nullptr) {
-				obs_encoder_release(videoStreamingEncoder);
-				videoStreamingEncoder = nullptr;
+			if (videoStreamingEncoder[serviceId] != nullptr) {
+				obs_encoder_release(videoStreamingEncoder[serviceId]);
+				videoStreamingEncoder[serviceId] = nullptr;
 			}
-			videoStreamingEncoder = obs_video_encoder_create(encoderID, "streaming_h264", nullptr, nullptr);
+			videoStreamingEncoder[serviceId] = obs_video_encoder_create(encoderID, "streaming_h264", nullptr, nullptr);
 		}
 
 		if (videoBitrate == 0) {
@@ -1682,9 +1741,7 @@ void OBS_service::updateVideoStreamingEncoder(bool isSimpleMode)
 		obs_data_set_string(aacSettings, "rate_control", "CBR");
 		obs_data_set_int(aacSettings, "bitrate", audioBitrate);
 
-		const char *url = obs_service_get_url(service);
-
-		obs_service_apply_encoder_settings(service, h264Settings, aacSettings);
+		obs_service_apply_encoder_settings(services[serviceId], h264Settings, aacSettings);
 
 		if (advanced && !enforceBitrate) {
 			obs_data_set_int(h264Settings, "bitrate", videoBitrate);
@@ -1701,7 +1758,7 @@ void OBS_service::updateVideoStreamingEncoder(bool isSimpleMode)
 		case VIDEO_FORMAT_P010:
 			break;
 		default:
-			obs_encoder_set_preferred_video_format(videoStreamingEncoder, VIDEO_FORMAT_NV12);
+			obs_encoder_set_preferred_video_format(videoStreamingEncoder[serviceId], VIDEO_FORMAT_NV12);
 		}
 
 		if (strcmp(encoder, APPLE_SOFTWARE_VIDEO_ENCODER) == 0 || strcmp(encoder, APPLE_HARDWARE_VIDEO_ENCODER) == 0 ||
@@ -1711,7 +1768,7 @@ void OBS_service::updateVideoStreamingEncoder(bool isSimpleMode)
 				obs_data_set_string(h264Settings, "profile", profile);
 		}
 
-		obs_encoder_update(videoStreamingEncoder, h264Settings);
+		obs_encoder_update(videoStreamingEncoder[serviceId], h264Settings);
 		obs_encoder_update(audioSimpleStreamingEncoder, aacSettings);
 
 		obs_data_release(h264Settings);
@@ -1730,16 +1787,14 @@ void OBS_service::updateVideoStreamingEncoder(bool isSimpleMode)
 					cx = 0;
 					cy = 0;
 				}
-				obs_encoder_set_scaled_size(videoStreamingEncoder, cx, cy);
+				obs_encoder_set_scaled_size(videoStreamingEncoder[serviceId], cx, cy);
 			}
 		}
 	}
 	if (obs_get_multiple_rendering()) {
-		obs_encoder_set_video_mix(videoStreamingEncoder, OBS_STREAMING_VIDEO_RENDERING);
-		obs_encoder_set_video(videoStreamingEncoder, obs_get_stream_video());
+		obs_encoder_set_video_mix(videoStreamingEncoder[serviceId], obs_video_mix_get(videoInfo[serviceId], OBS_STREAMING_VIDEO_RENDERING));
 	} else {
-		obs_encoder_set_video_mix(videoStreamingEncoder, OBS_MAIN_VIDEO_RENDERING);
-		obs_encoder_set_video(videoStreamingEncoder, obs_get_video());
+		obs_encoder_set_video_mix(videoStreamingEncoder[serviceId], obs_video_mix_get(videoInfo[serviceId], OBS_MAIN_VIDEO_RENDERING));
 	}
 }
 
@@ -1758,23 +1813,23 @@ std::string OBS_service::GetDefaultVideoSavePath(void)
 #endif
 }
 
-void OBS_service::updateService(void)
+void OBS_service::updateService(StreamServiceId serviceId)
 {
-	obs_data_t *settings = obs_service_get_settings(service);
+	obs_data_t *settings = obs_service_get_settings(services[serviceId]);
 	const char *platform = obs_data_get_string(settings, "service");
 
-	const char *server = obs_service_get_url(service);
+	const char *server = obs_service_get_url(services[serviceId]);
 
 	if (platform && strcmp(platform, "Twitch") == 0) {
 		if (!server || strcmp(server, "") == 0) {
 			server = "auto";
 			obs_data_set_string(settings, "server", server);
-			obs_service_update(service, settings);
+			obs_service_update(services[serviceId], settings);
 		}
 	}
 
 	obs_data_release(settings);
-	obs_output_set_service(streamingOutput, service);
+	obs_output_set_service(streamingOutput[serviceId], services[serviceId]);
 }
 
 void OBS_service::updateFfmpegOutput(bool isSimpleMode, obs_output_t *output)
@@ -1818,7 +1873,7 @@ void OBS_service::updateFfmpegOutput(bool isSimpleMode, obs_output_t *output)
 		strPath += "/";
 
 	if (fileNameFormat != NULL && format != NULL)
-		strPath += GenerateSpecifiedFilename(ffmpegOutput ? "avi" : format, noSpace, fileNameFormat);
+		strPath += GenerateSpecifiedFilename(ffmpegOutput ? "avi" : format, noSpace, fileNameFormat, 0, 0);
 
 	if (!overwriteIfExists)
 		FindBestFilename(strPath, noSpace);
@@ -1882,7 +1937,8 @@ void OBS_service::LoadRecordingPreset_Lossless()
 		obs_output_release(recordingOutput);
 	}
 	recordingOutput = obs_output_create("ffmpeg_output", "simple_ffmpeg_output", nullptr, nullptr);
-	connectOutputSignals();
+
+	connectOutputSignals(StreamServiceId::Main);
 	if (!recordingOutput)
 		throw "Failed to create recording FFmpeg output "
 		      "(simple output)";
@@ -1894,6 +1950,7 @@ void OBS_service::LoadRecordingPreset_Lossless()
 
 	obs_output_set_mixers(recordingOutput, 1);
 	obs_output_update(recordingOutput, settings);
+
 	obs_data_release(settings);
 }
 
@@ -1955,7 +2012,7 @@ void OBS_service::UpdateFFmpegCustomOutput(void)
 		obs_output_release(recordingOutput);
 	}
 	recordingOutput = obs_output_create("ffmpeg_output", "simple_ffmpeg_output", nullptr, nullptr);
-	connectOutputSignals();
+	connectOutputSignals(StreamServiceId::Main);
 
 	const char *url = config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "FFURL");
 	int vBitrate = int(config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "FFVBitrate"));
@@ -2002,7 +2059,7 @@ void OBS_service::UpdateFFmpegCustomOutput(void)
 	}
 
 	obs_output_set_mixer(recordingOutput, aTrack - 1);
-	obs_output_set_media(recordingOutput, obs_get_video(), obs_get_audio());
+	obs_output_set_media(recordingOutput, obs_video_mix_get(0, OBS_RECORDING_VIDEO_RENDERING), obs_get_audio());
 	obs_output_update(recordingOutput, settings);
 
 	obs_data_release(settings);
@@ -2189,16 +2246,16 @@ void OBS_service::updateVideoRecordingEncoderSettings()
 	}
 }
 
-obs_encoder_t *OBS_service::getStreamingEncoder(void)
+obs_encoder_t *OBS_service::getStreamingEncoder(StreamServiceId serviceId)
 {
-	return videoStreamingEncoder;
+	return videoStreamingEncoder[serviceId];
 }
 
-void OBS_service::setStreamingEncoder(obs_encoder_t *encoder)
+void OBS_service::setStreamingEncoder(obs_encoder_t *encoder, StreamServiceId serviceId)
 {
-	if (videoStreamingEncoder)
-		obs_encoder_release(videoStreamingEncoder);
-	videoStreamingEncoder = encoder;
+	if (videoStreamingEncoder[serviceId])
+		obs_encoder_release(videoStreamingEncoder[serviceId]);
+	videoStreamingEncoder[serviceId] = encoder;
 }
 
 obs_encoder_t *OBS_service::getRecordingEncoder(void)
@@ -2251,15 +2308,15 @@ void OBS_service::setAudioAdvancedStreamingEncoder(obs_encoder_t *encoder)
 	audioAdvancedStreamingEncoder = encoder;
 }
 
-obs_output_t *OBS_service::getStreamingOutput(void)
+obs_output_t *OBS_service::getStreamingOutput(StreamServiceId serviceId)
 {
-	return streamingOutput;
+	return streamingOutput[serviceId];
 }
 
-void OBS_service::setStreamingOutput(obs_output_t *output)
+void OBS_service::setStreamingOutput(obs_output_t *output, StreamServiceId serviceId)
 {
-	obs_output_release(streamingOutput);
-	streamingOutput = output;
+	obs_output_release(streamingOutput[serviceId]);
+	streamingOutput[serviceId] = output;
 }
 
 obs_output_t *OBS_service::getRecordingOutput(void)
@@ -2297,7 +2354,7 @@ void OBS_service::setVirtualWebcamOutput(obs_output_t *output)
 	virtualWebcamOutput = output;
 }
 
-void OBS_service::updateStreamingOutput()
+void OBS_service::updateStreamingOutput(StreamServiceId serviceId)
 {
 	const char *currentOutputMode = config_get_string(ConfigManager::getInstance().getBasic(), "Output", "Mode");
 
@@ -2305,8 +2362,8 @@ void OBS_service::updateStreamingOutput()
 		bool applyServiceSettings = config_get_bool(ConfigManager::getInstance().getBasic(), "AdvOut", "ApplyServiceSettings");
 
 		if (applyServiceSettings) {
-			obs_data_t *encoderSettings = obs_encoder_get_settings(videoStreamingEncoder);
-			obs_service_apply_encoder_settings(OBS_service::getService(), encoderSettings, nullptr);
+			obs_data_t *encoderSettings = obs_encoder_get_settings(videoStreamingEncoder[serviceId]);
+			obs_service_apply_encoder_settings(OBS_service::getService(serviceId), encoderSettings, nullptr);
 		}
 	}
 
@@ -2331,31 +2388,41 @@ void OBS_service::updateStreamingOutput()
 	obs_data_set_bool(settings, "dyn_bitrate", enableDynBitrate);
 	obs_data_set_bool(settings, "new_socket_loop_enabled", enableNewSocketLoop);
 	obs_data_set_bool(settings, "low_latency_mode_enabled", enableLowLatencyMode);
-	obs_output_update(streamingOutput, settings);
+	obs_output_update(streamingOutput[serviceId], settings);
 	obs_data_release(settings);
 
 	if (!reconnect)
 		maxRetries = 0;
 
-	obs_output_set_delay(streamingOutput, useDelay ? uint32_t(delaySec) : 0, preserveDelay ? OBS_OUTPUT_DELAY_PRESERVE : 0);
+	obs_output_set_delay(streamingOutput[serviceId], useDelay ? uint32_t(delaySec) : 0, preserveDelay ? OBS_OUTPUT_DELAY_PRESERVE : 0);
 
-	obs_output_set_reconnect_settings(streamingOutput, maxRetries, retryDelay);
+	obs_output_set_reconnect_settings(streamingOutput[serviceId], maxRetries, retryDelay);
 }
 
 std::vector<SignalInfo> streamingSignals;
+std::vector<SignalInfo> streamingSignals1;
 std::vector<SignalInfo> recordingSignals;
 std::vector<SignalInfo> replayBufferSignals;
 
 void OBS_service::OBS_service_connectOutputSignals(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
-	streamingSignals.push_back(SignalInfo("streaming", "start"));
-	streamingSignals.push_back(SignalInfo("streaming", "stop"));
-	streamingSignals.push_back(SignalInfo("streaming", "starting"));
-	streamingSignals.push_back(SignalInfo("streaming", "stopping"));
-	streamingSignals.push_back(SignalInfo("streaming", "activate"));
-	streamingSignals.push_back(SignalInfo("streaming", "deactivate"));
-	streamingSignals.push_back(SignalInfo("streaming", "reconnect"));
-	streamingSignals.push_back(SignalInfo("streaming", "reconnect_success"));
+	streamingSignals.push_back(SignalInfo("streaming", "start", StreamServiceId::Main));
+	streamingSignals.push_back(SignalInfo("streaming", "stop", StreamServiceId::Main));
+	streamingSignals.push_back(SignalInfo("streaming", "starting", StreamServiceId::Main));
+	streamingSignals.push_back(SignalInfo("streaming", "stopping", StreamServiceId::Main));
+	streamingSignals.push_back(SignalInfo("streaming", "activate", StreamServiceId::Main));
+	streamingSignals.push_back(SignalInfo("streaming", "deactivate", StreamServiceId::Main));
+	streamingSignals.push_back(SignalInfo("streaming", "reconnect", StreamServiceId::Main));
+	streamingSignals.push_back(SignalInfo("streaming", "reconnect_success", StreamServiceId::Main));
+
+	streamingSignals.push_back(SignalInfo("streaming", "start", StreamServiceId::Second));
+	streamingSignals.push_back(SignalInfo("streaming", "stop", StreamServiceId::Second));
+	streamingSignals.push_back(SignalInfo("streaming", "starting", StreamServiceId::Second));
+	streamingSignals.push_back(SignalInfo("streaming", "stopping", StreamServiceId::Second));
+	streamingSignals.push_back(SignalInfo("streaming", "activate", StreamServiceId::Second));
+	streamingSignals.push_back(SignalInfo("streaming", "deactivate", StreamServiceId::Second));
+	streamingSignals.push_back(SignalInfo("streaming", "reconnect", StreamServiceId::Second));
+	streamingSignals.push_back(SignalInfo("streaming", "reconnect_success", StreamServiceId::Second));
 
 	recordingSignals.push_back(SignalInfo("recording", "start"));
 	recordingSignals.push_back(SignalInfo("recording", "stop"));
@@ -2370,7 +2437,8 @@ void OBS_service::OBS_service_connectOutputSignals(void *data, const int64_t id,
 	replayBufferSignals.push_back(SignalInfo("replay-buffer", "wrote"));
 	replayBufferSignals.push_back(SignalInfo("replay-buffer", "writing_error"));
 
-	connectOutputSignals();
+	connectOutputSignals(StreamServiceId::Main);
+	connectOutputSignals(StreamServiceId::Second);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 }
@@ -2390,6 +2458,7 @@ void OBS_service::Query(void *data, const int64_t id, const std::vector<ipc::val
 	rval.push_back(ipc::value(outputSignal.front().getSignal()));
 	rval.push_back(ipc::value(outputSignal.front().getCode()));
 	rval.push_back(ipc::value(outputSignal.front().getErrorMessage()));
+	rval.push_back(ipc::value(static_cast<int32_t>(outputSignal.front().getIndex())));
 
 	outputSignal.pop();
 
@@ -2401,6 +2470,7 @@ void OBS_service::JSCallbackOutputSignal(void *data, calldata_t *params)
 	SignalInfo &signal = *reinterpret_cast<SignalInfo *>(data);
 
 	std::string signalReceived = signal.getSignal();
+	blog(LOG_DEBUG, "signal received: %s %s", signalReceived.c_str(), signal.getOutputType().c_str());
 
 	if (signalReceived.compare("stop") == 0) {
 		signal.setCode((int)calldata_int(params, "code"));
@@ -2408,8 +2478,8 @@ void OBS_service::JSCallbackOutputSignal(void *data, calldata_t *params)
 		obs_output_t *output;
 
 		if (signal.getOutputType().compare("streaming") == 0) {
-			output = streamingOutput;
-			isStreaming = false;
+			output = streamingOutput[0];
+			isStreaming[StreamServiceId::Main] = false;
 		} else if (signal.getOutputType().compare("recording") == 0) {
 			output = recordingOutput;
 			isRecording = false;
@@ -2430,14 +2500,16 @@ void OBS_service::JSCallbackOutputSignal(void *data, calldata_t *params)
 	outputSignal.push(signal);
 }
 
-void OBS_service::connectOutputSignals(void)
+void OBS_service::connectOutputSignals(StreamServiceId serviceId)
 {
 	blog(LOG_DEBUG, "connectOutputSignals ");
-	if (streamingOutput) {
-		signal_handler *streamingOutputSignalHandler = obs_output_get_signal_handler(streamingOutput);
+	if (streamingOutput[serviceId]) {
+		signal_handler *streamingOutputSignalHandler = obs_output_get_signal_handler(streamingOutput[serviceId]);
 
 		// Connect streaming output
 		for (int i = 0; i < streamingSignals.size(); i++) {
+			if (streamingSignals.at(i).getIndex() != serviceId)
+				continue;
 			signal_handler_connect(streamingOutputSignalHandler, streamingSignals.at(i).getSignal().c_str(), JSCallbackOutputSignal,
 					       &(streamingSignals.at(i)));
 		}
@@ -2570,12 +2642,12 @@ void OBS_service::duplicate_encoder(obs_encoder_t **dst, obs_encoder_t *src, uin
 	}
 }
 
-void OBS_service::releaseStreamingOutput()
+void OBS_service::releaseStreamingOutput(StreamServiceId serviceId)
 {
 	if (config_get_bool(ConfigManager::getInstance().getBasic(), "Output", "DelayEnable")) {
-		uint32_t delay = obs_output_get_active_delay(streamingOutput);
+		uint32_t delay = obs_output_get_active_delay(streamingOutput[serviceId]);
 		while (delay != 0) {
-			delay = obs_output_get_active_delay(streamingOutput);
+			delay = obs_output_get_active_delay(streamingOutput[serviceId]);
 		}
 	}
 
@@ -2586,8 +2658,8 @@ void OBS_service::releaseStreamingOutput()
 
 	twitchSoundtrackEnabled = false;
 
-	obs_output_release(streamingOutput);
-	streamingOutput = nullptr;
+	obs_output_release(streamingOutput[serviceId]);
+	streamingOutput[serviceId] = nullptr;
 }
 
 void OBS_service::waitReleaseWorker()
@@ -2604,9 +2676,8 @@ void OBS_service::OBS_service_createVirtualWebcam(void *data, const int64_t id, 
 	if (name.empty())
 		return;
 
-	struct obs_video_info ovi;
-	if (!obs_get_video_info(&ovi))
-		return;
+	struct obs_video_info ovi = {0};
+	obs_get_video_info(&ovi);
 
 	obs_data_t *settings = obs_data_create();
 	obs_data_set_string(settings, "name", name.c_str());
@@ -2614,7 +2685,12 @@ void OBS_service::OBS_service_createVirtualWebcam(void *data, const int64_t id, 
 	obs_data_set_int(settings, "height", ovi.output_height);
 	obs_data_set_double(settings, "fps", ovi.fps_num);
 
-	virtualWebcamOutput = obs_output_create("virtualcam_output", "Virtual Webcam", settings, NULL);
+#ifdef WIN32
+	const char *outputType = "virtualcam_output";
+#elif __APPLE__
+	const char *outputType = "virtual_output";
+#endif
+	virtualWebcamOutput = obs_output_create(outputType, "Virtual Webcam", settings, NULL);
 	obs_data_release(settings);
 }
 
@@ -2647,8 +2723,11 @@ void OBS_service::OBS_service_stopVirtualWebcan(void *data, const int64_t id, co
 }
 void OBS_service::stopAllOutputs()
 {
-	if (streamingOutput && obs_output_active(streamingOutput))
-		stopStreaming(true);
+	if (isStreamingOutputActive(StreamServiceId::Main))
+		stopStreaming(true, StreamServiceId::Main);
+
+	if (isStreamingOutputActive(StreamServiceId::Second))
+		stopStreaming(true, StreamServiceId::Second);
 
 	if (replayBufferOutput && obs_output_active(replayBufferOutput))
 		stopReplayBuffer(true);
@@ -2677,10 +2756,10 @@ bool OBS_service::startTwitchSoundtrackAudio(void)
 {
 	bool sourceExists = false;
 
-	if (!service)
+	if (!services[0])
 		return false;
 
-	obs_data_t *settings = obs_service_get_settings(service);
+	obs_data_t *settings = obs_service_get_settings(services[0]);
 	const char *serviceName = obs_data_get_string(settings, "service");
 	obs_data_release(settings);
 
@@ -2722,7 +2801,7 @@ bool OBS_service::startTwitchSoundtrackAudio(void)
 		obs_encoder_set_audio(streamArchiveEncST, obs_get_audio());
 	}
 
-	obs_output_set_audio_encoder(streamingOutput, streamArchiveEncST, kSoundtrackArchiveEncoderIdx);
+	obs_output_set_audio_encoder(streamingOutput[0], streamArchiveEncST, kSoundtrackArchiveEncoderIdx);
 
 	std::string currentOutputMode = config_get_string(ConfigManager::getInstance().getBasic(), "Output", "Mode");
 	bool isSimpleMode = currentOutputMode.compare("Simple") == 0;
@@ -2742,10 +2821,10 @@ bool OBS_service::startTwitchSoundtrackAudio(void)
 
 void OBS_service::stopTwitchSoundtrackAudio(void)
 {
-	if (!service)
+	if (!services[0])
 		return;
 
-	obs_data_t *settings = obs_service_get_settings(service);
+	obs_data_t *settings = obs_service_get_settings(services[0]);
 	const char *serviceName = obs_data_get_string(settings, "service");
 	obs_data_release(settings);
 
@@ -2758,7 +2837,7 @@ void OBS_service::stopTwitchSoundtrackAudio(void)
 	if (obs_encoder_active(streamArchiveEncST))
 		return;
 
-	if (streamingOutput && obs_output_active(streamingOutput))
+	if (streamingOutput[0] && obs_output_active(streamingOutput[0]))
 		return;
 
 	obs_encoder_release(streamArchiveEncST);
@@ -2784,10 +2863,10 @@ void OBS_service::clearArchiveVodEncoder()
 
 void OBS_service::setupVodTrack(bool isSimpleMode)
 {
-	if (!service)
+	if (!services[0])
 		return;
 
-	obs_data_t *settings = obs_service_get_settings(service);
+	obs_data_t *settings = obs_service_get_settings(services[0]);
 	const char *serviceName = obs_data_get_string(settings, "service");
 	obs_data_release(settings);
 
@@ -2818,7 +2897,7 @@ void OBS_service::setupVodTrack(bool isSimpleMode)
 		if (createAudioEncoder(&streamArchiveEncVod, id, isSimpleMode ? GetSimpleAudioBitrate() : GetAdvancedAudioBitrate(vodTrackIndex), ARCHIVE_NAME,
 				       vodTrackIndex)) {
 			obs_encoder_set_audio(streamArchiveEncVod, obs_get_audio());
-			obs_output_set_audio_encoder(streamingOutput, streamArchiveEncVod, 1);
+			obs_output_set_audio_encoder(streamingOutput[0], streamArchiveEncVod, 1);
 		}
 	}
 }

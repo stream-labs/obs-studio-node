@@ -24,7 +24,7 @@
 
 enum class Type { Invalid, Streaming, Recording };
 
-enum class Service { Twitch, Hitbox, Beam, Other };
+enum class Service { Twitch, Hitbox, Beam, YouTube, Other };
 
 enum class Encoder { x264, NVENC, QSV, AMD, Stream, appleHW, appleHWM1 };
 
@@ -34,17 +34,9 @@ enum class FPSType : int { PreferHighFPS, PreferHighRes, UseCurrent, fps30, fps6
 
 enum ThreadedTests : int { BandwidthTest, StreamEncoderTest, RecordingEncoderTest, SaveStreamSettings, SaveSettings, SetDefaultSettings, Count };
 
-struct Event {
-	// obs::CallbackInfo *cb_info;
-
-	std::string event;
-	std::string description;
-	int percentage;
-};
-
 class AutoConfigInfo {
 public:
-	AutoConfigInfo(std::string a_event, std::string a_description, double a_percentage)
+	AutoConfigInfo(const std::string &a_event, const std::string &a_description, double a_percentage)
 	{
 		event = a_event;
 		description = a_description;
@@ -119,63 +111,6 @@ struct ServerInfo {
 
 	inline ServerInfo(const char *name_, const char *address_) : name(name_), address(address_) {}
 };
-
-class TestMode {
-	obs_video_info ovi;
-	OBSSource source[6];
-
-	static void render_rand(void *, uint32_t cx, uint32_t cy)
-	{
-		gs_effect_t *solid = obs_get_base_effect(OBS_EFFECT_SOLID);
-		gs_eparam_t *randomvals[3] = {gs_effect_get_param_by_name(solid, "randomvals1"), gs_effect_get_param_by_name(solid, "randomvals2"),
-					      gs_effect_get_param_by_name(solid, "randomvals3")};
-
-		struct vec4 r;
-
-		for (int i = 0; i < 3; i++) {
-			vec4_set(&r, rand_float(true) * 100.0f, rand_float(true) * 100.0f, rand_float(true) * 50000.0f + 10000.0f, 0.0f);
-			gs_effect_set_vec4(randomvals[i], &r);
-		}
-
-		while (gs_effect_loop(solid, "Random"))
-			gs_draw_sprite(nullptr, 0, cx, cy);
-	}
-
-public:
-	inline TestMode()
-	{
-		obs_get_video_info(&ovi);
-		obs_add_main_render_callback(render_rand, this);
-
-		for (uint32_t i = 0; i < 6; i++) {
-			source[i] = obs_get_output_source(i);
-			obs_source_release(source[i]);
-			obs_set_output_source(i, nullptr);
-		}
-	}
-
-	inline ~TestMode()
-	{
-		for (uint32_t i = 0; i < 6; i++)
-			obs_set_output_source(i, source[i]);
-
-		obs_remove_main_render_callback(render_rand, this);
-		obs_reset_video(&ovi);
-	}
-
-	inline void SetVideo(int cx, int cy, int fps_num, int fps_den)
-	{
-		obs_video_info newOVI = ovi;
-
-		newOVI.output_width = (uint32_t)cx;
-		newOVI.output_height = (uint32_t)cy;
-		newOVI.fps_num = (uint32_t)fps_num;
-		newOVI.fps_den = (uint32_t)fps_den;
-
-		obs_reset_video(&newOVI);
-	}
-};
-
 void autoConfig::Register(ipc::server &srv)
 {
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("AutoConfig");
@@ -347,6 +282,7 @@ void autoConfig::TerminateAutoConfig(void *data, const int64_t id, const std::ve
 {
 	StopThread();
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
 }
 
 void autoConfig::Query(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
@@ -381,13 +317,14 @@ void autoConfig::InitializeAutoConfig(void *data, const int64_t id, const std::v
 	serverName = "Auto (Recommended)";
 	server = "auto";
 
-	obs_output_t *streamOutput = OBS_service::getStreamingOutput();
+	obs_output_t *streamOutput = OBS_service::getStreamingOutput(StreamServiceId::Main);
 	if (streamOutput)
-		OBS_service::setStreamingOutput(nullptr);
+		OBS_service::setStreamingOutput(nullptr, StreamServiceId::Main);
 
 	cancel = false;
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
 }
 
 void autoConfig::StartBandwidthTest(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
@@ -395,6 +332,7 @@ void autoConfig::StartBandwidthTest(void *data, const int64_t id, const std::vec
 	asyncTests[ThreadedTests::BandwidthTest] = std::async(std::launch::async, TestBandwidthThread);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
 }
 
 void autoConfig::StartStreamEncoderTest(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
@@ -402,6 +340,7 @@ void autoConfig::StartStreamEncoderTest(void *data, const int64_t id, const std:
 	asyncTests[ThreadedTests::StreamEncoderTest] = std::async(std::launch::async, TestStreamEncoderThread);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
 }
 
 void autoConfig::StartRecordingEncoderTest(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
@@ -409,6 +348,7 @@ void autoConfig::StartRecordingEncoderTest(void *data, const int64_t id, const s
 	asyncTests[ThreadedTests::RecordingEncoderTest] = std::async(std::launch::async, TestRecordingEncoderThread);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
 }
 
 void autoConfig::StartSaveStreamSettings(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
@@ -416,6 +356,7 @@ void autoConfig::StartSaveStreamSettings(void *data, const int64_t id, const std
 	asyncTests[ThreadedTests::SaveStreamSettings] = std::async(std::launch::async, SaveStreamSettings);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
 }
 
 void autoConfig::StartSaveSettings(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
@@ -425,6 +366,7 @@ void autoConfig::StartSaveSettings(void *data, const int64_t id, const std::vect
 	cancel = false;
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
 }
 
 void autoConfig::StartCheckSettings(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
@@ -433,6 +375,7 @@ void autoConfig::StartCheckSettings(void *data, const int64_t id, const std::vec
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value((uint32_t)sucess));
+	AUTO_DEBUG;
 }
 
 void autoConfig::StartSetDefaultSettings(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
@@ -440,18 +383,15 @@ void autoConfig::StartSetDefaultSettings(void *data, const int64_t id, const std
 	asyncTests[ThreadedTests::SetDefaultSettings] = std::async(std::launch::async, SetDefaultSettings);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
 }
 
 int EvaluateBandwidth(ServerInfo &server, bool &connected, bool &stopped, bool &success, bool &errorOnStop, OBSData &service_settings, OBSService &service,
 		      OBSOutput &output, OBSData &vencoder_settings)
 {
-	// auto &server = servers[i];
-
 	connected = false;
 	stopped = false;
 	errorOnStop = false;
-
-	// int per = int((i + 1) * 100 / servers.size());
 
 	obs_data_set_string(service_settings, "server", server.address.c_str());
 	obs_service_update(service, service_settings);
@@ -478,6 +418,7 @@ int EvaluateBandwidth(ServerInfo &server, bool &connected, bool &stopped, bool &
 
 	uint64_t t_start = os_gettime_ns();
 
+	//wait for start signal from output
 	cv.wait_for(ul, std::chrono::seconds(10));
 	if (stopped)
 		return -1;
@@ -499,6 +440,7 @@ int EvaluateBandwidth(ServerInfo &server, bool &connected, bool &stopped, bool &
 		std::this_thread::sleep_for(std::chrono::milliseconds(500));
 	}
 
+	//wait for stop signal from output
 	cv.wait(ul);
 
 	uint64_t total_time = os_gettime_ns() - t_start;
@@ -506,7 +448,7 @@ int EvaluateBandwidth(ServerInfo &server, bool &connected, bool &stopped, bool &
 	uint64_t bitrate = 0;
 
 	if (total_time > 0) {
-		bitrate = (uint64_t)total_bytes * 8 * 1000000000 / total_time / 1000;
+		bitrate = (uint64_t)total_bytes * 8U * 1000000000U / total_time / 1000U;
 	}
 
 	startingBitrate = (int)obs_data_get_int(vencoder_settings, "bitrate");
@@ -518,13 +460,17 @@ int EvaluateBandwidth(ServerInfo &server, bool &connected, bool &stopped, bool &
 
 	server.ms = obs_output_get_connect_time_ms(output);
 	success = true;
+
+	//wait for deactivate signal from output
+	cv.wait(ul);
+
 	return 0;
 }
 
-void sendErrorMessage(std::string message)
+void sendErrorMessage(const std::string &message)
 {
 	eventsMutex.lock();
-	events.push(AutoConfigInfo("error", message.c_str(), 0));
+	events.push(AutoConfigInfo("error", message, 0));
 	eventsMutex.unlock();
 }
 
@@ -539,22 +485,31 @@ void autoConfig::TestBandwidthThread(void)
 	bool errorOnStop = false;
 	bool gotError = false;
 
-	obs_video_info ovi;
-	if (obs_get_video_info(&ovi)) {
-		obs_video_info old_ovi = ovi;
+	obs_video_info video = {0};
+	bool have_users_info = obs_get_video_info(&video);
 
-		ovi.output_width = 128;
-		ovi.output_height = 128;
-		ovi.fps_num = 60;
-		ovi.fps_den = 1;
+	obs_video_info *ovi = obs_create_video_info();
 
-		if (obs_reset_video(&ovi) != OBS_VIDEO_SUCCESS) {
-			obs_reset_video(&old_ovi);
-			sendErrorMessage("invalid_video_settings");
-			return;
-		}
+	if (!have_users_info) {
+		video = *ovi;
+		video.fps_num = 60;
+		video.fps_den = 1;
 	} else {
-		sendErrorMessage("invalid_video_settings");
+		video.fps_num = ovi->fps_num;
+		video.fps_den = ovi->fps_den;
+	}
+
+	video.base_width = 1280;
+	video.base_height = 720;
+	video.output_width = 128;
+	video.output_height = 128;
+
+	int ret = obs_set_video_info(ovi, &video);
+	if (ret != OBS_VIDEO_SUCCESS) {
+		eventsMutex.lock();
+		events.push(AutoConfigInfo("error", "invalid_video_settings", 0));
+		eventsMutex.unlock();
+		obs_remove_video_info(ovi);
 		return;
 	}
 
@@ -584,7 +539,7 @@ void autoConfig::TestBandwidthThread(void)
 	obs_data_release(aencoder_settings);
 	obs_data_release(output_settings);
 
-	obs_service_t *currentService = OBS_service::getService();
+	obs_service_t *currentService = OBS_service::getService(StreamServiceId::Main);
 	if (currentService) {
 		obs_data_t *currentServiceSettings = obs_service_get_settings(currentService);
 		if (currentServiceSettings) {
@@ -610,6 +565,7 @@ void autoConfig::TestBandwidthThread(void)
 		obs_encoder_release(vencoder);
 		obs_encoder_release(aencoder);
 		obs_service_release(service);
+		obs_remove_video_info(ovi);
 		return;
 	}
 
@@ -620,17 +576,23 @@ void autoConfig::TestBandwidthThread(void)
 			serviceSelected = Service::Hitbox;
 		else if (serviceName == "beam.pro")
 			serviceSelected = Service::Beam;
+		else if (serviceName.find("YouTube") != std::string::npos)
+			serviceSelected = Service::YouTube;
 		else
 			serviceSelected = Service::Other;
 	} else {
 		serviceSelected = Service::Other;
 	}
-
 	std::string keyToEvaluate = key;
 
 	if (serviceSelected == Service::Twitch) {
 		string_depad_key(key);
 		keyToEvaluate += "?bandwidthtest";
+	}
+
+	if (serviceSelected == Service::YouTube) {
+		serverName = "Stream URL";
+		server = obs_service_get_url(currentService);
 	}
 
 	obs_data_set_string(service_settings, "service", serviceName.c_str());
@@ -684,16 +646,17 @@ void autoConfig::TestBandwidthThread(void)
 
 	obs_encoder_update(vencoder, vencoder_settings);
 	obs_encoder_update(aencoder, aencoder_settings);
-	obs_output_update(output, output_settings);
+
+	obs_encoder_set_video_mix(vencoder, obs_video_mix_get(ovi, OBS_MAIN_VIDEO_RENDERING));
+	obs_encoder_set_audio(aencoder, obs_get_audio());
 
 	/* -----------------------------------*/
 	/* connect encoders/services/outputs  */
 
-	obs_encoder_set_video(vencoder, obs_get_video());
-	obs_encoder_set_audio(aencoder, obs_get_audio());
-
 	obs_output_set_video_encoder(output, vencoder);
 	obs_output_set_audio_encoder(output, aencoder, 0);
+
+	obs_output_update(output, output_settings);
 
 	obs_output_set_service(output, service);
 
@@ -720,8 +683,11 @@ void autoConfig::TestBandwidthThread(void)
 		}
 	};
 
+	auto on_deactivate = [&]() { cv.notify_one(); };
+
 	using on_started_t = decltype(on_started);
 	using on_stopped_t = decltype(on_stopped);
+	using on_deactivate_t = decltype(on_deactivate);
 
 	auto pre_on_started = [](void *data, calldata_t *) {
 		on_started_t &on_started = *reinterpret_cast<on_started_t *>(data);
@@ -733,9 +699,15 @@ void autoConfig::TestBandwidthThread(void)
 		on_stopped();
 	};
 
+	auto pre_on_deactivate = [](void *data, calldata_t *) {
+		on_deactivate_t &on_deactivate = *reinterpret_cast<on_deactivate_t *>(data);
+		on_deactivate();
+	};
+
 	signal_handler *sh = obs_output_get_signal_handler(output);
 	signal_handler_connect(sh, "start", pre_on_started, &on_started);
 	signal_handler_connect(sh, "stop", pre_on_stopped, &on_stopped);
+	signal_handler_connect(sh, "deactivate", pre_on_deactivate, &on_deactivate);
 
 	/* -----------------------------------*/
 	/* test servers                       */
@@ -799,6 +771,10 @@ void autoConfig::TestBandwidthThread(void)
 	obs_encoder_release(vencoder);
 	obs_encoder_release(aencoder);
 	obs_service_release(service);
+	ret = obs_remove_video_info(ovi);
+	if (ret != OBS_VIDEO_SUCCESS) {
+		blog(LOG_ERROR, "[VIDEO_CANVAS] failed to remove video canvas %08X", ovi);
+	}
 
 	if (!gotError) {
 		eventsMutex.lock();
@@ -1025,6 +1001,8 @@ bool autoConfig::TestSoftwareEncoding()
 	int i = 0;
 	int count = 1;
 
+	obs_video_info *ovi = obs_create_video_info();
+
 	auto testRes = [&](long double div, int fps_num, int fps_den, bool force) {
 		int per = ++i * 100 / count;
 
@@ -1052,22 +1030,28 @@ bool autoConfig::TestSoftwareEncoding()
 		if (!force && rate > maxDataRate)
 			return true;
 
-		obs_video_info ovi;
-		obs_get_video_info(&ovi);
-
-		ovi.output_width = (uint32_t)cx;
-		ovi.output_height = (uint32_t)cy;
-		ovi.fps_num = fps_num;
-		ovi.fps_den = fps_den;
-
-		if (obs_reset_video(&ovi) != OBS_VIDEO_SUCCESS)
+		obs_video_info video = *ovi;
+		video.base_width = 1280;
+		video.base_height = 720;
+		video.output_width = cx;
+		video.output_height = cy;
+		video.output_format = VIDEO_FORMAT_NV12;
+		video.fps_num = fps_num;
+		video.fps_den = fps_den;
+		video.initialized = true;
+		int ret = obs_set_video_info(ovi, &video);
+		if (ret != OBS_VIDEO_SUCCESS) {
+			blog(LOG_ERROR, "[VIDEO_CANVAS] Failed to update video info %08X", ovi);
 			return false;
+		}
 
-		obs_encoder_set_video(vencoder, obs_get_video());
 		obs_encoder_set_audio(aencoder, obs_get_audio());
-		obs_encoder_update(vencoder, vencoder_settings);
 
-		obs_output_set_media(output, obs_get_video(), obs_get_audio());
+		obs_encoder_update(vencoder, vencoder_settings);
+		obs_encoder_set_video_mix(vencoder, obs_video_mix_get(ovi, OBS_MAIN_VIDEO_RENDERING));
+
+		obs_output_set_audio_encoder(output, aencoder, 0);
+		obs_output_set_video_encoder(output, vencoder);
 
 		std::unique_lock<std::mutex> ul(m);
 		if (cancel)
@@ -1169,6 +1153,11 @@ bool autoConfig::TestSoftwareEncoding()
 	obs_encoder_release(vencoder);
 	obs_encoder_release(aencoder);
 
+	int ret = obs_remove_video_info(ovi);
+	if (ret != OBS_VIDEO_SUCCESS) {
+		blog(LOG_ERROR, "[VIDEO_CANVAS] Failed to remove video info after TestSoftwareEncoding, %08X", ovi);
+	}
+
 	softwareTested = true;
 	return true;
 }
@@ -1178,9 +1167,6 @@ void autoConfig::TestStreamEncoderThread()
 	eventsMutex.lock();
 	events.push(AutoConfigInfo("starting_step", "streamingEncoder_test", 0));
 	eventsMutex.unlock();
-
-	baseResolutionCX = config_get_int(ConfigManager::getInstance().getBasic(), "Video", "BaseCX");
-	baseResolutionCY = config_get_int(ConfigManager::getInstance().getBasic(), "Video", "BaseCY");
 
 	TestHardwareEncoding();
 
@@ -1323,20 +1309,28 @@ bool autoConfig::CheckSettings(void)
 		return false;
 	}
 
-	obs_video_info ovi;
-	if (obs_get_video_info(&ovi)) {
-		obs_video_info old_ovi = ovi;
+	obs_video_info video = {0};
+	bool have_users_info = obs_get_video_info(&video);
 
-		ovi.output_width = (uint32_t)idealResolutionCX;
-		ovi.output_height = (uint32_t)idealResolutionCY;
-		ovi.fps_num = idealFPSNum;
-		ovi.fps_den = 1;
+	obs_video_info *ovi = obs_create_video_info();
 
-		if (obs_reset_video(&ovi) != OBS_VIDEO_SUCCESS) {
-			obs_reset_video(&old_ovi);
-			return false;
-		}
-	} else {
+	if (!have_users_info) {
+		video = *ovi;
+	}
+
+	video.base_width = 1280;
+	video.base_height = 720;
+	video.output_width = (uint32_t)idealResolutionCX;
+	video.output_height = (uint32_t)idealResolutionCY;
+	video.fps_num = idealFPSNum;
+	video.fps_den = 1;
+	video.initialized = true;
+	int ret = obs_set_video_info(ovi, &video);
+	if (ret != OBS_VIDEO_SUCCESS) {
+		eventsMutex.lock();
+		events.push(AutoConfigInfo("error", "invalid_video_settings", 100));
+		eventsMutex.unlock();
+		obs_remove_video_info(ovi);
 		return false;
 	}
 
@@ -1367,16 +1361,17 @@ bool autoConfig::CheckSettings(void)
 
 	obs_encoder_update(vencoder, vencoder_settings);
 	obs_encoder_update(aencoder, aencoder_settings);
-	obs_output_update(output, output_settings);
+
+	obs_encoder_set_video_mix(vencoder, obs_video_mix_get(ovi, OBS_MAIN_VIDEO_RENDERING));
+	obs_encoder_set_audio(aencoder, obs_get_audio());
 
 	/* -----------------------------------*/
 	/* connect encoders/services/outputs  */
 
-	obs_encoder_set_video(vencoder, obs_get_video());
-	obs_encoder_set_audio(aencoder, obs_get_audio());
-
 	obs_output_set_video_encoder(output, vencoder);
 	obs_output_set_audio_encoder(output, aencoder, 0);
+
+	obs_output_update(output, output_settings);
 
 	obs_output_set_service(output, service);
 
@@ -1395,8 +1390,11 @@ bool autoConfig::CheckSettings(void)
 		cv.notify_one();
 	};
 
+	auto on_deactivate = [&]() { cv.notify_one(); };
+
 	using on_started_t = decltype(on_started);
 	using on_stopped_t = decltype(on_stopped);
+	using on_deactivate_t = decltype(on_deactivate);
 
 	auto pre_on_started = [](void *data, calldata_t *) {
 		on_started_t &on_started = *reinterpret_cast<on_started_t *>(data);
@@ -1408,31 +1406,44 @@ bool autoConfig::CheckSettings(void)
 		on_stopped();
 	};
 
+	auto pre_on_deactivate = [](void *data, calldata_t *) {
+		on_deactivate_t &on_deactivate = *reinterpret_cast<on_deactivate_t *>(data);
+		on_deactivate();
+	};
+
 	signal_handler *sh = obs_output_get_signal_handler(output);
 	signal_handler_connect(sh, "start", pre_on_started, &on_started);
 	signal_handler_connect(sh, "stop", pre_on_stopped, &on_stopped);
+	signal_handler_connect(sh, "deactivate", pre_on_deactivate, &on_deactivate);
 
 	std::unique_lock<std::mutex> ul(m);
-	if (cancel)
-		return false;
+	if (!cancel) {
+		/* -----------------------------------*/
+		/* start and wait to stop             */
 
-	/* -----------------------------------*/
-	/* start and wait to stop             */
+		if (!obs_output_start(output)) {
+		} else {
+			cv.wait_for(ul, std::chrono::seconds(4));
 
-	if (!obs_output_start(output)) {
-		return false;
+			obs_output_stop(output);
+			//wait for the output to stop
+			cv.wait(ul);
+			//wait for the output to deactivate
+			cv.wait(ul);
+		}
+	} else {
+		success = false;
 	}
-
-	cv.wait_for(ul, std::chrono::seconds(4));
-
-	obs_output_stop(output);
-	cv.wait(ul);
 
 	obs_output_release(output);
 	obs_encoder_release(vencoder);
 	obs_encoder_release(aencoder);
 	obs_service_release(service);
 
+	ret = obs_remove_video_info(ovi);
+	if (ret != OBS_VIDEO_SUCCESS) {
+		blog(LOG_ERROR, "[VIDEO_CANVAS] Failed to remove video info after CheckSettings, %08X", ovi);
+	}
 	return success;
 }
 
@@ -1466,7 +1477,7 @@ void autoConfig::SaveStreamSettings()
 
 	const char *service_id = "rtmp_common";
 
-	obs_service_t *oldService = OBS_service::getService();
+	obs_service_t *oldService = OBS_service::getService(StreamServiceId::Main);
 	OBSData hotkeyData = obs_hotkeys_save_service(oldService);
 	obs_data_release(hotkeyData);
 
@@ -1482,7 +1493,7 @@ void autoConfig::SaveStreamSettings()
 	if (!newService)
 		return;
 
-	OBS_service::setService(newService);
+	OBS_service::setService(newService, StreamServiceId::Main);
 	OBS_service::saveService();
 
 	/* ---------------------------------- */
@@ -1513,13 +1524,13 @@ void autoConfig::SaveSettings()
 	config_set_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecQuality", quality);
 	config_set_int(ConfigManager::getInstance().getBasic(), "Video", "OutputCX", idealResolutionCX);
 	config_set_int(ConfigManager::getInstance().getBasic(), "Video", "OutputCY", idealResolutionCY);
+	config_set_int(ConfigManager::getInstance().getBasic(), "Video", "Canvases", 1);
 
 	config_set_bool(ConfigManager::getInstance().getBasic(), "Output", "DynamicBitrate", false);
 
 	if (fpsType != FPSType::UseCurrent) {
 		config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSType", 0);
 		config_set_string(ConfigManager::getInstance().getBasic(), "Video", "FPSCommon", std::to_string(idealFPSNum).c_str());
-		std::string fpsvalue = config_get_string(ConfigManager::getInstance().getBasic(), "Video", "FPSCommon");
 	}
 
 	config_save_safe(ConfigManager::getInstance().getBasic(), "tmp", nullptr);
