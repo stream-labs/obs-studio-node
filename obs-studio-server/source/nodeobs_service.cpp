@@ -462,6 +462,8 @@ int OBS_service::resetVideoContext(bool reload, bool retryWithDefaultConf)
 void OBS_service::stopConnectingOutputs()
 {
 	for (auto &itr : streamingOutput) {
+		if (itr == nullptr)
+			continue;
 		if (obs_output_connecting(itr))
 			obs_output_force_stop(itr);
 	}

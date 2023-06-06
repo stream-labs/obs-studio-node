@@ -16,7 +16,7 @@ describe(testName, function() {
     before(async function() {
         logInfo(testName, 'Starting ' + testName + ' tests');
         deleteConfigFiles();
-        obs = new OBSHandler(testName);
+        obs = new OBSHandler(testName, false);
 
         obs.instantiateUserPool(testName);
 

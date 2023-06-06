@@ -189,7 +189,11 @@ int main(int argc, char *argv[])
 #else
 	if (argc != 3) {
 #endif
-		std::cerr << "Version mismatch. Expected <socketpath> <version> params";
+		std::cerr << "Version mismatch. Expected <socketpath> <version> params" << std::endl;
+		std::cerr << "argc: " << argc << std::endl;
+		for (int nArg = 0; nArg < argc; nArg++) {
+			std::cerr << "argv[" << nArg << "]: " << argv[nArg] << std::endl;
+		}
 		return ipc::ProcessInfo::ExitCode::VERSION_MISMATCH;
 	}
 
