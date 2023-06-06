@@ -18,11 +18,11 @@ env:
   RELEASE_BUCKET: "obsstudionodes3.streamlabs.com"
   RuntimeURL: https://artifacts.electronjs.org/headers/dist
   RuntimeName: iojs
-  ElectronVersion: 17.4.11
+  ElectronVersion: 22.3.3
   SLGenerator: Visual Studio 17 2022
   SLDistributeDirectory: distribute
   SLFullDistributePath: "streamlabs-build/distribute"
-  LibOBSVersion: 28.2.42
+  LibOBSVersion: 28.2.55
   PACKAGE_NAME: osn
 
 jobs:
@@ -31,18 +31,26 @@ jobs:
     runs-on: [macos-latest]
     strategy:
       matrix:
-        ReleaseName: [release, debug]
+        BuildReleases: [Release-x86_64, Debug-x86_64, Release-arm64, Debug-arm64]
         include:
-        - ReleaseName: release
-          BuildConfig: RelWithDebInfo
-        - ReleaseName: debug
-          BuildConfig: Debug
+          - BuildReleases: Release-x86_64
+            BuildConfig: RelWithDebInfo
+            ReleaseName: release
+            Architecture: x86_64
+          - BuildReleases: Debug-x86_64
+            BuildConfig: Debug
+            ReleaseName: debug
+            Architecture: x86_64
+          - BuildReleases: Release-arm64
+            BuildConfig: RelWithDebInfo
+            ReleaseName: release
+            Architecture: arm64
+          - BuildReleases: Debug-arm64
+            BuildConfig: Debug
+            ReleaseName: debug
+            Architecture: arm64
     env:
       OS_TAG: "osx"
-      CEF_MAC_BUILD_VERSION: 4638
-      MACOS_DEPS_VERSION: 2022-02-13
-      VLC_VERSION: 3.0.8
-      MIN_MACOS_VERSION: 10.13
     steps:
       - name: 'Checkout'
         uses: actions/checkout@v3
@@ -55,7 +63,7 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '16.x'
+          node-version: '18.x'
       - name: Install dependencies
         shell: bash
         run: './ci/install-dependencies-osx.sh'
