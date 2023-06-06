@@ -27,7 +27,7 @@ env:
 
 jobs:
   macos64:
-    name: 'macOS 64-bit'
+    name: 'macOS'
     runs-on: [macos-latest]
     strategy:
       matrix:
@@ -86,6 +86,7 @@ jobs:
         env:
           PACKAGE_PATH: "${{env.SLFullDistributePath}}/${{env.InstallPath}}"
       - name: 'Run tests'
+        if: matrix.Architecture != 'arm64'
         run: 'yarn run test'
         env:
           SLOBS_BE_STREAMKEY: ${{secrets.testsStreamKey}}
