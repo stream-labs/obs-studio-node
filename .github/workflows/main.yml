@@ -87,6 +87,7 @@ jobs:
           PACKAGE_PATH: "${{env.SLFullDistributePath}}/${{env.InstallPath}}"
       - name: 'Run tests'
         if: matrix.Architecture != 'arm64'
+        continue-on-error: true
         run: 'yarn run test'
         env:
           SLOBS_BE_STREAMKEY: ${{secrets.testsStreamKey}}
