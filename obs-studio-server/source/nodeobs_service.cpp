@@ -1419,6 +1419,7 @@ void OBS_service::stopStreaming(bool forceStop, StreamServiceId serviceId)
 
 void OBS_service::stopRecording(void)
 {
+	blog(LOG_WARNING, "stopRecording with %s", obs_output_active(recordingOutput) ? "recordingOutput active" : "recordingOutput not active");
 	obs_output_stop(recordingOutput);
 	isRecording = false;
 }
@@ -2496,13 +2497,14 @@ void OBS_service::JSCallbackOutputSignal(void *data, calldata_t *params)
 			signal.setErrorMessage(error);
 		}
 	}
-
+	blog(LOG_DEBUG, "JSCallbackOutputSignal %s for %s", signalReceived.c_str(), signal.getOutputType().c_str());
 	std::unique_lock<std::mutex> ulock(signalMutex);
 	outputSignal.push(signal);
 }
 
 void OBS_service::connectOutputSignals(StreamServiceId serviceId)
 {
+	blog(LOG_DEBUG, "connectOutputSignals ");
 	if (streamingOutput[serviceId]) {
 		signal_handler *streamingOutputSignalHandler = obs_output_get_signal_handler(streamingOutput[serviceId]);
 
@@ -2534,6 +2536,7 @@ void OBS_service::connectOutputSignals(StreamServiceId serviceId)
 					       &(replayBufferSignals.at(i)));
 		}
 	}
+	blog(LOG_DEBUG, "connectOutputSignals finished ");
 }
 
 struct HotkeyInfo {

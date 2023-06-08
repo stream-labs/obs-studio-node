@@ -1,10 +1,4 @@
-trigger:
-  branches:
-    include:
-      - staging
-  tags:
-    include:
-      - '*'
+trigger: none
 
 variables:
   RuntimeURL: https://artifacts.electronjs.org/headers/dist
