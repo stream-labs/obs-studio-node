@@ -9,4 +9,4 @@ node -v
 
 # Install module dependencies
 yarn install
-yarn add electron@${ELECTRONVERSION}
+yarn add electron@${ElectronVersion}
