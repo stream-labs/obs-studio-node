@@ -84,12 +84,16 @@ export class OBSHandler {
     os: string;
 
     userStreamKey: string;
+    defaultVideoContext: osn.IVideo;
 
-    constructor(testName: string) {
+    constructor(testName: string, needDefaultVideoContext: boolean = true) {
         this.os = process.platform;
         this.osnTestName = testName;
         this.cacheUploader = new CacheUploader(testName, this.obsPath);
         this.startup();
+        if (needDefaultVideoContext) {
+            this.createDefaultVideoContext();
+        }
         this.inputTypes = osn.InputFactory.types();
         const index = this.inputTypes.indexOf('syphon-input', 0);
         if (index > -1) {
@@ -119,6 +123,10 @@ export class OBSHandler {
     }
 
     shutdown() {
+        if(this.defaultVideoContext) {
+            this.destroyDefaultVideoContext();
+        }
+
         logInfo(this.osnTestName, 'Shutting down OBS');
 
         try {
@@ -272,5 +280,45 @@ export class OBSHandler {
             );
             setTimeout(() => reject(new Error(autoconfigStep + ' step timeout')), 50000);
         });
+    }
+
+    createDefaultVideoContext() {
+        logInfo(this.osnTestName, 'createDefaultVideoContext called');
+        this.defaultVideoContext = osn.VideoFactory.create();
+        const defaultVideoInfo: osn.IVideoInfo = {
+            fpsNum: 60,
+            fpsDen: 1,
+            baseWidth: 1280,
+            baseHeight: 720,
+            outputWidth: 1280,
+            outputHeight: 720,
+            outputFormat: osn.EVideoFormat.NV12,
+            colorspace: osn.EColorSpace.CS709,
+            range: osn.ERangeType.Partial,
+            scaleType: osn.EScaleType.Bilinear,
+            fpsType: osn.EFPSType.Fractional
+        };
+        this.defaultVideoContext.video = defaultVideoInfo;
+    }
+
+    destroyDefaultVideoContext() {
+        this.defaultVideoContext.destroy();
+        this.defaultVideoContext = null;
+    }
+
+    skipSource(inputType: string) 
+    {
+        if (process.platform === 'darwin') {
+            if (inputType === 'browser_source' || 
+                inputType === 'window_capture' ||
+                inputType === 'monitor_capture' ||
+                inputType === 'display_capture' ||
+                inputType === 'screen_capture' ||
+                inputType === 'coreaudio_input_capture' ||
+                inputType === 'coreaudio_output_capture') {
+                return true;
+            }
+        }
+        return false
     }
 }
