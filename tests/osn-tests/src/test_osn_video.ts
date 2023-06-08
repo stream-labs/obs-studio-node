@@ -17,7 +17,7 @@ describe(testName, () => {
     before(function() {
         logInfo(testName, 'Starting ' + testName + ' tests');
         deleteConfigFiles();
-        obs = new OBSHandler(testName);
+        obs = new OBSHandler(testName, false);
     });
 
     // Shutdown OBS process

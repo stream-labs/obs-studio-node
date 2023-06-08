@@ -13,28 +13,11 @@ const testName = 'osn-advanced-streaming';
 describe(testName, () => {
     let obs: OBSHandler;
     let hasTestFailed: boolean = false;
-    let context: osn.IVideo;
     // Initialize OBS process
     before(async() => {
         logInfo(testName, 'Starting ' + testName + ' tests');
         deleteConfigFiles();
         obs = new OBSHandler(testName);
-        context = osn.VideoFactory.create();
-        const firstVideoInfo: osn.IVideoInfo = {
-            fpsNum: 60,
-            fpsDen: 1,
-            baseWidth: 1920,
-            baseHeight: 1080,
-            outputWidth: 1280,
-            outputHeight: 720,
-            outputFormat: osn.EVideoFormat.NV12,
-            colorspace: osn.EColorSpace.CS709,
-            range: osn.ERangeType.Full,
-            scaleType: osn.EScaleType.Bilinear,
-            fpsType: osn.EFPSType.Fractional
-        };
-        context.video = firstVideoInfo;
-
         obs.instantiateUserPool(testName);
 
         // Reserving user from pool
@@ -93,7 +76,7 @@ describe(testName, () => {
         stream.rescaling = true;
         stream.outputWidth = 1920;
         stream.outputHeight = 1080;
-        stream.video = context;
+        stream.video = obs.defaultVideoContext;
 
         expect(stream.enforceServiceBitrate).to.equal(
             false, "Invalid enforceServiceBitrate value");
@@ -124,7 +107,7 @@ describe(testName, () => {
             osn.ReconnectFactory.create();
         stream.network =
             osn.NetworkFactory.create();
-        stream.video = context;
+        stream.video = obs.defaultVideoContext;
         const track1 = osn.AudioTrackFactory.create(160, 'track1');
         osn.AudioTrackFactory.setAtIndex(track1, 1);
 
@@ -201,7 +184,7 @@ describe(testName, () => {
             osn.ReconnectFactory.create();
         stream.network =
             osn.NetworkFactory.create();
-        stream.video = context;
+        stream.video = obs.defaultVideoContext;
         const track1 = osn.AudioTrackFactory.create(160, 'track1');
         osn.AudioTrackFactory.setAtIndex(track1, 1);
         stream.signalHandler = (signal) => {obs.signals.push(signal)};
