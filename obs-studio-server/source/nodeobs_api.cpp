@@ -115,7 +115,8 @@ HMODULE hRtwq;
 std::string slobs_plugin;
 std::vector<std::pair<std::string, obs_module_t *>> obsModules;
 OBS_API::LogReport logReport;
-OBS_API::OutputStats streamingOutputStats;
+OBS_API::OutputStats streamingOutputStatsMain;
+OBS_API::OutputStats streamingOutputStatsSecondary;
 OBS_API::OutputStats recordingOutputStats;
 std::mutex logMutex;
 std::string currentVersion;
@@ -996,9 +997,9 @@ void OBS_API::OBS_API_getPerformanceStatistics(void *data, const int64_t id, con
 	rval.push_back(ipc::value(getNumberOfDroppedFrames()));
 	rval.push_back(ipc::value(getDroppedFramesPercentage()));
 
-	getCurrentOutputStats(OBS_service::getStreamingOutput(StreamServiceId::Main), streamingOutputStats);
-	rval.push_back(ipc::value(streamingOutputStats.kbitsPerSec));
-	rval.push_back(ipc::value(streamingOutputStats.dataOutput));
+	getCurrentOutputStats(OBS_service::getStreamingOutput(StreamServiceId::Main), streamingOutputStatsMain);
+	rval.push_back(ipc::value(streamingOutputStatsMain.kbitsPerSec));
+	rval.push_back(ipc::value(streamingOutputStatsMain.dataOutput));
 
 	getCurrentOutputStats(OBS_service::getRecordingOutput(), recordingOutputStats);
 	rval.push_back(ipc::value(recordingOutputStats.kbitsPerSec));
@@ -1009,9 +1010,9 @@ void OBS_API::OBS_API_getPerformanceStatistics(void *data, const int64_t id, con
 	rval.push_back(ipc::value(getMemoryUsage()));
 	rval.push_back(ipc::value(getDiskSpaceAvailable()));
 
-	getCurrentOutputStats(OBS_service::getStreamingOutput(StreamServiceId::Second), streamingOutputStats);
-	rval.push_back(ipc::value(streamingOutputStats.kbitsPerSec));
-	rval.push_back(ipc::value(streamingOutputStats.dataOutput));
+	getCurrentOutputStats(OBS_service::getStreamingOutput(StreamServiceId::Second), streamingOutputStatsSecondary);
+	rval.push_back(ipc::value(streamingOutputStatsSecondary.kbitsPerSec));
+	rval.push_back(ipc::value(streamingOutputStatsSecondary.dataOutput));
 	AUTO_DEBUG;
 }
 
