@@ -8,7 +8,7 @@ variables:
   SLGenerator: Visual Studio 16 2019
   SLDistributeDirectory: distribute
   SLFullDistributePath: $(SLBuildDirectory)\$(SLDistributeDirectory)
-  LibOBSVersion: 28.2.59
+  LibOBSVersion: 28.2.57size2
 
 jobs:
 - job: 'WindowsRelease'
