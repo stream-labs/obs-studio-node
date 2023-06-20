@@ -532,3 +532,28 @@ install(
     DESTINATION "./data/obs-plugins/slobs-virtual-cam" USE_SOURCE_PERMISSIONS
 )
 endif()
+
+# This is required for macOS tests. Otherwise CEF will not be able to start child processes.
+# The root folder for Contents/Frameworks should have the .app extenstion!
+if (APPLE)
+    install(
+        DIRECTORY "${libobs_SOURCE_DIR}/OBS.app/Contents/Frameworks/Chromium Embedded Framework.framework"
+        DESTINATION "../../Contents/Frameworks" USE_SOURCE_PERMISSIONS
+    )
+    install(
+        DIRECTORY "${libobs_SOURCE_DIR}/OBS.app/Contents/Frameworks/obs64 Helper (GPU).app"
+        DESTINATION "../../Contents/Frameworks" USE_SOURCE_PERMISSIONS
+    )
+    install(
+        DIRECTORY "${libobs_SOURCE_DIR}/OBS.app/Contents/Frameworks/obs64 Helper (Plugin).app"
+        DESTINATION "../../Contents/Frameworks" USE_SOURCE_PERMISSIONS
+    )
+    install(
+        DIRECTORY "${libobs_SOURCE_DIR}/OBS.app/Contents/Frameworks/obs64 Helper (Renderer).app"
+        DESTINATION "../../Contents/Frameworks" USE_SOURCE_PERMISSIONS
+    )
+    install(
+        DIRECTORY "${libobs_SOURCE_DIR}/OBS.app/Contents/Frameworks/obs64 Helper.app"
+        DESTINATION "../../Contents/Frameworks" USE_SOURCE_PERMISSIONS
+    )
+endif()
