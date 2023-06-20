@@ -46,6 +46,7 @@ Napi::Object osn::SceneItem::Init(Napi::Env env, Napi::Object exports)
 				    InstanceAccessor("recordingVisible", &osn::SceneItem::IsRecordingVisible, &osn::SceneItem::SetRecordingVisible),
 				    InstanceAccessor("video", &osn::SceneItem::GetCanvas, &osn::SceneItem::SetCanvas),
 				    InstanceAccessor("position", &osn::SceneItem::GetPosition, &osn::SceneItem::SetPosition),
+				    InstanceAccessor("size", &osn::SceneItem::GetSize, nullptr),
 				    InstanceAccessor("rotation", &osn::SceneItem::GetRotation, &osn::SceneItem::SetRotation),
 				    InstanceAccessor("scale", &osn::SceneItem::GetScale, &osn::SceneItem::SetScale),
 				    InstanceAccessor("alignment", &osn::SceneItem::GetAlignment, &osn::SceneItem::SetAlignment),
@@ -385,6 +386,28 @@ void osn::SceneItem::SetPosition(const Napi::CallbackInfo &info, const Napi::Val
 
 	sid->posX = x;
 	sid->posY = y;
+}
+
+Napi::Value osn::SceneItem::GetSize(const Napi::CallbackInfo &info)
+{
+	SceneItemData *sid = CacheManager<SceneItemData *>::getInstance().Retrieve(this->itemId);
+
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
+
+	std::vector<ipc::value> response = conn->call_synchronous_helper("SceneItem", "GetSize", std::vector<ipc::value>{ipc::value(this->itemId)});
+
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
+	float width = response[1].value_union.fp32;
+	float height = response[2].value_union.fp32;
+
+	Napi::Object obj = Napi::Object::New(info.Env());
+	obj.Set("width", Napi::Number::New(info.Env(), width));
+	obj.Set("height", Napi::Number::New(info.Env(), height));
+
+	return obj;
 }
 
 Napi::Value osn::SceneItem::GetCanvas(const Napi::CallbackInfo &info)
