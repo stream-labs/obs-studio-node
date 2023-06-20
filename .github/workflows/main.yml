@@ -14,14 +14,14 @@ on:
 
 env:
   InstallPath: "obs-studio-node"
-  SLBUILDDIRECTORY: "streamlabs-build"
+  SLBUILDDIRECTORY: "streamlabs-build.app" # The .app extension is required to run macOS tests correctly.
   RELEASE_BUCKET: "obsstudionodes3.streamlabs.com"
   RuntimeURL: https://artifacts.electronjs.org/headers/dist
   RuntimeName: iojs
   ElectronVersion: 22.3.3
   SLGenerator: Visual Studio 17 2022
   SLDistributeDirectory: distribute
-  SLFullDistributePath: "streamlabs-build/distribute"
+  SLFullDistributePath: "streamlabs-build.app/distribute" # The .app extension is required to run macOS tests correctly.
   LibOBSVersion: 28.2.58
   PACKAGE_NAME: osn
 
