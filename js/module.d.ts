@@ -538,7 +538,6 @@ export interface ISceneItem {
     readonly id: number;
     selected: boolean;
     position: IVec2;
-    readonly size: IVec2;
     rotation: number;
     scale: IVec2;
     alignment: EAlignment;

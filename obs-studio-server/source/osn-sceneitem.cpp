@@ -41,7 +41,6 @@ void osn::SceneItem::Register(ipc::server &srv)
 	cls->register_function(std::make_shared<ipc::function>("GetPosition", std::vector<ipc::type>{ipc::type::UInt64}, GetPosition));
 	cls->register_function(
 		std::make_shared<ipc::function>("SetPosition", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Float, ipc::type::Float}, SetPosition));
-	cls->register_function(std::make_shared<ipc::function>("GetSize", std::vector<ipc::type>{ipc::type::UInt64}, GetSize));
 	cls->register_function(std::make_shared<ipc::function>("GetCanvas", std::vector<ipc::type>{ipc::type::UInt64}, GetCanvas));
 	cls->register_function(std::make_shared<ipc::function>("SetCanvas", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64}, SetCanvas));
 	cls->register_function(std::make_shared<ipc::function>("GetRotation", std::vector<ipc::type>{ipc::type::UInt64}, GetRotation));
@@ -274,26 +273,6 @@ void osn::SceneItem::SetPosition(void *data, const int64_t id, const std::vector
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(pos.x));
 	rval.push_back(ipc::value(pos.y));
-	AUTO_DEBUG;
-}
-
-void osn::SceneItem::GetSize(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
-{
-	obs_sceneitem_t *item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
-	if (!item) {
-		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
-	}
-
-	vec2 size = {0};
-	obs_source_t *input = obs_sceneitem_get_source(item);
-	if (input) {
-		size.x = obs_source_get_width(input);
-		size.y = obs_source_get_height(input);
-	}
-
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	rval.push_back(ipc::value(size.x));
-	rval.push_back(ipc::value(size.y));
 	AUTO_DEBUG;
 }
 

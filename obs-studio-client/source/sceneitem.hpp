@@ -47,7 +47,6 @@ public:
 
 	Napi::Value GetPosition(const Napi::CallbackInfo &info);
 	void SetPosition(const Napi::CallbackInfo &info, const Napi::Value &value);
-	Napi::Value GetSize(const Napi::CallbackInfo &info);
 	Napi::Value GetCanvas(const Napi::CallbackInfo &info);
 	void SetCanvas(const Napi::CallbackInfo &info, const Napi::Value &value);
 	Napi::Value GetRotation(const Napi::CallbackInfo &info);

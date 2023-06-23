@@ -1044,9 +1044,6 @@ export interface ISceneItem {
     /** Position of the item */
     position: IVec2;
 
-    /** Size of the item */
-    readonly size: IVec2;
-
     /** Rotation of the in degrees */
     rotation: number;
 
