@@ -284,8 +284,12 @@ void osn::SceneItem::GetSize(void *data, const int64_t id, const std::vector<ipc
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
 	}
 
-	vec2 size;
-	obs_sceneitem_get_size(item, &size);
+	vec2 size = {0};
+	obs_source_t *input = obs_sceneitem_get_source(item);
+	if (input) {
+		size.x = obs_source_get_width(input);
+		size.y = obs_source_get_height(input);
+	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(size.x));
