@@ -129,8 +129,8 @@ void osn::SceneItem::Remove(void *data, const int64_t id, const std::vector<ipc:
 	}
 
 	osn::SceneItem::Manager::GetInstance().free(args[0].value_union.ui64);
-	obs_sceneitem_release(item);
 	obs_sceneitem_remove(item);
+	obs_sceneitem_release(item);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
