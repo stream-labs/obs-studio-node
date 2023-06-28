@@ -210,14 +210,20 @@ void osn::Source::Release(void *data, const int64_t id, const std::vector<ipc::v
 		std::list<obs_sceneitem_t *> items;
 		auto cb = [](obs_scene_t *scene, obs_sceneitem_t *item, void *data) {
 			if (item) {
-				obs_sceneitem_release(item);
-				obs_sceneitem_remove(item);
+				std::list<obs_sceneitem_t *> *items = reinterpret_cast<std::list<obs_sceneitem_t *> *>(data);
+				obs_sceneitem_addref(item);
+				items->push_back(item);
 			}
 			return true;
 		};
 		obs_scene_t *scene = obs_scene_from_source(src);
 		if (scene)
-			obs_scene_enum_items(scene, cb, nullptr);
+			obs_scene_enum_items(scene, cb, &items);
+
+		for (auto item : items) {
+			obs_sceneitem_remove(item);
+			obs_sceneitem_release(item);
+		}
 
 		obs_source_release(src);
 	} else {
