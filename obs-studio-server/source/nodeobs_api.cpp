@@ -1742,8 +1742,8 @@ void OBS_API::destroyOBS_API(void)
 				std::list<obs_sceneitem_t *> items;
 				auto cb = [](obs_scene_t *scene, obs_sceneitem_t *item, void *data) {
 					if (item) {
-						obs_sceneitem_release(item);
 						obs_sceneitem_remove(item);
+						obs_sceneitem_release(item);
 					}
 					return true;
 				};
