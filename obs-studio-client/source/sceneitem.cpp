@@ -787,19 +787,20 @@ void osn::SceneItem::SetTransformInfo(const Napi::CallbackInfo &info, const Napi
 		return;
 	}
 
-	const auto b = conn->call("SceneItem", "SetTransformInfo", std::vector<ipc::value>{
-		this->itemId,
-		pos.Get("x").ToNumber().FloatValue(),
-		pos.Get("y").ToNumber().FloatValue(),
-		rot,
-		scale.Get("x").ToNumber().FloatValue(),
-		scale.Get("y").ToNumber().FloatValue(),
-		alignment,
-		boundsType,
-		boundsAlignment,
-		bounds.Get("x").ToNumber().FloatValue(),
-		bounds.Get("y").ToNumber().FloatValue(),
-	});
+	const auto b = conn->call("SceneItem", "SetTransformInfo",
+				  std::vector<ipc::value>{
+					  this->itemId,
+					  pos.Get("x").ToNumber().FloatValue(),
+					  pos.Get("y").ToNumber().FloatValue(),
+					  rot,
+					  scale.Get("x").ToNumber().FloatValue(),
+					  scale.Get("y").ToNumber().FloatValue(),
+					  alignment,
+					  boundsType,
+					  boundsAlignment,
+					  bounds.Get("x").ToNumber().FloatValue(),
+					  bounds.Get("y").ToNumber().FloatValue(),
+				  });
 }
 
 Napi::Value osn::SceneItem::GetId(const Napi::CallbackInfo &info)

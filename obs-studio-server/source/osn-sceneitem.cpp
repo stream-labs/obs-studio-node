@@ -63,16 +63,16 @@ void osn::SceneItem::Register(ipc::server &srv)
 	cls->register_function(std::make_shared<ipc::function>("GetCrop", std::vector<ipc::type>{ipc::type::UInt64}, GetCrop));
 	cls->register_function(std::make_shared<ipc::function>(
 		"SetCrop", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32, ipc::type::Int32, ipc::type::Int32, ipc::type::Int32}, SetCrop));
-	cls->register_function(std::make_shared<ipc::function>(
-		"GetTransformInfo",
-		std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Float, ipc::type::Float, ipc::type::Float, ipc::type::Float, ipc::type::Float,
-								ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::Float, ipc::type::Float},
-		GetTransformInfo));
-	cls->register_function(std::make_shared<ipc::function>(
-		"SetTransformInfo",
-		std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Float, ipc::type::Float, ipc::type::Float, ipc::type::Float, ipc::type::Float,
-								ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32, ipc::type::Float, ipc::type::Float},
-		SetTransformInfo));
+	cls->register_function(std::make_shared<ipc::function>("GetTransformInfo",
+							       std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Float, ipc::type::Float, ipc::type::Float,
+										      ipc::type::Float, ipc::type::Float, ipc::type::UInt32, ipc::type::UInt32,
+										      ipc::type::UInt32, ipc::type::Float, ipc::type::Float},
+							       GetTransformInfo));
+	cls->register_function(std::make_shared<ipc::function>("SetTransformInfo",
+							       std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Float, ipc::type::Float, ipc::type::Float,
+										      ipc::type::Float, ipc::type::Float, ipc::type::UInt32, ipc::type::UInt32,
+										      ipc::type::UInt32, ipc::type::Float, ipc::type::Float},
+							       SetTransformInfo));
 	cls->register_function(std::make_shared<ipc::function>("GetId", std::vector<ipc::type>{ipc::type::UInt64}, GetId));
 	cls->register_function(std::make_shared<ipc::function>("MoveUp", std::vector<ipc::type>{ipc::type::UInt64}, MoveUp));
 	cls->register_function(std::make_shared<ipc::function>("MoveDown", std::vector<ipc::type>{ipc::type::UInt64}, MoveDown));
