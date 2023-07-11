@@ -303,6 +303,70 @@ describe(testName, () => {
         sceneItem.remove();
     });
 
+    it('Get default transform info of scene item', () => {
+        // Getting scene
+        const scene = osn.SceneFactory.fromName(sceneName);
+
+        // Getting source
+        const source = osn.InputFactory.fromName(sourceName);
+
+        // Adding input source to scene to create scene item
+        const sceneItem = scene.add(source);
+
+        const info = sceneItem.transformInfo;
+
+        expect(info.pos.x).to.equal(0.0, GetErrorMessage(ETestErrorMsg.PositionX));
+        expect(info.pos.y).to.equal(0.0, GetErrorMessage(ETestErrorMsg.PositionY));
+        expect(info.rot).to.equal(0.0, GetErrorMessage(ETestErrorMsg.Rotation));
+        expect(info.scale.x).to.equal(1.0, GetErrorMessage(ETestErrorMsg.ScaleX));
+        expect(info.scale.y).to.equal(1.0, GetErrorMessage(ETestErrorMsg.ScaleY));
+        expect(info.alignment).to.equal(osn.EAlignment.TopLeft, GetErrorMessage(ETestErrorMsg.Alignment));
+        expect(info.boundsType).to.equal(osn.EBoundsType.None, GetErrorMessage(ETestErrorMsg.BoundType));
+        expect(info.boundsAlignment).to.equal(0, GetErrorMessage(ETestErrorMsg.BoundAlignment));
+        expect(info.bounds.x).to.equal(0.0, GetErrorMessage(ETestErrorMsg.PositionX));
+        expect(info.bounds.y).to.equal(0.0, GetErrorMessage(ETestErrorMsg.PositionX));
+
+        sceneItem.source.release();
+        sceneItem.remove();
+    });
+
+    it('Set transform info of scene item', () => {
+        // Getting scene
+        const scene = osn.SceneFactory.fromName(sceneName);
+
+        // Getting source
+        const source = osn.InputFactory.fromName(sourceName);
+
+        // Adding input source to scene to create scene item
+        const sceneItem = scene.add(source);
+
+        sceneItem.transformInfo = {
+            pos: { x: 10, y: 5 },
+            rot: 50.5,
+            scale: { x: 0.5, y: 0.7 },
+            alignment: osn.EAlignment.Center,
+            boundsType: osn.EBoundsType.ScaleToWidth,
+            boundsAlignment: 100500,
+            bounds: { x: 100, y: 200 },
+        };
+
+        const info = sceneItem.transformInfo;
+
+        expect(info.pos.x).to.be.closeTo(10, 0.001, GetErrorMessage(ETestErrorMsg.PositionX));
+        expect(info.pos.y).to.be.closeTo(5, 0.001, GetErrorMessage(ETestErrorMsg.PositionY));
+        expect(info.rot).to.be.closeTo(50.5, 0.001, GetErrorMessage(ETestErrorMsg.Rotation));
+        expect(info.scale.x).to.be.closeTo(0.5, 0.001, GetErrorMessage(ETestErrorMsg.ScaleX));
+        expect(info.scale.y).to.be.closeTo(0.7, 0.001, GetErrorMessage(ETestErrorMsg.ScaleY));
+        expect(info.alignment).to.equal(osn.EAlignment.Center, GetErrorMessage(ETestErrorMsg.Alignment));
+        expect(info.boundsType).to.equal(osn.EBoundsType.ScaleToWidth, GetErrorMessage(ETestErrorMsg.BoundType));
+        expect(info.boundsAlignment).to.equal(100500, GetErrorMessage(ETestErrorMsg.BoundAlignment));
+        expect(info.bounds.x).to.be.closeTo(100, 0.001, GetErrorMessage(ETestErrorMsg.PositionX));
+        expect(info.bounds.y).to.be.closeTo(200, 0.001, GetErrorMessage(ETestErrorMsg.PositionX));
+
+        sceneItem.source.release();
+        sceneItem.remove();
+    });
+
     it('Set crop value and get it', () => {
         let crop: ICrop = {top: 5, bottom: 5, left: 3, right:3};
 
