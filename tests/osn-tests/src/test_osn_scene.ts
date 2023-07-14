@@ -57,8 +57,6 @@ describe(testName, () => {
     });
 
     it('Duplicate scene', () => {
-        // known bug enable test when fixed
-        return;
         const sceneName = 'duplicate_scene';
 
         // Creating scene

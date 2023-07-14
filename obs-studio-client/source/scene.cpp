@@ -225,15 +225,17 @@ Napi::Value osn::Scene::Duplicate(const Napi::CallbackInfo &info)
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
 
-	uint64_t sourceId = response[1].value_union.ui64;
+	const auto sourceId = response[1].value_union.ui64;
 
-	SourceDataInfo *sdi = new SourceDataInfo;
+	auto *const sdi = new SourceDataInfo;
 	sdi->name = name;
 	sdi->obs_sourceId = "scene";
-	sdi->id = response[1].value_union.ui64;
-
+	sdi->id = sourceId;
 	CacheManager<SourceDataInfo *>::getInstance().Store(sourceId, name, sdi);
-	CacheManager<SceneInfo *>::getInstance().Store(sourceId, name, new SceneInfo);
+
+	auto *const si = new SceneInfo;
+	si->id = sourceId;
+	CacheManager<SceneInfo *>::getInstance().Store(sourceId, name, si);
 
 	auto instance = osn::Input::constructor.New({Napi::Number::New(info.Env(), sourceId)});
 
