@@ -1074,7 +1074,7 @@ export interface ISceneItem {
      * Transform information on the item packed into
      * a single convenient object
      */
-    readonly transformInfo: ITransformInfo;
+    transformInfo: ITransformInfo;
 
     /** Current crop applied to the item */
     crop: ICropInfo;
