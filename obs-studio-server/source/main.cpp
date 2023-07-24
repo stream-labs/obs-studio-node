@@ -322,6 +322,7 @@ int main(int argc, char *argv[])
 	// Then, shutdown OBS
 	OBS_API::destroyOBS_API();
 #ifdef __APPLE__
+	util::CrashManager::DeleteBriefCrashInfoFile();
 	if (override_std_fd) {
 		close(out_pid);
 		close(out_err);
