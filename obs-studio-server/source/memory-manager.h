@@ -31,65 +31,48 @@
 #include "psapi.h"
 #endif
 
-#define LIMIT 2004800000
-#define MAX_POOLS 10
-#define UPPER_LIMIT 80
-#define LOWER_LIMIT 50
+#define LIMIT 2004800000ul
+#define MAX_POLLS 10
 
-struct source_info {
-	bool cached;
-	uint64_t size;
-	obs_source_t *source;
-	std::vector<std::thread> workers;
-	std::mutex mtx;
-	bool have_video;
-};
-
+// Implements 'Singleton' design pattern
 class MemoryManager {
 public:
-	static MemoryManager &GetInstance()
-	{
-		static MemoryManager instance;
-		return instance;
-	}
-
-private:
-	MemoryManager();
-
-public:
-	MemoryManager(MemoryManager const &) = delete;
-	void operator=(MemoryManager const &) = delete;
+	static MemoryManager &GetInstance();
 	virtual ~MemoryManager();
 
-private:
-	std::map<const char *, source_info *> sources;
-
-	std::mutex mtx;
-	uint64_t available_memory;
-	uint64_t current_cached_size;
-	uint64_t allowed_cached_size;
-
-	struct {
-		std::thread worker;
-		bool stop = false;
-		bool running = false;
-	} watcher;
-
-public:
 	void registerSource(obs_source_t *source);
 	void unregisterSource(obs_source_t *source);
 
 	void updateSourceCache(obs_source_t *source);
-	void updateSourcesCache(void);
+	void updateSourcesCache();
 
 private:
-	void calculateRawSize(source_info *si);
-	bool shouldCacheSource(source_info *si);
+	// Types
+	struct source_info;
+
+	// Constructors
+	MemoryManager();
+
+	// Copiers/movers
+	MemoryManager(MemoryManager const &) = delete;
+	MemoryManager &operator=(MemoryManager const &) = delete;
+	MemoryManager(MemoryManager const &&) = delete;
+	MemoryManager &operator=(MemoryManager const &&) = delete;
+
+	// Methods
+	bool isSourceValid(obs_source_t *source) const;
 	void updateSettings(obs_source_t *source);
 
-	void addCachedMemory(source_info *si);
-	void removeCachedMemory(source_info *si, bool cacheNewFiles);
+	void calculateRawSize(source_info &si);
+	bool shouldCacheSource(source_info &si);
+	void addCachedMemory(source_info &si);
+	void removeCachedMemory(source_info &si, bool cacheNewFiles);
+	void sourceManager(source_info &si);
 
-	void sourceManager(source_info *si);
-	void monitorMemory(void);
+	// Data
+	std::mutex mtx;
+	std::map<const char *, std::unique_ptr<source_info>> sources;
+	uint64_t available_memory;
+	uint64_t current_cached_size;
+	uint64_t allowed_cached_size;
 };
