@@ -178,8 +178,13 @@ void MemoryManager::removeCachedMemory(source_info &si, bool cacheNewFiles)
 		return;
 
 	for (const auto &data : sources) {
+		if (data.second.get() == &si) {
+			// Do not check self
+			continue;
+		}
+
 		std::unique_lock ulock(data.second->mtx);
-		if (strcmp(obs_source_get_name(si.source), data.first) != 0 && shouldCacheSource(*data.second))
+		if (shouldCacheSource(*data.second))
 			addCachedMemory(*data.second);
 	}
 }
