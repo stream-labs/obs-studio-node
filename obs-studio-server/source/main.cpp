@@ -225,7 +225,8 @@ int main(int argc, char *argv[])
 	sd.last_disconnect = sd.last_connect = std::chrono::high_resolution_clock::now();
 	sd.count_connected = 0;
 	OBS_API::SetCrashHandlerPipe(std::wstring(socketPath.begin(), socketPath.end()));
-
+	if (myVersion.find("preview") != std::string::npos)
+		myServer.set_call_timeout(30);
 	// Classes
 	/// System
 	{
