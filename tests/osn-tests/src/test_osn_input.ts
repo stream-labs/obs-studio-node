@@ -155,6 +155,8 @@ describe(testName, () => {
                 case 'game_capture': {
                     settings = inputSettings.gameCapture;
                     settings['allow_transparency'] = true;
+                    settings['default_height'] = 1080;
+                    settings['default_width'] = 1920;
                     break;
                 }
                 case 'dshow_input': {
@@ -196,6 +198,8 @@ describe(testName, () => {
                 }
                 case 'screen_capture': {
                     settings = inputSettings.simpleCapture;
+                    settings['default_height'] = 1080;
+                    settings['default_width'] = 1920;
                     break;
                 }                
             }

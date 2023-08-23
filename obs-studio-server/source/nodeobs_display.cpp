@@ -1387,6 +1387,9 @@ void OBS::Display::DisplayCallback(void *displayPtr, uint32_t cx, uint32_t cy)
 	gs_technique_t *solid_tech = gs_effect_get_technique(solid, "Solid");
 	vec4 color;
 
+	if (dp->m_canvas)
+		obs_set_video_rendering_canvas(dp->m_canvas);
+
 	dp->UpdatePreviewArea();
 
 	// Get proper source/base size.
