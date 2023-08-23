@@ -19,7 +19,6 @@ const testName = 'osn-dual-output';
 describe(testName, () => {
     let obs: OBSHandler;
     let hasTestFailed: boolean = false;
-    let context: osn.IVideo;
     let sceneName: string = 'test_scene';
     let sourceName: string = 'test_source';
 
@@ -28,21 +27,6 @@ describe(testName, () => {
         logInfo(testName, 'Starting ' + testName + ' tests');
         deleteConfigFiles();
         obs = new OBSHandler(testName);
-        context = osn.VideoFactory.create();
-        const firstVideoInfo: osn.IVideoInfo = {
-            fpsNum: 60,
-            fpsDen: 1,
-            baseWidth: 1920,
-            baseHeight: 1080,
-            outputWidth: 1280,
-            outputHeight: 720,
-            outputFormat: osn.EVideoFormat.NV12,
-            colorspace: osn.EColorSpace.CS709,
-            range: osn.ERangeType.Full,
-            scaleType: osn.EScaleType.Bilinear,
-            fpsType: osn.EFPSType.Fractional
-        };
-        context.video = firstVideoInfo;
 
         obs.instantiateUserPool(testName);
 
@@ -55,7 +39,6 @@ describe(testName, () => {
 
     // Shutdown OBS process
     after(async function () {
-        context.destroy();
         // Releasing user got from pool
         await obs.releaseUser();
 
@@ -125,7 +108,7 @@ describe(testName, () => {
         recording.videoEncoder = osn.VideoEncoderFactory.create('obs_x264', 'video-encoder');
         recording.overwrite = false;
         recording.noSpace = false;
-        recording.video = context;
+        recording.video = obs.defaultVideoContext;
         const track1 = osn.AudioTrackFactory.create(160, 'track1');
         osn.AudioTrackFactory.setAtIndex(track1, 1);
         recording.signalHandler = (signal) => { obs.signals.push(signal) };
@@ -276,7 +259,7 @@ describe(testName, () => {
         recording.videoEncoder = osn.VideoEncoderFactory.create('obs_x264', 'video-encoder');
         recording.overwrite = false;
         recording.noSpace = false;
-        recording.video = context;
+        recording.video = obs.defaultVideoContext;
         const track1 = osn.AudioTrackFactory.create(160, 'track1');
         osn.AudioTrackFactory.setAtIndex(track1, 1);
         recording.signalHandler = (signal) => { obs.signals.push(signal) };
@@ -294,7 +277,7 @@ describe(testName, () => {
 
         // Adding input source to scene to create scene item
         const sceneItem1 = scene.add(source);
-        sceneItem1.video = context;
+        sceneItem1.video = obs.defaultVideoContext;
         sceneItem1.visible = true;
         let position1: IVec2 = { x: 1100, y: 200 };
         sceneItem1.position = position1;
@@ -461,7 +444,7 @@ describe(testName, () => {
         };
         secondContext.video = secondVideoInfo;
 
-        osn.NodeObs.OBS_service_setVideoInfo(context, "horizontal");
+        osn.NodeObs.OBS_service_setVideoInfo(obs.defaultVideoContext, "horizontal");
         osn.NodeObs.OBS_service_setVideoInfo(secondContext, "vertical");
 
         let signalInfo: IOBSOutputSignalInfo;

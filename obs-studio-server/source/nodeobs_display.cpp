@@ -477,21 +477,21 @@ OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode,
 	m_parentWindow = reinterpret_cast<HWND>(windowHandle);
 	m_gsInitData.window.hwnd = reinterpret_cast<void *>(m_ourWindow);
 #endif
+	{
+		std::lock_guard lock(m_displayMtx);
 
-	std::lock_guard lock(m_displayMtx);
+		m_display = obs_display_create(&m_gsInitData, 0x0);
 
-	m_display = obs_display_create(&m_gsInitData, 0x0);
+		if (!m_display) {
+			blog(LOG_INFO, "Failed to create the display");
+			throw std::runtime_error("unable to create display");
+		}
 
-	if (!m_display) {
-		blog(LOG_INFO, "Failed to create the display");
-		throw std::runtime_error("unable to create display");
+		m_renderingMode = mode;
+		m_canvas = canvas;
+
+		obs_display_add_draw_callback(m_display, DisplayCallback, this);
 	}
-
-	m_renderingMode = mode;
-	m_canvas = canvas;
-
-	obs_display_add_draw_callback(m_display, DisplayCallback, this);
-	m_displayMtx.unlock();
 
 	UpdatePreviewArea();
 }
@@ -1387,6 +1387,9 @@ void OBS::Display::DisplayCallback(void *displayPtr, uint32_t cx, uint32_t cy)
 	gs_technique_t *solid_tech = gs_effect_get_technique(solid, "Solid");
 	vec4 color;
 
+	if (dp->m_canvas)
+		obs_set_video_rendering_canvas(dp->m_canvas);
+
 	dp->UpdatePreviewArea();
 
 	// Get proper source/base size.
@@ -1482,13 +1485,6 @@ void OBS::Display::DisplayCallback(void *displayPtr, uint32_t cx, uint32_t cy)
 		obs_source_video_render(dp->m_source);
 	} else {
 		obs_render_texture(dp->m_canvas, dp->m_renderingMode);
-
-		/* Here we assume that channel 0 holds the primary transition.
-		* We also assume that the active source within that transition is
-		* the scene that we need */
-		obs_source_t *transition = obs_get_output_source(0);
-		source = obs_transition_get_active_source(transition);
-		obs_source_release(transition);
 	}
 
 	//------------------------------------------------------------------------------

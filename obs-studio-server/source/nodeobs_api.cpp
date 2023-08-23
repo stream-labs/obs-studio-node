@@ -103,7 +103,7 @@ enum crashHandlerCommand { REGISTER = 0, UNREGISTER = 1, REGISTERMEMORYDUMP = 2,
 
 struct NodeOBSLogParam final {
 	std::fstream logStream;
-	bool enableDebugLogs = false;
+	bool enableDebugLogs = true;
 };
 
 std::string g_moduleDirectory = "";
@@ -115,7 +115,8 @@ HMODULE hRtwq;
 std::string slobs_plugin;
 std::vector<std::pair<std::string, obs_module_t *>> obsModules;
 OBS_API::LogReport logReport;
-OBS_API::OutputStats streamingOutputStats;
+OBS_API::OutputStats streamingOutputStatsMain;
+OBS_API::OutputStats streamingOutputStatsSecondary;
 OBS_API::OutputStats recordingOutputStats;
 std::mutex logMutex;
 std::string currentVersion;
@@ -996,9 +997,9 @@ void OBS_API::OBS_API_getPerformanceStatistics(void *data, const int64_t id, con
 	rval.push_back(ipc::value(getNumberOfDroppedFrames()));
 	rval.push_back(ipc::value(getDroppedFramesPercentage()));
 
-	getCurrentOutputStats(OBS_service::getStreamingOutput(StreamServiceId::Main), streamingOutputStats);
-	rval.push_back(ipc::value(streamingOutputStats.kbitsPerSec));
-	rval.push_back(ipc::value(streamingOutputStats.dataOutput));
+	getCurrentOutputStats(OBS_service::getStreamingOutput(StreamServiceId::Main), streamingOutputStatsMain);
+	rval.push_back(ipc::value(streamingOutputStatsMain.kbitsPerSec));
+	rval.push_back(ipc::value(streamingOutputStatsMain.dataOutput));
 
 	getCurrentOutputStats(OBS_service::getRecordingOutput(), recordingOutputStats);
 	rval.push_back(ipc::value(recordingOutputStats.kbitsPerSec));
@@ -1009,9 +1010,9 @@ void OBS_API::OBS_API_getPerformanceStatistics(void *data, const int64_t id, con
 	rval.push_back(ipc::value(getMemoryUsage()));
 	rval.push_back(ipc::value(getDiskSpaceAvailable()));
 
-	getCurrentOutputStats(OBS_service::getStreamingOutput(StreamServiceId::Second), streamingOutputStats);
-	rval.push_back(ipc::value(streamingOutputStats.kbitsPerSec));
-	rval.push_back(ipc::value(streamingOutputStats.dataOutput));
+	getCurrentOutputStats(OBS_service::getStreamingOutput(StreamServiceId::Second), streamingOutputStatsSecondary);
+	rval.push_back(ipc::value(streamingOutputStatsSecondary.kbitsPerSec));
+	rval.push_back(ipc::value(streamingOutputStatsSecondary.dataOutput));
 	AUTO_DEBUG;
 }
 
@@ -1453,6 +1454,16 @@ void OBS_API::WaitCrashHandlerClose(bool waitBeforeClosing)
 	}
 }
 
+void debug_enum_sources(std::string inside)
+{
+	auto PreEnum = [](void *data, obs_source_t *source) -> bool {
+		blog(LOG_INFO, "[ENUM] obs_enum_%s %s %p , removed %d", (char *)data, obs_source_get_name(source), source, obs_source_removed(source) ? 1 : 0);
+		return true;
+	};
+	obs_enum_sources(PreEnum, (void *)(std::string("sources ") + inside).c_str());
+	obs_enum_scenes(PreEnum, (void *)(std::string("scenes ") + inside).c_str());
+}
+
 void OBS_API::StopCrashHandler(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
 	util::CrashManager::setAppState("shutdown");
@@ -1510,7 +1521,7 @@ void OBS_API::InformCrashHandler(const int crash_id)
 void OBS_API::destroyOBS_API(void)
 {
 	blog(LOG_DEBUG, "OBS_API::destroyOBS_API started, objects allocated %d", bnum_allocs());
-
+	debug_enum_sources(" on destroyOBS_API");
 	os_cpu_usage_info_destroy(cpuUsageInfo);
 
 #ifdef _WIN32
@@ -1527,6 +1538,9 @@ void OBS_API::destroyOBS_API(void)
 
 	OBS_service::stopAllOutputs();
 	OBS_service::waitReleaseWorker();
+
+	for (int i = 0; i < MAX_CHANNELS; i++)
+		obs_set_output_source(i, nullptr);
 
 	obs_encoder_t *streamingEncoder;
 	streamingEncoder = OBS_service::getStreamingEncoder(StreamServiceId::Main);
@@ -1683,6 +1697,11 @@ void OBS_API::destroyOBS_API(void)
 			delete fileOutput;
 	});
 
+	obs_wait_for_destroy_queue();
+	// obs_set_output_source might cause destruction of some sources.
+	// Wait for the destruction thread to destroy the sources to be sure
+	// |for_each| below will only return actual remaining sources.
+
 	// Check if the frontend was able to shutdown correctly:
 	// If there are some sources here it's because it ended unexpectedly, this represents a
 	// problem since obs doesn't handle releasing leaked sources very well. The best we can
@@ -1691,19 +1710,25 @@ void OBS_API::destroyOBS_API(void)
 	    osn::SceneItem::Manager::GetInstance().size() > 0 || osn::Transition::Manager::GetInstance().size() > 0 ||
 	    osn::Filter::Manager::GetInstance().size() > 0 || osn::Input::Manager::GetInstance().size() > 0) {
 
-		for (int i = 0; i < MAX_CHANNELS; i++)
-			obs_set_output_source(i, nullptr);
-
-		// obs_set_output_source might cause destruction of some sources.
-		// Wait for the destruction thread to destroy the sources to be sure
-		// |for_each| below will only return actual remaining sources.
-		obs_wait_for_destroy_queue();
+		release_sources releasing_counter;
 
 		std::vector<obs_source_t *> sources;
-		osn::Source::Manager::GetInstance().for_each([&sources](obs_source_t *source) {
-			if (source)
-				sources.push_back(source);
+		osn::Source::Manager::GetInstance().for_each([&sources, &releasing_counter](obs_source_t *source) {
+			blog(LOG_INFO, "OBS_API::destroyOBS_API before source %p destroy %s", source, obs_source_get_name(source));
+			if (source) {
+				if (!obs_source_removed(source)) {
+					sources.push_back(source);
+				} else {
+					blog(LOG_INFO, "OBS_API::destroyOBS_API source %s is in removed state", obs_source_get_name(source));
+					releasing_counter.add_to_delete(source);
+				}
+			} else {
+				blog(LOG_ERROR, "OBS_API::destroyOBS_API source in memory manager is null");
+			}
 		});
+
+		if (sources.size() > 0 || releasing_counter.num_sources > 0)
+			blog(LOG_INFO, "OBS_API::destroyOBS_API sources to destroy %d, to wait %d", sources.size(), releasing_counter.num_sources);
 
 		for (const auto &source : sources) {
 			if (!source)
@@ -1717,8 +1742,8 @@ void OBS_API::destroyOBS_API(void)
 				std::list<obs_sceneitem_t *> items;
 				auto cb = [](obs_scene_t *scene, obs_sceneitem_t *item, void *data) {
 					if (item) {
-						obs_sceneitem_release(item);
 						obs_sceneitem_remove(item);
+						obs_sceneitem_release(item);
 					}
 					return true;
 				};
@@ -1736,11 +1761,10 @@ void OBS_API::destroyOBS_API(void)
 			}
 		}
 
-		release_sources release_sources;
 		// Release all remaining sources that are not transitions
 		for (int i = 0; i < sources.size(); i++) {
 			if (sources[i] && obs_source_get_type(sources[i]) != OBS_SOURCE_TYPE_TRANSITION) {
-				release_sources.add_to_delete(sources[i]);
+				releasing_counter.add_to_delete(sources[i]);
 
 				obs_source_release(sources[i]);
 				sources[i] = nullptr;
@@ -1757,6 +1781,8 @@ void OBS_API::destroyOBS_API(void)
 		// Remove the 'destruction' callback. Otherwise, it will try to
 		// access data released by |obs_shutdown| which leads to crashes.
 		obs_wait_for_destroy_queue();
+		blog(LOG_WARNING, "OBS_API::destroyOBS_API - obs_wait_for_destroy_queue has finished, osn::Source::Manager::GetInstance() size is %d",
+		     osn::Source::Manager::GetInstance().size());
 		osn::Source::Manager::GetInstance().for_each([&sources](obs_source_t *source) { osn::Source::detach_source_signals(source); });
 
 #ifdef WIN32
@@ -1769,19 +1795,24 @@ void OBS_API::destroyOBS_API(void)
 		util::CrashManager::DisableReports();
 #endif
 
-		release_sources.start_time = std::chrono::steady_clock::now();
+		releasing_counter.start_time = std::chrono::steady_clock::now();
 		while (true) {
 			{
-				std::lock_guard<std::mutex> lock(release_sources.mtx);
-				if (release_sources.num_sources <= 0)
+				std::lock_guard<std::mutex> lock(releasing_counter.mtx);
+				if (releasing_counter.num_sources <= 0)
 					break;
 			}
 
-			if (std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - release_sources.start_time).count() > 10)
+			if (std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - releasing_counter.start_time).count() > 10) {
+				blog(LOG_WARNING, "OBS_API::destroyOBS_API timeout waiting for sources to be released. %d sources remaining",
+				     releasing_counter.num_sources);
 				break;
+			}
 
 			std::this_thread::sleep_for(std::chrono::milliseconds(100));
 		}
+
+		debug_enum_sources(" on shutdown");
 
 		blog(LOG_DEBUG, "OBS_API::destroyOBS_API unreleased objects detected before obs_shutdown, objects allocated %d", bnum_allocs());
 		// Try-catch should suppress any error message that could be thrown to the user

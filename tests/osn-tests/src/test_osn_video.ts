@@ -17,7 +17,7 @@ describe(testName, () => {
     before(function() {
         logInfo(testName, 'Starting ' + testName + ' tests');
         deleteConfigFiles();
-        obs = new OBSHandler(testName);
+        obs = new OBSHandler(testName, false);
     });
 
     // Shutdown OBS process
@@ -73,9 +73,9 @@ describe(testName, () => {
             baseHeight: 2160,
             outputWidth: 1920,
             outputHeight: 1080,
-            outputFormat: osn.EVideoFormat.I420,
+            outputFormat: osn.EVideoFormat.NV12,
             colorspace: osn.EColorSpace.CS709,
-            range: osn.ERangeType.Full,
+            range: osn.ERangeType.Partial,
             scaleType: osn.EScaleType.Lanczos,
             fpsType: EFPSType.Fractional
         };
@@ -89,9 +89,9 @@ describe(testName, () => {
         expect(currentVideo.baseHeight).to.equal(2160, GetErrorMessage(ETestErrorMsg.VideoSetBaseHeight));
         expect(currentVideo.outputWidth).to.equal(1920, GetErrorMessage(ETestErrorMsg.VideoSetOutputWidth));
         expect(currentVideo.outputHeight).to.equal(1080, GetErrorMessage(ETestErrorMsg.VideoSetOutputHeight));
-        expect(currentVideo.outputFormat).to.equal(osn.EVideoFormat.I420, GetErrorMessage(ETestErrorMsg.VideoSetOutputFormat));
+        expect(currentVideo.outputFormat).to.equal(osn.EVideoFormat.NV12, GetErrorMessage(ETestErrorMsg.VideoSetOutputFormat));
         expect(currentVideo.colorspace).to.equal(osn.EColorSpace.CS709, GetErrorMessage(ETestErrorMsg.VideoSetColorFormat));
-        expect(currentVideo.range).to.equal(osn.ERangeType.Full, GetErrorMessage(ETestErrorMsg.VideoSetRange));
+        expect(currentVideo.range).to.equal(osn.ERangeType.Partial, GetErrorMessage(ETestErrorMsg.VideoSetRange));
         expect(currentVideo.scaleType).to.equal(osn.EScaleType.Lanczos, GetErrorMessage(ETestErrorMsg.VideoSetScaleType));
         context.destroy();
     });
@@ -106,9 +106,9 @@ describe(testName, () => {
             baseHeight: 2160,
             outputWidth: 1920,
             outputHeight: 1080,
-            outputFormat: osn.EVideoFormat.I420,
+            outputFormat: osn.EVideoFormat.NV12,
             colorspace: osn.EColorSpace.CS709,
-            range: osn.ERangeType.Full,
+            range: osn.ERangeType.Partial,
             scaleType: osn.EScaleType.Lanczos,
             fpsType: EFPSType.Fractional
         };
@@ -121,9 +121,9 @@ describe(testName, () => {
         expect(firstVideo.baseHeight).to.equal(2160, GetErrorMessage(ETestErrorMsg.VideoSetBaseHeight));
         expect(firstVideo.outputWidth).to.equal(1920, GetErrorMessage(ETestErrorMsg.VideoSetOutputWidth));
         expect(firstVideo.outputHeight).to.equal(1080, GetErrorMessage(ETestErrorMsg.VideoSetOutputHeight));
-        expect(firstVideo.outputFormat).to.equal(osn.EVideoFormat.I420, GetErrorMessage(ETestErrorMsg.VideoSetOutputFormat));
+        expect(firstVideo.outputFormat).to.equal(osn.EVideoFormat.NV12, GetErrorMessage(ETestErrorMsg.VideoSetOutputFormat));
         expect(firstVideo.colorspace).to.equal(osn.EColorSpace.CS709, GetErrorMessage(ETestErrorMsg.VideoSetColorFormat));
-        expect(firstVideo.range).to.equal(osn.ERangeType.Full, GetErrorMessage(ETestErrorMsg.VideoSetRange));
+        expect(firstVideo.range).to.equal(osn.ERangeType.Partial, GetErrorMessage(ETestErrorMsg.VideoSetRange));
         expect(firstVideo.scaleType).to.equal(osn.EScaleType.Lanczos, GetErrorMessage(ETestErrorMsg.VideoSetScaleType));
 
         const secondContext = osn.VideoFactory.create();
@@ -135,9 +135,9 @@ describe(testName, () => {
             baseHeight: 1920,
             outputWidth: 1080,
             outputHeight: 1920,
-            outputFormat: osn.EVideoFormat.I420,
+            outputFormat: osn.EVideoFormat.NV12,
             colorspace: osn.EColorSpace.CS709,
-            range: osn.ERangeType.Full,
+            range: osn.ERangeType.Partial,
             scaleType: osn.EScaleType.Lanczos,
             fpsType: EFPSType.Fractional
         };
@@ -150,9 +150,9 @@ describe(testName, () => {
         expect(secondVideo.baseHeight).to.equal(1920, GetErrorMessage(ETestErrorMsg.VideoSetBaseHeight));
         expect(secondVideo.outputWidth).to.equal(1080, GetErrorMessage(ETestErrorMsg.VideoSetOutputWidth));
         expect(secondVideo.outputHeight).to.equal(1920, GetErrorMessage(ETestErrorMsg.VideoSetOutputHeight));
-        expect(secondVideo.outputFormat).to.equal(osn.EVideoFormat.I420, GetErrorMessage(ETestErrorMsg.VideoSetOutputFormat));
+        expect(secondVideo.outputFormat).to.equal(osn.EVideoFormat.NV12, GetErrorMessage(ETestErrorMsg.VideoSetOutputFormat));
         expect(secondVideo.colorspace).to.equal(osn.EColorSpace.CS709, GetErrorMessage(ETestErrorMsg.VideoSetColorFormat));
-        expect(secondVideo.range).to.equal(osn.ERangeType.Full, GetErrorMessage(ETestErrorMsg.VideoSetRange));
+        expect(secondVideo.range).to.equal(osn.ERangeType.Partial, GetErrorMessage(ETestErrorMsg.VideoSetRange));
         expect(secondVideo.scaleType).to.equal(osn.EScaleType.Lanczos, GetErrorMessage(ETestErrorMsg.VideoSetScaleType));
 
         secondContext.destroy();

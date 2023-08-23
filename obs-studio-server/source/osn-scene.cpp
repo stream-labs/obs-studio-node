@@ -152,11 +152,12 @@ void osn::Scene::Release(void *data, const int64_t id, const std::vector<ipc::va
 	};
 	obs_scene_enum_items(scene, cb, &items);
 
-	obs_source_release(source);
-
 	for (auto item : items) {
+		obs_sceneitem_remove(item);
 		obs_sceneitem_release(item);
 	}
+
+	obs_source_release(source);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
@@ -183,14 +184,14 @@ void osn::Scene::Remove(void *data, const int64_t id, const std::vector<ipc::val
 	};
 	obs_scene_enum_items(scene, cb, &items);
 
-	obs_source_remove(source);
-	osn::Source::Manager::GetInstance().free(args[0].value_union.ui64);
-
 	for (auto item : items) {
 		osn::SceneItem::Manager::GetInstance().free(item);
-		obs_sceneitem_release(item);
+		obs_sceneitem_remove(item);
 		obs_sceneitem_release(item);
 	}
+
+	obs_source_remove(source);
+	osn::Source::Manager::GetInstance().free(args[0].value_union.ui64);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;

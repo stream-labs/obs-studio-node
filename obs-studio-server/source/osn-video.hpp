@@ -51,5 +51,14 @@ public:
 	static void RemoveVideoContext(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
 	static void GetLegacySettings(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
 	static void SetLegacySettings(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+
+	static void SetDefaultResolution(obs_video_info *ovi);
+
+	static const char *GetOutputFormat(const enum video_format &outputFormat);
+	static enum video_format OutputFormFromStr(const std::string &value);
+	static const char *GetColorSpace(const enum video_colorspace &colorSpace);
+	static enum video_colorspace ColorSpaceFromStr(const std::string &value);
+	static const char *GetColorRange(const enum video_range_type &colorRange);
+	static enum video_range_type ColoRangeFromStr(const std::string &value);
 };
 }

@@ -111,7 +111,7 @@ static enum obs_scale_type ScaleTypeFromStr(const std::string &value)
 	return OBS_SCALE_BILINEAR;
 }
 
-static const char *GetOutputFormat(const enum video_format &outputFormat)
+const char *osn::Video::GetOutputFormat(const enum video_format &outputFormat)
 {
 	switch (outputFormat) {
 	case VIDEO_FORMAT_I420:
@@ -146,12 +146,16 @@ static const char *GetOutputFormat(const enum video_format &outputFormat)
 		return "YUVA";
 	case VIDEO_FORMAT_AYUV:
 		return "AYUV";
+	case VIDEO_FORMAT_I010:
+		return "I010";
+	case VIDEO_FORMAT_P010:
+		return "P010";
 	default:
 		return "I420";
 	}
 }
 
-static enum video_format OutputFormFromStr(const std::string &value)
+enum video_format osn::Video::OutputFormFromStr(const std::string &value)
 {
 	if (value.compare("I420") == 0)
 		return VIDEO_FORMAT_I420;
@@ -185,11 +189,15 @@ static enum video_format OutputFormFromStr(const std::string &value)
 		return VIDEO_FORMAT_YUVA;
 	else if (value.compare("AYUV") == 0)
 		return VIDEO_FORMAT_AYUV;
+	else if (value.compare("I010") == 0)
+		return VIDEO_FORMAT_I010;
+	else if (value.compare("P010") == 0)
+		return VIDEO_FORMAT_P010;
 
 	return VIDEO_FORMAT_I420;
 }
 
-static const char *GetColorSpace(const enum video_colorspace &colorSpace)
+const char *osn::Video::GetColorSpace(const enum video_colorspace &colorSpace)
 {
 	switch (colorSpace) {
 	case VIDEO_CS_DEFAULT:
@@ -209,7 +217,7 @@ static const char *GetColorSpace(const enum video_colorspace &colorSpace)
 	}
 }
 
-static enum video_colorspace ColorSpaceFromStr(const std::string &value)
+enum video_colorspace osn::Video::ColorSpaceFromStr(const std::string &value)
 {
 	if (value.compare("709") == 0)
 		return VIDEO_CS_709;
@@ -225,7 +233,7 @@ static enum video_colorspace ColorSpaceFromStr(const std::string &value)
 	return VIDEO_CS_DEFAULT;
 }
 
-static const char *GetColorRange(const enum video_range_type &colorRange)
+const char *osn::Video::GetColorRange(const enum video_range_type &colorRange)
 {
 	switch (colorRange) {
 	case VIDEO_RANGE_DEFAULT:
@@ -239,7 +247,7 @@ static const char *GetColorRange(const enum video_range_type &colorRange)
 	}
 }
 
-static enum video_range_type ColoRangeFromStr(const std::string &value)
+enum video_range_type osn::Video::ColoRangeFromStr(const std::string &value)
 {
 	if (value.compare("Partial") == 0)
 		return VIDEO_RANGE_PARTIAL;
@@ -251,6 +259,7 @@ static enum video_range_type ColoRangeFromStr(const std::string &value)
 
 void osn::Video::SetVideoContext(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
+	blog(LOG_INFO, "[VIDEO_CANVAS] Set video context called");
 	if (args.size() != 12) {
 		PRETTY_ERROR_RETURN(ErrorCode::Error, "Invalid number of arguments to set the video context.");
 	}
@@ -277,9 +286,15 @@ void osn::Video::SetVideoContext(void *data, const int64_t id, const std::vector
 	video.output_width &= 0xFFFFFFFC;
 	video.output_height &= 0xFFFFFFFE;
 
-	video.output_format = (video_format)args[6].value_union.ui32;
-	video.colorspace = (video_colorspace)args[7].value_union.ui32;
-	video.range = (video_range_type)args[8].value_union.ui32;
+	if (0) {
+		video.output_format = (video_format)args[6].value_union.ui32;
+		video.colorspace = (video_colorspace)args[7].value_union.ui32;
+		video.range = (video_range_type)args[8].value_union.ui32;
+	} else {
+		video.output_format = OutputFormFromStr(config_get_string(ConfigManager::getInstance().getBasic(), "AdvVideo", "ColorFormat"));
+		video.colorspace = ColorSpaceFromStr(config_get_string(ConfigManager::getInstance().getBasic(), "AdvVideo", "ColorSpace"));
+		video.range = ColoRangeFromStr(config_get_string(ConfigManager::getInstance().getBasic(), "AdvVideo", "ColorRange"));
+	}
 	video.scale_type = (obs_scale_type)args[9].value_union.ui32;
 	video.adapter = 0;
 	video.gpu_conversion = true;
@@ -287,10 +302,16 @@ void osn::Video::SetVideoContext(void *data, const int64_t id, const std::vector
 
 	int ret = OBS_VIDEO_FAIL;
 	try {
+		// Cannot disrupt video ptr inside obs while outputs are connecting
+		OBS_service::stopConnectingOutputs();
 		ret = obs_set_video_info(canvas, &video);
 	} catch (const char *error) {
 		blog(LOG_ERROR, error);
 	}
+
+	auto canvases = obs_get_video_info_count();
+
+	blog(LOG_INFO, "[VIDEO_CANVAS] Set video context: %p ret %d now total %d", canvas, ret, canvases);
 
 	if (ret != OBS_VIDEO_SUCCESS) {
 		blog(LOG_ERROR, "Failed to set video context");
@@ -308,6 +329,7 @@ void osn::Video::SetVideoContext(void *data, const int64_t id, const std::vector
 
 void osn::Video::AddVideoContext(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
+	blog(LOG_INFO, "[VIDEO_CANVAS] Add video context called");
 	if (args.size() != 0) {
 		PRETTY_ERROR_RETURN(ErrorCode::Error, "Invalid number of arguments to set the video context.");
 	}
@@ -315,6 +337,8 @@ void osn::Video::AddVideoContext(void *data, const int64_t id, const std::vector
 
 	if (canvas == NULL)
 		PRETTY_ERROR_RETURN(ErrorCode::OutOfBounds, "Failed to add canvas.");
+
+	SetDefaultResolution(canvas);
 
 	utility::unique_id::id_t uid = osn::Video::Manager::GetInstance().allocate(canvas);
 
@@ -337,6 +361,10 @@ void osn::Video::RemoveVideoContext(void *data, const int64_t id, const std::vec
 
 	int ret = OBS_VIDEO_FAIL;
 	try {
+
+		// Cannot disrupt video ptr inside obs while outputs are connecting
+		OBS_service::stopConnectingOutputs();
+
 		ret = obs_remove_video_info(canvas);
 
 	} catch (const char *error) {
@@ -351,6 +379,54 @@ void osn::Video::RemoveVideoContext(void *data, const int64_t id, const std::vec
 	}
 
 	AUTO_DEBUG;
+}
+
+void osn::Video::SetDefaultResolution(obs_video_info *ovi)
+{
+	static const double vals[] = {1.0, 1.25, (1.0 / 0.75), 1.5, (1.0 / 0.6), 1.75, 2.0, 2.25, 2.5, 2.75, 3.0};
+	static const size_t numVals = sizeof(vals) / sizeof(double);
+
+	ovi->base_width = ovi->base_height = ovi->output_width = ovi->output_height = 0;
+
+	std::vector<std::pair<uint32_t, uint32_t>> resolutions = OBS_API::availableResolutions();
+	uint32_t limit_cx = 1920;
+	uint32_t limit_cy = 1080;
+
+	for (int i = 0; i < resolutions.size(); i++) {
+		uint32_t nbPixels = resolutions.at(i).first * resolutions.at(i).second;
+		if (int(ovi->base_width * ovi->base_height) < nbPixels && nbPixels <= limit_cx * limit_cy) {
+			ovi->base_width = resolutions.at(i).first;
+			ovi->base_height = resolutions.at(i).second;
+		}
+	}
+
+	if (ovi->base_width == 0 || ovi->base_height == 0) {
+		ovi->base_width = 1920;
+		ovi->base_height = 1080;
+	}
+
+	if (ovi->base_width > 1280 && ovi->base_height > 720) {
+		int idx = 0;
+		do {
+			double use_val = 1.0;
+			if (idx < numVals) {
+				use_val = vals[idx];
+			} else {
+				use_val = vals[numVals - 1] + double(numVals - idx + 1) / 2.0;
+			}
+			ovi->output_width = uint32_t(double(ovi->base_width) / use_val);
+			ovi->output_height = uint32_t(double(ovi->base_height) / use_val);
+			idx++;
+		} while (ovi->output_width > 1280 && ovi->output_height > 720);
+	} else {
+		ovi->output_width = ovi->base_width;
+		ovi->output_height = ovi->base_height;
+	}
+
+	if (ovi->output_width == 0 || ovi->output_height == 0) {
+		ovi->output_width = 1280;
+		ovi->output_height = 720;
+	}
 }
 
 osn::Video::Manager &osn::Video::Manager::GetInstance()
@@ -497,4 +573,6 @@ void osn::Video::SetLegacySettings(void *data, const int64_t id, const std::vect
 
 	config_save_safe(ConfigManager::getInstance().getBasic(), "tmp", nullptr);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+
+	AUTO_DEBUG;
 }

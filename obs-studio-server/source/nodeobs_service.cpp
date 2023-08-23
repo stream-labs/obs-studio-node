@@ -30,6 +30,7 @@
 #ifdef __APPLE__
 #include <sys/types.h>
 #include <sys/stat.h>
+#include "util-crashmanager.h"
 #endif
 
 std::vector<obs_output_t *> streamingOutput = {nullptr, nullptr};
@@ -159,6 +160,10 @@ void OBS_service::OBS_service_startStreaming(void *data, const int64_t id, const
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	}
 
+#if !defined(_WIN32)
+	util::CrashManager::UpdateBriefCrashInfoAppState();
+#endif
+
 	AUTO_DEBUG;
 }
 
@@ -175,6 +180,11 @@ void OBS_service::OBS_service_startRecording(void *data, const int64_t id, const
 	} else {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	}
+
+#if !defined(_WIN32)
+	util::CrashManager::UpdateBriefCrashInfoAppState();
+#endif
+
 	AUTO_DEBUG;
 }
 
@@ -191,6 +201,11 @@ void OBS_service::OBS_service_startReplayBuffer(void *data, const int64_t id, co
 	} else {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	}
+
+#if !defined(_WIN32)
+	util::CrashManager::UpdateBriefCrashInfoAppState();
+#endif
+
 	AUTO_DEBUG;
 }
 
@@ -198,6 +213,11 @@ void OBS_service::OBS_service_stopStreaming(void *data, const int64_t id, const 
 {
 	stopStreaming((bool)args[0].value_union.i32, static_cast<StreamServiceId>(args[1].value_union.i64));
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+
+#if !defined(_WIN32)
+	util::CrashManager::UpdateBriefCrashInfoAppState();
+#endif
+
 	AUTO_DEBUG;
 }
 
@@ -205,6 +225,11 @@ void OBS_service::OBS_service_stopRecording(void *data, const int64_t id, const 
 {
 	stopRecording();
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+
+#if !defined(_WIN32)
+	util::CrashManager::UpdateBriefCrashInfoAppState();
+#endif
+
 	AUTO_DEBUG;
 }
 
@@ -214,6 +239,11 @@ void OBS_service::OBS_service_stopReplayBuffer(void *data, const int64_t id, con
 	rpUsesRec = false;
 	rpUsesStream = false;
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+
+#if !defined(_WIN32)
+	util::CrashManager::UpdateBriefCrashInfoAppState();
+#endif
+
 	AUTO_DEBUG;
 }
 
@@ -459,8 +489,21 @@ int OBS_service::resetVideoContext(bool reload, bool retryWithDefaultConf)
 	return errorcode;
 }
 
+void OBS_service::stopConnectingOutputs()
+{
+	for (auto &itr : streamingOutput) {
+		if (itr == nullptr)
+			continue;
+		if (obs_output_connecting(itr))
+			obs_output_force_stop(itr);
+	}
+}
+
 int OBS_service::doResetVideoContext(obs_video_info *ovi)
 {
+	// Cannot disrupt video ptr inside obs while outputs are connecting
+	stopConnectingOutputs();
+
 	try {
 		if (!base_canvas)
 			base_canvas = obs_create_video_info();
@@ -558,8 +601,10 @@ obs_video_info OBS_service::prepareOBSVideoInfo(bool reload, bool defaultConf)
 			ovi.output_height = ovi.base_height;
 		}
 
-		ovi.output_width = 1280;
-		ovi.output_height = 720;
+		if (ovi.output_width == 0 || ovi.output_height == 0) {
+			ovi.output_width = 1280;
+			ovi.output_height = 720;
+		}
 
 		if (!defaultConf) {
 			config_set_uint(ConfigManager::getInstance().getBasic(), "Video", "OutputCX", ovi.output_width);
@@ -1404,6 +1449,7 @@ void OBS_service::stopStreaming(bool forceStop, StreamServiceId serviceId)
 
 void OBS_service::stopRecording(void)
 {
+	blog(LOG_WARNING, "stopRecording with %s", obs_output_active(recordingOutput) ? "recordingOutput active" : "recordingOutput not active");
 	obs_output_stop(recordingOutput);
 	isRecording = false;
 }
@@ -2481,13 +2527,14 @@ void OBS_service::JSCallbackOutputSignal(void *data, calldata_t *params)
 			signal.setErrorMessage(error);
 		}
 	}
-
+	blog(LOG_DEBUG, "JSCallbackOutputSignal %s for %s", signalReceived.c_str(), signal.getOutputType().c_str());
 	std::unique_lock<std::mutex> ulock(signalMutex);
 	outputSignal.push(signal);
 }
 
 void OBS_service::connectOutputSignals(StreamServiceId serviceId)
 {
+	blog(LOG_DEBUG, "connectOutputSignals ");
 	if (streamingOutput[serviceId]) {
 		signal_handler *streamingOutputSignalHandler = obs_output_get_signal_handler(streamingOutput[serviceId]);
 
@@ -2519,6 +2566,7 @@ void OBS_service::connectOutputSignals(StreamServiceId serviceId)
 					       &(replayBufferSignals.at(i)));
 		}
 	}
+	blog(LOG_DEBUG, "connectOutputSignals finished ");
 }
 
 struct HotkeyInfo {
