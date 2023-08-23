@@ -659,6 +659,7 @@ void util::CrashManager::HandleCrash(const std::string &_crashInfo, bool callAbo
 
 	annotations.insert({{"sentry[release]", OBS_API::getCurrentVersion()}});
 	annotations.insert({{"sentry[user][username]", OBS_API::getUsername()}});
+	annotations.insert({{"sentry[user][ip_address]", "{{auto}}"}});
 	annotations.insert({{"sentry[environment]", getAppState()}});
 
 	// if saved memory dump
