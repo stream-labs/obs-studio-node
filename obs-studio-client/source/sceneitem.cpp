@@ -745,59 +745,62 @@ Napi::Value osn::SceneItem::GetTransformInfo(const Napi::CallbackInfo &info)
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
 
-	/* Guess we forgot about alignment, not sure where this goes */
-	//uint32_t alignment = response[7].value_union.ui32;
+	Napi::Object obj = Napi::Object::New(info.Env());
 
 	Napi::Object positionObj = Napi::Object::New(info.Env());
 	positionObj.Set("x", Napi::Number::New(info.Env(), response[1].value_union.fp32));
 	positionObj.Set("y", Napi::Number::New(info.Env(), response[2].value_union.fp32));
+	obj.Set("pos", positionObj);
+
+	obj.Set("rot", Napi::Number::New(info.Env(), response[3].value_union.fp32));
 
 	Napi::Object scaleObj = Napi::Object::New(info.Env());
-	scaleObj.Set("x", Napi::Number::New(info.Env(), response[3].value_union.fp32));
-	scaleObj.Set("y", Napi::Number::New(info.Env(), response[4].value_union.fp32));
+	scaleObj.Set("x", Napi::Number::New(info.Env(), response[4].value_union.fp32));
+	scaleObj.Set("y", Napi::Number::New(info.Env(), response[5].value_union.fp32));
+	obj.Set("scale", scaleObj);
+
+	obj.Set("alignment", Napi::Number::New(info.Env(), response[6].value_union.ui32));
+	obj.Set("boundsType", Napi::Number::New(info.Env(), response[7].value_union.ui32));
+	obj.Set("boundsAlignment", Napi::Number::New(info.Env(), response[8].value_union.ui32));
 
 	Napi::Object boundsObj = Napi::Object::New(info.Env());
-	boundsObj.Set("x", Napi::Number::New(info.Env(), response[8].value_union.fp32));
-	boundsObj.Set("y", Napi::Number::New(info.Env(), response[9].value_union.fp32));
-
-	Napi::Object cropObj = Napi::Object::New(info.Env());
-	boundsObj.Set("left", Napi::Number::New(info.Env(), response[12].value_union.ui32));
-	boundsObj.Set("top", Napi::Number::New(info.Env(), response[13].value_union.ui32));
-	boundsObj.Set("right", Napi::Number::New(info.Env(), response[14].value_union.ui32));
-	boundsObj.Set("bottom", Napi::Number::New(info.Env(), response[15].value_union.ui32));
-
-	Napi::Object obj = Napi::Object::New(info.Env());
-	obj.Set("pos", positionObj);
-	obj.Set("scale", scaleObj);
+	boundsObj.Set("x", Napi::Number::New(info.Env(), response[9].value_union.fp32));
+	boundsObj.Set("y", Napi::Number::New(info.Env(), response[10].value_union.fp32));
 	obj.Set("bounds", boundsObj);
-	obj.Set("crop", cropObj);
-	obj.Set("scaleFilter", Napi::Number::New(info.Env(), response[5].value_union.ui32));
-	obj.Set("rotation", Napi::Number::New(info.Env(), response[6].value_union.fp32));
-	obj.Set("boundsType", Napi::Number::New(info.Env(), response[10].value_union.ui32));
-	obj.Set("boundsAlignment", Napi::Number::New(info.Env(), response[11].value_union.ui32));
 
 	return obj;
 }
 
 void osn::SceneItem::SetTransformInfo(const Napi::CallbackInfo &info, const Napi::Value &value)
 {
-	//obs::scene::item &handle = SceneItem::Object::GetHandle(info.Holder());
+	Napi::Object vector = info[0].ToObject();
+	const auto pos = vector.Get("pos").ToObject();
+	const auto rot = vector.Get("rot").ToNumber().FloatValue();
+	const auto scale = vector.Get("scale").ToObject();
+	const auto alignment = vector.Get("alignment").ToNumber().Uint32Value();
+	const auto boundsType = vector.Get("boundsType").ToNumber().Uint32Value();
+	const auto boundsAlignment = vector.Get("boundsAlignment").ToNumber().Uint32Value();
+	const auto bounds = vector.Get("bounds").ToObject();
 
-	//v8::Local<v8::Object> tf_info_object;
+	auto conn = GetConnection(info);
+	if (!conn) {
+		return;
+	}
 
-	//ASSERT_GET_VALUE(info[0], tf_info_object);
-
-	//obs_transform_info tf_info;
-
-	//ASSERT_GET_OBJECT_FIELD(tf_info_object, "pos", tf_info.pos);
-	//ASSERT_GET_OBJECT_FIELD(tf_info_object, "rot", tf_info.rot);
-	//ASSERT_GET_OBJECT_FIELD(tf_info_object, "scale", tf_info.scale);
-	//ASSERT_GET_OBJECT_FIELD(tf_info_object, "alignment", tf_info.alignment);
-	//ASSERT_GET_OBJECT_FIELD(tf_info_object, "boundsType", tf_info.bounds_type);
-	//ASSERT_GET_OBJECT_FIELD(tf_info_object, "boundsAlignment", tf_info.bounds_alignment);
-	//ASSERT_GET_OBJECT_FIELD(tf_info_object, "bounds", tf_info.bounds);
-
-	//handle.transform_info(tf_info);
+	const auto params = std::vector<ipc::value>{
+		this->itemId,
+		pos.Get("x").ToNumber().FloatValue(),
+		pos.Get("y").ToNumber().FloatValue(),
+		rot,
+		scale.Get("x").ToNumber().FloatValue(),
+		scale.Get("y").ToNumber().FloatValue(),
+		alignment,
+		boundsType,
+		boundsAlignment,
+		bounds.Get("x").ToNumber().FloatValue(),
+		bounds.Get("y").ToNumber().FloatValue(),
+	};
+	const auto b = conn->call("SceneItem", "SetTransformInfo", std::move(params));
 }
 
 Napi::Value osn::SceneItem::GetId(const Napi::CallbackInfo &info)
