@@ -35,22 +35,18 @@ void StartBandwidthTest(void *data, const int64_t id, const std::vector<ipc::val
 void StartStreamEncoderTest(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
 void StartRecordingEncoderTest(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
 void StartCheckSettings(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
-void StartSetDefaultSettings(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
-void StartSaveStreamSettings(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
-void StartSaveSettings(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+void GetNewSettings(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
+void UseAutoConfigDefaultSettings(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
 void TerminateAutoConfig(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
 void Query(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
 
 void StopThread();
 void FindIdealHardwareResolution();
 bool TestSoftwareEncoding();
-void TestBandwidthThread();
+void TestBandwidthThread(std::string bindIp);
 void TestStreamEncoderThread();
 void TestRecordingEncoderThread();
-void SaveStreamSettings();
-void SaveSettings();
 bool CheckSettings();
-void SetDefaultSettings();
 void TestHardwareEncoding();
 bool CanTestServer(const char *server);
 void WaitPendingTests(double timeout = 10);

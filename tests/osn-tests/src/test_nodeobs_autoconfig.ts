@@ -85,75 +85,64 @@ describe(testName, function() {
             expect(progressInfo.event).to.equal('stopping_step',  GetErrorMessage(ETestErrorMsg.CheckSettings));
             expect(progressInfo.description).to.equal('checking_settings',  GetErrorMessage(ETestErrorMsg.CheckSettings));
             expect(progressInfo.percentage).to.equal(100,  GetErrorMessage(ETestErrorMsg.CheckSettings));
-/*
-            osn.NodeObs.StartSaveStreamSettings();
-
-            progressInfo = await obs.getNextProgressInfo('Save Stream Settings');
-            expect(progressInfo.event).to.equal('stopping_step',  GetErrorMessage(ETestErrorMsg.SaveStreamSettings));
-            expect(progressInfo.description).to.equal('saving_service',  GetErrorMessage(ETestErrorMsg.SaveStreamSettings));
-            expect(progressInfo.percentage).to.equal(100,  GetErrorMessage(ETestErrorMsg.SaveStreamSettings));
-
-            osn.NodeObs.StartSaveSettings();
-
-            progressInfo = await obs.getNextProgressInfo('Save Settings');
-            expect(progressInfo.event).to.equal('stopping_step',  GetErrorMessage(ETestErrorMsg.SaveSettingsStep));
-            expect(progressInfo.description).to.equal('saving_settings',  GetErrorMessage(ETestErrorMsg.SaveSettingsStep));
-            expect(progressInfo.percentage).to.equal(100,  GetErrorMessage(ETestErrorMsg.SaveSettingsStep));
-
-            progressInfo = await obs.getNextProgressInfo('Autoconfig done');
-            expect(progressInfo.event).to.equal('done',  GetErrorMessage(ETestErrorMsg.SaveSettingsStep));
-            */
         } else {
             logWarning(testName, 'Bandwidth test failed with ' + progressInfo.description + '. Setting default settings');
 
-            osn.NodeObs.StartSetDefaultSettings();
+            osn.NodeObs.UseAutoConfigDefaultSettings();
 
-            progressInfo = await obs.getNextProgressInfo('Set Default Settings');
-            expect(progressInfo.event).to.equal('stopping_step',  GetErrorMessage(ETestErrorMsg.SetDefaultSettings));
-            expect(progressInfo.description).to.equal('setting_default_settings',  GetErrorMessage(ETestErrorMsg.SetDefaultSettings));
-            expect(progressInfo.percentage).to.equal(100,  GetErrorMessage(ETestErrorMsg.SetDefaultSettings));
-
-            osn.NodeObs.StartSaveStreamSettings();
-
-            progressInfo = await obs.getNextProgressInfo('Save Stream Settings');
-            expect(progressInfo.event).to.equal('stopping_step',  GetErrorMessage(ETestErrorMsg.SaveStreamSettings));
-            expect(progressInfo.description).to.equal('saving_service',  GetErrorMessage(ETestErrorMsg.SaveStreamSettings));
-            expect(progressInfo.percentage).to.equal(100,  GetErrorMessage(ETestErrorMsg.SaveStreamSettings));
-
-            osn.NodeObs.StartSaveSettings();
-
-            progressInfo = await obs.getNextProgressInfo('Save Settings');
-            expect(progressInfo.event).to.equal('stopping_step',  GetErrorMessage(ETestErrorMsg.SaveSettingsStep));
-            expect(progressInfo.description).to.equal('saving_settings',  GetErrorMessage(ETestErrorMsg.SaveSettingsStep));
-            expect(progressInfo.percentage).to.equal(100,  GetErrorMessage(ETestErrorMsg.SaveSettingsStep));
-
-            progressInfo = await obs.getNextProgressInfo('Autoconfig done');
-            expect(progressInfo.event).to.equal('done',  GetErrorMessage(ETestErrorMsg.SaveSettingsStep));
+            const settings = osn.NodeObs.GetNewSettings() as Array<[string, string, any]>;
+            console.log("settings", JSON.stringify(settings));
 
             // Checking default settings
-            settingValue = obs.getSetting('Output', 'Mode');
-            expect(settingValue).to.equal('Simple',  GetErrorMessage(ETestErrorMsg.DefaultOutputMode));
+            settingValue = settings[0];
+            expect(settingValue[0]).to.equal('Output',  GetErrorMessage(ETestErrorMsg.DefaultOutputMode));
+            expect(settingValue[1]).to.equal('Mode',  GetErrorMessage(ETestErrorMsg.DefaultOutputMode));
+            expect(settingValue[2]).to.equal('Simple',  GetErrorMessage(ETestErrorMsg.DefaultOutputMode));
 
-            settingValue = obs.getSetting('Output', 'VBitrate');
-            expect(settingValue).to.equal(2500, GetErrorMessage(ETestErrorMsg.DefaultVBitrate));
+            settingValue = settings[1];
+            expect(settingValue[0]).to.equal('Output', GetErrorMessage(ETestErrorMsg.DefaultVBitrate));
+            expect(settingValue[1]).to.equal('VBitrate', GetErrorMessage(ETestErrorMsg.DefaultVBitrate));
+            expect(settingValue[2]).to.equal(2500, GetErrorMessage(ETestErrorMsg.DefaultVBitrate));
 
-            settingValue = obs.getSetting('Output', 'StreamEncoder');
-            expect(settingValue).to.equal('x264', GetErrorMessage(ETestErrorMsg.DefaultStreamEncoder));
+            settingValue = settings[2];
+            expect(settingValue[0]).to.equal('Output', GetErrorMessage(ETestErrorMsg.DefaultStreamEncoder));
+            expect(settingValue[1]).to.equal('StreamEncoder', GetErrorMessage(ETestErrorMsg.DefaultStreamEncoder));
+            expect(settingValue[2]).to.equal('x264', GetErrorMessage(ETestErrorMsg.DefaultStreamEncoder));
 
-            settingValue = obs.getSetting('Output', 'RecQuality');
-            expect(settingValue).to.equal('Small', GetErrorMessage(ETestErrorMsg.DefaultRecQuality));
+            settingValue = settings[3];
+            expect(settingValue[0]).to.equal('Output', GetErrorMessage(ETestErrorMsg.DefaultRecQuality));
+            expect(settingValue[1]).to.equal('RecQuality', GetErrorMessage(ETestErrorMsg.DefaultRecQuality));
+            expect(settingValue[2]).to.equal('Small', GetErrorMessage(ETestErrorMsg.DefaultRecQuality));
 
-            settingValue = obs.getSetting('Advanced', 'DynamicBitrate');
-            expect(settingValue).to.equal(false, GetErrorMessage(ETestErrorMsg.DefaultDinamicBitrate));
+            settingValue = settings[4];
+            expect(settingValue[0]).to.equal('Video', GetErrorMessage(ETestErrorMsg.DefaultVideoOutput));
+            expect(settingValue[1]).to.equal('outputWidth', GetErrorMessage(ETestErrorMsg.DefaultVideoOutput));
+            expect(settingValue[2]).to.equal(1280, GetErrorMessage(ETestErrorMsg.DefaultVideoOutput));
 
-            settingValue = obs.getSetting('Video', 'Output');
-            expect(settingValue).to.equal('1280x720', GetErrorMessage(ETestErrorMsg.DefaultVideoOutput));
+            settingValue = settings[5];;
+            expect(settingValue[0]).to.equal('Video', GetErrorMessage(ETestErrorMsg.DefaultVideoOutput));
+            expect(settingValue[1]).to.equal('outputHeight', GetErrorMessage(ETestErrorMsg.DefaultVideoOutput));
+            expect(settingValue[2]).to.equal(720, GetErrorMessage(ETestErrorMsg.DefaultVideoOutput));
 
-            settingValue = obs.getSetting('Video', 'FPSType');
-            expect(settingValue).to.equal('Common FPS Values', GetErrorMessage(ETestErrorMsg.DefaultFPSType));
+            settingValue = settings[6];
+            expect(settingValue[0]).to.equal('Advanced', GetErrorMessage(ETestErrorMsg.DefaultDinamicBitrate));
+            expect(settingValue[1]).to.equal('DynamicBitrate', GetErrorMessage(ETestErrorMsg.DefaultDinamicBitrate));
+            expect(settingValue[2]).to.equal(0, GetErrorMessage(ETestErrorMsg.DefaultDinamicBitrate));
 
-            settingValue = obs.getSetting('Video', 'FPSCommon');
-            expect(settingValue).to.equal('30', GetErrorMessage(ETestErrorMsg.DefaultFPSCommon));
+            settingValue = settings[7];;
+            expect(settingValue[0]).to.equal('Video', GetErrorMessage(ETestErrorMsg.DefaultFPSType));
+            expect(settingValue[1]).to.equal('fpsType', GetErrorMessage(ETestErrorMsg.DefaultFPSType));
+            expect(settingValue[2]).to.equal(0, GetErrorMessage(ETestErrorMsg.DefaultFPSType));
+
+            settingValue = settings[8];;
+            expect(settingValue[0]).to.equal('Video', GetErrorMessage(ETestErrorMsg.DefaultFPSCommon));
+            expect(settingValue[1]).to.equal('fpsNum', GetErrorMessage(ETestErrorMsg.DefaultFPSCommon));
+            expect(settingValue[2]).to.equal(30, GetErrorMessage(ETestErrorMsg.DefaultFPSCommon));
+
+            settingValue = settings[9];
+            expect(settingValue[0]).to.equal('Video', GetErrorMessage(ETestErrorMsg.DefaultFPSCommon));
+            expect(settingValue[1]).to.equal('fpsDen', GetErrorMessage(ETestErrorMsg.DefaultFPSCommon));
+            expect(settingValue[2]).to.equal(1, GetErrorMessage(ETestErrorMsg.DefaultFPSCommon));
         }
 
 	osn.NodeObs.TerminateAutoConfig();
