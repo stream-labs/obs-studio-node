@@ -57,6 +57,9 @@ MemoryManager::MemoryManager()
 MemoryManager::~MemoryManager()
 {
 	blog(LOG_INFO, "MemoryManager: destructor called");
+	for (auto &source : sources) {
+		unregisterSource(source.second->source);
+	}
 }
 
 // Not thread safe. 'si.mtx' should be locked
