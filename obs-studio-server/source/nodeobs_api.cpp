@@ -73,6 +73,7 @@
 #endif
 
 #ifdef WIN32
+#include <comdef.h>
 #include <audiopolicy.h>
 #include <mmdeviceapi.h>
 
@@ -99,7 +100,14 @@
 #define GBYTE (1024ULL * 1024ULL * 1024ULL)
 #define TBYTE (1024ULL * 1024ULL * 1024ULL * 1024ULL)
 
-enum crashHandlerCommand { REGISTER = 0, UNREGISTER = 1, REGISTERMEMORYDUMP = 2, CRASHWITHCODE = 3 };
+enum crashHandlerCommand
+{
+	REGISTER = 0,
+	UNREGISTER = 1,
+	REGISTERMEMORYDUMP = 2,
+	CRASHWITHCODE = 3,
+	HANDLEOUTOFGPU = 4
+};
 
 struct NodeOBSLogParam final {
 	std::fstream logStream;
@@ -698,6 +706,34 @@ std::vector<char> crashedProcess(uint32_t crash_id)
 	return buffer;
 }
 
+#if defined(_WIN32)
+static std::vector<char> handleOutOfGPU(int category, unsigned long long code)
+{
+	std::vector<char> buffer;
+
+	// Prepare
+	std::uint8_t messageAction = crashHandlerCommand::HANDLEOUTOFGPU;
+	std::uint64_t messageCode(code);
+	std::wstring messageCodeDesc = (code) ? _com_error(static_cast<HRESULT>(code)).ErrorMessage() : L"Undefined error";
+	std::uint32_t messageCodeDescSize = (messageCodeDesc.size() + 1) * sizeof(wchar_t);
+
+	buffer.resize(sizeof(messageAction) + sizeof(messageCode) + sizeof(std::uint32_t) + messageCodeDescSize);
+
+	// Pack	
+	uint32_t offset = 0;
+	memcpy(buffer.data(), &messageAction, sizeof(messageAction));
+	offset++;
+	memcpy(buffer.data() + offset, &messageCode, sizeof(messageCode));
+	offset += sizeof(messageCode);
+	memcpy(buffer.data() + offset, &messageCodeDescSize, sizeof(messageCodeDescSize));
+	offset += sizeof(messageCodeDescSize);
+	memcpy(buffer.data() + offset, messageCodeDesc.data(), messageCode);
+	offset += messageCodeDescSize;
+
+	return buffer;
+}
+#endif
+
 #ifdef WIN32
 std::wstring crash_handler_pipe;
 
@@ -746,6 +782,14 @@ void writeCrashHandler(std::vector<char> buffer)
 	close(file_descriptor);
 }
 #endif
+
+static void handleGSError(void* param, int category, unsigned long long code)
+{
+#if defined(_WIN32)
+	writeCrashHandler(handleOutOfGPU(category, code));
+#endif
+	blog(LOG_ERROR, ">>> PROCESSED A CRITICAL ERROR");
+}
 
 static bool checkIfDebugLogsEnabled(const std::string &appdata)
 {
@@ -907,6 +951,12 @@ void OBS_API::OBS_API_initAPI(void *data, const int64_t id, const std::vector<ip
 #ifdef _WIN32
 	SetPrivilegeForGPUPriority();
 #endif
+
+	blog(LOG_INFO, ">>> BEFORE CALLBACK");
+
+	obs_set_gs_error_handler(handleGSError, nullptr);
+
+	blog(LOG_INFO, ">>> AFTER CALLBACK");
 
 	osn::Source::initialize_global_signals();
 
