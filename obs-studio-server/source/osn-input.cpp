@@ -112,12 +112,12 @@ void osn::Input::Create(void *data, const int64_t id, const std::vector<ipc::val
 	}
 
 	obs_source_t *source = obs_source_create(sourceId.c_str(), name.c_str(), settings, hotkeys);
+	obs_data_release(hotkeys);
+	obs_data_release(settings);
+
 	if (!source) {
 		PRETTY_ERROR_RETURN(ErrorCode::Error, "Failed to create input.");
 	}
-
-	obs_data_release(hotkeys);
-	obs_data_release(settings);
 
 	uint64_t uid = osn::Source::Manager::GetInstance().find(source);
 	if (uid == UINT64_MAX) {
