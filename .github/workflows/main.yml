@@ -22,7 +22,7 @@ env:
   SLGenerator: Visual Studio 17 2022
   SLDistributeDirectory: distribute
   SLFullDistributePath: "streamlabs-build.app/distribute" # The .app extension is required to run macOS tests correctly.
-  LibOBSVersion: 28.2.58
+  LibOBSVersion: 28.2.67
   PACKAGE_NAME: osn
 
 jobs:
@@ -74,6 +74,7 @@ jobs:
           BUILD_CONFIG: ${{matrix.BuildConfig}}
           RELEASE_NAME: ${{matrix.ReleaseName}}
           ARCHITECTURE: ${{matrix.Architecture}}
+          tagartifact: ${{ steps.get_version.outputs.VERSION }}
       - name: 'Build obs-studio-node'
         run: ./ci/build-osn-osx.sh
         shell: bash
@@ -153,7 +154,7 @@ jobs:
         run: ./ci/configure-osn.cmd
         env:
           ReleaseName: ${{matrix.ReleaseName}}
-
+          tagartifact: ${{ steps.get_version.outputs.VERSION }}
       - name: Build obs-studio-node
         run: cmake --build ${{env.SLBUILDDIRECTORY}} --target install --config ${{matrix.ReleaseConfig}}
       - name: Put version into package.json
@@ -192,7 +193,7 @@ jobs:
         shell: powershell
       - name: Install specific version of AWS CLI
         run: |
-          $version = "2.12.1"
+          $version = "2.12.5"
           $zipfile = "AWSCLIV2.zip"
           Invoke-WebRequest -OutFile $zipfile "https://awscli.amazonaws.com/AWSCLIV2-$version.msi"
           Start-Process msiexec.exe -Wait -ArgumentList "/i $zipfile /qn"

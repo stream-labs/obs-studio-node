@@ -133,6 +133,11 @@ export const enum ETestErrorMsg {
     CropLeft = 'Failed to set crop left value',
     CropRight = 'Failed to set crop right value',
     SceneItemId = 'Falied to get scene item id',
+    Alignment = 'Failed to get alignment',
+    BoundType = 'Failed to get bound type',
+    BoundAlignment = 'Failed to get bound alignment',
+    BoundX = 'Failed to get bound x attribute',
+    BoundY = 'Failed to get bound y attribute',
     // osn-source
     SourceId = 'Failed to get id of source %VALUE1%',
     SourceName = 'Failed to get name of source %VALUE1%',

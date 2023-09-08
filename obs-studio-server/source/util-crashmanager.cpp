@@ -21,6 +21,8 @@
 
 #include <chrono>
 #include <codecvt>
+#include <filesystem>
+#include <fstream>
 #include <iostream>
 #include <locale>
 #include <map>
@@ -29,6 +31,7 @@
 #include <sstream>
 #include <fstream>
 #include <string>
+#include <string_view>
 #include <thread>
 #include <vector>
 #include <filesystem>
@@ -59,6 +62,8 @@
 #include "client/settings.h"
 #endif
 
+#include "nlohmann/json.hpp"
+
 //////////////////////
 // STATIC VARIABLES //
 //////////////////////
@@ -81,6 +86,7 @@ std::string appState = "starting"; // "starting","idle","encoding","shutdown"
 std::string reportServerUrl = "";
 // Crashpad variables
 #ifdef ENABLE_CRASHREPORT
+std::wstring globalAppData_path;
 std::wstring appdata_path;
 crashpad::CrashpadClient client;
 std::unique_ptr<crashpad::CrashReportDatabase> database;
@@ -89,6 +95,14 @@ base::FilePath db;
 base::FilePath handler;
 std::vector<std::string> arguments;
 std::string workingDirectory;
+static nlohmann::json briefCrashInfo;
+static std::mutex briefCrashInfoMutex;
+static std::wstring_view briefCrashInfoBasename(L"brief-crash-info.json");
+#ifdef _WIN32
+static std::wstring_view pathSeparator(L"\\");
+#else
+static std::wstring_view pathSeparator(L"/");
+#endif
 #endif
 
 std::string appStateFile;
@@ -413,6 +427,10 @@ std::wstring util::CrashManager::GetMemoryDumpName()
 bool util::CrashManager::Initialize(char *path, const std::string &appdata)
 {
 #ifdef ENABLE_CRASHREPORT
+	using convert_typeX = std::codecvt_utf8<wchar_t>;
+	std::wstring_convert<convert_typeX, wchar_t> converterX;
+
+	globalAppData_path = converterX.from_bytes(appdata);
 	appStateFile = appdata + "\\appState";
 
 	annotations.insert({{"crashpad_status", "internal crash handler missed"}});
@@ -641,6 +659,7 @@ void util::CrashManager::HandleCrash(const std::string &_crashInfo, bool callAbo
 
 	annotations.insert({{"sentry[release]", OBS_API::getCurrentVersion()}});
 	annotations.insert({{"sentry[user][username]", OBS_API::getUsername()}});
+	annotations.insert({{"sentry[user][ip_address]", "{{auto}}"}});
 	annotations.insert({{"sentry[environment]", getAppState()}});
 
 	// if saved memory dump
@@ -651,6 +670,8 @@ void util::CrashManager::HandleCrash(const std::string &_crashInfo, bool callAbo
 		annotations.insert({{"sentry[tags][memorydump]", "true"}});
 		annotations.insert({{"sentry[tags][s3dmp]", dmpNameA.c_str()}});
 	}
+
+	SaveBriefCrashInfoToFile();
 
 	insideCrashMethod = true;
 	try {
@@ -679,6 +700,93 @@ void util::CrashManager::HandleCrash(const std::string &_crashInfo, bool callAbo
 #endif
 }
 
+void util::CrashManager::SaveBriefCrashInfoToFile()
+{
+	std::ofstream briefInfoFile;
+
+#ifdef ENABLE_CRASHREPORT
+	std::string serialized = briefCrashInfo.dump(4);
+
+	std::wstring briefCrashInfoFilename(globalAppData_path);
+	if (*briefCrashInfoFilename.rbegin() != L'/' && *briefCrashInfoFilename.rbegin() != L'\\') {
+		briefCrashInfoFilename += pathSeparator;
+	}
+	briefCrashInfoFilename += briefCrashInfoBasename;
+
+	std::ofstream briefCrashInfoFile;
+#if defined(_WIN32)
+	briefCrashInfoFile.open(briefCrashInfoFilename);
+#else
+	using convert_typeX = std::codecvt_utf8<wchar_t>;
+	std::wstring_convert<convert_typeX, wchar_t> converterX;
+	briefCrashInfoFile.open(converterX.to_bytes(briefCrashInfoFilename));
+#endif
+
+	briefCrashInfoFile << serialized;
+	briefCrashInfoFile.flush();
+	briefCrashInfoFile.close();
+#endif
+}
+
+void util::CrashManager::UpdateBriefCrashInfo()
+{
+#ifdef ENABLE_CRASHREPORT
+	std::scoped_lock lock(briefCrashInfoMutex);
+	briefCrashInfo["app_state"] = getAppState();
+	briefCrashInfo["username"] = OBS_API::getUsername();
+	if (auto it = annotations.find("sentry[tags][s3dmp]"); it != annotations.end()) {
+		briefCrashInfo["s3dmp"] = (*it).second;
+	}
+	SaveBriefCrashInfoToFile();
+#endif
+}
+
+#if !defined(_WIN32)
+void util::CrashManager::UpdateBriefCrashInfoAppState()
+{
+#ifdef ENABLE_CRASHREPORT
+	std::scoped_lock lock(briefCrashInfoMutex);
+	briefCrashInfo["app_state"] = getAppState();
+	SaveBriefCrashInfoToFile();
+#endif
+}
+#endif
+
+#if !defined(_WIN32)
+void util::CrashManager::UpdateBriefCrashInfoUsername()
+{
+#ifdef ENABLE_CRASHREPORT
+	std::scoped_lock lock(briefCrashInfoMutex);
+	briefCrashInfo["username"] = OBS_API::getUsername();
+	SaveBriefCrashInfoToFile();
+#endif
+}
+#endif
+
+#if !defined(_WIN32)
+void util::CrashManager::DeleteBriefCrashInfoFile()
+{
+#ifdef ENABLE_CRASHREPORT
+	std::scoped_lock lock(briefCrashInfoMutex);
+	briefCrashInfo.clear();
+
+	std::wstring briefCrashInfoFilename(globalAppData_path);
+	if (*briefCrashInfoFilename.rbegin() != L'/' && *briefCrashInfoFilename.rbegin() != L'\\') {
+		briefCrashInfoFilename += pathSeparator;
+	}
+	briefCrashInfoFilename += briefCrashInfoBasename;
+
+	using convert_typeX = std::codecvt_utf8<wchar_t>;
+	std::wstring_convert<convert_typeX, wchar_t> converterX;
+	std::filesystem::path briefCrashInfoPath = std::filesystem::u8path(converterX.to_bytes(briefCrashInfoFilename));
+
+	if (std::filesystem::exists(briefCrashInfoPath) && std::filesystem::is_regular_file(briefCrashInfoPath)) {
+		std::filesystem::remove(briefCrashInfoPath);
+	}
+#endif
+}
+#endif
+
 void util::CrashManager::SetReportServerUrl(const std::string &url)
 {
 	// dev environment
@@ -702,6 +810,9 @@ void util::CrashManager::SetVersionName(const std::string &name)
 void util::CrashManager::SetUsername(const std::string &name)
 {
 	annotations.insert({{"sentry[user][username]", name}});
+#if !defined(_WIN32)
+	UpdateBriefCrashInfoUsername();
+#endif
 }
 
 bool util::CrashManager::TryHandleCrash(const std::string &_format, const std::string &_crashMessage)
@@ -1122,6 +1233,9 @@ void util::CrashManager::ClearBreadcrumbs()
 void util::CrashManager::setAppState(const std::string &newState)
 {
 	appState = newState;
+#if !defined(_WIN32)
+	UpdateBriefCrashInfoAppState();
+#endif
 }
 
 std::string util::CrashManager::getAppState()

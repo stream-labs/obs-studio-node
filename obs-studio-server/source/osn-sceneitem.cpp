@@ -63,6 +63,16 @@ void osn::SceneItem::Register(ipc::server &srv)
 	cls->register_function(std::make_shared<ipc::function>("GetCrop", std::vector<ipc::type>{ipc::type::UInt64}, GetCrop));
 	cls->register_function(std::make_shared<ipc::function>(
 		"SetCrop", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32, ipc::type::Int32, ipc::type::Int32, ipc::type::Int32}, SetCrop));
+	cls->register_function(std::make_shared<ipc::function>("GetTransformInfo",
+							       std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Float, ipc::type::Float, ipc::type::Float,
+										      ipc::type::Float, ipc::type::Float, ipc::type::UInt32, ipc::type::UInt32,
+										      ipc::type::UInt32, ipc::type::Float, ipc::type::Float},
+							       GetTransformInfo));
+	cls->register_function(std::make_shared<ipc::function>("SetTransformInfo",
+							       std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Float, ipc::type::Float, ipc::type::Float,
+										      ipc::type::Float, ipc::type::Float, ipc::type::UInt32, ipc::type::UInt32,
+										      ipc::type::UInt32, ipc::type::Float, ipc::type::Float},
+							       SetTransformInfo));
 	cls->register_function(std::make_shared<ipc::function>("GetId", std::vector<ipc::type>{ipc::type::UInt64}, GetId));
 	cls->register_function(std::make_shared<ipc::function>("MoveUp", std::vector<ipc::type>{ipc::type::UInt64}, MoveUp));
 	cls->register_function(std::make_shared<ipc::function>("MoveDown", std::vector<ipc::type>{ipc::type::UInt64}, MoveDown));
@@ -129,8 +139,8 @@ void osn::SceneItem::Remove(void *data, const int64_t id, const std::vector<ipc:
 	}
 
 	osn::SceneItem::Manager::GetInstance().free(args[0].value_union.ui64);
-	obs_sceneitem_release(item);
 	obs_sceneitem_remove(item);
+	obs_sceneitem_release(item);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
@@ -560,6 +570,54 @@ void osn::SceneItem::SetCrop(void *data, const int64_t id, const std::vector<ipc
 	rval.push_back(ipc::value(crop.top));
 	rval.push_back(ipc::value(crop.right));
 	rval.push_back(ipc::value(crop.bottom));
+	AUTO_DEBUG;
+}
+
+void osn::SceneItem::GetTransformInfo(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
+{
+	obs_sceneitem_t *item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
+	if (!item) {
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
+	}
+
+	obs_transform_info info;
+	obs_sceneitem_get_info(item, &info);
+
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(info.pos.x));
+	rval.push_back(ipc::value(info.pos.y));
+	rval.push_back(ipc::value(info.rot));
+	rval.push_back(ipc::value(info.scale.x));
+	rval.push_back(ipc::value(info.scale.y));
+	rval.push_back(ipc::value(info.alignment));
+	rval.push_back(ipc::value(info.bounds_type));
+	rval.push_back(ipc::value(info.bounds_alignment));
+	rval.push_back(ipc::value(info.bounds.x));
+	rval.push_back(ipc::value(info.bounds.y));
+
+	AUTO_DEBUG;
+}
+
+void osn::SceneItem::SetTransformInfo(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
+{
+	obs_sceneitem_t *item = osn::SceneItem::Manager::GetInstance().find(args[0].value_union.ui64);
+	if (!item) {
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Item reference is not valid.");
+	}
+
+	obs_transform_info info;
+	info.pos.x = args[1].value_union.fp32;
+	info.pos.y = args[2].value_union.fp32;
+	info.rot = args[3].value_union.fp32;
+	info.scale.x = args[4].value_union.fp32;
+	info.scale.y = args[5].value_union.fp32;
+	info.alignment = args[6].value_union.ui32;
+	info.bounds_type = static_cast<obs_bounds_type>(args[7].value_union.ui32);
+	info.bounds_alignment = args[8].value_union.ui32;
+	info.bounds.x = args[9].value_union.fp32;
+	info.bounds.y = args[10].value_union.fp32;
+	obs_sceneitem_set_info(item, &info);
+
 	AUTO_DEBUG;
 }
 

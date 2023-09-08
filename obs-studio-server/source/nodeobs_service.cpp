@@ -30,6 +30,7 @@
 #ifdef __APPLE__
 #include <sys/types.h>
 #include <sys/stat.h>
+#include "util-crashmanager.h"
 #endif
 
 std::vector<obs_output_t *> streamingOutput = {nullptr, nullptr};
@@ -159,6 +160,10 @@ void OBS_service::OBS_service_startStreaming(void *data, const int64_t id, const
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	}
 
+#if !defined(_WIN32)
+	util::CrashManager::UpdateBriefCrashInfoAppState();
+#endif
+
 	AUTO_DEBUG;
 }
 
@@ -175,6 +180,11 @@ void OBS_service::OBS_service_startRecording(void *data, const int64_t id, const
 	} else {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	}
+
+#if !defined(_WIN32)
+	util::CrashManager::UpdateBriefCrashInfoAppState();
+#endif
+
 	AUTO_DEBUG;
 }
 
@@ -191,6 +201,11 @@ void OBS_service::OBS_service_startReplayBuffer(void *data, const int64_t id, co
 	} else {
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	}
+
+#if !defined(_WIN32)
+	util::CrashManager::UpdateBriefCrashInfoAppState();
+#endif
+
 	AUTO_DEBUG;
 }
 
@@ -198,6 +213,11 @@ void OBS_service::OBS_service_stopStreaming(void *data, const int64_t id, const 
 {
 	stopStreaming((bool)args[0].value_union.i32, static_cast<StreamServiceId>(args[1].value_union.i64));
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+
+#if !defined(_WIN32)
+	util::CrashManager::UpdateBriefCrashInfoAppState();
+#endif
+
 	AUTO_DEBUG;
 }
 
@@ -205,6 +225,11 @@ void OBS_service::OBS_service_stopRecording(void *data, const int64_t id, const 
 {
 	stopRecording();
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+
+#if !defined(_WIN32)
+	util::CrashManager::UpdateBriefCrashInfoAppState();
+#endif
+
 	AUTO_DEBUG;
 }
 
@@ -214,6 +239,11 @@ void OBS_service::OBS_service_stopReplayBuffer(void *data, const int64_t id, con
 	rpUsesRec = false;
 	rpUsesStream = false;
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+
+#if !defined(_WIN32)
+	util::CrashManager::UpdateBriefCrashInfoAppState();
+#endif
+
 	AUTO_DEBUG;
 }
 

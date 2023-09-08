@@ -225,7 +225,8 @@ int main(int argc, char *argv[])
 	sd.last_disconnect = sd.last_connect = std::chrono::high_resolution_clock::now();
 	sd.count_connected = 0;
 	OBS_API::SetCrashHandlerPipe(std::wstring(socketPath.begin(), socketPath.end()));
-
+	if (myVersion.find("preview") != std::string::npos)
+		myServer.set_call_timeout(30);
 	// Classes
 	/// System
 	{
@@ -322,6 +323,7 @@ int main(int argc, char *argv[])
 	// Then, shutdown OBS
 	OBS_API::destroyOBS_API();
 #ifdef __APPLE__
+	util::CrashManager::DeleteBriefCrashInfoFile();
 	if (override_std_fd) {
 		close(out_pid);
 		close(out_err);
