@@ -61,7 +61,11 @@ MemoryManager::~MemoryManager()
 	watcher.stop = true;
 	if (watcher.worker.joinable())
 		watcher.worker.join();
+
 	blog(LOG_INFO, "MemoryManager: destructor finished");
+	for (auto &source : sources) {
+		unregisterSource(source.second->source);
+	}
 }
 
 // Not thread safe. 'si.mtx' should be locked
