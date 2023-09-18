@@ -31,7 +31,7 @@
     "aws-sdk": "^2.1164.0",
     "chai": "^4.2.0",
     "colors": "^1.4.0",
-    "electron": "25.8.0",
+    "electron": "25.8.1",
     "electron-mocha": "^8.2.2",
     "mocha": "^7.1.0",
     "mocha-junit-reporter": "^1.22.0",
