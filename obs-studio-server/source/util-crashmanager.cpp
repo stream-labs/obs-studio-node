@@ -434,6 +434,7 @@ bool util::CrashManager::Initialize(char *path, const std::string &appdata)
 	appStateFile = appdata + "\\appState";
 
 	annotations.insert({{"crashpad_status", "internal crash handler missed"}});
+	annotations.insert({{"sentry[user][ip_address]", "{{auto}}"}});
 
 	workingDirectory = path;
 	if (!SetupCrashpad()) {
