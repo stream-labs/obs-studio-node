@@ -493,6 +493,32 @@ void osn::ISource::SetEnabled(const Napi::CallbackInfo &info, const Napi::Value 
 	conn->call("Source", "SetEnabled", {ipc::value(id), ipc::value(enabled)});
 }
 
+void osn::ISource::Activate(const Napi::CallbackInfo &info, uint64_t id)
+{
+	osn::ISource *source = Napi::ObjectWrap<osn::ISource>::Unwrap(info.This().ToObject());
+	if (!source)
+		return;
+
+	auto conn = GetConnection(info);
+	if (!conn)
+		return;
+
+	conn->call("Source", "Activate", {ipc::value(id)});
+}
+
+void osn::ISource::Deactivate(const Napi::CallbackInfo &info, uint64_t id)
+{
+	osn::ISource *source = Napi::ObjectWrap<osn::ISource>::Unwrap(info.This().ToObject());
+	if (!source)
+		return;
+
+	auto conn = GetConnection(info);
+	if (!conn)
+		return;
+
+	conn->call("Source", "Deactivate", {ipc::value(id)});
+}
+
 void osn::ISource::SendMouseClick(const Napi::CallbackInfo &info, uint64_t id)
 {
 	auto conn = GetConnection(info);

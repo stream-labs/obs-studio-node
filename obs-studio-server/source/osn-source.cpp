@@ -145,6 +145,9 @@ void osn::Source::Register(ipc::server &srv)
 	cls->register_function(std::make_shared<ipc::function>("GetEnabled", std::vector<ipc::type>{ipc::type::UInt64}, GetEnabled));
 	cls->register_function(std::make_shared<ipc::function>("SetEnabled", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Int32}, SetEnabled));
 
+	cls->register_function(std::make_shared<ipc::function>("Activate", std::vector<ipc::type>{ipc::type::UInt64}, Activate));
+	cls->register_function(std::make_shared<ipc::function>("Deactivate", std::vector<ipc::type>{ipc::type::UInt64}, Deactivate));
+
 	cls->register_function(
 		std::make_shared<ipc::function>("SendMouseClick",
 						std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt32, ipc::type::UInt32, ipc::type::UInt32,
@@ -551,6 +554,34 @@ void osn::Source::SetEnabled(void *data, const int64_t id, const std::vector<ipc
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(obs_source_enabled(src)));
+	AUTO_DEBUG;
+}
+
+void osn::Source::Activate(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
+{
+	obs_source_t *source = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	if (!source) {
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
+	}
+
+	obs_source_activate(source, static_cast<enum view_type>(0));
+
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+
+	AUTO_DEBUG;
+}
+
+void osn::Source::Deactivate(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
+{
+	obs_source_t *source = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+	if (!source) {
+		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
+	}
+
+	obs_source_deactivate(source, static_cast<enum view_type>(0));
+
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+
 	AUTO_DEBUG;
 }
 

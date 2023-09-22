@@ -60,6 +60,9 @@ public:
 	static Napi::Value GetEnabled(const Napi::CallbackInfo &info, uint64_t id);
 	static void SetEnabled(const Napi::CallbackInfo &info, const Napi::Value &value, uint64_t id);
 
+	static void Activate(const Napi::CallbackInfo &info, uint64_t id);
+	static void Deactivate(const Napi::CallbackInfo &info, uint64_t id);
+
 	static void SendMouseClick(const Napi::CallbackInfo &info, uint64_t id);
 	static void SendMouseMove(const Napi::CallbackInfo &info, uint64_t id);
 	static void SendMouseWheel(const Napi::CallbackInfo &info, uint64_t id);

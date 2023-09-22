@@ -102,5 +102,8 @@ public:
 	Napi::Value GetMediaState(const Napi::CallbackInfo &info);
 
 	Napi::Value CallCallHandler(const Napi::CallbackInfo &info);
+
+	Napi::Value CallActivate(const Napi::CallbackInfo &info);
+	Napi::Value CallDeactivate(const Napi::CallbackInfo &info);
 };
 }

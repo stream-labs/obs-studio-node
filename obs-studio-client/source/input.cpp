@@ -36,62 +36,67 @@ Napi::Object osn::Input::Init(Napi::Env env, Napi::Object exports)
 	Napi::HandleScope scope(env);
 	Napi::Function func =
 		DefineClass(env, "Input",
-			    {StaticMethod("types", &osn::Input::Types),
-			     StaticMethod("create", &osn::Input::Create),
-			     StaticMethod("createPrivate", &osn::Input::CreatePrivate),
-			     StaticMethod("fromName", &osn::Input::FromName),
-			     StaticMethod("getPublicSources", &osn::Input::GetPublicSources),
+			    {
+				    StaticMethod("types", &osn::Input::Types),
+				    StaticMethod("create", &osn::Input::Create),
+				    StaticMethod("createPrivate", &osn::Input::CreatePrivate),
+				    StaticMethod("fromName", &osn::Input::FromName),
+				    StaticMethod("getPublicSources", &osn::Input::GetPublicSources),
 
-			     InstanceMethod("duplicate", &osn::Input::Duplicate),
-			     InstanceMethod("addFilter", &osn::Input::AddFilter),
-			     InstanceMethod("removeFilter", &osn::Input::RemoveFilter),
-			     InstanceMethod("setFilterOrder", &osn::Input::SetFilterOrder),
-			     InstanceMethod("findFilter", &osn::Input::FindFilter),
-			     InstanceMethod("copyFilters", &osn::Input::CopyFilters),
+				    InstanceMethod("duplicate", &osn::Input::Duplicate),
+				    InstanceMethod("addFilter", &osn::Input::AddFilter),
+				    InstanceMethod("removeFilter", &osn::Input::RemoveFilter),
+				    InstanceMethod("setFilterOrder", &osn::Input::SetFilterOrder),
+				    InstanceMethod("findFilter", &osn::Input::FindFilter),
+				    InstanceMethod("copyFilters", &osn::Input::CopyFilters),
 
-			     InstanceAccessor("active", &osn::Input::Active, nullptr),
-			     InstanceAccessor("showing", &osn::Input::Showing, nullptr),
-			     InstanceAccessor("width", &osn::Input::Width, nullptr),
-			     InstanceAccessor("height", &osn::Input::Height, nullptr),
-			     InstanceAccessor("volume", &osn::Input::GetVolume, &osn::Input::SetVolume),
-			     InstanceAccessor("syncOffset", &osn::Input::GetSyncOffset, &osn::Input::SetSyncOffset),
-			     InstanceAccessor("audioMixers", &osn::Input::GetAudioMixers, &osn::Input::SetAudioMixers),
-			     InstanceAccessor("monitoringType", &osn::Input::GetMonitoringType, &osn::Input::SetMonitoringType),
-			     InstanceAccessor("deinterlaceFieldOrder", &osn::Input::GetDeinterlaceFieldOrder, &osn::Input::SetDeinterlaceFieldOrder),
-			     InstanceAccessor("deinterlaceMode", &osn::Input::GetDeinterlaceMode, &osn::Input::SetDeinterlaceMode),
-			     InstanceAccessor("filters", &osn::Input::Filters, nullptr),
-			     InstanceAccessor("seek", &osn::Input::GetTime, &osn::Input::SetTime),
+				    InstanceAccessor("active", &osn::Input::Active, nullptr),
+				    InstanceAccessor("showing", &osn::Input::Showing, nullptr),
+				    InstanceAccessor("width", &osn::Input::Width, nullptr),
+				    InstanceAccessor("height", &osn::Input::Height, nullptr),
+				    InstanceAccessor("volume", &osn::Input::GetVolume, &osn::Input::SetVolume),
+				    InstanceAccessor("syncOffset", &osn::Input::GetSyncOffset, &osn::Input::SetSyncOffset),
+				    InstanceAccessor("audioMixers", &osn::Input::GetAudioMixers, &osn::Input::SetAudioMixers),
+				    InstanceAccessor("monitoringType", &osn::Input::GetMonitoringType, &osn::Input::SetMonitoringType),
+				    InstanceAccessor("deinterlaceFieldOrder", &osn::Input::GetDeinterlaceFieldOrder, &osn::Input::SetDeinterlaceFieldOrder),
+				    InstanceAccessor("deinterlaceMode", &osn::Input::GetDeinterlaceMode, &osn::Input::SetDeinterlaceMode),
+				    InstanceAccessor("filters", &osn::Input::Filters, nullptr),
+				    InstanceAccessor("seek", &osn::Input::GetTime, &osn::Input::SetTime),
 
-			     InstanceAccessor("configurable", &osn::Input::CallIsConfigurable, nullptr),
-			     InstanceAccessor("properties", &osn::Input::CallGetProperties, nullptr),
-			     InstanceAccessor("settings", &osn::Input::CallGetSettings, nullptr),
-			     InstanceAccessor("slowUncachedSettings", &osn::Input::CallGetSlowUncachedSettings, nullptr),
-			     InstanceAccessor("type", &osn::Input::CallGetType, nullptr),
-			     InstanceAccessor("name", &osn::Input::CallGetName, &osn::Input::CallSetName),
-			     InstanceAccessor("outputFlags", &osn::Input::CallGetOutputFlags, nullptr),
-			     InstanceAccessor("flags", &osn::Input::CallGetFlags, &osn::Input::CallSetFlags),
-			     InstanceAccessor("status", &osn::Input::CallGetStatus, nullptr),
-			     InstanceAccessor("id", &osn::Input::CallGetId, nullptr),
-			     InstanceAccessor("muted", &osn::Input::CallGetMuted, &osn::Input::CallSetMuted),
-			     InstanceAccessor("enabled", &osn::Input::CallGetEnabled, &osn::Input::CallSetEnabled),
+				    InstanceAccessor("configurable", &osn::Input::CallIsConfigurable, nullptr),
+				    InstanceAccessor("properties", &osn::Input::CallGetProperties, nullptr),
+				    InstanceAccessor("settings", &osn::Input::CallGetSettings, nullptr),
+				    InstanceAccessor("slowUncachedSettings", &osn::Input::CallGetSlowUncachedSettings, nullptr),
+				    InstanceAccessor("type", &osn::Input::CallGetType, nullptr),
+				    InstanceAccessor("name", &osn::Input::CallGetName, &osn::Input::CallSetName),
+				    InstanceAccessor("outputFlags", &osn::Input::CallGetOutputFlags, nullptr),
+				    InstanceAccessor("flags", &osn::Input::CallGetFlags, &osn::Input::CallSetFlags),
+				    InstanceAccessor("status", &osn::Input::CallGetStatus, nullptr),
+				    InstanceAccessor("id", &osn::Input::CallGetId, nullptr),
+				    InstanceAccessor("muted", &osn::Input::CallGetMuted, &osn::Input::CallSetMuted),
+				    InstanceAccessor("enabled", &osn::Input::CallGetEnabled, &osn::Input::CallSetEnabled),
 
-			     InstanceMethod("release", &osn::Input::CallRelease),
-			     InstanceMethod("remove", &osn::Input::CallRemove),
-			     InstanceMethod("update", &osn::Input::CallUpdate),
-			     InstanceMethod("load", &osn::Input::CallLoad),
-			     InstanceMethod("save", &osn::Input::CallSave),
-			     InstanceMethod("sendMouseClick", &osn::Input::CallSendMouseClick),
-			     InstanceMethod("sendMouseMove", &osn::Input::CallSendMouseMove),
-			     InstanceMethod("sendMouseWheel", &osn::Input::CallSendMouseWheel),
-			     InstanceMethod("sendFocus", &osn::Input::CallSendFocus),
-			     InstanceMethod("sendKeyClick", &osn::Input::CallSendKeyClick),
-			     InstanceMethod("getDuration", &osn::Input::GetDuration),
-			     InstanceMethod("play", &osn::Input::Play),
-			     InstanceMethod("pause", &osn::Input::Pause),
-			     InstanceMethod("restart", &osn::Input::Restart),
-			     InstanceMethod("stop", &osn::Input::Stop),
-			     InstanceMethod("getMediaState", &osn::Input::GetMediaState),
-			     InstanceMethod("callHandler", &osn::Input::CallCallHandler)});
+				    InstanceMethod("release", &osn::Input::CallRelease),
+				    InstanceMethod("remove", &osn::Input::CallRemove),
+				    InstanceMethod("update", &osn::Input::CallUpdate),
+				    InstanceMethod("load", &osn::Input::CallLoad),
+				    InstanceMethod("save", &osn::Input::CallSave),
+				    InstanceMethod("sendMouseClick", &osn::Input::CallSendMouseClick),
+				    InstanceMethod("sendMouseMove", &osn::Input::CallSendMouseMove),
+				    InstanceMethod("sendMouseWheel", &osn::Input::CallSendMouseWheel),
+				    InstanceMethod("sendFocus", &osn::Input::CallSendFocus),
+				    InstanceMethod("sendKeyClick", &osn::Input::CallSendKeyClick),
+				    InstanceMethod("getDuration", &osn::Input::GetDuration),
+				    InstanceMethod("play", &osn::Input::Play),
+				    InstanceMethod("pause", &osn::Input::Pause),
+				    InstanceMethod("restart", &osn::Input::Restart),
+				    InstanceMethod("stop", &osn::Input::Stop),
+				    InstanceMethod("getMediaState", &osn::Input::GetMediaState),
+				    InstanceMethod("callHandler", &osn::Input::CallCallHandler),
+
+				    InstanceMethod("activate", &osn::Input::CallActivate),
+				    InstanceMethod("deactivate", &osn::Input::CallDeactivate),
+			    });
 	exports.Set("Input", func);
 	osn::Input::constructor = Napi::Persistent(func);
 	osn::Input::constructor.SuppressDestruct();
@@ -928,4 +933,18 @@ Napi::Value osn::Input::GetMediaState(const Napi::CallbackInfo &info)
 		return info.Env().Undefined();
 
 	return Napi::Number::New(info.Env(), response[1].value_union.ui64);
+}
+
+Napi::Value osn::Input::CallActivate(const Napi::CallbackInfo &info)
+{
+	osn::ISource::Activate(info, this->sourceId);
+
+	return info.Env().Undefined();
+}
+
+Napi::Value osn::Input::CallDeactivate(const Napi::CallbackInfo &info)
+{
+	osn::ISource::Deactivate(info, this->sourceId);
+
+	return info.Env().Undefined();
 }

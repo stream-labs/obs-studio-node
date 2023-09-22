@@ -925,6 +925,26 @@ export interface IInput extends ISource {
      * stop media source
      */
     stop(): void;
+
+    /**
+     * activate media source.
+     *
+     * Note: this is an exposed internal part of libOBS, use with care.
+     * The number of times code calls this method MUST match the number of 'deactivate'
+     * calls, because internally (in OBS internals) it uses reference counter.
+     * Otherwise you'll get forever active source and some side-effects.
+     * 
+     * During normal mode of operation sources become activated/deactivated automatically,
+     * for exmple, when user changes current active scene. This method allows to force this state.
+     */
+    activate(): void;
+
+    /**
+     * deactivate media source
+     *
+     * Note: this is an exposed internal part of libOBS, use with care.
+     */
+    deactivate(): void;
 }
 
 export interface ISceneFactory {
@@ -1265,7 +1285,7 @@ export interface ISource extends IConfigurable, IReleasable {
     /** 
      * Executes a named function from obs internals
     */
-     callHandler(fuction_name: string, fuction_input: string): Object;
+    callHandler(fuction_name: string, fuction_input: string): Object;
 }
 
 export interface IFaderFactory {
