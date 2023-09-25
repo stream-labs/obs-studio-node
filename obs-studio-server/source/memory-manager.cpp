@@ -351,7 +351,7 @@ void MemoryManager::shutdownAllSources()
 		sourceKeys.push_back(pair.first);
 	}
 
-	for (auto & source_key : sourceKeys) {
+	for (auto &source_key : sourceKeys) {
 		blog(LOG_INFO, "MemoryManager: shutdownAllSources: source %s", source_key.c_str());
 		auto it = sources.find(source_key);
 		if (it == sources.end()) {
