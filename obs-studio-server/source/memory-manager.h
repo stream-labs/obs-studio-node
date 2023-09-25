@@ -42,7 +42,7 @@ public:
 
 	void registerSource(obs_source_t *source);
 	void unregisterSource(obs_source_t *source);
-
+	void shutdownAllSources();
 	void updateSourceCache(obs_source_t *source);
 	void updateSourcesCache();
 
@@ -66,12 +66,12 @@ private:
 	void calculateRawSize(source_info &si);
 	bool shouldCacheSource(source_info &si);
 	void addCachedMemory(source_info &si);
-	void removeCachedMemory(source_info &si, bool cacheNewFiles);
-	void sourceManager(source_info &si);
+	void removeCachedMemory(source_info &si, bool cacheNewFiles, const std::string &sourceName);
+	void sourceManager(const std::string &sourceName);
 
 	// Data
 	std::mutex mtx;
-	std::map<const char *, std::unique_ptr<source_info>> sources;
+	std::map<std::string, std::unique_ptr<source_info>> sources;
 	uint64_t available_memory;
 	uint64_t current_cached_size;
 	uint64_t allowed_cached_size;

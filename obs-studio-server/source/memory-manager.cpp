@@ -127,6 +127,9 @@ bool MemoryManager::shouldCacheSource(source_info &si)
 void updateSource(obs_source_t *source, bool caching)
 {
 	obs_data_t *settings = obs_source_get_settings(source);
+	if (!settings)
+		return;
+
 	if (obs_data_get_bool(settings, "caching") != caching) {
 		obs_data_set_bool(settings, "caching", caching);
 		obs_source_update(source, settings);
@@ -166,12 +169,12 @@ void MemoryManager::addCachedMemory(source_info &si)
 }
 
 // Not thread safe. 'mtx' and 'si.mtx' should be locked
-void MemoryManager::removeCachedMemory(source_info &si, bool cacheNewFiles)
+void MemoryManager::removeCachedMemory(source_info &si, bool cacheNewFiles, const std::string &sourceName)
 {
 	if (!si.cached)
 		return;
 
-	blog(LOG_INFO, "removing %dMB, source: %s", si.size / 1000000, obs_source_get_name(si.source));
+	blog(LOG_INFO, "removing %dMB, source: %s", si.size / 1000000, sourceName.c_str());
 	current_cached_size -= si.size;
 	si.cached = false;
 
@@ -192,8 +195,14 @@ void MemoryManager::removeCachedMemory(source_info &si, bool cacheNewFiles)
 	}
 }
 
-void MemoryManager::sourceManager(source_info &si)
+void MemoryManager::sourceManager(const std::string &sourceName)
 {
+	auto it = sources.find(sourceName);
+	if (it == sources.end()) {
+		return;
+	}
+	source_info &si = *it->second;
+
 	bool need_get_size = false;
 	{
 		std::unique_lock si_mtx_lock(si.mtx);
@@ -239,18 +248,19 @@ void MemoryManager::sourceManager(source_info &si)
 	if (should_cache)
 		addCachedMemory(si);
 	else
-		removeCachedMemory(si, true);
+		removeCachedMemory(si, true, sourceName);
 }
 
 // Not thread safe, should be called with locked 'mtx'
 void MemoryManager::updateSettings(obs_source_t *source)
 {
-	auto it = sources.find(obs_source_get_name(source));
+	std::string sourceName = obs_source_get_name(source);
+	auto it = sources.find(sourceName);
 	if (it == sources.end())
 		return;
 
 	std::unique_lock ulock(it->second->mtx);
-	it->second->workers.push_back(std::thread(&MemoryManager::sourceManager, this, std::ref(*it->second)));
+	it->second->workers.push_back(std::thread(&MemoryManager::sourceManager, this, sourceName));
 }
 
 void MemoryManager::updateSourceCache(obs_source_t *source)
@@ -303,7 +313,7 @@ void MemoryManager::unregisterSource(obs_source_t *source)
 		return;
 	}
 
-	const auto *source_name = obs_source_get_name(source);
+	const std::string source_name = obs_source_get_name(source);
 
 	mtx.lock();
 	auto it = sources.find(source_name);
@@ -327,7 +337,39 @@ void MemoryManager::unregisterSource(obs_source_t *source)
 	}
 
 	std::lock(mtx, moved_ptr->mtx);
-	removeCachedMemory(*moved_ptr, true);
+	removeCachedMemory(*moved_ptr, true, source_name);
 	moved_ptr->mtx.unlock();
+	mtx.unlock();
+}
+
+void MemoryManager::shutdownAllSources()
+{
+	mtx.lock();
+
+	std::vector<std::string> sourceKeys;
+	for (const auto &pair : sources) {
+		sourceKeys.push_back(pair.first);
+	}
+
+	for (auto & source_key : sourceKeys) {
+		blog(LOG_INFO, "MemoryManager: shutdownAllSources: source %s", source_key.c_str());
+		auto it = sources.find(source_key);
+		if (it == sources.end()) {
+			continue;
+		}
+
+		auto moved_ptr = std::move(it->second);
+		sources.erase(source_key);
+
+		for (auto &worker : moved_ptr->workers) {
+			if (worker.joinable())
+				worker.join();
+		}
+
+		moved_ptr->mtx.lock();
+		removeCachedMemory(*moved_ptr, false, source_key);
+		moved_ptr->mtx.unlock();
+	}
+
 	mtx.unlock();
 }
