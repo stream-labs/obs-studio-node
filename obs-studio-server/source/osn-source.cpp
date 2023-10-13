@@ -105,7 +105,6 @@ void osn::Source::global_source_destroy_cb(void *ptr, calldata_t *cd)
 	CallbackManager::removeSource(source);
 	detach_source_signals(source);
 	osn::Source::Manager::GetInstance().free(source);
-	MemoryManager::GetInstance().unregisterSource(source);
 }
 
 void osn::Source::global_source_remove_cb(void *ptr, calldata_t *cd)
@@ -115,6 +114,7 @@ void osn::Source::global_source_remove_cb(void *ptr, calldata_t *cd)
 		throw std::runtime_error("calldata did not contain source pointer");
 	}
 
+	MemoryManager::GetInstance().unregisterSource(source);
 	obs_source_release(source);
 }
 
