@@ -18,7 +18,7 @@ env:
   RELEASE_BUCKET: "obsstudionodes3.streamlabs.com"
   RuntimeURL: https://artifacts.electronjs.org/headers/dist
   RuntimeName: iojs
-  ElectronVersion: 22.3.3
+  ElectronVersion: 25.8.2
   SLGenerator: Visual Studio 17 2022
   SLDistributeDirectory: distribute
   SLFullDistributePath: "streamlabs-build.app/distribute" # The .app extension is required to run macOS tests correctly.
@@ -188,20 +188,6 @@ jobs:
     steps:
       - name: 'Add msbuild to PATH'
         uses: microsoft/setup-msbuild@v1
-      - name: Get the version of aws cli 
-        run: aws --version
-        shell: powershell
-      - name: Install specific version of AWS CLI
-        run: |
-          $version = "2.12.5"
-          $zipfile = "AWSCLIV2.zip"
-          Invoke-WebRequest -OutFile $zipfile "https://awscli.amazonaws.com/AWSCLIV2-$version.msi"
-          Start-Process msiexec.exe -Wait -ArgumentList "/i $zipfile /qn"
-          rm $zipfile
-        shell: pwsh
-      - name: Get the version of aws cli after install
-        run: aws --version
-        shell: powershell
       - name: 'Checkout'
         uses: actions/checkout@v3
         with:

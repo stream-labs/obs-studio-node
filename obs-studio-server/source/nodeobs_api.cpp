@@ -1784,6 +1784,7 @@ void OBS_API::destroyOBS_API(void)
 		blog(LOG_WARNING, "OBS_API::destroyOBS_API - obs_wait_for_destroy_queue has finished, osn::Source::Manager::GetInstance() size is %d",
 		     osn::Source::Manager::GetInstance().size());
 		osn::Source::Manager::GetInstance().for_each([&sources](obs_source_t *source) { osn::Source::detach_source_signals(source); });
+		MemoryManager::GetInstance().shutdownAllSources();
 
 #ifdef WIN32
 		// Directly blame the frontend since it didn't release all objects and that could cause
