@@ -13,14 +13,15 @@ import { UserPoolHandler } from '../util/user_pool_handler';
 import * as inputSettings from '../util/input_settings';
 
 import path = require('path');
+import { randomUUID } from 'crypto';
 
 const testName = 'osn-dual-output';
 
 describe(testName, () => {
     let obs: OBSHandler;
     let hasTestFailed: boolean = false;
-    let sceneName: string = 'test_scene';
-    let sourceName: string = 'test_source';
+    let newSceneName = 'scene_' + randomUUID();
+    let newSourceName: string = 'image_source_' + randomUUID();
 
     // Initialize OBS process
     before(async () => {
@@ -57,25 +58,27 @@ describe(testName, () => {
 
     beforeEach(function () {
         // Creating scene
-        const scene = osn.SceneFactory.create(sceneName);
+        const scene = osn.SceneFactory.create(newSceneName);
 
         // Checking if scene was created correctly
-        expect(scene).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateScene, sceneName));
-        expect(scene.id).to.equal('scene', GetErrorMessage(ETestErrorMsg.SceneId, sceneName));
-        expect(scene.name).to.equal(sceneName, GetErrorMessage(ETestErrorMsg.SceneName, sceneName));
-        expect(scene.type).to.equal(osn.ESourceType.Scene, GetErrorMessage(ETestErrorMsg.SceneType, sceneName));
+        expect(scene).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateScene, newSceneName));
+        expect(scene.id).to.equal('scene', GetErrorMessage(ETestErrorMsg.SceneId, newSceneName));
+        expect(scene.name).to.equal(newSceneName, GetErrorMessage(ETestErrorMsg.SceneName, newSceneName));
+        expect(scene.type).to.equal(osn.ESourceType.Scene, GetErrorMessage(ETestErrorMsg.SceneType, newSceneName));
 
         // Creating input source
-        const source = osn.InputFactory.create(EOBSInputTypes.ImageSource, sourceName);
+        const source = osn.InputFactory.create(EOBSInputTypes.ImageSource, newSourceName);
 
         // Checking if source was created correctly
         expect(source).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateInput, EOBSInputTypes.ImageSource));
         expect(source.id).to.equal(EOBSInputTypes.ImageSource, GetErrorMessage(ETestErrorMsg.InputId, EOBSInputTypes.ImageSource));
-        expect(source.name).to.equal(sourceName, GetErrorMessage(ETestErrorMsg.InputName, EOBSInputTypes.ImageSource));
+        expect(source.name).to.equal(newSourceName, GetErrorMessage(ETestErrorMsg.InputName, EOBSInputTypes.ImageSource));
+
+        osn.Global.setOutputSource(0, scene);
     });
 
     afterEach(function () {
-        const scene = osn.SceneFactory.fromName(sceneName);
+        const scene = osn.SceneFactory.fromName(newSceneName);
         scene.release();
 
         if (this.currentTest.state == 'failed') {
@@ -265,7 +268,8 @@ describe(testName, () => {
         recording.signalHandler = (signal) => { obs.signals.push(signal) };
 
         // Getting scene
-        const scene = osn.SceneFactory.fromName(sceneName);
+        let secondSceneName = 'scene_' + randomUUID();
+        const scene = osn.SceneFactory.create(secondSceneName);
         osn.Global.setOutputSource(0, scene);
 
         // Getting source
@@ -273,7 +277,8 @@ describe(testName, () => {
         settings = inputSettings.colorSource;
         settings['height'] = 500;
         settings['width'] = 200;
-        const source = osn.InputFactory.create(EOBSInputTypes.ColorSource, sourceName, settings);
+        let secondSourceName = EOBSInputTypes.ColorSource.toString()+'_'+randomUUID();
+        const source = osn.InputFactory.create(EOBSInputTypes.ColorSource, secondSourceName, settings);
 
         // Adding input source to scene to create scene item
         const sceneItem1 = scene.add(source);
