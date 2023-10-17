@@ -95,7 +95,7 @@ describe(testName, () => {
         let source: ISource;
         let sceneName: string = 'test_osn_scene';
         
-        transition = osn.TransitionFactory.create(EOBSTransitionTypes.Cut, 'transition');            
+        transition = osn.TransitionFactory.create(EOBSTransitionTypes.Cut, 'transition');
         scene = osn.SceneFactory.create(sceneName); 
 
         transition.set(scene);
