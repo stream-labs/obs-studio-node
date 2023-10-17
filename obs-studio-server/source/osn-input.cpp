@@ -127,7 +127,7 @@ void osn::Input::Create(void *data, const int64_t id, const std::vector<ipc::val
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(uid));
-	rval.push_back(ipc::value(obs_data_get_full_json(settingsSource)));
+	rval.push_back(ipc::value(obs_data_get_json_pretty(settingsSource)));
 	rval.push_back(ipc::value(obs_source_get_audio_mixers(source)));
 	rval.push_back(ipc::value((uint32_t)obs_source_get_deinterlace_mode(source)));
 	rval.push_back(ipc::value((uint32_t)obs_source_get_deinterlace_field_order(source)));

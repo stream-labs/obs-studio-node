@@ -182,7 +182,7 @@ void osn::Service::GetSettings(void *data, const int64_t id, const std::vector<i
 
 	obs_data_t *settings = obs_service_get_settings(service);
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	rval.push_back(ipc::value(obs_data_get_full_json(settings)));
+	rval.push_back(ipc::value(obs_data_get_json_pretty(settings)));
 	obs_data_release(settings);
 	AUTO_DEBUG;
 }
