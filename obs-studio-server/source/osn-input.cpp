@@ -115,8 +115,6 @@ void osn::Input::Create(void *data, const int64_t id, const std::vector<ipc::val
 	obs_data_release(hotkeys);
 	obs_data_release(settings);
 
-	//obs_source_get_ref(source);
-
 	if (!source) {
 		PRETTY_ERROR_RETURN(ErrorCode::Error, "Failed to create input.");
 	}
