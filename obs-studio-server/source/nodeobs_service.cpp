@@ -2432,7 +2432,6 @@ void OBS_service::updateStreamingOutput(StreamServiceId serviceId)
 }
 
 std::vector<SignalInfo> streamingSignals;
-std::vector<SignalInfo> streamingSignals1;
 std::vector<SignalInfo> recordingSignals;
 std::vector<SignalInfo> replayBufferSignals;
 
@@ -2479,20 +2478,22 @@ void OBS_service::Query(void *data, const int64_t id, const std::vector<ipc::val
 {
 	std::unique_lock<std::mutex> ulock(signalMutex);
 	if (outputSignal.empty()) {
+		ulock.unlock();
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 		AUTO_DEBUG;
 		return;
 	}
 
-	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-
-	rval.push_back(ipc::value(outputSignal.front().getOutputType()));
-	rval.push_back(ipc::value(outputSignal.front().getSignal()));
-	rval.push_back(ipc::value(outputSignal.front().getCode()));
-	rval.push_back(ipc::value(outputSignal.front().getErrorMessage()));
-	rval.push_back(ipc::value(static_cast<int32_t>(outputSignal.front().getIndex())));
-
+	auto frontSignal = outputSignal.front();
 	outputSignal.pop();
+	ulock.unlock();
+
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(frontSignal.getOutputType()));
+	rval.push_back(ipc::value(frontSignal.getSignal()));
+	rval.push_back(ipc::value(frontSignal.getCode()));
+	rval.push_back(ipc::value(frontSignal.getErrorMessage()));
+	rval.push_back(ipc::value(static_cast<int32_t>(frontSignal.getIndex())));
 
 	AUTO_DEBUG;
 }
@@ -2527,7 +2528,7 @@ void OBS_service::JSCallbackOutputSignal(void *data, calldata_t *params)
 			signal.setErrorMessage(error);
 		}
 	}
-	blog(LOG_DEBUG, "JSCallbackOutputSignal %s for %s", signalReceived.c_str(), signal.getOutputType().c_str());
+
 	std::unique_lock<std::mutex> ulock(signalMutex);
 	outputSignal.push(signal);
 }
