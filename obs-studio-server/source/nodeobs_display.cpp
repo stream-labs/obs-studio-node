@@ -1560,7 +1560,7 @@ obs_source_t *OBS::Display::GetSourceForUIEffects()
 			source = obs_transition_get_active_source(m_source);
 		} else {
 			source = m_source;
-			obs_source_addref(source);
+			obs_source_get_ref(source);
 		}
 	} else {
 		/* Here we assume that channel 0 holds the primary transition.

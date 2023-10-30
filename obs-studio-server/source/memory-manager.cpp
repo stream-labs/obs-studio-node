@@ -229,6 +229,12 @@ void MemoryManager::sourceManager(const std::string &sourceName)
 		uint32_t retry = MAX_POLLS;
 		while (retry > 0) {
 			si.mtx.lock();
+
+			auto check_source = sources.find(sourceName);
+			if (check_source == sources.end()) {
+				si.mtx.unlock();
+				break;
+			}
 			calculateRawSize(si); // This also sets 'si.have_video'
 
 			if (si.size || !si.have_video) {
