@@ -348,6 +348,8 @@ export interface IGlobal {
     getOutputFlagsFromId(id: string): number;
     setOutputSource(channel: number, input: ISource): void;
     getOutputSource(channel: number): ISource;
+    addSceneToBackstage(input: ISource) : void;
+    removeSceneFromBackstage(input: ISource): void;
     readonly totalFrames: number;
     readonly laggedFrames: number;
     readonly initialized: boolean;

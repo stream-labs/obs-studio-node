@@ -517,6 +517,23 @@ export interface IGlobal {
     getOutputSource(channel: number): ISource;
 
     /**
+     * Adds scene to backstage. This action allow to keep it active
+     * and not display on stream or recording.
+     * 
+     * This is used to create scene previews mostly.
+     * 
+     * @param input - The scene source
+     */
+    addSceneToBackstage(input: ISource) : void;
+
+    /**
+     * Removes scene from backstage and cleans up resources if needed.
+     * 
+     * @param input - The scene source
+     */
+    removeSceneFromBackstage(input: ISource): void;
+
+    /**
      * Number of total render frames
      */
     readonly totalFrames: number;
