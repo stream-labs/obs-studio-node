@@ -2384,7 +2384,7 @@ describe(testName, function() {
                         parameter.currentValue = true;
                         break;
                     }
-                    case 'browserHWAccel': {
+                    case 'BrowserHWAccel': {
                         parameter.currentValue = false;
                         break;
                     }
