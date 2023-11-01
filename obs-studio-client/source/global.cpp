@@ -36,6 +36,10 @@ Napi::Object osn::Global::Init(Napi::Env env, Napi::Object exports)
 					  {
 						  StaticMethod("getOutputSource", &osn::Global::getOutputSource),
 						  StaticMethod("setOutputSource", &osn::Global::setOutputSource),
+
+						  StaticMethod("addSceneToBackstage", &osn::Global::addSceneToBackstage),
+						  StaticMethod("removeSceneFromBackstage", &osn::Global::removeSceneFromBackstage),
+
 						  StaticMethod("getOutputFlagsFromId", &osn::Global::getOutputFlagsFromId),
 
 						  StaticAccessor("laggedFrames", &osn::Global::laggedFrames, nullptr),
@@ -98,6 +102,38 @@ Napi::Value osn::Global::setOutputSource(const Napi::CallbackInfo &info)
 		return info.Env().Undefined();
 
 	conn->call("Global", "SetOutputSource", {ipc::value(channel), ipc::value(input ? input->sourceId : UINT64_MAX)});
+
+	return info.Env().Undefined();
+}
+
+Napi::Value osn::Global::addSceneToBackstage(const Napi::CallbackInfo &info)
+{
+	osn::Input *input = nullptr;
+
+	if (info[0].IsObject())
+		input = Napi::ObjectWrap<osn::Input>::Unwrap(info[0].ToObject());
+
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
+
+	conn->call("Global", "AddSceneToBackstage", {ipc::value(input ? input->sourceId : UINT64_MAX)});
+
+	return info.Env().Undefined();
+}
+
+Napi::Value osn::Global::removeSceneFromBackstage(const Napi::CallbackInfo &info)
+{
+	osn::Input *input = nullptr;
+
+	if (info[0].IsObject())
+		input = Napi::ObjectWrap<osn::Input>::Unwrap(info[0].ToObject());
+
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
+
+	conn->call("Global", "RemoveSceneFromBackstage", {ipc::value(input ? input->sourceId : UINT64_MAX)});
 
 	return info.Env().Undefined();
 }

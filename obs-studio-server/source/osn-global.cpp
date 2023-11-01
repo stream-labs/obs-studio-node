@@ -28,6 +28,9 @@ void osn::Global::Register(ipc::server &srv)
 	cls->register_function(std::make_shared<ipc::function>("GetOutputSource", std::vector<ipc::type>{ipc::type::UInt32}, GetOutputSource));
 	cls->register_function(
 		std::make_shared<ipc::function>("SetOutputSource", std::vector<ipc::type>{ipc::type::UInt32, ipc::type::UInt64}, SetOutputSource));
+	cls->register_function(std::make_shared<ipc::function>("AddSceneToBackstage", std::vector<ipc::type>{ipc::type::UInt64}, AddSceneToBackstage));
+	cls->register_function(
+		std::make_shared<ipc::function>("RemoveSceneFromBackstage", std::vector<ipc::type>{ipc::type::UInt64}, RemoveSceneFromBackstage));
 	cls->register_function(std::make_shared<ipc::function>("GetOutputFlagsFromId", std::vector<ipc::type>{ipc::type::String}, GetOutputFlagsFromId));
 	cls->register_function(std::make_shared<ipc::function>("LaggedFrames", std::vector<ipc::type>{}, LaggedFrames));
 	cls->register_function(std::make_shared<ipc::function>("TotalFrames", std::vector<ipc::type>{}, TotalFrames));
@@ -86,6 +89,38 @@ void osn::Global::SetOutputSource(void *data, const int64_t id, const std::vecto
 		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	}
 	obs_source_release(newsource);
+	AUTO_DEBUG;
+}
+
+void osn::Global::AddSceneToBackstage(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
+{
+	obs_source_t *source = nullptr;
+	if (args[0].value_union.ui64 != UINT64_MAX) {
+		source = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+		if (!source) {
+			PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
+		}
+	}
+
+	obs_add_scene_to_backstage(source);
+
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	AUTO_DEBUG;
+}
+
+void osn::Global::RemoveSceneFromBackstage(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
+{
+	obs_source_t *source = nullptr;
+	if (args[0].value_union.ui64 != UINT64_MAX) {
+		source = osn::Source::Manager::GetInstance().find(args[0].value_union.ui64);
+		if (!source) {
+			PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
+		}
+	}
+
+	obs_remove_scene_from_backstage(source);
+
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
 }
 
