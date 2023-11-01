@@ -28,6 +28,10 @@ public:
 
 	static Napi::Value getOutputSource(const Napi::CallbackInfo &info);
 	static Napi::Value setOutputSource(const Napi::CallbackInfo &info);
+	static Napi::Value addSceneToBackstage(const Napi::CallbackInfo &info);
+	;
+	static Napi::Value removeSceneFromBackstage(const Napi::CallbackInfo &info);
+	;
 	static Napi::Value getOutputFlagsFromId(const Napi::CallbackInfo &info);
 	static Napi::Value laggedFrames(const Napi::CallbackInfo &info);
 	static Napi::Value totalFrames(const Napi::CallbackInfo &info);
