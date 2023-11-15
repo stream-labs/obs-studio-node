@@ -36,6 +36,7 @@
 #include <vector>
 #include <filesystem>
 #include <random>
+#include <unordered_set>
 
 #ifdef WIN32
 #include "StackWalker.h"
@@ -60,6 +61,7 @@
 #include "client/crash_report_database.h"
 #include "client/crashpad_client.h"
 #include "client/settings.h"
+#include "nodeobs_api.h"
 #endif
 
 #include "nlohmann/json.hpp"
@@ -588,8 +590,6 @@ void util::CrashManager::HandleExit() noexcept
 
 void util::CrashManager::HandleCrash(const std::string &_crashInfo, bool callAbort) noexcept
 {
-	const bool uploadedFullDump = SignalMemoryDump();
-
 #ifdef ENABLE_CRASHREPORT
 
 	// If for any reason this is true, it means that we are crashing inside this same
@@ -663,17 +663,9 @@ void util::CrashManager::HandleCrash(const std::string &_crashInfo, bool callAbo
 	annotations.insert({{"sentry[user][ip_address]", "{{auto}}"}});
 	annotations.insert({{"sentry[environment]", getAppState()}});
 
-	// if saved memory dump
-	if (uploadedFullDump) {
-		std::string dmpNameA;
-		std::wstring dmpNameW = util::CrashManager::GetMemoryDumpName();
-		std::transform(dmpNameW.begin(), dmpNameW.end(), std::back_inserter(dmpNameA), [](wchar_t c) { return (char)c; });
-		annotations.insert({{"sentry[tags][memorydump]", "true"}});
-		annotations.insert({{"sentry[tags][s3dmp]", dmpNameA.c_str()}});
-	}
-
 	SaveBriefCrashInfoToFile();
 
+	// It is crucial to rewind call stack before calling 'SignalMemoryDump' because we gather info about crashed module
 	insideCrashMethod = true;
 	try {
 		if (!insideRewindCallstack) {
@@ -686,7 +678,19 @@ void util::CrashManager::HandleCrash(const std::string &_crashInfo, bool callAbo
 	} catch (...) {
 		//ignore exceptions to not loose current crash info
 	}
+	insideCrashMethod = false;
 
+	// if saved memory dump
+	const bool uploadedFullDump = SignalMemoryDump();
+	if (uploadedFullDump) {
+		std::string dmpNameA;
+		std::wstring dmpNameW = util::CrashManager::GetMemoryDumpName();
+		std::transform(dmpNameW.begin(), dmpNameW.end(), std::back_inserter(dmpNameA), [](wchar_t c) { return (char)c; });
+		annotations.insert({{"sentry[tags][memorydump]", "true"}});
+		annotations.insert({{"sentry[tags][s3dmp]", dmpNameA.c_str()}});
+	}
+
+	insideCrashMethod = true;
 	// Recreate crashpad instance, this is a well defined/supported operation
 	SetupCrashpad();
 
@@ -697,7 +701,8 @@ void util::CrashManager::HandleCrash(const std::string &_crashInfo, bool callAbo
 		blog(LOG_INFO, "Server finished 'HandleCrash', crashpad will now make a sentry report");
 
 	insideCrashMethod = false;
-
+#else
+	SignalMemoryDump();
 #endif
 }
 
@@ -902,8 +907,10 @@ void RewindCallStack()
 
 			// If the entry is inside this file
 			std::string fileName = std::string(entry.lineFileName);
-			if (fileName.find("util-crashmanager.cpp") != std::string::npos || fileName.find("stackwalker.cpp") != std::string::npos)
+			if (fileName.find("util-crashmanager.cpp") != std::string::npos || fileName.find("stackwalker.cpp") != std::string::npos ||
+			    fileName.find("StackWalker.cpp") != std::string::npos)
 				return;
+
 			if (strlen(entry.name) > 0) {
 				std::string function = std::string(entry.name);
 				entry.name[0] = 0x00;
@@ -915,9 +922,20 @@ void RewindCallStack()
 				if (entry.lineNumber > 0)
 					function += std::string(":") + std::to_string(entry.lineNumber);
 
-				if (strlen(entry.moduleName) > 0)
-					function += std::string(" ") + std::string(entry.moduleName);
+				if (strlen(entry.moduleName) > 0) {
+					std::string moduleName = entry.moduleName;
+					function += std::string(" ") + moduleName;
+
+					const auto binaryPath = std::string(entry.loadedImageName);
+					std::transform(moduleName.begin(), moduleName.end(), moduleName.begin(),
+						       [](unsigned char c) { return std::tolower(c); });
+					if (m_excludeModules.find(moduleName) == m_excludeModules.end() && !m_moduleInfoSent) {
+						OBS_API::CrashModuleInfo(moduleName, binaryPath);
+						m_moduleInfoSent = true;
+					}
+				}
 				entry.moduleName[0] = 0x00;
+				entry.loadedImageName[0] = 0x00;
 
 				blog(LOG_INFO, "ST: %s", function.c_str());
 			} else {
@@ -930,6 +948,11 @@ void RewindCallStack()
 				blog(LOG_INFO, "ST: %s", function.c_str());
 			}
 		}
+
+	private:
+		bool m_moduleInfoSent = false;
+
+		std::unordered_set<std::string> m_excludeModules = {"kernelbase", "ntdll", "kernel32.dll"};
 	};
 
 	MyStackWalker sw;
