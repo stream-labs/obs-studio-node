@@ -131,3 +131,11 @@ let ndi: ISettings = {
     ndi_filter_ndiname: 'Dedicated NDI Output'
 }
 export {ndi};
+
+let hdrTonemap: ISettings = {
+    hdr_input_maximum_nits: 4000,
+    hdr_output_maximum_nits: 1000,
+    sdr_white_level_nits: 300,
+    transform: 0
+}
+export {hdrTonemap};

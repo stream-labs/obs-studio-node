@@ -21,30 +21,28 @@
 #include "utility.hpp"
 #include <thread>
 
-namespace osn
-{
-	class Fader : public Napi::ObjectWrap<osn::Fader>
-	{
-		public:
-		uint64_t uid;
+namespace osn {
+class Fader : public Napi::ObjectWrap<osn::Fader> {
+public:
+	uint64_t uid;
 
-		public:
-		static Napi::FunctionReference constructor;
-		static Napi::Object Init(Napi::Env env, Napi::Object exports);
-		Fader(const Napi::CallbackInfo& info);
+public:
+	static Napi::FunctionReference constructor;
+	static Napi::Object Init(Napi::Env env, Napi::Object exports);
+	Fader(const Napi::CallbackInfo &info);
 
-		static Napi::Value Create(const Napi::CallbackInfo& info);
+	static Napi::Value Create(const Napi::CallbackInfo &info);
 
-		Napi::Value GetDeziBel(const Napi::CallbackInfo& info);
-		void SetDezibel(const Napi::CallbackInfo& info, const Napi::Value &value);
-		Napi::Value GetDeflection(const Napi::CallbackInfo& info);
-		void SetDeflection(const Napi::CallbackInfo& info, const Napi::Value &value);
-		Napi::Value GetMultiplier(const Napi::CallbackInfo& info);
-		void SetMultiplier(const Napi::CallbackInfo& info, const Napi::Value &value);
-		Napi::Value Destroy(const Napi::CallbackInfo& info);
-		Napi::Value Attach(const Napi::CallbackInfo& info);
-		Napi::Value Detach(const Napi::CallbackInfo& info);
-		Napi::Value AddCallback(const Napi::CallbackInfo& info);
-		Napi::Value RemoveCallback(const Napi::CallbackInfo& info);
-	};
+	Napi::Value GetDeziBel(const Napi::CallbackInfo &info);
+	void SetDezibel(const Napi::CallbackInfo &info, const Napi::Value &value);
+	Napi::Value GetDeflection(const Napi::CallbackInfo &info);
+	void SetDeflection(const Napi::CallbackInfo &info, const Napi::Value &value);
+	Napi::Value GetMultiplier(const Napi::CallbackInfo &info);
+	void SetMultiplier(const Napi::CallbackInfo &info, const Napi::Value &value);
+	Napi::Value Destroy(const Napi::CallbackInfo &info);
+	Napi::Value Attach(const Napi::CallbackInfo &info);
+	Napi::Value Detach(const Napi::CallbackInfo &info);
+	Napi::Value AddCallback(const Napi::CallbackInfo &info);
+	Napi::Value RemoveCallback(const Napi::CallbackInfo &info);
+};
 }

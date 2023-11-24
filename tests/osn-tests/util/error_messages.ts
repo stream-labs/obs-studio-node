@@ -133,6 +133,11 @@ export const enum ETestErrorMsg {
     CropLeft = 'Failed to set crop left value',
     CropRight = 'Failed to set crop right value',
     SceneItemId = 'Falied to get scene item id',
+    Alignment = 'Failed to get alignment',
+    BoundType = 'Failed to get bound type',
+    BoundAlignment = 'Failed to get bound alignment',
+    BoundX = 'Failed to get bound x attribute',
+    BoundY = 'Failed to get bound y attribute',
     // osn-source
     SourceId = 'Failed to get id of source %VALUE1%',
     SourceName = 'Failed to get name of source %VALUE1%',
@@ -182,7 +187,12 @@ export const enum ETestErrorMsg {
     // osn-volmeter
     CreateVolmeter = 'Failed to create volmeter',
     VolmeterCallback = 'Failed to add callback to volmeter',
-    RemoveVolmeterCallback = 'Failed to remove callback from volmeter'
+    RemoveVolmeterCallback = 'Failed to remove callback from volmeter',
+    // osn-audio
+    AudioDefaultSampleRate = 'The default value of audio sample rate is wrong',
+    AudioDefaultSpeakers = 'The default value of audio speakers is wrong',
+    AudioSampleRate = 'Failed to set the new sample rate value',
+    AudioSpeakers = 'Failed to set the new speakers value'
 }
 
 export function GetErrorMessage(message: string, value1?: string, value2?: string, value3?: string): string {

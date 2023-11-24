@@ -19,57 +19,57 @@
 #include "util-osx.hpp"
 #include "util-osx-int.h"
 
-UtilInt::UtilInt(void)
-    : _impl ( nullptr )
-{   }
+UtilInt::UtilInt(void) : _impl(nullptr) {}
 
 void UtilInt::init(void)
 {
-    _impl = new UtilObjCInt();
+	_impl = new UtilObjCInt();
 }
 
 UtilInt::~UtilInt(void)
 {
-    if ( _impl ) { delete _impl; _impl = nullptr; }
+	if (_impl) {
+		delete _impl;
+		_impl = nullptr;
+	}
 }
 
 std::string UtilInt::getDefaultVideoSavePath(void)
 {
-    return _impl->getDefaultVideoSavePath();
+	return _impl->getDefaultVideoSavePath();
 }
 
 void UtilInt::runApplication(void)
 {
-    _impl->runApplication();
+	_impl->runApplication();
 }
 
 void UtilInt::stopApplication(void)
 {
-    _impl->stopApplication();
+	_impl->stopApplication();
 }
 
 unsigned long long UtilInt::getTotalPhysicalMemory(void)
 {
-    return _impl->getTotalPhysicalMemory();
+	return _impl->getTotalPhysicalMemory();
 }
 
 unsigned long long UtilInt::getAvailableMemory(void)
 {
-    return _impl->getAvailableMemory();
+	return _impl->getAvailableMemory();
 }
 
-std::vector<std::pair<uint32_t, uint32_t>>
-    UtilInt::getAvailableScreenResolutions(void)
+std::vector<std::pair<uint32_t, uint32_t>> UtilInt::getAvailableScreenResolutions(void)
 {
-    return _impl->getAvailableScreenResolutions();
+	return _impl->getAvailableScreenResolutions();
 }
 
 std::string UtilInt::getUserDataPath(void)
 {
-    return _impl->getUserDataPath();
+	return _impl->getUserDataPath();
 }
 
 std::string UtilInt::getWorkingDirectory(void)
 {
-    return _impl->getWorkingDirectory();
+	return _impl->getWorkingDirectory();
 }

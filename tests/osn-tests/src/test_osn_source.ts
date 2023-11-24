@@ -44,6 +44,7 @@ describe(testName, () => {
 
     it('Get all osn-source info from all input types', () => {
         obs.inputTypes.forEach(function(inputType) {
+            if(obs.skipSource(inputType)) { return;}
             // Creating input source
             const input = osn.InputFactory.create(inputType, 'input');
 
@@ -270,6 +271,7 @@ describe(testName, () => {
         let settings: ISettings = {};
 
         obs.inputTypes.forEach(function(inputType) {
+            if(obs.skipSource(inputType)) { return;}
             // Creating input source
             const input = osn.InputFactory.create(inputType, 'input');
 
@@ -280,7 +282,7 @@ describe(testName, () => {
 
             // Preparing settings object
             settings = input.settings;
-            
+
             switch(inputType) {
                 case EOBSInputTypes.ImageSource: {
                     settings['unload'] = true;
@@ -541,6 +543,7 @@ describe(testName, () => {
 
     it('Set flags and get them for all input source types', () => {
         obs.inputTypes.forEach(function(inputType) {
+            if(obs.skipSource(inputType)) { return;}
             // Creating input source
             const input = osn.InputFactory.create(inputType, 'input');
 
@@ -565,6 +568,7 @@ describe(testName, () => {
 
     it('Set muted and get it for all input source types', () => {
         obs.inputTypes.forEach(function(inputType) {
+            if(obs.skipSource(inputType)) { return;}
             // Creating input source
             const input = osn.InputFactory.create(inputType, 'input');
 

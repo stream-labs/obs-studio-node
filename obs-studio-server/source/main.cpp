@@ -26,7 +26,7 @@
 #include <memory>
 #include <thread>
 #include <vector>
-#include "error.hpp"
+#include "osn-error.hpp"
 #include "nodeobs_api.h"
 #include "nodeobs_autoconfig.h"
 #include "nodeobs_content.h"
@@ -45,7 +45,21 @@
 #include "osn-video.hpp"
 #include "osn-volmeter.hpp"
 #include "callback-manager.h"
+#include "osn-video-encoder.hpp"
 #include "osn-service.hpp"
+#include "osn-audio.hpp"
+#include "osn-simple-streaming.hpp"
+#include "osn-advanced-streaming.hpp"
+#include "osn-delay.hpp"
+#include "osn-reconnect.hpp"
+#include "osn-network.hpp"
+#include "osn-audio-track.hpp"
+#include "osn-simple-recording.hpp"
+#include "osn-audio-encoder.hpp"
+#include "osn-advanced-recording.hpp"
+#include "osn-simple-replay-buffer.hpp"
+#include "osn-advanced-replay-buffer.hpp"
+#include "osn-file-output.hpp"
 
 #include "util-crashmanager.h"
 #include "shared.hpp"
@@ -54,15 +68,14 @@
 #define OSN_VERSION "DEVMODE_VERSION"
 #endif
 
-#define GET_OSN_VERSION \
-[]() { \
-const char *__CHECK_EMPTY = OSN_VERSION; \
-if (strlen(__CHECK_EMPTY) < 3) { \
-    return "DEVMODE_VERSION"; \
-}  \
-return OSN_VERSION; \
-}()
-
+#define GET_OSN_VERSION                                  \
+	[]() {                                           \
+		const char *__CHECK_EMPTY = OSN_VERSION; \
+		if (strlen(__CHECK_EMPTY) < 3) {         \
+			return "DEVMODE_VERSION";        \
+		}                                        \
+		return OSN_VERSION;                      \
+	}()
 
 #ifdef __APPLE__
 #include <unistd.h>
@@ -76,11 +89,11 @@ return OSN_VERSION; \
 
 // Checks ForceGPUAsRenderDevice setting
 extern "C" __declspec(dllexport) DWORD NvOptimusEnablement = [] {
-	LPWSTR       roamingPath;
+	LPWSTR roamingPath;
 	std::wstring filePath;
-	std::string  line;
+	std::string line;
 	std::fstream file;
-	bool         settingValue = true; // Default value (NvOptimusEnablement = 1)
+	bool settingValue = true; // Default value (NvOptimusEnablement = 1)
 
 	if (FAILED(SHGetKnownFolderPath(FOLDERID_RoamingAppData, 0, nullptr, &roamingPath))) {
 		// Couldn't find roaming app data folder path, assume default value
@@ -115,63 +128,60 @@ extern "C" __declspec(dllexport) DWORD NvOptimusEnablement = [] {
 
 #define BUFFSIZE 512
 
-struct ServerData
-{
-	std::mutex                                     mtx;
+struct ServerData {
+	std::mutex mtx;
 	std::chrono::high_resolution_clock::time_point last_connect, last_disconnect;
-	size_t                                         count_connected = 0;
+	size_t count_connected = 0;
 };
 
-bool ServerConnectHandler(void* data, int64_t)
+bool ServerConnectHandler(void *data, int64_t)
 {
-	ServerData*                  sd = reinterpret_cast<ServerData*>(data);
+	ServerData *sd = reinterpret_cast<ServerData *>(data);
 	std::unique_lock<std::mutex> ulock(sd->mtx);
 	sd->last_connect = std::chrono::high_resolution_clock::now();
 	sd->count_connected++;
 	return true;
 }
 
-void ServerDisconnectHandler(void* data, int64_t)
+void ServerDisconnectHandler(void *data, int64_t)
 {
-	ServerData*                  sd = reinterpret_cast<ServerData*>(data);
+	ServerData *sd = reinterpret_cast<ServerData *>(data);
 	std::unique_lock<std::mutex> ulock(sd->mtx);
 	sd->last_disconnect = std::chrono::high_resolution_clock::now();
 	sd->count_connected--;
 }
 
-namespace System
+namespace System {
+static void Shutdown(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
-	static void
-	    Shutdown(void* data, const int64_t id, const std::vector<ipc::value>& args, std::vector<ipc::value>& rval)
-	{
-		bool* shutdown = (bool*)data;
-		*shutdown      = true;
+	bool *shutdown = (bool *)data;
+	*shutdown = true;
 #ifdef __APPLE__
-		g_util_osx->stopApplication();
+	g_util_osx->stopApplication();
 #endif
-		rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-		return;
-	}
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	return;
+}
 } // namespace System
 
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
 #ifdef __APPLE__
- 	// Reuse file discriptors 1 and 2 in case they not open at launch so output to stdout and stderr not redirected to unexpected file
+	// Reuse file discriptors 1 and 2 in case they not open at launch so output to stdout and stderr not redirected to unexpected file
 	struct stat sb;
 	bool override_std_fd = false;
 	int out_pid = -1;
 	int out_err = -1;
 	if (fstat(1, &sb) != 0) {
 		override_std_fd = true;
-		int out_pid = open("/tmp/slobs-stdout", O_WRONLY| O_CREAT | O_DSYNC);
-		int out_err = open("/tmp/slobs-stderr", O_WRONLY| O_CREAT | O_DSYNC);
+		int out_pid = open("/tmp/slobs-stdout", O_WRONLY | O_CREAT | O_DSYNC);
+		int out_err = open("/tmp/slobs-stderr", O_WRONLY | O_CREAT | O_DSYNC);
 	}
 
 	g_util_osx = new UtilInt();
 	g_util_osx->init();
 #endif
-	std::string socketPath      = "";
+	std::string socketPath = "";
 	std::string receivedVersion = "";
 #ifdef __APPLE__
 	socketPath = "/tmp/";
@@ -179,19 +189,23 @@ int main(int argc, char* argv[])
 #else
 	if (argc != 3) {
 #endif
-		std::cerr << "Version mismatch. Expected <socketpath> <version> params";
+		std::cerr << "Version mismatch. Expected <socketpath> <version> params" << std::endl;
+		std::cerr << "argc: " << argc << std::endl;
+		for (int nArg = 0; nArg < argc; nArg++) {
+			std::cerr << "argv[" << nArg << "]: " << argv[nArg] << std::endl;
+		}
 		return ipc::ProcessInfo::ExitCode::VERSION_MISMATCH;
 	}
 
 	socketPath += argv[1];
 	receivedVersion = argv[2];
 
-    std::string myVersion = GET_OSN_VERSION;
+	std::string myVersion = GET_OSN_VERSION;
 
-    #ifdef __APPLE__
-        std::cerr << "Version recv: " << receivedVersion << std::endl;
-        std::cerr << "Version compiled " << myVersion << std::endl;
-    #endif
+#ifdef __APPLE__
+	std::cerr << "Version recv: " << receivedVersion << std::endl;
+	std::cerr << "Version compiled " << myVersion << std::endl;
+#endif
 
 	// Check versions
 	if (receivedVersion != myVersion) {
@@ -206,18 +220,18 @@ int main(int argc, char* argv[])
 
 	// Instance
 	ipc::server myServer;
-	bool        doShutdown = false;
-	ServerData  sd;
+	bool doShutdown = false;
+	ServerData sd;
 	sd.last_disconnect = sd.last_connect = std::chrono::high_resolution_clock::now();
-	sd.count_connected                   = 0;
+	sd.count_connected = 0;
 	OBS_API::SetCrashHandlerPipe(std::wstring(socketPath.begin(), socketPath.end()));
-
+	if (myVersion.find("preview") != std::string::npos)
+		myServer.set_call_timeout(30);
 	// Classes
 	/// System
 	{
 		std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("System");
-		cls->register_function(
-		    std::make_shared<ipc::function>("Shutdown", std::vector<ipc::type>{}, System::Shutdown, &doShutdown));
+		cls->register_function(std::make_shared<ipc::function>("Shutdown", std::vector<ipc::type>{}, System::Shutdown, &doShutdown));
 		myServer.register_collection(cls);
 	};
 
@@ -241,7 +255,21 @@ int main(int argc, char* argv[])
 	OBS_settings::Register(myServer);
 	OBS_settings::Register(myServer);
 	autoConfig::Register(myServer);
+	osn::VideoEncoder::Register(myServer);
 	osn::Service::Register(myServer);
+	osn::Audio::Register(myServer);
+	osn::ISimpleStreaming::Register(myServer);
+	osn::IAdvancedStreaming::Register(myServer);
+	osn::IDelay::Register(myServer);
+	osn::IReconnect::Register(myServer);
+	osn::INetwork::Register(myServer);
+	osn::IAudioTrack::Register(myServer);
+	osn::ISimpleRecording::Register(myServer);
+	osn::AudioEncoder::Register(myServer);
+	osn::IAdvancedRecording::Register(myServer);
+	osn::ISimpleReplayBuffer::Register(myServer);
+	osn::IAdvancedReplayBuffer::Register(myServer);
+	osn::IFileOutput::Register(myServer);
 
 	OBS_API::CreateCrashHandlerExitPipe();
 
@@ -252,7 +280,7 @@ int main(int argc, char* argv[])
 	// Initialize Server
 	try {
 		myServer.initialize(socketPath.c_str());
-	} catch (std::exception& e) {
+	} catch (std::exception &e) {
 		std::cerr << "Initialization failed with error " << e.what() << "." << std::endl;
 		return ipc::ProcessInfo::ExitCode::OTHER_ERROR;
 	} catch (...) {
@@ -272,7 +300,7 @@ int main(int argc, char* argv[])
 	bool waitBeforeClosing = false;
 	while (!doShutdown) {
 		if (sd.count_connected == 0) {
-			auto tp    = std::chrono::high_resolution_clock::now();
+			auto tp = std::chrono::high_resolution_clock::now();
 			auto delta = tp - sd.last_disconnect;
 			if (std::chrono::duration_cast<std::chrono::milliseconds>(delta).count() > 5000) {
 				doShutdown = true;
@@ -282,8 +310,8 @@ int main(int argc, char* argv[])
 		std::this_thread::sleep_for(std::chrono::milliseconds(50));
 	}
 	// Wait for crash handler listening thread to finish.
-	// flag waitBeforeClosing: server process expect to receive the exit message from the crash-handler 
-	// before going further with shutdown. It needed for usecase where obs64 process stay alive and 
+	// flag waitBeforeClosing: server process expect to receive the exit message from the crash-handler
+	// before going further with shutdown. It needed for usecase where obs64 process stay alive and
 	// continue streaming till user confirms exit in crash-handler.
 	OBS_API::WaitCrashHandlerClose(waitBeforeClosing);
 #endif
@@ -295,10 +323,11 @@ int main(int argc, char* argv[])
 	// Then, shutdown OBS
 	OBS_API::destroyOBS_API();
 #ifdef __APPLE__
+	util::CrashManager::DeleteBriefCrashInfoFile();
 	if (override_std_fd) {
 		close(out_pid);
 		close(out_err);
 	}
-#endif		
+#endif
 	return 0;
 }

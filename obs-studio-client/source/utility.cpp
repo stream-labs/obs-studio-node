@@ -45,31 +45,30 @@
 const DWORD MS_VC_EXCEPTION = 0x406D1388;
 
 #pragma pack(push, 8)
-typedef struct tagTHREADNAME_INFO
-{
-	DWORD  dwType;     // Must be 0x1000.
-	LPCSTR szName;     // Pointer to name (in user addr space).
-	DWORD  dwThreadID; // Thread ID (-1=caller thread).
-	DWORD  dwFlags;    // Reserved for future use, must be zero.
+typedef struct tagTHREADNAME_INFO {
+	DWORD dwType;     // Must be 0x1000.
+	LPCSTR szName;    // Pointer to name (in user addr space).
+	DWORD dwThreadID; // Thread ID (-1=caller thread).
+	DWORD dwFlags;    // Reserved for future use, must be zero.
 } THREADNAME_INFO;
 #pragma pack(pop)
 
-void utility::SetThreadName(uint32_t dwThreadID, const char* threadName)
+void utility::SetThreadName(uint32_t dwThreadID, const char *threadName)
 {
 	// DWORD dwThreadID = ::GetThreadId( static_cast<HANDLE>( t.native_handle() ) );
 
 	THREADNAME_INFO info;
-	info.dwType     = 0x1000;
-	info.szName     = threadName;
+	info.dwType = 0x1000;
+	info.szName = threadName;
 	info.dwThreadID = dwThreadID;
-	info.dwFlags    = 0;
+	info.dwFlags = 0;
 
 	__try {
-		RaiseException(MS_VC_EXCEPTION, 0, sizeof(info) / sizeof(ULONG_PTR), (ULONG_PTR*)&info);
+		RaiseException(MS_VC_EXCEPTION, 0, sizeof(info) / sizeof(ULONG_PTR), (ULONG_PTR *)&info);
 	} __except (EXCEPTION_EXECUTE_HANDLER) {
 	}
 }
-void utility::SetThreadName(const char* threadName)
+void utility::SetThreadName(const char *threadName)
 {
 	utility::SetThreadName(GetCurrentThreadId(), threadName);
 }
@@ -84,9 +83,9 @@ void utility::SetThreadName(const char* threadName)
 
 static thread_local std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
 
-std::string from_utf16_wide_to_utf8(const wchar_t* from, size_t length)
+std::string from_utf16_wide_to_utf8(const wchar_t *from, size_t length)
 {
-	const wchar_t* from_end;
+	const wchar_t *from_end;
 
 	if (length == 0)
 		return {};
@@ -98,9 +97,9 @@ std::string from_utf16_wide_to_utf8(const wchar_t* from, size_t length)
 	return converter.to_bytes(from, from_end);
 }
 
-std::wstring from_utf8_to_utf16_wide(const char* from, size_t length)
+std::wstring from_utf8_to_utf16_wide(const char *from, size_t length)
 {
-	const char* from_end;
+	const char *from_end;
 
 	if (length == 0)
 		return {};
@@ -112,23 +111,22 @@ std::wstring from_utf8_to_utf16_wide(const char* from, size_t length)
 	return converter.from_bytes(from, from_end);
 }
 
-std::string read_app_state_data(std::string app_state_path)
+std::string read_app_state_data(const std::string &app_state_path)
 {
-	std::ostringstream buffer; 
- 	std::ifstream state_file(app_state_path, std::ios::in);
-	if (state_file.is_open())
-	{
-		buffer << state_file.rdbuf(); 
+	std::ostringstream buffer;
+	std::ifstream state_file(app_state_path, std::ios::in);
+	if (state_file.is_open()) {
+		buffer << state_file.rdbuf();
 		state_file.close();
 		return buffer.str();
-	} 
+	}
 	return "";
 }
 
-void write_app_state_data(std::string app_state_path, std::string updated_status)
+void write_app_state_data(const std::string &app_state_path, std::string updated_status)
 {
 	std::ofstream out_state_file;
-	out_state_file.open(app_state_path, std::ios::trunc | std::ios::out );
+	out_state_file.open(app_state_path, std::ios::trunc | std::ios::out);
 	if (out_state_file.is_open()) {
 		out_state_file << updated_status << "\n";
 		out_state_file.flush();
@@ -136,17 +134,17 @@ void write_app_state_data(std::string app_state_path, std::string updated_status
 	}
 }
 
-void limit_log_file_size(const std::string log_file, size_t limit)
+void limit_log_file_size(const std::string &log_file, size_t limit)
 {
 	long size = 0;
 	FILE *fp = fopen(log_file.c_str(), "r");
 	if (fp != NULL) {
-		if (fseek(fp, 0, SEEK_END) != -1) 
+		if (fseek(fp, 0, SEEK_END) != -1)
 			size = ftell(fp);
 		fclose(fp);
 	}
 	if (size > limit) {
-		const std::string old_log_name = log_file+".old";
+		const std::string old_log_name = log_file + ".old";
 		remove(old_log_name.c_str());
 		rename(log_file.c_str(), old_log_name.c_str());
 	}
@@ -178,11 +176,12 @@ void ipc_freez_callback(bool freez_detected, std::string app_state_path, std::st
 		std::string existing_flag_value = "";
 		try {
 			nlohmann::json jsonEntry = nlohmann::json::parse(current_status);
-			
+
 			try {
 				existing_flag_value = jsonEntry.at(flag_name);
-			} catch (...) {}
-			
+			} catch (...) {
+			}
+
 			if (freez_detected) {
 				if (existing_flag_value.empty())
 					jsonEntry[flag_name] = flag_value;
@@ -193,19 +192,18 @@ void ipc_freez_callback(bool freez_detected, std::string app_state_path, std::st
 			updated_status = jsonEntry.dump(-1);
 			write_app_state_data(app_state_path, updated_status);
 		} catch (...) {
-
 		}
 	}
 
 	try {
 		std::ofstream out_state_file;
-		limit_log_file_size(call_log_path, 1024*1024);
+		limit_log_file_size(call_log_path, 1024 * 1024);
 		out_state_file.open(call_log_path, std::ios::app | std::ios::out);
 		if (out_state_file.is_open()) {
 			if (freez_detected) {
 				out_state_file << "[" << getpid() << "]" << call_name << ":" << timeout;
 			} else {
-				out_state_file << ":"<< timeout << "ms\n";
+				out_state_file << ":" << timeout << "ms\n";
 			}
 			out_state_file.flush();
 			out_state_file.close();

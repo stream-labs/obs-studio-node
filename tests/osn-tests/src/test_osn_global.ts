@@ -70,6 +70,7 @@ describe(testName, () => {
 
         // For each input type available get their flags and check if they are not undefined
         obs.inputTypes.forEach(inputType => {
+            if(obs.skipSource(inputType)) { return;}
             flags = osn.Global.getOutputFlagsFromId(inputType);
             expect(flags).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.GetOutputFlags, inputType));
             flags = undefined;

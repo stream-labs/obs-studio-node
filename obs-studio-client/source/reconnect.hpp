@@ -1,5 +1,5 @@
 /******************************************************************************
-    Copyright (C) 2016-2019 by Streamlabs (General Workings Inc)
+    Copyright (C) 2016-2022 by Streamlabs (General Workings Inc)
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -17,26 +17,25 @@
 ******************************************************************************/
 
 #pragma once
+#include <napi.h>
 
-enum class ErrorCode : long long
-{
-	// Everything is okay.
-	Ok,
+namespace osn {
+class Reconnect : public Napi::ObjectWrap<osn::Reconnect> {
+public:
+	uint64_t uid;
 
-	// A generic error (no specific error code) happened.
-	Error,
+public:
+	static Napi::FunctionReference constructor;
+	static Napi::Object Init(Napi::Env env, Napi::Object exports);
+	Reconnect(const Napi::CallbackInfo &info);
 
-	// A critical generic error happened.
-	CriticalError,
+	static Napi::Value Create(const Napi::CallbackInfo &info);
 
-	// The reference specified in the arguments is not valid.
-	InvalidReference,
-
-	// Something could not be found.
-	NotFound,
-
-	// Attempted to access something out of bounds.
-	OutOfBounds,
-
-	// Add new items at the end, not in between.
+	Napi::Value GetEnabled(const Napi::CallbackInfo &info);
+	void SetEnabled(const Napi::CallbackInfo &info, const Napi::Value &value);
+	Napi::Value GetRetryDelay(const Napi::CallbackInfo &info);
+	void SetRetryDelay(const Napi::CallbackInfo &info, const Napi::Value &value);
+	Napi::Value GetMaxRetries(const Napi::CallbackInfo &info);
+	void SetMaxRetries(const Napi::CallbackInfo &info, const Napi::Value &value);
 };
+}

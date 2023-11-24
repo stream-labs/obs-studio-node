@@ -1,4 +1,4 @@
-﻿cmake_minimum_required(VERSION 3.0.0 FATAL_ERROR)
+﻿cmake_minimum_required(VERSION 3.13.0 FATAL_ERROR)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -23,6 +23,24 @@ IF( NOT CLANG_ANALYZE_CONFIG)
 	include(cppcheck)
 
 	cppcheck(EXCLUDE "${PROJECT_SOURCE_DIR}/node_modules")
+ENDIF()
+
+# Comfigure macos architecture and min version
+iF(APPLE)
+	set(CMAKE_XCODE_ATTRIBUTE_MACOSX_DEPLOYMENT_TARGET[arch=arm64] "11.0")
+	set(CMAKE_XCODE_ATTRIBUTE_MACOSX_DEPLOYMENT_TARGET[arch=x86_64] "10.15")
+	if (NOT CMAKE_OSX_ARCHITECTURES)
+		set(CMAKE_OSX_ARCHITECTURES "${CMAKE_HOST_SYSTEM_PROCESSOR}")
+	endif()
+	if ("${CMAKE_OSX_ARCHITECTURES}" STREQUAL "arm64")
+		set(CMAKE_OSX_DEPOLYMENT_TARGET "11.0")
+	else()
+		set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15")
+	endif()
+	# See CMake issue # 21854
+	# https://gitlab.kitware.com/cmake/cmake/-/issues/21854
+	# This is necessary because CMAKE_INSTALL_NAME_TOOL is used for obs64 (i.e. obs-studio-server).
+	set(CMAKE_XCODE_ATTRIBUTE_OTHER_CODE_SIGN_FLAGS "-o linker-signed")
 ENDIF()
 
 if(WIN32)

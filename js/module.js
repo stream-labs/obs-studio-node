@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.NodeObs = exports.getSourcesSize = exports.createSources = exports.addItems = exports.ServiceFactory = exports.IPC = exports.ModuleFactory = exports.FaderFactory = exports.VolmeterFactory = exports.DisplayFactory = exports.TransitionFactory = exports.FilterFactory = exports.SceneFactory = exports.InputFactory = exports.Video = exports.Global = exports.DefaultPluginDataPath = exports.DefaultPluginPath = exports.DefaultDataPath = exports.DefaultBinPath = exports.DefaultDrawPluginPath = exports.DefaultOpenGLPath = exports.DefaultD3D11Path = void 0;
+exports.NodeObs = exports.getSourcesSize = exports.createSources = exports.addItems = exports.AdvancedReplayBufferFactory = exports.SimpleReplayBufferFactory = exports.AudioEncoderFactory = exports.AdvancedRecordingFactory = exports.SimpleRecordingFactory = exports.AudioTrackFactory = exports.NetworkFactory = exports.ReconnectFactory = exports.DelayFactory = exports.AdvancedStreamingFactory = exports.SimpleStreamingFactory = exports.ServiceFactory = exports.VideoEncoderFactory = exports.IPC = exports.ModuleFactory = exports.AudioFactory = exports.Audio = exports.FaderFactory = exports.VolmeterFactory = exports.DisplayFactory = exports.TransitionFactory = exports.FilterFactory = exports.SceneFactory = exports.InputFactory = exports.VideoFactory = exports.Video = exports.Global = exports.DefaultPluginPathMac = exports.DefaultPluginDataPath = exports.DefaultPluginPath = exports.DefaultDataPath = exports.DefaultBinPath = exports.DefaultDrawPluginPath = exports.DefaultOpenGLPath = exports.DefaultD3D11Path = void 0;
 const obs = require('./obs_studio_client.node');
 const path = require("path");
 const fs = require("fs");
@@ -11,8 +11,10 @@ exports.DefaultBinPath = path.resolve(__dirname);
 exports.DefaultDataPath = path.resolve(__dirname, `data`);
 exports.DefaultPluginPath = path.resolve(__dirname, `obs-plugins`);
 exports.DefaultPluginDataPath = path.resolve(__dirname, `data/obs-plugins/%module%`);
+exports.DefaultPluginPathMac = path.resolve(__dirname, `PlugIns`);
 exports.Global = obs.Global;
 exports.Video = obs.Video;
+exports.VideoFactory = obs.Video;
 exports.InputFactory = obs.Input;
 exports.SceneFactory = obs.Scene;
 exports.FilterFactory = obs.Filter;
@@ -20,9 +22,23 @@ exports.TransitionFactory = obs.Transition;
 exports.DisplayFactory = obs.Display;
 exports.VolmeterFactory = obs.Volmeter;
 exports.FaderFactory = obs.Fader;
+exports.Audio = obs.Audio;
+exports.AudioFactory = obs.Audio;
 exports.ModuleFactory = obs.Module;
 exports.IPC = obs.IPC;
+exports.VideoEncoderFactory = obs.VideoEncoder;
 exports.ServiceFactory = obs.Service;
+exports.SimpleStreamingFactory = obs.SimpleStreaming;
+exports.AdvancedStreamingFactory = obs.AdvancedStreaming;
+exports.DelayFactory = obs.Delay;
+exports.ReconnectFactory = obs.Reconnect;
+exports.NetworkFactory = obs.Network;
+exports.AudioTrackFactory = obs.AudioTrack;
+exports.SimpleRecordingFactory = obs.SimpleRecording;
+exports.AdvancedRecordingFactory = obs.AdvancedRecording;
+exports.AudioEncoderFactory = obs.AudioEncoder;
+exports.SimpleReplayBufferFactory = obs.SimpleReplayBuffer;
+exports.AdvancedReplayBufferFactory = obs.AdvancedReplayBuffer;
 ;
 ;
 ;
@@ -50,6 +66,8 @@ function createSources(sources) {
                 newSource.syncOffset =
                     (source.syncOffset != null) ? source.syncOffset : { sec: 0, nsec: 0 };
             }
+            newSource.deinterlaceMode = source.deinterlaceMode;
+            newSource.deinterlaceFieldOrder = source.deinterlaceFieldOrder;
             items.push(newSource);
             const filters = source.filters;
             if (Array.isArray(filters)) {
@@ -78,8 +96,9 @@ function getSourcesSize(sourcesNames) {
     return sourcesSize;
 }
 exports.getSourcesSize = getSourcesSize;
-if (fs.existsSync(path.resolve(__dirname, `obs64`).replace('app.asar', 'app.asar.unpacked'))) {
-    obs.IPC.setServerPath(path.resolve(__dirname, `obs64`).replace('app.asar', 'app.asar.unpacked'), path.resolve(__dirname).replace('app.asar', 'app.asar.unpacked'));
+const __dirnameApple = __dirname + '/bin';
+if (fs.existsSync(path.resolve(__dirnameApple).replace('app.asar', 'app.asar.unpacked'))) {
+    obs.IPC.setServerPath(path.resolve(__dirnameApple, `obs64`).replace('app.asar', 'app.asar.unpacked'), path.resolve(__dirnameApple).replace('app.asar', 'app.asar.unpacked'));
 }
 else if (fs.existsSync(path.resolve(__dirname, `obs64.exe`).replace('app.asar', 'app.asar.unpacked'))) {
     obs.IPC.setServerPath(path.resolve(__dirname, `obs64.exe`).replace('app.asar', 'app.asar.unpacked'), path.resolve(__dirname).replace('app.asar', 'app.asar.unpacked'));

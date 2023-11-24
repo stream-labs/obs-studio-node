@@ -19,23 +19,25 @@
 #pragma once
 #include <napi.h>
 
-namespace osn
-{
-	class Global : public Napi::ObjectWrap<osn::Global>
-	{
-		public:
-		static Napi::FunctionReference constructor;
-		static Napi::Object Init(Napi::Env env, Napi::Object exports);
-		Global(const Napi::CallbackInfo& info);
+namespace osn {
+class Global : public Napi::ObjectWrap<osn::Global> {
+public:
+	static Napi::FunctionReference constructor;
+	static Napi::Object Init(Napi::Env env, Napi::Object exports);
+	Global(const Napi::CallbackInfo &info);
 
-		static Napi::Value getOutputSource(const Napi::CallbackInfo& info);
-		static Napi::Value setOutputSource(const Napi::CallbackInfo& info);
-		static Napi::Value getOutputFlagsFromId(const Napi::CallbackInfo& info);
-		static Napi::Value laggedFrames(const Napi::CallbackInfo& info);
-		static Napi::Value totalFrames(const Napi::CallbackInfo& info);
-		static Napi::Value getLocale(const Napi::CallbackInfo& info);
-		static void setLocale(const Napi::CallbackInfo& info, const Napi::Value &value);
-		static Napi::Value getMultipleRendering(const Napi::CallbackInfo& info);
-		static void setMultipleRendering(const Napi::CallbackInfo& info, const Napi::Value &value);
-	};
+	static Napi::Value getOutputSource(const Napi::CallbackInfo &info);
+	static Napi::Value setOutputSource(const Napi::CallbackInfo &info);
+	static Napi::Value addSceneToBackstage(const Napi::CallbackInfo &info);
+	;
+	static Napi::Value removeSceneFromBackstage(const Napi::CallbackInfo &info);
+	;
+	static Napi::Value getOutputFlagsFromId(const Napi::CallbackInfo &info);
+	static Napi::Value laggedFrames(const Napi::CallbackInfo &info);
+	static Napi::Value totalFrames(const Napi::CallbackInfo &info);
+	static Napi::Value getLocale(const Napi::CallbackInfo &info);
+	static void setLocale(const Napi::CallbackInfo &info, const Napi::Value &value);
+	static Napi::Value getMultipleRendering(const Napi::CallbackInfo &info);
+	static void setMultipleRendering(const Napi::CallbackInfo &info, const Napi::Value &value);
+};
 }
