@@ -19,5 +19,5 @@
 #include "shared.hpp"
 
 #ifdef __APPLE__
-    UtilInt* g_util_osx;
+UtilInt *g_util_osx;
 #endif

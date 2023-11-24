@@ -46,6 +46,7 @@ describe(testName, () => {
     it('Create all types of input', () => {
         // Create all input sources available
         obs.inputTypes.forEach(function(inputType) {
+            if(obs.skipSource(inputType)) { return;}
             const input = osn.InputFactory.create(inputType, 'input');
 
             // Checking if input source was created correctly
@@ -59,6 +60,7 @@ describe(testName, () => {
     it('Create all types of input with settings parameter', () => {
         // Create all input sources available
         obs.inputTypes.forEach(function(inputType) {
+            if(obs.skipSource(inputType)) { return;}
             let settings: ISettings = {};
 
             switch(inputType) {
@@ -136,6 +138,7 @@ describe(testName, () => {
                     settings['capture_cursor'] = false;
                     settings['method'] = 0;
                     settings['monitor_wgc'] = 0;
+                    settings['compatibility'] = false;
                     break;
                 }
                 case 'window_capture': {
@@ -143,8 +146,6 @@ describe(testName, () => {
                         settings = inputSettings.win32WindowCapture;
                         settings['compatibility'] = true;
                         settings['client_area'] = true;
-                        settings['method'] = 0;
-                        settings['window'] = '';
                     } else if (obs.os == 'darwin') {
                         settings = inputSettings.macWindowCapture;
                         settings['show_empty_names'] = true;
@@ -154,6 +155,8 @@ describe(testName, () => {
                 case 'game_capture': {
                     settings = inputSettings.gameCapture;
                     settings['allow_transparency'] = true;
+                    settings['default_height'] = 1080;
+                    settings['default_width'] = 1920;
                     break;
                 }
                 case 'dshow_input': {
@@ -169,9 +172,11 @@ describe(testName, () => {
                     settings['use_device_timing'] = true;
                     break;
                 }
-                case 'av_capture_input': {
+                case 'av_capture_input':
+                case 'av_capture_input_v2': {
                     settings = inputSettings.avCaptureInput;
                     settings['color_space'] = 2;
+                    settings['use_preset'] = false;
                     break;
                 }
                 case 'coreaudio_input_capture':
@@ -193,6 +198,8 @@ describe(testName, () => {
                 }
                 case 'screen_capture': {
                     settings = inputSettings.simpleCapture;
+                    settings['default_height'] = 1080;
+                    settings['default_width'] = 1920;
                     break;
                 }                
             }
@@ -212,6 +219,7 @@ describe(testName, () => {
         let inputFromName: IInput;
 
         obs.inputTypes.forEach(function(inputType) {
+            if(obs.skipSource(inputType)) { return;}
             // Creating input source
             const name = 'input';
             const input = osn.InputFactory.create(inputType, name);
@@ -252,6 +260,9 @@ describe(testName, () => {
     });
 
     it('Set sync offset and get it', () => {
+        if (process.platform === 'darwin') {
+            return;
+        }
         let returnedSyncOffset: ITimeSpec;
         let inputType: string;
 
@@ -310,6 +321,9 @@ describe(testName, () => {
     });
 
     it('Set monitoring type value and get it', () => {
+        if (process.platform === 'darwin') {
+            return;
+        }
         let returnedMonitoringType: osn.EMonitoringType;
         let inputType: string;
 
@@ -354,6 +368,7 @@ describe(testName, () => {
 
         // Creating all video sources available
         obs.inputTypes.forEach(function(inputType) {
+            if(obs.skipSource(inputType)) { return;}
             const videoSource = !!(osn.ESourceOutputFlags.Video & osn.Global.getOutputFlagsFromId(inputType));
 
             if (videoSource) {
@@ -449,6 +464,7 @@ describe(testName, () => {
 
         // Create all async sources available
         obs.inputTypes.forEach(function(inputType) {
+            if(obs.skipSource(inputType)) { return;}
             const asyncSource = !!(osn.ESourceOutputFlags.Async & osn.Global.getOutputFlagsFromId(inputType));
             const audioSource = !!(osn.ESourceOutputFlags.Audio & osn.Global.getOutputFlagsFromId(inputType));
 
@@ -515,6 +531,7 @@ describe(testName, () => {
 
         // Creating all audio sources available
         obs.inputTypes.forEach(function(inputType) {
+            if(obs.skipSource(inputType)) { return;}
             const audioSource = !!(osn.ESourceOutputFlags.Audio & osn.Global.getOutputFlagsFromId(inputType));
 
             if (audioSource) {

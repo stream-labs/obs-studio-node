@@ -31,66 +31,48 @@
 #include "psapi.h"
 #endif
 
-#define LIMIT 2004800000
-#define MAX_POOLS 10
-#define UPPER_LIMIT 80
-#define LOWER_LIMIT 50
+#define LIMIT 2004800000ul
+#define MAX_POLLS 10
 
-struct source_info
-{
-	bool          cached;
-	uint64_t      size;
-	obs_source_t* source;
-	std::vector<std::thread> workers;
-	std::mutex    mtx;
-	bool          have_video;
-};
-
+// Implements 'Singleton' design pattern
 class MemoryManager {
-	public:
-	static MemoryManager& GetInstance()
-	{
-		static MemoryManager instance;
-		return instance;
-	}
+public:
+	static MemoryManager &GetInstance();
+	virtual ~MemoryManager();
 
-	private:
+	void registerSource(obs_source_t *source);
+	void unregisterSource(obs_source_t *source);
+	void shutdownAllSources();
+	void updateSourceCache(obs_source_t *source);
+	void updateSourcesCache();
+
+private:
+	// Types
+	struct source_info;
+
+	// Constructors
 	MemoryManager();
 
-	public:
-	MemoryManager(MemoryManager const&) = delete;
-	void operator=(MemoryManager const&) = delete;
+	// Copiers/movers
+	MemoryManager(MemoryManager const &) = delete;
+	MemoryManager &operator=(MemoryManager const &) = delete;
+	MemoryManager(MemoryManager const &&) = delete;
+	MemoryManager &operator=(MemoryManager const &&) = delete;
 
-	private:
-	std::map<const char*, source_info*> sources;
+	// Methods
+	bool isSourceValid(obs_source_t *source) const;
+	void updateSettings(obs_source_t *source);
 
+	void calculateRawSize(source_info &si);
+	bool shouldCacheSource(source_info &si);
+	void addCachedMemory(source_info &si);
+	void removeCachedMemory(source_info &si, bool cacheNewFiles, const std::string &sourceName);
+	void sourceManager(const std::string &sourceName);
+
+	// Data
 	std::mutex mtx;
-	uint64_t   available_memory;
-	uint64_t   current_cached_size;
-	uint64_t   allowed_cached_size;
-
-	struct
-	{
-		std::thread worker;
-		bool        stop = false;
-		bool        running = false;
-	} watcher;
-
-	public:
-	void registerSource(obs_source_t* source);
-	void unregisterSource(obs_source_t* source);
-
-	void updateSourceCache(obs_source_t* source);
-	void updateSourcesCache(void);
-
-	private:
-	void calculateRawSize(source_info* si);
-	bool shouldCacheSource(source_info* si);
-	void updateSettings(obs_source_t* source);
-
-	void addCachedMemory(source_info* si);
-	void removeCachedMemory(source_info* si, bool cacheNewFiles);
-
-	void sourceManager(source_info* si);
-	void monitorMemory(void);
+	std::map<std::string, std::unique_ptr<source_info>> sources;
+	uint64_t available_memory;
+	uint64_t current_cached_size;
+	uint64_t allowed_cached_size;
 };

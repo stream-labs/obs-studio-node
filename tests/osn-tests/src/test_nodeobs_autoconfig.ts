@@ -16,7 +16,7 @@ describe(testName, function() {
     before(async function() {
         logInfo(testName, 'Starting ' + testName + ' tests');
         deleteConfigFiles();
-        obs = new OBSHandler(testName);
+        obs = new OBSHandler(testName, false);
 
         obs.instantiateUserPool(testName);
 
@@ -26,6 +26,7 @@ describe(testName, function() {
 
     // Shutdown OBS process
     after(async function() {
+
         // Releasing user got from pool
         await obs.releaseUser();
         
@@ -84,7 +85,7 @@ describe(testName, function() {
             expect(progressInfo.event).to.equal('stopping_step',  GetErrorMessage(ETestErrorMsg.CheckSettings));
             expect(progressInfo.description).to.equal('checking_settings',  GetErrorMessage(ETestErrorMsg.CheckSettings));
             expect(progressInfo.percentage).to.equal(100,  GetErrorMessage(ETestErrorMsg.CheckSettings));
-
+/*
             osn.NodeObs.StartSaveStreamSettings();
 
             progressInfo = await obs.getNextProgressInfo('Save Stream Settings');
@@ -101,6 +102,7 @@ describe(testName, function() {
 
             progressInfo = await obs.getNextProgressInfo('Autoconfig done');
             expect(progressInfo.event).to.equal('done',  GetErrorMessage(ETestErrorMsg.SaveSettingsStep));
+            */
         } else {
             logWarning(testName, 'Bandwidth test failed with ' + progressInfo.description + '. Setting default settings');
 

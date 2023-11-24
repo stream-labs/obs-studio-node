@@ -15,8 +15,8 @@ You will need to have the following installed:
 ### Windows
 Building on windows requires additional software:
 
-* [Visual Studio 2019 or 2017](https://visualstudio.microsoft.com/)
-* [Windows SDK](https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk) (may be installed with Visual Studio 2017 Installer)
+* [Visual Studio 2019 or 2022](https://visualstudio.microsoft.com/)
+* [Windows SDK](https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk) (may be installed by Visual Studio 2022 Installer)
 
 ### Example Build
 We use a flexible cmake script to be as broad and generic as possible in order to prevent the need to constantly manage the cmake script for custom uses, while also providing sane defaults. It follows a pretty standard cmake layout and you may execute it however you want.
@@ -27,9 +27,8 @@ yarn install
 git submodule update --init --recursive
 mkdir build
 cd build
-cmake .. -G"Visual Studio 16 2019" -A x64
-cmake --build .
-cpack -G ZIP
+cmake .. -G"Visual Studio 17 2022" -A x64 -DCMAKE_PREFIX_PATH=%CD%/libobs-src/cmake/
+cmake --build . --target install --config RelWithDebInfo
 ```
 
 This will will download any required dependencies, build the module, and then place it in an archive compatible with npm or yarn that you may specify in a given package.json.
@@ -41,7 +40,7 @@ You may specify a custom archive of your own. However, some changes need to be m
 
 * `ENABLE_SCRIPTING` must be set to `false`
 * `ENABLE_UI` must be set to `false`
-* `QTDIR` should *not* be specified.
+* `QTDIR` should *not* be specified as it is not used.
 
 If you don't know how to build obs-studio from source, you may find instructions [here](https://github.com/obsproject/obs-studio/wiki/Install-Instructions#windows-build-directions).
 
@@ -49,7 +48,7 @@ If you don't know how to build obs-studio from source, you may find instructions
 #### cppcheck 
 
 Install cppcheck from http://cppcheck.sourceforge.net/ and add cppcheck folder to PATH 
-To run check from console:  
+To run check from command line:  
 ```
 cd build 
 cmake --build . --target CPPCHECK
@@ -127,4 +126,5 @@ In obs-studio-node root folder:
 Some tests interact with Twitch and we use a user pool service to get users but in case we are not able to fetch a user from it, we use the stream key provided by an environment variable. Create an environment variable called SLOBS_BE_STREAMKEY with the stream key of a Twitch account of your choosing.
 
 * To run all the tests do `yarn run test` 
-* To run only run one test do `yarn run test --grep describe_name_value` where `describe_name_value` is the name of the test passed to the describe call in each test file. Example: `yarn run test --grep nodeobs_api`
+* To run only run one test do `yarn run test --grep describe_name_value` where `describe_name_value` is the name of the test passed to the describe call in each test file. Examples: `yarn run test --grep nodeobs_api` or `yarn run test -g "Start streaming"`
+

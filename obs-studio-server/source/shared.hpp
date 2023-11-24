@@ -34,14 +34,14 @@
 #endif
 
 #ifdef __APPLE__
-	extern UtilInt* g_util_osx;
+extern UtilInt *g_util_osx;
 #endif
 
-static inline std::string StringFromIPCValueVector(std::vector<ipc::value> const& val)
+static inline std::string StringFromIPCValueVector(std::vector<ipc::value> const &val)
 {
 	std::stringstream mystream;
-	bool              prevParam = false;
-	for (auto& v : val) {
+	bool prevParam = false;
+	for (auto &v : val) {
 		if (prevParam) {
 			mystream << ", ";
 		}
@@ -83,13 +83,7 @@ static inline std::string StringFromIPCValueVector(std::vector<ipc::value> const
 
 //#define EXTENDED_DEBUG_LOG
 #if defined(EXTENDED_DEBUG_LOG)
-#define AUTO_DEBUG                              \
-	blog(                                       \
-	    LOG_DEBUG,                              \
-	    "%s(%s) = %s",                          \
-	    __FUNCTION_NAME__ ,                     \
-	    StringFromIPCValueVector(args).c_str(), \
-	    StringFromIPCValueVector(rval).c_str());
+#define AUTO_DEBUG blog(LOG_INFO, "%s(%s) = %s", __FUNCTION_NAME__, StringFromIPCValueVector(args).c_str(), StringFromIPCValueVector(rval).c_str());
 #else
 #define AUTO_DEBUG
 #endif

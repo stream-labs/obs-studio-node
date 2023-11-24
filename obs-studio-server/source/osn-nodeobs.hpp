@@ -23,5 +23,5 @@
 #include <ipc-value.hpp>
 #include <vector>
 
-namespace NodeOBS
-{}
+namespace NodeOBS {
+}

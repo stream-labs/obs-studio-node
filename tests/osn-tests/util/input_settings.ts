@@ -55,6 +55,7 @@ export {ffmpegSource};
 let ndiSource: ISettings = {
     latency: 0,
     ndi_bw_mode: 0,
+    ndi_audio: true,
     ndi_fix_alpha_blending: false,
     ndi_sync: 1,
     yuv_colorspace: 2,
@@ -111,7 +112,11 @@ export {monitorCapture};
 
 let win32WindowCapture: ISettings = {
     compatibility: false,
-    cursor: true
+    cursor: true,
+    method: 0,
+    client_area: true,
+    window: '',
+    force_sdr: false
 };
 export {win32WindowCapture};
 
@@ -136,6 +141,7 @@ let gameCapture: ISettings = {
     hook_rate: 1,
     limit_framerate: false,
     priority: 2,
+    rgb10a2_space: 'srgb',
     scale_res: '0x0',
     sli_compatibility: false,
     user_placeholder_image: '',
@@ -173,8 +179,9 @@ export {wasapi};
 
 let avCaptureInput: ISettings = {
     color_space: -1,
+    enable_audio: true,
     input_format: 4294967295,
-    preset: 'AVCaptureSessionPreset1280x720',
+    preset: 'AVCaptureSessionPresetHigh',
     uid: '',
     use_preset: true,
     video_range: -1

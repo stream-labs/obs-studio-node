@@ -5,6 +5,7 @@ import { logInfo, logEmptyLine } from '../util/logger';
 import { OBSHandler } from '../util/obs_handler';
 import { deleteConfigFiles } from '../util/general';
 import { ETestErrorMsg, GetErrorMessage } from '../util/error_messages';
+import { EFPSType } from '../osn';
 
 const testName = 'osn-video';
 
@@ -16,7 +17,7 @@ describe(testName, () => {
     before(function() {
         logInfo(testName, 'Starting ' + testName + ' tests');
         deleteConfigFiles();
-        obs = new OBSHandler(testName);
+        obs = new OBSHandler(testName, false);
     });
 
     // Shutdown OBS process
@@ -41,66 +42,121 @@ describe(testName, () => {
     });
 
     it('Get skipped frames value', () => {
+        const context = osn.VideoFactory.create();
         // Getting skipped frames
-        const skippedFrames = osn.Video.skippedFrames;
+        const skippedFrames = context.skippedFrames;
 
         // Checking if skipped frames was returned properly
         expect(skippedFrames).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.VideoSkippedFrames));
         expect(skippedFrames).to.equal(0, GetErrorMessage(ETestErrorMsg.VideoSkippedFramesWrongValue));
+        context.destroy();
     });
 
     it('Get total frames value', () => {
+        const context = osn.VideoFactory.create();
         // Getting total frames value
-        const totalFrames = osn.Video.encodedFrames;
+        const totalFrames = context.encodedFrames;
 
         // Checking if total frames was returned properly
         expect(totalFrames).to.not.equal(undefined,  GetErrorMessage(ETestErrorMsg.VideoTotalFrames));
         expect(totalFrames).to.equal(0,  GetErrorMessage(ETestErrorMsg.VideoTotalFramesWrongValue));
+        context.destroy();
     });
 
-    it('Get and set video context', () => {
-        let currentVideo = osn.Video.videoContext;
+    it('Create and set video context', () => {
+        const context = osn.VideoFactory.create();
 
-        // Check if the current video context correctly returns
-        // the default values
-        expect(currentVideo.fpsNum).to.equal(30, GetErrorMessage(ETestErrorMsg.VideoDefaultFPSNum));
-        expect(currentVideo.fpsDen).to.equal(1, GetErrorMessage(ETestErrorMsg.VideoDefaultFPSDen));
-        // The default base resolution is set depending on the screen that is connected.
-        // I'm commenting checking for these values since it will vary from a machine to another
-        // expect(currentVideo.baseWidth).to.equal(1920, GetErrorMessage(ETestErrorMsg.VideoDefaultBaseHeight));
-        // expect(currentVideo.baseHeight).to.equal(1080, GetErrorMessage(ETestErrorMsg.VideoDefaultBaseWidth));
-        expect(currentVideo.outputWidth).to.equal(1280, GetErrorMessage(ETestErrorMsg.VideoDefaultOutputWidth));
-        expect(currentVideo.outputHeight).to.equal(720, GetErrorMessage(ETestErrorMsg.VideoDefaultOutputHeight));
-        expect(currentVideo.outputFormat).to.equal(osn.EVideoFormat.NV12, GetErrorMessage(ETestErrorMsg.VideoDefaultOutputFormat));
-        expect(currentVideo.colorspace).to.equal(osn.EColorSpace.CS601, GetErrorMessage(ETestErrorMsg.VideoDefaultColorSpace));
-        expect(currentVideo.range).to.equal(osn.ERangeType.Partial, GetErrorMessage(ETestErrorMsg.VideoDefaultRange));
-        expect(currentVideo.scaleType).to.equal(osn.EScaleType.Bicubic, GetErrorMessage(ETestErrorMsg.VideoDefaultScaleType));
-
-
-        const newVideoContext: osn.VideoContext = {
+        const newVideoContext: osn.IVideoInfo = {
             fpsNum: 120,
             fpsDen: 2,
             baseWidth: 3840,
             baseHeight: 2160,
             outputWidth: 1920,
             outputHeight: 1080,
-            outputFormat: osn.EVideoFormat.I420,
+            outputFormat: osn.EVideoFormat.NV12,
             colorspace: osn.EColorSpace.CS709,
-            range: osn.ERangeType.Full,
-            scaleType: osn.EScaleType.Lanczos
+            range: osn.ERangeType.Partial,
+            scaleType: osn.EScaleType.Lanczos,
+            fpsType: EFPSType.Fractional
         };
-        osn.Video.videoContext = newVideoContext;
+        context.video = newVideoContext;
 
-        currentVideo = osn.Video.videoContext;
+        const currentVideo = context.video;
+
         expect(currentVideo.fpsNum).to.equal(120, GetErrorMessage(ETestErrorMsg.VideoSetFPSNum));
         expect(currentVideo.fpsDen).to.equal(2, GetErrorMessage(ETestErrorMsg.VideoSetFPSDen));
         expect(currentVideo.baseWidth).to.equal(3840, GetErrorMessage(ETestErrorMsg.VideoSetBaseWidth));
         expect(currentVideo.baseHeight).to.equal(2160, GetErrorMessage(ETestErrorMsg.VideoSetBaseHeight));
         expect(currentVideo.outputWidth).to.equal(1920, GetErrorMessage(ETestErrorMsg.VideoSetOutputWidth));
         expect(currentVideo.outputHeight).to.equal(1080, GetErrorMessage(ETestErrorMsg.VideoSetOutputHeight));
-        expect(currentVideo.outputFormat).to.equal(osn.EVideoFormat.I420, GetErrorMessage(ETestErrorMsg.VideoSetOutputFormat));
+        expect(currentVideo.outputFormat).to.equal(osn.EVideoFormat.NV12, GetErrorMessage(ETestErrorMsg.VideoSetOutputFormat));
         expect(currentVideo.colorspace).to.equal(osn.EColorSpace.CS709, GetErrorMessage(ETestErrorMsg.VideoSetColorFormat));
-        expect(currentVideo.range).to.equal(osn.ERangeType.Full, GetErrorMessage(ETestErrorMsg.VideoSetRange));
+        expect(currentVideo.range).to.equal(osn.ERangeType.Partial, GetErrorMessage(ETestErrorMsg.VideoSetRange));
         expect(currentVideo.scaleType).to.equal(osn.EScaleType.Lanczos, GetErrorMessage(ETestErrorMsg.VideoSetScaleType));
+        context.destroy();
+    });
+
+    it('Create and set second video context', () => {
+        const context = osn.VideoFactory.create();
+
+        const firstVideoInfo: osn.IVideoInfo = {
+            fpsNum: 120,
+            fpsDen: 2,
+            baseWidth: 3840,
+            baseHeight: 2160,
+            outputWidth: 1920,
+            outputHeight: 1080,
+            outputFormat: osn.EVideoFormat.NV12,
+            colorspace: osn.EColorSpace.CS709,
+            range: osn.ERangeType.Partial,
+            scaleType: osn.EScaleType.Lanczos,
+            fpsType: EFPSType.Fractional
+        };
+        context.video = firstVideoInfo;
+
+        const firstVideo = context.video;
+        expect(firstVideo.fpsNum).to.equal(120, GetErrorMessage(ETestErrorMsg.VideoSetFPSNum));
+        expect(firstVideo.fpsDen).to.equal(2, GetErrorMessage(ETestErrorMsg.VideoSetFPSDen));
+        expect(firstVideo.baseWidth).to.equal(3840, GetErrorMessage(ETestErrorMsg.VideoSetBaseWidth));
+        expect(firstVideo.baseHeight).to.equal(2160, GetErrorMessage(ETestErrorMsg.VideoSetBaseHeight));
+        expect(firstVideo.outputWidth).to.equal(1920, GetErrorMessage(ETestErrorMsg.VideoSetOutputWidth));
+        expect(firstVideo.outputHeight).to.equal(1080, GetErrorMessage(ETestErrorMsg.VideoSetOutputHeight));
+        expect(firstVideo.outputFormat).to.equal(osn.EVideoFormat.NV12, GetErrorMessage(ETestErrorMsg.VideoSetOutputFormat));
+        expect(firstVideo.colorspace).to.equal(osn.EColorSpace.CS709, GetErrorMessage(ETestErrorMsg.VideoSetColorFormat));
+        expect(firstVideo.range).to.equal(osn.ERangeType.Partial, GetErrorMessage(ETestErrorMsg.VideoSetRange));
+        expect(firstVideo.scaleType).to.equal(osn.EScaleType.Lanczos, GetErrorMessage(ETestErrorMsg.VideoSetScaleType));
+
+        const secondContext = osn.VideoFactory.create();
+
+        const secondVideoInfo: osn.IVideoInfo = {
+            fpsNum: 60,
+            fpsDen: 2,
+            baseWidth: 1080,
+            baseHeight: 1920,
+            outputWidth: 1080,
+            outputHeight: 1920,
+            outputFormat: osn.EVideoFormat.NV12,
+            colorspace: osn.EColorSpace.CS709,
+            range: osn.ERangeType.Partial,
+            scaleType: osn.EScaleType.Lanczos,
+            fpsType: EFPSType.Fractional
+        };
+        secondContext.video = secondVideoInfo;
+
+        const secondVideo = secondContext.video;
+        expect(secondVideo.fpsNum).to.equal(60, GetErrorMessage(ETestErrorMsg.VideoSetFPSNum));
+        expect(secondVideo.fpsDen).to.equal(2, GetErrorMessage(ETestErrorMsg.VideoSetFPSDen));
+        expect(secondVideo.baseWidth).to.equal(1080, GetErrorMessage(ETestErrorMsg.VideoSetBaseWidth));
+        expect(secondVideo.baseHeight).to.equal(1920, GetErrorMessage(ETestErrorMsg.VideoSetBaseHeight));
+        expect(secondVideo.outputWidth).to.equal(1080, GetErrorMessage(ETestErrorMsg.VideoSetOutputWidth));
+        expect(secondVideo.outputHeight).to.equal(1920, GetErrorMessage(ETestErrorMsg.VideoSetOutputHeight));
+        expect(secondVideo.outputFormat).to.equal(osn.EVideoFormat.NV12, GetErrorMessage(ETestErrorMsg.VideoSetOutputFormat));
+        expect(secondVideo.colorspace).to.equal(osn.EColorSpace.CS709, GetErrorMessage(ETestErrorMsg.VideoSetColorFormat));
+        expect(secondVideo.range).to.equal(osn.ERangeType.Partial, GetErrorMessage(ETestErrorMsg.VideoSetRange));
+        expect(secondVideo.scaleType).to.equal(osn.EScaleType.Lanczos, GetErrorMessage(ETestErrorMsg.VideoSetScaleType));
+
+        secondContext.destroy();
+
+        context.destroy();
     });
 });

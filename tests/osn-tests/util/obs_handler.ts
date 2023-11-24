@@ -2,7 +2,7 @@ import * as osn from '../osn';
 import { logInfo, logWarning } from '../util/logger';
 import { UserPoolHandler } from './user_pool_handler';
 import { CacheUploader } from '../util/cache-uploader'
-import { EOBSOutputType, EOBSOutputSignal, EOBSSettingsCategories} from '../util/obs_enums'
+import { EOBSOutputType, EOBSOutputSignal, EOBSSettingsCategories } from '../util/obs_enums'
 const WaitQueue = require('wait-queue');
 
 // Interfaces
@@ -25,6 +25,7 @@ export interface IOBSOutputSignalInfo {
     signal: EOBSOutputSignal;
     code: osn.EOutputCode;
     error: string;
+    service: string;
 }
 
 export interface IConfigProgress {
@@ -75,20 +76,24 @@ export class OBSHandler {
     private cacheUploader: CacheUploader;
     private hasUserFromPool: boolean = false;
     private osnTestName: string;
-    private signals = new WaitQueue();
-    private progress = new  WaitQueue();
+    signals = new WaitQueue();
+    private progress = new WaitQueue();
     inputTypes: string[];
     filterTypes: string[];
     transitionTypes: string[];
     os: string;
 
     userStreamKey: string;
+    defaultVideoContext: osn.IVideo;
 
-    constructor(testName: string) {
+    constructor(testName: string, needDefaultVideoContext: boolean = true) {
         this.os = process.platform;
         this.osnTestName = testName;
         this.cacheUploader = new CacheUploader(testName, this.obsPath);
         this.startup();
+        if (needDefaultVideoContext) {
+            this.createDefaultVideoContext();
+        }
         this.inputTypes = osn.InputFactory.types();
         const index = this.inputTypes.indexOf('syphon-input', 0);
         if (index > -1) {
@@ -106,31 +111,35 @@ export class OBSHandler {
             osn.NodeObs.IPC.host(this.pipeName);
             osn.NodeObs.SetWorkingDirectory(this.workingDirectory);
             initResult = osn.NodeObs.OBS_API_initAPI(this.language, this.obsPath, this.version, this.crashServer);
-        } catch(e) {
+        } catch (e) {
             throw Error('Exception when initializing OBS process: ' + e);
         }
 
         if (initResult != osn.EVideoCodes.Success) {
             throw Error('OBS process initialization failed with code ' + initResult);
-        }  
+        }
 
         logInfo(this.osnTestName, 'OBS started successfully');
     }
 
     shutdown() {
+        if(this.defaultVideoContext) {
+            this.destroyDefaultVideoContext();
+        }
+
         logInfo(this.osnTestName, 'Shutting down OBS');
 
         try {
             osn.NodeObs.OBS_service_removeCallback();
             osn.NodeObs.IPC.disconnect();
-        } catch(e) {
+        } catch (e) {
             throw Error('Exception when shutting down OBS process: ' + e);
         }
 
         logInfo(this.osnTestName, 'OBS shutdown successfully');
     }
-	
-	instantiateUserPool(testName: string) {
+
+    instantiateUserPool(testName: string) {
         this.userPoolHandler = new UserPoolHandler(testName);
     }
 
@@ -141,7 +150,7 @@ export class OBSHandler {
             logInfo(this.osnTestName, 'Getting stream key from user pool');
             this.userStreamKey = await this.userPoolHandler.getStreamKey();
             this.hasUserFromPool = true;
-        } catch(e) {
+        } catch (e) {
             logWarning(this.osnTestName, e);
             logWarning(this.osnTestName, 'Using predefined stream key');
             this.userStreamKey = process.env.SLOBS_BE_STREAMKEY;
@@ -169,18 +178,21 @@ export class OBSHandler {
     async uploadTestCache() {
         try {
             await this.cacheUploader.uploadCache();
-        } catch(e) {
+        } catch (e) {
             logWarning(this.osnTestName, e);
         }
     };
 
     setStreamKey(value: string) {
-        osn.ServiceFactory.serviceContext.update({ key: value });
+        const service = osn.ServiceFactory.legacySettings;
+        service.update({ key: value });
+        osn.ServiceFactory.legacySettings = service;
+        this.setSetting(EOBSSettingsCategories.Stream, 'key', value);
     }
 
     getStreamKey(): string {
-        const settings = osn.ServiceFactory.serviceContext.settings;
-        return settings.key;
+        const service = osn.ServiceFactory.legacySettings;
+        return service.settings.key;
     }
 
     setSetting(category: string, parameter: string, value: any) {
@@ -203,7 +215,7 @@ export class OBSHandler {
             osn.NodeObs.OBS_settings_saveSettings(category, settings);
         }
     }
-	
+
     getSetting(category: string, parameter: string): any {
         let value: any;
 
@@ -239,9 +251,9 @@ export class OBSHandler {
     getNextSignalInfo(output: string, signal: string): Promise<IOBSOutputSignalInfo> {
         return new Promise((resolve, reject) => {
             this.signals.shift().then(
-                function(signalInfo) {
+                function (signalInfo) {
                     resolve(signalInfo)
-                  }
+                }
             );
             setTimeout(() => reject(new Error(output.replace(/^\w/, c => c.toUpperCase()) + ' ' + signal + ' signal timeout')), 30000);
         }
@@ -254,19 +266,59 @@ export class OBSHandler {
                 this.progress.push(progressInfo);
             }
         },
-        {
-            service_name: 'Twitch',
-        });
+            {
+                service_name: 'Twitch',
+            });
     }
 
     getNextProgressInfo(autoconfigStep: string): Promise<IConfigProgress> {
         return new Promise((resolve, reject) => {
             this.progress.shift().then(
-                function(progressInfo) {
+                function (progressInfo) {
                     resolve(progressInfo)
-                  }
+                }
             );
             setTimeout(() => reject(new Error(autoconfigStep + ' step timeout')), 50000);
         });
+    }
+
+    createDefaultVideoContext() {
+        logInfo(this.osnTestName, 'createDefaultVideoContext called');
+        this.defaultVideoContext = osn.VideoFactory.create();
+        const defaultVideoInfo: osn.IVideoInfo = {
+            fpsNum: 60,
+            fpsDen: 1,
+            baseWidth: 1280,
+            baseHeight: 720,
+            outputWidth: 1280,
+            outputHeight: 720,
+            outputFormat: osn.EVideoFormat.NV12,
+            colorspace: osn.EColorSpace.CS709,
+            range: osn.ERangeType.Partial,
+            scaleType: osn.EScaleType.Bilinear,
+            fpsType: osn.EFPSType.Fractional
+        };
+        this.defaultVideoContext.video = defaultVideoInfo;
+    }
+
+    destroyDefaultVideoContext() {
+        this.defaultVideoContext.destroy();
+        this.defaultVideoContext = null;
+    }
+
+    skipSource(inputType: string) 
+    {
+        if (process.platform === 'darwin') {
+            if (inputType === 'browser_source' || 
+                inputType === 'window_capture' ||
+                inputType === 'monitor_capture' ||
+                inputType === 'display_capture' ||
+                inputType === 'screen_capture' ||
+                inputType === 'coreaudio_input_capture' ||
+                inputType === 'coreaudio_output_capture') {
+                return true;
+            }
+        }
+        return false
     }
 }

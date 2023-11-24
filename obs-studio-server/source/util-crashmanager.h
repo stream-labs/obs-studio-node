@@ -30,71 +30,70 @@
 #undef strtoll
 #include "nlohmann/json.hpp"
 
- #ifndef _DEBUG
+#ifndef _DEBUG
 #define ENABLE_CRASHREPORT
- #endif
+#endif
 
 extern std::string workingDirectory;
 
-namespace util
-{
-	class MetricsProvider;
+namespace util {
+class MetricsProvider;
 
-	class CrashManager
-	{
-		public:
-        enum OBSLogType
-        {
-            General,
-            Errors,
-            Warnings
-        };
+class CrashManager {
+public:
+	enum OBSLogType { General, Errors, Warnings };
 
-		public:
+public:
+	bool Initialize(char *path, const std::string &app_state_path);
+	void Configure();
+	void OpenConsole();
 
-		bool Initialize(char* path, std::string app_state_path);
-		void Configure();
-		void OpenConsole();
+	static void IPCValuesToData(const std::vector<ipc::value> &, nlohmann::json &);
+	static void AddWarning(const std::string &warning);
+	static void AddBreadcrumb(const nlohmann::json &message);
+	static void AddBreadcrumb(const std::string &message);
+	static void ClearBreadcrumbs();
+	static void DisableReports();
+	static void setAppState(const std::string &newState);
+	static std::string getAppState();
+	static void SaveToAppStateFile();
 
-		static void IPCValuesToData(const std::vector<ipc::value>&, nlohmann::json&);
-		static void AddWarning(const std::string& warning);
-		static void AddBreadcrumb(const nlohmann::json& message);
-		static void AddBreadcrumb(const std::string& message);
-		static void ClearBreadcrumbs();
-		static void DisableReports();
-		static void setAppState(std::string newState);
-		static std::string getAppState();
-		static void SaveToAppStateFile();
+	// Return our global instance of the metrics provider, it's always valid
+	static MetricsProvider *const GetMetricsProvider();
 
-		// Return our global instance of the metrics provider, it's always valid
-		static MetricsProvider* const GetMetricsProvider();
+	static void ProcessPreServerCall(const std::string &cname, const std::string &fname, const std::vector<ipc::value> &args);
+	static void ProcessPostServerCall(const std::string &cname, const std::string &fname, const std::vector<ipc::value> &args);
 
-		static void ProcessPreServerCall(std::string cname, std::string fname, const std::vector<ipc::value>& args);
-		static void ProcessPostServerCall(std::string cname, std::string fname, const std::vector<ipc::value>& args);
+	static void SetVersionName(const std::string &name);
+	static void SetReportServerUrl(const std::string &url);
+	static void SetUsername(const std::string &name);
 
-		static void SetVersionName(std::string name);
-		static void SetReportServerUrl(std::string url);
-		static void SetUsername(std::string name);
+	static bool InitializeMemoryDump();
+	static bool SignalMemoryDump();
+	static bool IsMemoryDumpEnabled();
+	static std::wstring GetMemoryDumpEventName_Start();
+	static std::wstring GetMemoryDumpEventName_Fail();
+	static std::wstring GetMemoryDumpEventName_Success();
+	static std::wstring GetMemoryDumpPath();
+	static std::wstring GetMemoryDumpName();
 
-		static bool InitializeMemoryDump();
-		static bool SignalMemoryDump();
-		static bool IsMemoryDumpEnabled();
-		static std::wstring GetMemoryDumpEventName_Start();
-		static std::wstring GetMemoryDumpEventName_Fail();
-		static std::wstring GetMemoryDumpEventName_Success();
-		static std::wstring GetMemoryDumpPath();
-		static std::wstring GetMemoryDumpName();
+#if !defined(_WIN32)
+	static void UpdateBriefCrashInfoAppState();
+	static void UpdateBriefCrashInfoUsername();
+	static void DeleteBriefCrashInfoFile();
+#endif
 
-
-		private:
-		static nlohmann::json RequestOBSLog(OBSLogType type);
-		static nlohmann::json ComputeBreadcrumbs();
-		static nlohmann::json ComputeActions();
-		static nlohmann::json ComputeWarnings();
-		static bool SetupCrashpad();
-		static bool TryHandleCrash(std::string format, std::string crashMessage);
-		static void HandleExit() noexcept;
-		static void HandleCrash(std::string crashInfo, bool callAbort = true) noexcept;
-	};
+private:
+	static nlohmann::json RequestOBSLog(OBSLogType type);
+	static nlohmann::json ComputeBreadcrumbs();
+	static nlohmann::json ComputeActions();
+	static nlohmann::json ComputeWarnings();
+	static bool SetupCrashpad();
+	static bool TryHandleCrash(const std::string &format, const std::string &crashMessage);
+	static void HandleExit() noexcept;
+	static void HandleCrash(const std::string &crashInfo, bool callAbort = true) noexcept;
+	static void SaveBriefCrashInfoToFile();
+	static void UpdateBriefCrashInfo();
+};
 
 }; // namespace util

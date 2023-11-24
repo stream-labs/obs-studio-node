@@ -65,30 +65,6 @@ describe(testName, () => {
         }
     });
 
-    beforeEach(function() {
-        // Creating scene
-        const scene = osn.SceneFactory.create(sceneName); 
-
-        // Checking if scene was created correctly
-        expect(scene).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateScene, sceneName));
-        expect(scene.id).to.equal('scene', GetErrorMessage(ETestErrorMsg.SceneId, sceneName));
-        expect(scene.name).to.equal(sceneName, GetErrorMessage(ETestErrorMsg.SceneName, sceneName));
-        expect(scene.type).to.equal(osn.ESourceType.Scene, GetErrorMessage(ETestErrorMsg.SceneType, sceneName));
-
-        // Creating input source
-        const source = osn.InputFactory.create(EOBSInputTypes.ImageSource, sourceName);
-
-        // Checking if source was created correctly
-        expect(source).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateInput, EOBSInputTypes.ImageSource));
-        expect(source.id).to.equal(EOBSInputTypes.ImageSource, GetErrorMessage(ETestErrorMsg.InputId, EOBSInputTypes.ImageSource));
-        expect(source.name).to.equal(sourceName, GetErrorMessage(ETestErrorMsg.InputName, EOBSInputTypes.ImageSource));
-    });
-
-    afterEach(function() {
-        const scene = osn.SceneFactory.fromName(sceneName);
-        scene.release();
-    });
-
     it('Get scene item id', () => {
         let sceneItemId: number = undefined;
 
@@ -322,6 +298,70 @@ describe(testName, () => {
         // Checking if scale was set properly
         expect(sceneItem.scale.x).to.equal(returnedScale.x, GetErrorMessage(ETestErrorMsg.ScaleX));
         expect(sceneItem.scale.y).to.equal(returnedScale.y, GetErrorMessage(ETestErrorMsg.ScaleY));
+
+        sceneItem.source.release();
+        sceneItem.remove();
+    });
+
+    it('Get default transform info of scene item', () => {
+        // Getting scene
+        const scene = osn.SceneFactory.fromName(sceneName);
+
+        // Getting source
+        const source = osn.InputFactory.fromName(sourceName);
+
+        // Adding input source to scene to create scene item
+        const sceneItem = scene.add(source);
+
+        const info = sceneItem.transformInfo;
+
+        expect(info.pos.x).to.equal(0.0, GetErrorMessage(ETestErrorMsg.PositionX));
+        expect(info.pos.y).to.equal(0.0, GetErrorMessage(ETestErrorMsg.PositionY));
+        expect(info.rot).to.equal(0.0, GetErrorMessage(ETestErrorMsg.Rotation));
+        expect(info.scale.x).to.equal(1.0, GetErrorMessage(ETestErrorMsg.ScaleX));
+        expect(info.scale.y).to.equal(1.0, GetErrorMessage(ETestErrorMsg.ScaleY));
+        expect(info.alignment).to.equal(osn.EAlignment.TopLeft, GetErrorMessage(ETestErrorMsg.Alignment));
+        expect(info.boundsType).to.equal(osn.EBoundsType.None, GetErrorMessage(ETestErrorMsg.BoundType));
+        expect(info.boundsAlignment).to.equal(0, GetErrorMessage(ETestErrorMsg.BoundAlignment));
+        expect(info.bounds.x).to.equal(0.0, GetErrorMessage(ETestErrorMsg.PositionX));
+        expect(info.bounds.y).to.equal(0.0, GetErrorMessage(ETestErrorMsg.PositionX));
+
+        sceneItem.source.release();
+        sceneItem.remove();
+    });
+
+    it('Set transform info of scene item', () => {
+        // Getting scene
+        const scene = osn.SceneFactory.fromName(sceneName);
+
+        // Getting source
+        const source = osn.InputFactory.fromName(sourceName);
+
+        // Adding input source to scene to create scene item
+        const sceneItem = scene.add(source);
+
+        sceneItem.transformInfo = {
+            pos: { x: 10, y: 5 },
+            rot: 50.5,
+            scale: { x: 0.5, y: 0.7 },
+            alignment: osn.EAlignment.Center,
+            boundsType: osn.EBoundsType.ScaleToWidth,
+            boundsAlignment: 100500,
+            bounds: { x: 100, y: 200 },
+        };
+
+        const info = sceneItem.transformInfo;
+
+        expect(info.pos.x).to.be.closeTo(10, 0.001, GetErrorMessage(ETestErrorMsg.PositionX));
+        expect(info.pos.y).to.be.closeTo(5, 0.001, GetErrorMessage(ETestErrorMsg.PositionY));
+        expect(info.rot).to.be.closeTo(50.5, 0.001, GetErrorMessage(ETestErrorMsg.Rotation));
+        expect(info.scale.x).to.be.closeTo(0.5, 0.001, GetErrorMessage(ETestErrorMsg.ScaleX));
+        expect(info.scale.y).to.be.closeTo(0.7, 0.001, GetErrorMessage(ETestErrorMsg.ScaleY));
+        expect(info.alignment).to.equal(osn.EAlignment.Center, GetErrorMessage(ETestErrorMsg.Alignment));
+        expect(info.boundsType).to.equal(osn.EBoundsType.ScaleToWidth, GetErrorMessage(ETestErrorMsg.BoundType));
+        expect(info.boundsAlignment).to.equal(100500, GetErrorMessage(ETestErrorMsg.BoundAlignment));
+        expect(info.bounds.x).to.be.closeTo(100, 0.001, GetErrorMessage(ETestErrorMsg.PositionX));
+        expect(info.bounds.y).to.be.closeTo(200, 0.001, GetErrorMessage(ETestErrorMsg.PositionX));
 
         sceneItem.source.release();
         sceneItem.remove();
