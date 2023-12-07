@@ -31,24 +31,25 @@ jobs:
     runs-on: [macos-latest]
     strategy:
       matrix:
-        BuildReleases: [Release-x86_64, Debug-x86_64, Release-arm64, Debug-arm64]
+#        BuildReleases: [Release-x86_64, Debug-x86_64, Release-arm64, Debug-arm64]
+        BuildReleases: [Release-x86_64, Release-arm64]
         include:
           - BuildReleases: Release-x86_64
             BuildConfig: RelWithDebInfo
             ReleaseName: release
             Architecture: x86_64
-          - BuildReleases: Debug-x86_64
-            BuildConfig: Debug
-            ReleaseName: debug
-            Architecture: x86_64
+          # - BuildReleases: Debug-x86_64
+          #   BuildConfig: Debug
+          #   ReleaseName: debug
+          #   Architecture: x86_64
           - BuildReleases: Release-arm64
             BuildConfig: RelWithDebInfo
             ReleaseName: release
             Architecture: arm64
-          - BuildReleases: Debug-arm64
-            BuildConfig: Debug
-            ReleaseName: debug
-            Architecture: arm64
+          # - BuildReleases: Debug-arm64
+          #   BuildConfig: Debug
+          #   ReleaseName: debug
+          #   Architecture: arm64
     env:
       OS_TAG: "osx"
     steps:
@@ -127,12 +128,12 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        ReleaseName: [release, debug]
+        ReleaseName: [release]
         include:
         - ReleaseName: release
           ReleaseConfig: RelWithDebInfo
-        - ReleaseName: debug
-          ReleaseConfig: Debug
+        # - ReleaseName: debug
+        #   ReleaseConfig: Debug
     env:
       OS_TAG: "win64"
     steps:
