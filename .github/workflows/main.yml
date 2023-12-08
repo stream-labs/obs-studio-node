@@ -163,7 +163,8 @@ jobs:
         run: node ci/bump-version.js "${{ steps.get_version.outputs.VERSION }}" "${{env.PACKAGE_PATH}}"
         env:
           PACKAGE_PATH: "${{env.SLFullDistributePath}}/${{env.InstallPath}}"
-
+      - name: Print downloaded artifact content for debugging
+        run: Get-ChildItem -Path ${{ github.workspace }} -Recurse | Select-Object Mode, LastWriteTime, Length, Name
       - name: Cache build
         uses: actions/cache@v3
         with:
@@ -209,7 +210,8 @@ jobs:
             ${{env.SLBUILDDIRECTORY}}
             tests/
           key: ${{ runner.os }}-build-${{ matrix.ReleaseName }}-${{ github.sha }}
-
+      - name: Print downloaded artifact content for debugging
+        run: Get-ChildItem -Path ${{ github.workspace }} -Recurse | Select-Object Mode, LastWriteTime, Length, Name
       - name: 'Run tests'
         continue-on-error: true
         run: 'yarn run test'
