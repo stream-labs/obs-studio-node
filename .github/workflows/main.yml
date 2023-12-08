@@ -211,7 +211,7 @@ jobs:
             tests/
           key: ${{ runner.os }}-build-${{ matrix.ReleaseName }}-${{ github.sha }}
       - name: Print downloaded artifact content for debugging
-        run: ls -la -R ${{ github.workspace }} 
+        run: ls -la -R .
         shell: bash
       - name: 'Run tests'
         continue-on-error: true
