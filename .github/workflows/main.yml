@@ -211,7 +211,8 @@ jobs:
             tests/
           key: ${{ runner.os }}-build-${{ matrix.ReleaseName }}-${{ github.sha }}
       - name: Print downloaded artifact content for debugging
-        run: Get-ChildItem -Path ${{ github.workspace }} -Recurse | Select-Object Mode, LastWriteTime, Length, Name
+        run: ls -la -R ${{ github.workspace }} 
+        shell: bash
       - name: 'Run tests'
         continue-on-error: true
         run: 'yarn run test'
