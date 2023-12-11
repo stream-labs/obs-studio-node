@@ -214,7 +214,7 @@ jobs:
         run: ls -la -R .
         shell: bash
       - name: 'Run tests'
-        continue-on-error: true
+        continue-on-error: false
         run: 'yarn run test'
         env:
           SLOBS_BE_STREAMKEY: ${{secrets.testsStreamKey}}
