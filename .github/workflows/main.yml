@@ -18,11 +18,11 @@ env:
   RELEASE_BUCKET: "obsstudionodes3.streamlabs.com"
   RuntimeURL: https://artifacts.electronjs.org/headers/dist
   RuntimeName: iojs
-  ElectronVersion: 25.8.2
+  ElectronVersion: 25.8.4
   SLGenerator: Visual Studio 17 2022
   SLDistributeDirectory: distribute
   SLFullDistributePath: "streamlabs-build.app/distribute" # The .app extension is required to run macOS tests correctly.
-  LibOBSVersion: 28.2.67mrg2
+  LibOBSVersion: 28.2.75
   PACKAGE_NAME: osn
 
 jobs:
@@ -219,6 +219,20 @@ jobs:
           OSN_ACCESS_KEY_ID: ${{secrets.AWS_RELEASE_ACCESS_KEY_ID}}
           OSN_SECRET_ACCESS_KEY: ${{secrets.AWS_RELEASE_SECRET_ACCESS_KEY}}
           RELEASE_NAME: ${{matrix.ReleaseName}}
+      - name: Get the version of aws cli 
+        run: aws --version
+        shell: powershell
+      - name: Install specific version of AWS CLI
+        run: |
+          $version = "2.13.29"
+          $zipfile = "AWSCLIV2.zip"
+          Invoke-WebRequest -OutFile $zipfile "https://awscli.amazonaws.com/AWSCLIV2-$version.msi"
+          Start-Process msiexec.exe -Wait -ArgumentList "/i $zipfile /qn"
+          rm $zipfile
+        shell: pwsh
+      - name: Get the version of aws cli after install
+        run: aws --version
+        shell: powershell          
       - name: Fetch symsrv-scripts
         if: startsWith(github.ref, 'refs/tags/')
         uses: actions/checkout@v3
