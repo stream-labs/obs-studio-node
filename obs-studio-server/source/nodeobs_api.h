@@ -86,6 +86,7 @@ public:
 	static void SetWorkingDirectory(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
 	static void StopCrashHandler(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
 	static void InformCrashHandler(const int crash_id);
+	static void CrashModuleInfo(const std::string &moduleName, const std::string &binaryPath);
 	static void QueryHotkeys(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
 	static void ProcessHotkeyStatus(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
 	static void SetUsername(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);

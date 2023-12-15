@@ -99,7 +99,13 @@
 #define GBYTE (1024ULL * 1024ULL * 1024ULL)
 #define TBYTE (1024ULL * 1024ULL * 1024ULL * 1024ULL)
 
-enum crashHandlerCommand { REGISTER = 0, UNREGISTER = 1, REGISTERMEMORYDUMP = 2, CRASHWITHCODE = 3 };
+enum crashHandlerCommand {
+	REGISTER = 0,
+	UNREGISTER = 1,
+	REGISTERMEMORYDUMP = 2,
+	CRASHWITHCODE = 3,
+	CRASHED_MODULE_INFO = 4,
+};
 
 struct NodeOBSLogParam final {
 	std::fstream logStream;
@@ -600,6 +606,7 @@ std::vector<char> registerProcess(void)
 
 std::vector<char> registerMemoryDump(void)
 {
+	blog(LOG_INFO, "registerMemoryDump");
 	const uint8_t action = crashHandlerCommand::REGISTERMEMORYDUMP;
 
 	//str
@@ -695,6 +702,35 @@ std::vector<char> crashedProcess(uint32_t crash_id)
 	memcpy(buffer.data() + offset, &crash_id, sizeof(crash_id));
 	offset += sizeof(crash_id);
 	memcpy(buffer.data() + offset, &pid, sizeof(pid));
+
+	return buffer;
+}
+
+std::vector<char> crashedModuleInfo(const std::string &moduleName, const std::string &binaryPath)
+{
+	std::vector<char> buffer;
+
+	// Prepare
+	const std::uint8_t messageAction = crashHandlerCommand::CRASHED_MODULE_INFO;
+	const std::uint32_t messageModuleNameSize = (moduleName.size() + 1) * sizeof(std::remove_reference<decltype(moduleName)>::type::value_type);
+	const std::uint32_t messageBinaryPathSize = (binaryPath.size() + 1) * sizeof(std::remove_reference<decltype(binaryPath)>::type::value_type);
+
+	buffer.resize(sizeof(messageAction) + sizeof(std::uint32_t) + messageModuleNameSize + sizeof(std::uint32_t) + messageBinaryPathSize);
+
+	// Pack
+	uint32_t offset = 0;
+	memcpy(buffer.data(), &messageAction, sizeof(messageAction));
+	offset++;
+
+	memcpy(buffer.data() + offset, &messageModuleNameSize, sizeof(messageModuleNameSize));
+	offset += sizeof(messageModuleNameSize);
+	memcpy(buffer.data() + offset, moduleName.data(), messageModuleNameSize);
+	offset += messageModuleNameSize;
+
+	memcpy(buffer.data() + offset, &messageBinaryPathSize, sizeof(messageBinaryPathSize));
+	offset += sizeof(messageBinaryPathSize);
+	memcpy(buffer.data() + offset, binaryPath.data(), messageBinaryPathSize);
+	offset += messageBinaryPathSize;
 
 	return buffer;
 }
@@ -1516,6 +1552,11 @@ struct release_sources {
 void OBS_API::InformCrashHandler(const int crash_id)
 {
 	writeCrashHandler(crashedProcess(crash_id));
+}
+
+void OBS_API::CrashModuleInfo(const std::string &moduleName, const std::string &binaryPath)
+{
+	writeCrashHandler(crashedModuleInfo(moduleName, binaryPath));
 }
 
 void OBS_API::destroyOBS_API(void)
