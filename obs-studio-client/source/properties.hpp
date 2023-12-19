@@ -23,6 +23,7 @@
 #include <napi.h>
 #include <unordered_map>
 #include "utility-v8.hpp"
+#include "obs-property.hpp"
 
 namespace osn {
 struct Property {
@@ -73,13 +74,8 @@ struct NumberProperty : Property {
 };
 
 struct TextProperty : Property {
-	enum class Type {
-		DEFAULT,
-		PASSWORD,
-		MULTILINE,
-	};
-
-	Type field_type;
+	obs::TextProperty::TextType field_type;
+	obs::TextProperty::InfoType info_type;
 	std::string value;
 };
 
