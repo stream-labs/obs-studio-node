@@ -123,11 +123,20 @@ protected:
 
 struct TextProperty : Property {
 	enum class TextType : uint8_t {
-		Default,
-		Password,
-		MultiLine,
+		Default = 0,
+		Password = 1,
+		MultiLine = 2,
+		TextInfo = 3,
 	};
+
+	enum class InfoType : uint8_t {
+		Normal = 0,
+		Warning = 1,
+		Error = 2,
+	};
+
 	TextType field_type;
+	InfoType info_type;
 	std::string value;
 
 	virtual ~TextProperty(){};

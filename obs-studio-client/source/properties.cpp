@@ -432,6 +432,7 @@ Napi::Value osn::PropertyObject::GetDetails(const Napi::CallbackInfo &info)
 		std::shared_ptr<osn::TextProperty> prop = std::static_pointer_cast<osn::TextProperty>(iter->second);
 
 		object.Set("type", Napi::Number::New(info.Env(), (uint32_t)prop->field_type));
+		object.Set("infoType", Napi::Number::New(info.Env(), (uint32_t)prop->info_type));
 		break;
 	}
 	case osn::Property::Type::PATH: {
@@ -650,7 +651,8 @@ osn::property_map_t osn::ProcessProperties(const std::vector<ipc::value> &data, 
 		case obs::Property::Type::Text: {
 			std::shared_ptr<obs::TextProperty> cast_property = std::dynamic_pointer_cast<obs::TextProperty>(raw_property);
 			std::shared_ptr<osn::TextProperty> pr2 = std::make_shared<osn::TextProperty>();
-			pr2->field_type = osn::TextProperty::Type(cast_property->field_type);
+			pr2->field_type = cast_property->field_type;
+			pr2->info_type = cast_property->info_type;
 			pr2->value = cast_property->value;
 			pr = std::static_pointer_cast<osn::Property>(pr2);
 			break;

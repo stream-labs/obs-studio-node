@@ -109,6 +109,11 @@ export declare const enum ETextType {
     Multiline = 2,
     TextInfo = 3
 }
+export declare const enum ETextInfoType {
+	Normal = 0,
+	Warning = 1,
+	Error = 2,
+}
 export declare const enum ENumberType {
     Scroller = 0,
     Slider = 1
@@ -142,7 +147,8 @@ export declare const enum ESourceOutputFlags {
     Composite = 64,
     DoNotDuplicate = 128,
     Deprecated = 256,
-    DoNotSelfMonitor = 512
+    DoNotSelfMonitor = 512,
+    ForceUiRefresh = 1073741824,
 }
 export declare const enum ESceneDupType {
     Refs = 0,
@@ -399,6 +405,7 @@ export interface ITextProperty extends IProperty {
 }
 export interface ITextDetails {
     readonly type: ETextType;
+    readonly infoType: ETextInfoType;
 }
 export interface INumberProperty extends IProperty {
     readonly details: INumberDetails;

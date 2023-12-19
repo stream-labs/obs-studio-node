@@ -678,7 +678,13 @@ Napi::Value osn::Input::CallIsConfigurable(const Napi::CallbackInfo &info)
 
 Napi::Value osn::Input::CallGetProperties(const Napi::CallbackInfo &info)
 {
-	return osn::ISource::GetProperties(info, this->sourceId);
+	Napi::Value ret = osn::ISource::GetProperties(info, this->sourceId);
+
+	SourceDataInfo *sdi = CacheManager<SourceDataInfo *>::getInstance().Retrieve(this->sourceId);
+	if (sdi && sdi->obs_sourceId.compare("game_capture") == 0) {
+		sdi->propertiesChanged = true;
+	}
+	return ret;
 }
 
 Napi::Value osn::Input::CallGetSettings(const Napi::CallbackInfo &info)
