@@ -59,7 +59,7 @@ export const enum EVideoCodes {
 	NotSupported = -2,
 	InvalidParam = -3,
 	CurrentlyActive = -4,
-	ModuleNotFound = -5	
+	ModuleNotFound = -5
 }
 
 export const enum EHotkeyObjectType {
@@ -151,6 +151,12 @@ export const enum ETextType {
     TextInfo
 }
 
+export const enum ETextInfoType {
+	Normal,
+	Warning,
+	Error,
+}
+
 export const enum ENumberType {
     Scroller,
     Slider
@@ -190,14 +196,16 @@ export const enum EOutputFlags {
 export const enum ESourceOutputFlags {
     Video = (1 << 0),
     Audio = (1 << 1),
-    Async = (1 << 2), 
+    Async = (1 << 2),
     AsyncVideo = Async | Video,
     CustomDraw = (1 << 3),
     Interaction = (1 << 5),
     Composite = (1 << 6),
     DoNotDuplicate = (1 << 7),
     Deprecated = (1 << 8),
-    DoNotSelfMonitor = (1 << 9)
+    DoNotSelfMonitor = (1 << 9),
+    // The flag below is a Stremlabs extension to force UI refresh on source properties update
+    ForceUiRefresh = (1 << 30),
 }
 
 export const enum ESceneDupType {
@@ -438,7 +446,7 @@ export interface ICropInfo {
     readonly bottom: number;
 }
 
-/** 
+/**
  * Namespace representing the global libobs functionality
  */
 
@@ -451,7 +459,7 @@ export interface IIPC {
 	 * @throws TypeError if a parameter is of invalid type.
      */
 	setServerPath(binaryPath: string, workingDirectoryPath?: string): void;
-	
+
     /**
      * Connect to an existing server.
      * @param uri - URI for the server.
@@ -460,7 +468,7 @@ export interface IIPC {
 	 * @throws Error if it failed to connect.
      */
 	connect(uri: string): void;
-	
+
     /**
      * Hosts a new server and connects to it.
      * @param uri - URI for the server.
@@ -469,13 +477,13 @@ export interface IIPC {
 	 * @throws Error if it failed to host and connect.
      */
 	host(uri: string): EIPCError;
-	
+
     /**
      * Disconnect from a server.
      */
 	disconnect(): void;
 }
- 
+
 export interface IGlobal {
     /**
      * Initializes libobs global context
@@ -498,12 +506,12 @@ export interface IGlobal {
     /**
      * Output channels are useful in that we can attach multiple
      * sources for output. For the most part, you're generally only
-     * going to use one channel for video. However, if you so wanted, 
-     * you could assign more to be layered on top of other channels. 
-     * 
-     * This also accepts audio input sources which are automatically 
+     * going to use one channel for video. However, if you so wanted,
+     * you could assign more to be layered on top of other channels.
+     *
+     * This also accepts audio input sources which are automatically
      * mixed into the audio output. This means you can have a standalone
-     * input source that isn't attached to the scene being rendered. 
+     * input source that isn't attached to the scene being rendered.
      * @param channel - The output channel to assign source
      * @param input - The source to assign to the output channel
      */
@@ -519,16 +527,16 @@ export interface IGlobal {
     /**
      * Adds scene to backstage. This action allow to keep it active
      * and not display on stream or recording.
-     * 
+     *
      * This is used to create scene previews mostly.
-     * 
+     *
      * @param input - The scene source
      */
     addSceneToBackstage(input: ISource) : void;
 
     /**
      * Removes scene from backstage and cleans up resources if needed.
-     * 
+     *
      * @param input - The scene source
      */
     removeSceneFromBackstage(input: ISource): void;
@@ -539,7 +547,7 @@ export interface IGlobal {
     readonly totalFrames: number;
 
     /**
-     * Number of total lost frames due to being short 
+     * Number of total lost frames due to being short
      * of rendering time.
      */
     readonly laggedFrames: number;
@@ -584,9 +592,9 @@ export interface IButtonProperty extends IProperty {
     /**
      * @param source An object containing context
      * used by the plugin. This is always the source
-     * associated with the property. Right now, I 
+     * associated with the property. Right now, I
      * just accept a generic object for forward
-     * compatibility. 
+     * compatibility.
      */
     buttonClicked(source: object): void;
 }
@@ -640,6 +648,7 @@ export interface ITextProperty extends IProperty {
 
 export interface ITextDetails {
     readonly type: ETextType;
+    readonly infoType: ETextInfoType;
 }
 
 export interface INumberProperty extends IProperty {
@@ -664,7 +673,7 @@ export interface IProperty {
      * The name associated with the property
      * You can use this name to fetch from the source
      * settings object (see {@link ObsSource#settings})
-     * if you need the value set on this property. 
+     * if you need the value set on this property.
      */
     readonly name: string;
 
@@ -689,17 +698,17 @@ export interface IProperty {
     /**
      * Uses the current object to obtain the next
      * property in the properties list.
-     * 
+     *
      * @returns If it's successful, returns true.
-     * Otherwise or if end of the list, returns false. 
+     * Otherwise or if end of the list, returns false.
      */
     next(): IProperty;
     modified(): boolean;
 }
 
 /**
- * Object representing a list of properties. 
- * 
+ * Object representing a list of properties.
+ *
  * Use .properties member on an encoder, source, output, or service
  * to obtain an instance.
  */
@@ -759,7 +768,7 @@ export interface IInputFactory extends IFactoryTypes {
 
     /**
      * Create a new instance of an ObsInput that's private
-     * Private in this context means any function that returns an 
+     * Private in this context means any function that returns an
      * ObsInput will not return this source
      * @param id - The type of input source to create, possibly from {@link types}
      * @param name - Name of the created input source
@@ -835,10 +844,10 @@ export interface ISceneItemInfo {
 
 /**
  * Class representing a source
- * 
- * An input source can be either an audio or video or even both. 
+ *
+ * An input source can be either an audio or video or even both.
  * So some of these don't make sense right now. For instance, there's
- * no reason tot call volume on a source that only provides video input. 
+ * no reason tot call volume on a source that only provides video input.
  */
 export interface IInput extends ISource {
     volume: number;
@@ -850,9 +859,9 @@ export interface IInput extends ISource {
     deinterlaceMode: EDeinterlaceMode;
 
     /**
-     * Create a new instance using the current instance. 
+     * Create a new instance using the current instance.
      * If no parameters are provide, an instance is created
-     * using the current instance as if it were new. 
+     * using the current instance as if it were new.
      * @param name - Name of new source
      * @param isPrivate - Whether or not the new source is private
      */
@@ -922,22 +931,22 @@ export interface IInput extends ISource {
      * get or set the current play position
      */
     seek: number;
-    
+
     /**
      * play media source
      */
     play(): void;
-    
+
     /**
      * pause media source
      */
     pause(): void;
-    
+
     /**
      * restart media source when ended
      */
     restart(): void;
-    
+
     /**
      * stop media source
      */
@@ -984,7 +993,7 @@ export interface IScene extends ISource {
      * @returns - Return the sceneitem or null on failure
      */
     add(source: IInput, transform?: ISceneItemInfo): ISceneItem;
-    
+
     /**
      * A scene may be used as an input source (even though its type
      * will still be of the value Scene). To use a scene as an ObsInput,
@@ -1000,25 +1009,25 @@ export interface IScene extends ISource {
     moveItem(oldIndex: number, newIndex: number): void;
 
     /**
-     * Orders an scene items as provided 
+     * Orders an scene items as provided
      * @param order - Item ids in needed order
      */
     orderItems( order: number[] ): void;
 
     /**
      * Find an item within a scene
-     * 
+     *
      * @param id - A string representing the name of the
-     * underlying source of the item to search for or an integer specifying 
+     * underlying source of the item to search for or an integer specifying
      * the id assigned to the item when it was created.
-     * 
+     *
      * @returns - The found item instance or null
      */
     findItem(id: string | number): ISceneItem;
 
     /**
      * Find an item within a scene by index
-     * 
+     *
      * @param idx - An integer representing the index the item sits at within the scene
      * @returns - The item instance or null if the index was bad
      */
@@ -1032,17 +1041,17 @@ export interface IScene extends ISource {
 }
 
 /**
- * Class representing an item within a scene. 
- * 
+ * Class representing an item within a scene.
+ *
  * When you add an input source to a scene, a few things
  * happen. If the input source provides video, it allocates
- * rendering structures for it. If it provides audio, it 
+ * rendering structures for it. If it provides audio, it
  * provides audio sampling structures for it. All actual
  * rendering information is held by the scene item. This
  * is so two scene items can be different even if they use
- * the same underlying source. 
- * 
- * Changing any of the properties will change how the 
+ * the same underlying source.
+ *
+ * Changing any of the properties will change how the
  * input source is rendered for that particular item.
  */
 export interface ISceneItem {
@@ -1143,7 +1152,7 @@ export interface ITransitionFactory extends IFactoryTypes {
 
     /**
      * Create a new instance of an ObsTransition that's private
-     * Private in this context means any function that returns an 
+     * Private in this context means any function that returns an
      * ObsTransition will not return this source
      * @param id - The type of transition source to create, possibly from {@link types}
      * @param name - Name of the created inptransitionut source
@@ -1187,11 +1196,11 @@ export interface ITransition extends ISource {
     start(ms: number, input: ISource): void;
 }
 
-export interface IConfigurable { 
+export interface IConfigurable {
     /**
      * Update the settings of the source instance
      * correlating to the values held within the
-     * object passed. 
+     * object passed.
      */
     update(settings: ISettings): void;
 
@@ -1221,9 +1230,9 @@ export interface ISource extends IConfigurable, IReleasable {
     remove(): void;
 
     /**
-     * Send a save signal to sources themselves. 
-     * This should always be called before saving to disk 
-     * as it allows the source to know it needs to update 
+     * Send a save signal to sources themselves.
+     * This should always be called before saving to disk
+     * as it allows the source to know it needs to update
      * its settings.
      */
     save(): void;
@@ -1242,7 +1251,7 @@ export interface ISource extends IConfigurable, IReleasable {
      * The corresponding id of the source
      */
     readonly id: string;
-    
+
     /**
      * Not to be confused with flags. This set
      * of flags provides the capabilities in the
@@ -1262,7 +1271,7 @@ export interface ISource extends IConfigurable, IReleasable {
      */
     flags: ESourceFlags;
 
-    /** 
+    /**
      * Muted flag, separate of the current volume
      */
     muted: boolean;
@@ -1272,14 +1281,14 @@ export interface ISource extends IConfigurable, IReleasable {
      * Easy way to disable a filter.
      */
     enabled: boolean;
-	
+
     /**
      * Function to get latest version of settings
 	 * Expensive, shouldn't be used unless sure
      */
     readonly slowUncachedSettings: ISettings;
 
-    /** 
+    /**
      * Executes a named function from obs internals
     */
      callHandler(fuction_name: string, fuction_input: string): Object;
@@ -1331,13 +1340,13 @@ export interface IFader {
 
     /**
      * Add a callback to the fader. Callback will be called
-     * each time volume associated with the attached source changes. 
+     * each time volume associated with the attached source changes.
      * @param cb - A callback that occurs when volume changes.
      */
     addCallback(cb: (db: number) => void): ICallbackData;
 
     /**
-     * Remove a callback to prevent events from occuring immediately. 
+     * Remove a callback to prevent events from occuring immediately.
      * @param cbData - Object passed back from a call to {@link ObsFader#addCallback}
      */
     removeCallback(cbData: ICallbackData): void;
@@ -1378,7 +1387,7 @@ export interface IVolmeter {
 
     /**
      * Add a callback to the volmeter. Callback will be called
-     * each time volume associated with the attached source changes. 
+     * each time volume associated with the attached source changes.
      * @param cb - A callback that occurs when volume changes.
      */
     addCallback(
@@ -1387,7 +1396,7 @@ export interface IVolmeter {
              inputPeak: number[]) => void): ICallbackData;
 
     /**
-     * Remove a callback to prevent events from occuring immediately. 
+     * Remove a callback to prevent events from occuring immediately.
      * @param cbData - Object passed back from a call to {@link ObsVolmeter#addCallback}
      */
     removeCallback(cbData: ICallbackData): void;
@@ -1453,7 +1462,7 @@ export interface IVideo {
      * Number of total skipped frames
      */
      readonly skippedFrames: number;
-	
+
      /**
       * Number of total encoded frames
       */
@@ -1609,7 +1618,7 @@ export interface IService {
     /**
      * Update the settings of the service instance
      * correlating to the values held within the
-     * object passed. 
+     * object passed.
      */
     update(settings: ISettings): void;
 }

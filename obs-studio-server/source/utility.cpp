@@ -224,7 +224,8 @@ void utility::ProcessProperties(obs_properties_t *prp, obs_data *settings, std::
 		}
 		case OBS_PROPERTY_TEXT: {
 			auto prop2 = std::make_shared<obs::TextProperty>();
-			prop2->field_type = obs::TextProperty::TextType(obs_proprety_text_type(p));
+			prop2->field_type = obs::TextProperty::TextType(obs_property_text_type(p));
+			prop2->info_type = obs::TextProperty::InfoType(obs_property_text_info_type(p));
 			prop2->value = (buf = obs_data_get_string(settings, name)) != nullptr ? buf : "";
 			prop = prop2;
 			break;
