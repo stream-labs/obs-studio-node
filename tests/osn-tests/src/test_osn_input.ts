@@ -139,6 +139,8 @@ describe(testName, () => {
                     settings['method'] = 0;
                     settings['monitor_wgc'] = 0;
                     settings['compatibility'] = false;
+                    settings['monitor_id'] = "DUMMY";
+                    settings['force_sdr'] = false;
                     break;
                 }
                 case 'window_capture': {
@@ -201,7 +203,7 @@ describe(testName, () => {
                     settings['default_height'] = 1080;
                     settings['default_width'] = 1920;
                     break;
-                }                
+                }
             }
 
             const input = osn.InputFactory.create(inputType, 'input', settings);

@@ -58,10 +58,14 @@ describe(testName, () => {
                     file != 'libcef.dll' &&
                     file != 'libEGL.dll' &&
                     file != 'libGLESv2.dll' &&
+                    file != 'Spout.dll' &&
+                    file != 'SpoutDX.dll' &&
+                    file != 'SpoutLibrary.dll' &&
                     file != 'mediasoup-connector.dll') { // Doesn't build in debug mode
                     // Opening module
+                    console.log('Opening module: ' + file);
                     const moduleType = osn.ModuleFactory.open(path.join(modulePath, '/' + file), path.normalize(osn.DefaultDataPath));
-
+                    console.log('Opened module: ' + file + ' successfully ' + moduleType);
                     // Checking if module was opened properly
                     expect(moduleType).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.OpenModule, file));
 

@@ -1,5 +1,4 @@
 var mocha = require('mocha');
-module.exports = ListReporter;
 
 function ListReporter(runner) {
     mocha.reporters.Base.call(this, runner);
@@ -50,3 +49,5 @@ function ListReporter(runner) {
         }
     });
 }
+
+module.exports = ListReporter;

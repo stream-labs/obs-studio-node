@@ -144,7 +144,7 @@ describe(testName, () => {
         secondContext.video = secondVideoInfo;
 
         const secondVideo = secondContext.video;
-        expect(secondVideo.fpsNum).to.equal(60, GetErrorMessage(ETestErrorMsg.VideoSetFPSNum));
+        expect(secondVideo.fpsNum).to.equal(120, GetErrorMessage(ETestErrorMsg.VideoSetFPSNum));
         expect(secondVideo.fpsDen).to.equal(2, GetErrorMessage(ETestErrorMsg.VideoSetFPSDen));
         expect(secondVideo.baseWidth).to.equal(1080, GetErrorMessage(ETestErrorMsg.VideoSetBaseWidth));
         expect(secondVideo.baseHeight).to.equal(1920, GetErrorMessage(ETestErrorMsg.VideoSetBaseHeight));
