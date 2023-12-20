@@ -309,7 +309,7 @@ void MemoryManager::registerSource(obs_source_t *source)
 	std::unique_lock ulock(mtx);
 
 	source_info *si = new source_info;
-	si->source = source;
+	si->source = obs_source_get_ref(source);
 	sources.emplace(obs_source_get_name(source), si);
 	updateSource(source, false);
 }
@@ -345,6 +345,7 @@ void MemoryManager::unregisterSource(obs_source_t *source)
 
 	std::lock(mtx, moved_ptr->mtx);
 	removeCachedMemory(*moved_ptr, true, source_name);
+	obs_source_release(moved_ptr->source);
 	moved_ptr->mtx.unlock();
 	mtx.unlock();
 }
