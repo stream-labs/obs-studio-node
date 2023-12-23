@@ -255,7 +255,6 @@ void osn::Source::GetProperties(void *data, const int64_t id, const std::vector<
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");
 	}
 
-	bool updateSource = false;
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 
 	obs_properties_t *prp = obs_source_properties(src);
@@ -265,10 +264,8 @@ void osn::Source::GetProperties(void *data, const int64_t id, const std::vector<
 
 	obs_properties_destroy(prp);
 
-	if (updateSource) {
-		obs_source_update(src, settings);
-		MemoryManager::GetInstance().updateSourceCache(src);
-	}
+	obs_source_update(src, settings);
+
 	obs_data_release(settings);
 	AUTO_DEBUG;
 }
