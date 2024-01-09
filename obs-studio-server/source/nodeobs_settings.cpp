@@ -42,6 +42,9 @@ std::vector<const char *> tabStreamTypes;
 const char *currentServiceName;
 std::vector<SubCategory> currentAudioSettings;
 
+bool update_nvenc_presets(obs_data_t *data, const char *encoderId);
+const char *convert_nvenc_simple_preset(const char *old_preset);
+
 /* some nice default output resolution vals */
 static const double vals[] = {1.0, 1.25, (1.0 / 0.75), 1.5, (1.0 / 0.6), 1.75, 2.0, 2.25, 2.5, 2.75, 3.0};
 
@@ -293,6 +296,18 @@ SubCategory OBS_settings::serializeSettingsData(const std::string &nameSubCatego
 					if (param.name.compare("ColorSpace") == 0 || param.name.compare("ColorFormat") == 0 ||
 					    param.name.compare("ColorRange") == 0) {
 						currentValue = config_get_string(config, "AdvVideo", param.name.c_str());
+					}
+				} else if (section.compare("SimpleOutput") == 0) {
+					if (param.name.compare("NVENCPreset2") == 0) {
+						currentValue = config_get_string(config, "SimpleOutput", param.name.c_str());
+						if (currentValue == NULL) {
+							const char *oldParamName = "NVENCPreset";
+							const char *oldValue = config_get_string(config, "SimpleOutput", oldParamName);
+							if (oldValue != NULL) {
+								currentValue = convert_nvenc_simple_preset(oldValue);
+								blog(LOG_INFO, "NVENC presets converted from %s to %s", oldValue, currentValue);
+							}
+						}
 					}
 				}
 
@@ -1310,11 +1325,10 @@ void OBS_settings::getSimpleOutputSettings(std::vector<SubCategory> *outputSetti
 			preset.push_back(std::make_pair("Quality", ipc::value("quality")));
 
 			defaultPreset = "balanced";
-			// preset = curQSVPreset;
 			entries.push_back(preset);
 		} else if (strcmp(encoder, SIMPLE_ENCODER_NVENC) == 0 || strcmp(encoder, ADVANCED_ENCODER_NVENC) == 0 ||
-			   strcmp(encoder, ENCODER_NEW_NVENC) == 0) {
-			preset.push_back(std::make_pair("name", ipc::value("NVENCPreset")));
+			   strcmp(encoder, ENCODER_NEW_NVENC) == 0 || strcmp(encoder, ENCODER_NEW_HEVC_NVENC) == 0) {
+			preset.push_back(std::make_pair("name", ipc::value("NVENCPreset2")));
 			preset.push_back(std::make_pair("type", ipc::value("OBS_PROPERTY_LIST")));
 			preset.push_back(std::make_pair("description", ipc::value("Encoder Preset (higher = less CPU)")));
 			preset.push_back(std::make_pair("subType", ipc::value("OBS_COMBO_FORMAT_STRING")));
@@ -1324,27 +1338,18 @@ void OBS_settings::getSimpleOutputSettings(std::vector<SubCategory> *outputSetti
 
 			obs_properties_t *props = obs_get_encoder_properties("ffmpeg_nvenc");
 
-			obs_property_t *p = obs_properties_get(props, "preset");
+			obs_property_t *p = obs_properties_get(props, "preset2");
 			size_t num = obs_property_list_item_count(p);
 			for (size_t i = 0; i < num; i++) {
 				const char *name = obs_property_list_item_name(p, i);
 				const char *val = obs_property_list_item_string(p, i);
-
-				/* bluray is for ideal bluray disc recording settings,
-				* not streaming */
-				if (strcmp(val, "bd") == 0)
-					continue;
-				/* lossless should of course not be used to stream */
-				if (astrcmp_n(val, "lossless", 8) == 0)
-					continue;
 
 				preset.push_back(std::make_pair(name, ipc::value(val)));
 			}
 
 			obs_properties_destroy(props);
 
-			defaultPreset = "default";
-			// preset = curNVENCPreset;
+			defaultPreset = "p5";
 			entries.push_back(preset);
 		} else if (strcmp(encoder, SIMPLE_ENCODER_AMD) == 0 || strcmp(encoder, ADVANCED_ENCODER_AMD) == 0) {
 			preset.push_back(std::make_pair("name", ipc::value("AMDPreset")));
@@ -1359,7 +1364,6 @@ void OBS_settings::getSimpleOutputSettings(std::vector<SubCategory> *outputSetti
 			preset.push_back(std::make_pair("Quality", ipc::value("quality")));
 
 			defaultPreset = "balanced";
-			// preset = curAMDPreset;
 			entries.push_back(preset);
 		} else if (strcmp(encoder, APPLE_SOFTWARE_VIDEO_ENCODER) == 0 || strcmp(encoder, APPLE_HARDWARE_VIDEO_ENCODER) == 0 ||
 			   strcmp(encoder, APPLE_HARDWARE_VIDEO_ENCODER_M1) == 0) {
@@ -1393,7 +1397,6 @@ void OBS_settings::getSimpleOutputSettings(std::vector<SubCategory> *outputSetti
 			preset.push_back(std::make_pair("slower", ipc::value("slower")));
 
 			defaultPreset = "veryfast";
-			// preset = curPreset;
 			entries.push_back(preset);
 
 			//Custom Encoder Settings
@@ -2072,6 +2075,9 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t *config, b
 			}
 		} else {
 			obs_data_t *data = obs_data_create_from_json_file_safe(streamName.c_str(), "bak");
+
+			update_nvenc_presets(data, encoderID);
+
 			obs_data_apply(settings, data);
 			streamingEncoder = obs_video_encoder_create(encoderID, "streaming_h264", settings, nullptr);
 			OBS_service::setStreamingEncoder(streamingEncoder, StreamServiceId::Main);
@@ -2515,6 +2521,7 @@ void OBS_settings::getStandardRecordingSettings(SubCategory *subCategoryParamete
 			}
 		} else if (strcmp(recEncoderCurrentValue, "none") != 0) {
 			obs_data_t *data = obs_data_create_from_json_file_safe(ConfigManager::getInstance().getRecord().c_str(), "bak");
+			update_nvenc_presets(data, recEncoderCurrentValue);
 			obs_data_apply(settings, data);
 			recordingEncoder = obs_video_encoder_create(recEncoderCurrentValue, "recording_h264", settings, nullptr);
 			OBS_service::setRecordingEncoder(recordingEncoder);
@@ -4545,4 +4552,163 @@ void OBS_settings::OBS_settings_getVideoDevices(void *data, const int64_t id, co
 #endif
 
 	AUTO_DEBUG;
+}
+
+void convert_nvenc_h264_presets(obs_data_t *data)
+{
+	const char *preset = obs_data_get_string(data, "preset");
+	const char *rc = obs_data_get_string(data, "rate_control");
+
+	// If already using SDK10+ preset, return early.
+	if (astrcmpi_n(preset, "p", 1) == 0) {
+		obs_data_set_string(data, "preset2", preset);
+		return;
+	}
+
+	if (astrcmpi(rc, "lossless") == 0 && astrcmpi(preset, "mq")) {
+		obs_data_set_string(data, "preset2", "p3");
+		obs_data_set_string(data, "tune", "lossless");
+		obs_data_set_string(data, "multipass", "disabled");
+
+	} else if (astrcmpi(rc, "lossless") == 0 && astrcmpi(preset, "hp")) {
+		obs_data_set_string(data, "preset2", "p2");
+		obs_data_set_string(data, "tune", "lossless");
+		obs_data_set_string(data, "multipass", "disabled");
+
+	} else if (astrcmpi(preset, "mq") == 0) {
+		obs_data_set_string(data, "preset2", "p5");
+		obs_data_set_string(data, "tune", "hq");
+		obs_data_set_string(data, "multipass", "qres");
+
+	} else if (astrcmpi(preset, "hq") == 0) {
+		obs_data_set_string(data, "preset2", "p5");
+		obs_data_set_string(data, "tune", "hq");
+		obs_data_set_string(data, "multipass", "disabled");
+
+	} else if (astrcmpi(preset, "default") == 0) {
+		obs_data_set_string(data, "preset2", "p3");
+		obs_data_set_string(data, "tune", "hq");
+		obs_data_set_string(data, "multipass", "disabled");
+
+	} else if (astrcmpi(preset, "hp") == 0) {
+		obs_data_set_string(data, "preset2", "p1");
+		obs_data_set_string(data, "tune", "hq");
+		obs_data_set_string(data, "multipass", "disabled");
+
+	} else if (astrcmpi(preset, "ll") == 0) {
+		obs_data_set_string(data, "preset2", "p3");
+		obs_data_set_string(data, "tune", "ll");
+		obs_data_set_string(data, "multipass", "disabled");
+
+	} else if (astrcmpi(preset, "llhq") == 0) {
+		obs_data_set_string(data, "preset2", "p4");
+		obs_data_set_string(data, "tune", "ll");
+		obs_data_set_string(data, "multipass", "disabled");
+
+	} else if (astrcmpi(preset, "llhp") == 0) {
+		obs_data_set_string(data, "preset2", "p2");
+		obs_data_set_string(data, "tune", "ll");
+		obs_data_set_string(data, "multipass", "disabled");
+	}
+}
+
+void convert_nvenc_hevc_presets(obs_data_t *data)
+{
+	const char *preset = obs_data_get_string(data, "preset");
+	const char *rc = obs_data_get_string(data, "rate_control");
+
+	// If already using SDK10+ preset, return early.
+	if (astrcmpi_n(preset, "p", 1) == 0) {
+		obs_data_set_string(data, "preset2", preset);
+		return;
+	}
+
+	if (astrcmpi(rc, "lossless") == 0 && astrcmpi(preset, "mq")) {
+		obs_data_set_string(data, "preset2", "p5");
+		obs_data_set_string(data, "tune", "lossless");
+		obs_data_set_string(data, "multipass", "disabled");
+
+	} else if (astrcmpi(rc, "lossless") == 0 && astrcmpi(preset, "hp")) {
+		obs_data_set_string(data, "preset2", "p3");
+		obs_data_set_string(data, "tune", "lossless");
+		obs_data_set_string(data, "multipass", "disabled");
+
+	} else if (astrcmpi(preset, "mq") == 0) {
+		obs_data_set_string(data, "preset2", "p6");
+		obs_data_set_string(data, "tune", "hq");
+		obs_data_set_string(data, "multipass", "qres");
+
+	} else if (astrcmpi(preset, "hq") == 0) {
+		obs_data_set_string(data, "preset2", "p6");
+		obs_data_set_string(data, "tune", "hq");
+		obs_data_set_string(data, "multipass", "disabled");
+
+	} else if (astrcmpi(preset, "default") == 0) {
+		obs_data_set_string(data, "preset2", "p5");
+		obs_data_set_string(data, "tune", "hq");
+		obs_data_set_string(data, "multipass", "disabled");
+
+	} else if (astrcmpi(preset, "hp") == 0) {
+		obs_data_set_string(data, "preset2", "p1");
+		obs_data_set_string(data, "tune", "hq");
+		obs_data_set_string(data, "multipass", "disabled");
+
+	} else if (astrcmpi(preset, "ll") == 0) {
+		obs_data_set_string(data, "preset2", "p3");
+		obs_data_set_string(data, "tune", "ll");
+		obs_data_set_string(data, "multipass", "disabled");
+
+	} else if (astrcmpi(preset, "llhq") == 0) {
+		obs_data_set_string(data, "preset2", "p4");
+		obs_data_set_string(data, "tune", "ll");
+		obs_data_set_string(data, "multipass", "disabled");
+
+	} else if (astrcmpi(preset, "llhp") == 0) {
+		obs_data_set_string(data, "preset2", "p2");
+		obs_data_set_string(data, "tune", "ll");
+		obs_data_set_string(data, "multipass", "disabled");
+	}
+}
+
+const char *convert_nvenc_simple_preset(const char *old_preset)
+{
+	if (astrcmpi(old_preset, "mq") == 0) {
+		return "p5";
+	} else if (astrcmpi(old_preset, "hq") == 0) {
+		return "p5";
+	} else if (astrcmpi(old_preset, "default") == 0) {
+		return "p3";
+	} else if (astrcmpi(old_preset, "hp") == 0) {
+		return "p1";
+	} else if (astrcmpi(old_preset, "ll") == 0) {
+		return "p3";
+	} else if (astrcmpi(old_preset, "llhq") == 0) {
+		return "p4";
+	} else if (astrcmpi(old_preset, "llhp") == 0) {
+		return "p2";
+	}
+	return "p5";
+}
+
+bool update_nvenc_presets(obs_data_t *data, const char *encoderId)
+{
+	bool modified = false;
+	if (astrcmpi(encoderId, "jim_nvenc") == 0 || astrcmpi(encoderId, "ffmpeg_nvenc") == 0) {
+		if (obs_data_has_user_value(data, "preset") && !obs_data_has_user_value(data, "preset2")) {
+			convert_nvenc_h264_presets(data);
+
+			modified = true;
+		}
+	} else if (astrcmpi(encoderId, "jim_hevc_nvenc") == 0 || astrcmpi(encoderId, "ffmpeg_hevc_nvenc") == 0) {
+
+		if (obs_data_has_user_value(data, "preset") && !obs_data_has_user_value(data, "preset2")) {
+			convert_nvenc_hevc_presets(data);
+
+			modified = true;
+		}
+	}
+	if (modified)
+		blog(LOG_INFO, "Updated nvenc preset for %s", encoderId);
+
+	return modified;
 }
