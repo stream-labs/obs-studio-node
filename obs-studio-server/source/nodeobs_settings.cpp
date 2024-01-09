@@ -43,7 +43,7 @@ const char *currentServiceName;
 std::vector<SubCategory> currentAudioSettings;
 
 bool update_nvenc_presets(obs_data_t *data, const char *encoderId);
-const char* convert_nvenc_simple_preset(const char* old_preset);
+const char *convert_nvenc_simple_preset(const char *old_preset);
 
 /* some nice default output resolution vals */
 static const double vals[] = {1.0, 1.25, (1.0 / 0.75), 1.5, (1.0 / 0.6), 1.75, 2.0, 2.25, 2.5, 2.75, 3.0};
