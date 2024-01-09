@@ -64,6 +64,7 @@
 
 #define ENCODER_NEW_NVENC "jim_nvenc"
 #define ENCODER_NEW_HEVC_NVENC "jim_hevc_nvenc"
+#define ENCODER_AV1_NVENC "jim_av1_nvenc"
 
 #define APPLE_SOFTWARE_VIDEO_ENCODER "com.apple.videotoolbox.videoencoder.h264"
 #define APPLE_HARDWARE_VIDEO_ENCODER "com.apple.videotoolbox.videoencoder.h264.gva"
