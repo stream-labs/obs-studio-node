@@ -305,8 +305,8 @@ SubCategory OBS_settings::serializeSettingsData(const std::string &nameSubCatego
 							const char *oldValue = config_get_string(config, "SimpleOutput", oldParamName);
 							if (oldValue != NULL) {
 								currentValue = convert_nvenc_simple_preset(oldValue);
-								blog(LOG_INFO, "NVENC presets converted from %s to %s", oldValue , currentValue);
-							} 
+								blog(LOG_INFO, "NVENC presets converted from %s to %s", oldValue, currentValue);
+							}
 						}
 					}
 				}
