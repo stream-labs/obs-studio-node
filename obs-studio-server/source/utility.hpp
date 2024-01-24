@@ -42,7 +42,7 @@
 			rval.push_back(ipc::value((uint64_t)_error_code));                                   \
 			rval.push_back(ipc::value(_message));                                                \
 			auto error_message = std::string(__PRETTY_FUNCTION__) + " " + std::string(_message); \
-			blog(LOG_ERROR, error_message.c_str());                                              \
+			blog(LOG_ERROR, "%s", error_message.c_str());                                        \
 			return;                                                                              \
 		}                                                                                            \
 	}
