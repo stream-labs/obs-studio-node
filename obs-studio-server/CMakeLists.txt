@@ -527,10 +527,11 @@ install(
 	DIRECTORY "${libobs_SOURCE_DIR}/OBS.app/Contents/PlugIns"
 	DESTINATION "./" USE_SOURCE_PERMISSIONS PATTERN "frontend*" EXCLUDE
 )
-install(
-    DIRECTORY "${libobs_SOURCE_DIR}/data/obs-plugins/slobs-virtual-cam/"
-    DESTINATION "./data/obs-plugins/slobs-virtual-cam" USE_SOURCE_PERMISSIONS
-)
+# Disable temporarily
+#install(
+#    DIRECTORY "${libobs_SOURCE_DIR}/data/obs-plugins/slobs-virtual-cam/"
+#    DESTINATION "./data/obs-plugins/slobs-virtual-cam" USE_SOURCE_PERMISSIONS
+#)
 endif()
 
 # This is required for macOS tests. Otherwise CEF will not be able to start child processes.
