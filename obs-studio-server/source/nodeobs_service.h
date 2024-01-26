@@ -65,12 +65,17 @@
 #define ENCODER_NEW_NVENC "jim_nvenc"
 #define ENCODER_NEW_HEVC_NVENC "jim_hevc_nvenc"
 #define ENCODER_AV1_NVENC "jim_av1_nvenc"
+#define ENCODER_AV1_SVT_FFMPEG "ffmpeg_svt_av1"
+#define ENCODER_AV1_AOM_FFMPEG "ffmpeg_aom_av1"
 
 #define APPLE_SOFTWARE_VIDEO_ENCODER "com.apple.videotoolbox.videoencoder.h264"
 #define APPLE_HARDWARE_VIDEO_ENCODER "com.apple.videotoolbox.videoencoder.h264.gva"
 #define APPLE_HARDWARE_VIDEO_ENCODER_M1 "com.apple.videotoolbox.videoencoder.ave.avc"
 
 #define ARCHIVE_NAME "archive_aac"
+
+#define SIMPLE_AUDIO_ENCODER_AAC "ffmpeg_aac"
+#define SIMPLE_AUDIO_ENCODER_OPUS "ffmpeg_opus"
 
 #define MAX_AUDIO_MIXES 6
 
@@ -255,7 +260,6 @@ public:
 
 	static void duplicate_encoder(obs_encoder_t **dst, obs_encoder_t *src, uint64_t trackIndex = 0);
 
-	static bool EncoderAvailable(const char *encoder);
 	static void stopAllOutputs(void);
 
 	static bool startTwitchSoundtrackAudio(void);

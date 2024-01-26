@@ -81,6 +81,8 @@ static bool twitchSoundtrackEnabled = false;
 OBS_service::OBS_service() {}
 OBS_service::~OBS_service() {}
 
+extern bool EncoderAvailable(const std::string &encoder);
+
 void OBS_service::Register(ipc::server &srv)
 {
 	std::shared_ptr<ipc::collection> cls = std::make_shared<ipc::collection>("NodeOBS_Service");
@@ -1228,20 +1230,6 @@ void OBS_service::updateAudioRecordingEncoder(bool isSimpleMode)
 	}
 }
 
-// Code taken from obs upstream in window-basic-main-outputs
-// to preserve the same settings in order to facilitate importing
-bool EncoderAvailable(const char *encoder)
-{
-	const char *val;
-	int i = 0;
-
-	while (obs_enum_encoder_types(i++, &val))
-		if (strcmp(val, encoder) == 0)
-			return true;
-
-	return false;
-}
-
 void LoadRecordingPreset_Lossy(const char *encoderId)
 {
 	const auto prev_encoder = videoRecordingEncoder;
@@ -1689,21 +1677,6 @@ int OBS_service::GetAdvancedAudioBitrate(int i)
 	};
 	int bitrate = (int)config_get_uint(ConfigManager::getInstance().getBasic(), "AdvOut", names[i]);
 	return FindClosestAvailableAACBitrate(bitrate);
-}
-
-bool OBS_service::EncoderAvailable(const char *encoder)
-{
-	const char *val;
-	int i = 0;
-
-	while (obs_enum_encoder_types(i++, &val)) {
-		if (val == nullptr)
-			continue;
-		if (strcmp(val, encoder) == 0)
-			return true;
-	}
-
-	return false;
 }
 
 void OBS_service::updateVideoStreamingEncoder(bool isSimpleMode, StreamServiceId serviceId)
