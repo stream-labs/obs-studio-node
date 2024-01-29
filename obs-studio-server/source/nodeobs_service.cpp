@@ -740,11 +740,12 @@ bool OBS_service::createVideoStreamingEncoder(StreamServiceId serviceId)
 		encoder = "obs_x264";
 	}
 
-	if (videoStreamingEncoder[serviceId] != NULL) {
-		obs_encoder_release(videoStreamingEncoder[serviceId]);
+	const auto prev_encoder = videoStreamingEncoder[serviceId];
+	videoStreamingEncoder[serviceId] = obs_video_encoder_create(encoder, "streaming_h264", nullptr, nullptr);
+	if (prev_encoder != NULL) {
+		obs_encoder_release(prev_encoder);
 	}
 
-	videoStreamingEncoder[serviceId] = obs_video_encoder_create(encoder, "streaming_h264", nullptr, nullptr);
 	if (videoStreamingEncoder[serviceId] == nullptr) {
 		return false;
 	}
@@ -928,11 +929,12 @@ static void remove_reserved_file_characters(std::string &s)
 
 bool OBS_service::createVideoRecordingEncoder()
 {
-	if (videoRecordingEncoder != NULL) {
-		obs_encoder_release(videoRecordingEncoder);
+	const auto prev_encoder = videoRecordingEncoder;
+	videoRecordingEncoder = obs_video_encoder_create("obs_x264", "simple_h264_recording", nullptr, nullptr);
+	if (prev_encoder != NULL) {
+		obs_encoder_release(prev_encoder);
 	}
 
-	videoRecordingEncoder = obs_video_encoder_create("obs_x264", "simple_h264_recording", nullptr, nullptr);
 	if (videoRecordingEncoder == nullptr) {
 		return false;
 	}
@@ -1242,10 +1244,11 @@ bool EncoderAvailable(const char *encoder)
 
 void LoadRecordingPreset_Lossy(const char *encoderId)
 {
-	if (videoRecordingEncoder != NULL)
-		obs_encoder_release(videoRecordingEncoder);
-
+	const auto prev_encoder = videoRecordingEncoder;
 	videoRecordingEncoder = obs_video_encoder_create(encoderId, "simple_video_recording", nullptr, nullptr);
+	if (prev_encoder != NULL)
+		obs_encoder_release(prev_encoder);
+
 	if (!videoRecordingEncoder)
 		throw "Failed to create video recording encoder (simple output)";
 }
@@ -1749,11 +1752,13 @@ void OBS_service::updateVideoStreamingEncoder(bool isSimpleMode, StreamServiceId
 			if (presetType)
 				preset = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", presetType);
 
-			if (videoStreamingEncoder[serviceId] != nullptr) {
-				obs_encoder_release(videoStreamingEncoder[serviceId]);
-				videoStreamingEncoder[serviceId] = nullptr;
-			}
+			// Here and in other places we repeat the same pattern.
+			// Avoiding case when to an output there might not be any attached video encoder which can lead to crash.
+			const auto prev_encoder = videoStreamingEncoder[serviceId];
 			videoStreamingEncoder[serviceId] = obs_video_encoder_create(encoderID, "streaming_h264", nullptr, nullptr);
+			if (prev_encoder != nullptr) {
+				obs_encoder_release(prev_encoder);
+			}
 		}
 
 		if (videoBitrate == 0) {
@@ -1988,10 +1993,12 @@ void OBS_service::LoadRecordingPreset_Lossless()
 
 void OBS_service::LoadRecordingPreset_h264(const char *encoderId)
 {
-	if (videoRecordingEncoder != NULL) {
-		obs_encoder_release(videoRecordingEncoder);
-	}
+	const auto prev_encoder = videoRecordingEncoder;
 	videoRecordingEncoder = obs_video_encoder_create(encoderId, "simple_h264_recording", nullptr, nullptr);
+	if (prev_encoder != NULL) {
+		obs_encoder_release(prev_encoder);
+	}
+
 	if (!videoRecordingEncoder)
 		throw "Failed to create h264 recording encoder (simple output)";
 	// obs_encoder_release(videoRecordingEncoder);
@@ -2662,8 +2669,9 @@ void OBS_service::duplicate_encoder(obs_encoder_t **dst, obs_encoder_t *src, uin
 	if (!src)
 		return;
 
+	obs_encoder_t *prev_encoder = nullptr;
 	if (*dst != src && *dst)
-		obs_encoder_release(*dst);
+		prev_encoder = *dst;
 
 	std::string name = obs_encoder_get_name(src);
 	name += "-duplicate";
@@ -2672,6 +2680,10 @@ void OBS_service::duplicate_encoder(obs_encoder_t **dst, obs_encoder_t *src, uin
 		*dst = obs_audio_encoder_create(obs_encoder_get_id(src), name.c_str(), obs_encoder_get_settings(src), trackIndex, nullptr);
 	} else if (obs_encoder_get_type(src) == OBS_ENCODER_VIDEO) {
 		*dst = obs_video_encoder_create(obs_encoder_get_id(src), name.c_str(), obs_encoder_get_settings(src), nullptr);
+	}
+
+	if (prev_encoder) {
+		obs_encoder_release(prev_encoder);
 	}
 }
 
