@@ -2951,8 +2951,8 @@ void OBS_service::setupVodTrack(bool isSimpleMode)
 
 	if (vodTrackEnabled && streamTrack != vodTrackIndex) {
 		std::string id;
-		if (createAudioEncoder(&streamArchiveEncVod, id, ffmpeg_aac_id,
-				       isSimpleMode ? GetSimpleAudioBitrate() : GetAdvancedAudioBitrate(vodTrackIndex), ARCHIVE_NAME, vodTrackIndex)) {
+		if (createAudioEncoder(&streamArchiveEncVod, id, ffmpeg_aac_id, isSimpleMode ? GetSimpleAudioBitrate() : GetAdvancedAudioBitrate(vodTrackIndex),
+				       ARCHIVE_NAME, vodTrackIndex)) {
 			obs_encoder_set_audio(streamArchiveEncVod, obs_get_audio());
 			obs_output_set_audio_encoder(streamingOutput[0], streamArchiveEncVod, 1);
 		}
