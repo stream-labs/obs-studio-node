@@ -55,6 +55,7 @@ std::string AdvancedRecordingAudioEncodersID[MAX_AUDIO_MIXES];
 
 obs_video_info *base_canvas = nullptr;
 
+const std::string ffmpeg_aac_id = "ffmpeg_aac";
 std::string audioSimpleRecEncID;
 
 std::string videoEncoder;
@@ -776,7 +777,7 @@ void OBS_service::createSimpleAudioStreamingEncoder()
 		audioSimpleStreamingEncoder = nullptr;
 	}
 
-	if (!createAudioEncoder(&audioSimpleStreamingEncoder, id, std::string("ffmpeg_aac"), GetSimpleAudioBitrate(), "acc", 0)) {
+	if (!createAudioEncoder(&audioSimpleStreamingEncoder, id, ffmpeg_aac_id, GetSimpleAudioBitrate(), "acc", 0)) {
 		throw "Failed to create audio simple recording encoder";
 	}
 }
@@ -790,7 +791,7 @@ void OBS_service::createAdvancedAudioStreamingEncoder()
 		audioAdvancedStreamingEncoder = nullptr;
 	}
 	uint64_t trackIndex = config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "TrackIndex");
-	if (!createAudioEncoder(&audioAdvancedStreamingEncoder, id, std::string("ffmpeg_aac"), GetSimpleAudioBitrate(), "acc", trackIndex)) {
+	if (!createAudioEncoder(&audioAdvancedStreamingEncoder, id, ffmpeg_aac_id, GetSimpleAudioBitrate(), "acc", trackIndex)) {
 		throw "Failed to create audio advenced recording encoder";
 	}
 }
@@ -1259,7 +1260,7 @@ void OBS_service::updateAudioRecordingEncoder(bool isSimpleMode)
 		if (audioEncoder)
 			audioSimpleRecEncID = "";
 
-		if (!createAudioEncoder(&audioSimpleRecordingEncoder, audioSimpleRecEncID, std::string(audioEncoder), 192, "simple_audio_recording", 0))
+		if (!createAudioEncoder(&audioSimpleRecordingEncoder, audioSimpleRecEncID, std::string(audioEncoder), 192, audioSimpleEncoderName, 0))
 			throw "Failed to create audio simple recording encoder";
 
 		obs_encoder_set_audio(audioSimpleRecordingEncoder, obs_get_audio());
@@ -2950,7 +2951,7 @@ void OBS_service::setupVodTrack(bool isSimpleMode)
 
 	if (vodTrackEnabled && streamTrack != vodTrackIndex) {
 		std::string id;
-		if (createAudioEncoder(&streamArchiveEncVod, id, std::string("ffmpeg_aac"),
+		if (createAudioEncoder(&streamArchiveEncVod, id, ffmpeg_aac_id,
 				       isSimpleMode ? GetSimpleAudioBitrate() : GetAdvancedAudioBitrate(vodTrackIndex), ARCHIVE_NAME, vodTrackIndex)) {
 			obs_encoder_set_audio(streamArchiveEncVod, obs_get_audio());
 			obs_output_set_audio_encoder(streamingOutput[0], streamArchiveEncVod, 1);
