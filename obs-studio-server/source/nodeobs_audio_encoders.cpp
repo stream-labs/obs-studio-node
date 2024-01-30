@@ -28,11 +28,7 @@
 #include "nodeobs_audio_encoders.h"
 
 static const std::string encoders[] = {
-	"ffmpeg_aac",
-	"ffmpeg_opus",
-	"mf_aac",
-	"libfdk_aac",
-	"CoreAudio_AAC",
+	"ffmpeg_aac", "ffmpeg_opus", "mf_aac", "libfdk_aac", "CoreAudio_AAC",
 };
 static const std::string aac_ = "aac";
 static const std::string opus_ = "opus";

@@ -2360,7 +2360,7 @@ void OBS_settings::getStandardRecordingSettings(SubCategory *subCategoryParamete
 	recEncoder.masked = false;
 
 	subCategoryParameters->params.push_back(recEncoder);
- 
+
 	// Audio Encoder : list
 	Parameter recAEncoder;
 	recAEncoder.name = "RecAEncoder";
@@ -2379,7 +2379,7 @@ void OBS_settings::getStandardRecordingSettings(SubCategory *subCategoryParamete
 	std::vector<std::pair<std::string, ipc::value>> AEncoder;
 
 	getAvailableAudioEncoders(&AEncoder, false, true, config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "RecFormat"));
- 
+
 	uint32_t indexDatarecAEncoder = 0;
 
 	for (int i = 0; i < AEncoder.size(); i++) {
