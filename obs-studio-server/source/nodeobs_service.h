@@ -176,7 +176,7 @@ public:
 	static void updateService(StreamServiceId serviceId);
 
 	// Encoders
-	static bool createAudioEncoder(obs_encoder_t **audioEncoder, std::string &id, std::string &requested_id, int bitrate, const char *name, size_t idx);
+	static bool createAudioEncoder(obs_encoder_t **audioEncoder, std::string &id, const std::string &requested_id, int bitrate, const char *name, size_t idx);
 	static bool createVideoStreamingEncoder(StreamServiceId serviceId);
 	static void createSimpleAudioStreamingEncoder();
 	static void createAdvancedAudioStreamingEncoder();

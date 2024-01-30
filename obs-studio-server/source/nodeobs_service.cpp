@@ -712,7 +712,7 @@ const char *FindAudioEncoderFromCodec(const char *type)
 	return nullptr;
 }
 
-bool OBS_service::createAudioEncoder(obs_encoder_t **audioEncoder, std::string &id, std::string &requested_id, int bitrate, const char *name, size_t idx)
+bool OBS_service::createAudioEncoder(obs_encoder_t **audioEncoder, std::string &id, const std::string &requested_id, int bitrate, const char *name, size_t idx)
 {
 	const char *id_ = nullptr;
 	if (!requested_id.empty()) {
