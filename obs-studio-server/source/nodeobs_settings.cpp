@@ -2360,6 +2360,58 @@ void OBS_settings::getStandardRecordingSettings(SubCategory *subCategoryParamete
 	recEncoder.masked = false;
 
 	subCategoryParameters->params.push_back(recEncoder);
+ 
+	// Audio Encoder : list
+	Parameter recAEncoder;
+	recAEncoder.name = "RecAEncoder";
+	recAEncoder.type = "OBS_PROPERTY_LIST";
+	recAEncoder.description = "Recording Audio Encoder";
+	recAEncoder.subType = "OBS_COMBO_FORMAT_STRING";
+
+	const char *recAEncoderCurrentValue = config_get_string(config, "AdvOut", "RecAEncoder");
+	if (!recAEncoderCurrentValue)
+		recAEncoderCurrentValue = "none";
+
+	recAEncoder.currentValue.resize(strlen(recAEncoderCurrentValue));
+	memcpy(recAEncoder.currentValue.data(), recAEncoderCurrentValue, strlen(recAEncoderCurrentValue));
+	recAEncoder.sizeOfCurrentValue = strlen(recAEncoderCurrentValue);
+
+	std::vector<std::pair<std::string, ipc::value>> AEncoder;
+
+	getAvailableAudioEncoders(&AEncoder, false, true, config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "RecFormat"));
+ 
+	uint32_t indexDatarecAEncoder = 0;
+
+	for (int i = 0; i < AEncoder.size(); i++) {
+		std::string name = AEncoder.at(i).first;
+
+		uint64_t sizeName = name.length();
+		std::vector<char> sizeNameBuffer;
+		sizeNameBuffer.resize(sizeof(sizeName));
+		memcpy(sizeNameBuffer.data(), &sizeName, sizeof(sizeName));
+
+		recAEncoder.values.insert(recAEncoder.values.end(), sizeNameBuffer.begin(), sizeNameBuffer.end());
+		recAEncoder.values.insert(recAEncoder.values.end(), name.begin(), name.end());
+
+		std::string value = AEncoder.at(i).second.value_str;
+
+		uint64_t sizeValue = value.length();
+		std::vector<char> sizeValueBuffer;
+		sizeValueBuffer.resize(sizeof(sizeValue));
+		memcpy(sizeValueBuffer.data(), &sizeValue, sizeof(sizeValue));
+
+		recAEncoder.values.insert(recAEncoder.values.end(), sizeValueBuffer.begin(), sizeValueBuffer.end());
+		recAEncoder.values.insert(recAEncoder.values.end(), value.begin(), value.end());
+	}
+
+	recAEncoder.sizeOfValues = recAEncoder.values.size();
+	recAEncoder.countValues = AEncoder.size();
+
+	recAEncoder.visible = true;
+	recAEncoder.enabled = isCategoryEnabled;
+	recAEncoder.masked = false;
+
+	subCategoryParameters->params.push_back(recAEncoder);
 
 	const char *streamEncoderCurrentValue = config_get_string(config, "AdvOut", "Encoder");
 	bool streamScaleAvailable = strcmp(recEncoderCurrentValue, "none") != 0;
@@ -3111,6 +3163,7 @@ void OBS_settings::saveAdvancedOutputRecordingSettings(std::vector<SubCategory> 
 {
 	int indexRecordingCategory = 2;
 	std::string section = "AdvOut";
+	bool resetAudioTracks = false;
 
 	obs_encoder_t *encoder = OBS_service::getRecordingEncoder();
 	obs_data_t *encoderSettings = obs_encoder_get_settings(encoder);
@@ -3223,6 +3276,13 @@ void OBS_settings::saveAdvancedOutputRecordingSettings(std::vector<SubCategory> 
 					if (name.compare("RecFormat") == 0) {
 						currentFormat = value;
 					}
+					if (name.compare("RecAEncoder") == 0) {
+						const char *currentEncoder =
+							config_get_string(ConfigManager::getInstance().getBasic(), section.c_str(), name.c_str());
+						if (currentEncoder == NULL || value.compare(currentEncoder) != 0) {
+							resetAudioTracks = true;
+						}
+					}
 					config_set_string(ConfigManager::getInstance().getBasic(), section.c_str(), name.c_str(), value.c_str());
 				} else {
 					obs_data_set_string(encoderSettings, name.c_str(), value.c_str());
@@ -3239,6 +3299,11 @@ void OBS_settings::saveAdvancedOutputRecordingSettings(std::vector<SubCategory> 
 		encoderSettings = obs_encoder_defaults(config_get_string(ConfigManager::getInstance().getBasic(), section.c_str(), "RecEncoder"));
 
 	obs_encoder_update(encoder, encoderSettings);
+
+	if (resetAudioTracks) {
+		OBS_service::clearRecordingAudioEncoder();
+		OBS_service::setupRecordingAudioEncoder();
+	}
 
 	if (!obs_data_save_json_safe(encoderSettings, ConfigManager::getInstance().getRecord().c_str(), "tmp", "bak")) {
 		blog(LOG_WARNING, "Failed to save encoder %s", ConfigManager::getInstance().getRecord().c_str());

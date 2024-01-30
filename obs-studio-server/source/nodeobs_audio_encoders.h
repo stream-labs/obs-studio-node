@@ -23,7 +23,10 @@
 #include "nodeobs_api.h"
 
 const std::map<int, const char *> &GetAACEncoderBitrateMap();
+const std::map<int, const char *> &GetOpusEncoderBitrateMap();
 const char *GetAACEncoderForBitrate(int bitrate);
+const char *GetOpusEncoderForBitrate(int bitrate);
 int FindClosestAvailableAACBitrate(int bitrate);
+int FindClosestAvailableOpusBitrate(int bitrate);
 bool IsMultitrackAudioSupported(const char *format);
 bool IsSurround(const char *channelSetup);

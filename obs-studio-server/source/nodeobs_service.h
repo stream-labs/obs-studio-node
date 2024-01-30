@@ -176,9 +176,10 @@ public:
 	static void updateService(StreamServiceId serviceId);
 
 	// Encoders
-	static bool createAudioEncoder(obs_encoder_t **audioEncoder, std::string &id, int bitrate, const char *name, size_t idx);
+	static bool createAudioEncoder(obs_encoder_t **audioEncoder, std::string &id, std::string &requested_id, int bitrate, const char *name, size_t idx);
 	static bool createVideoStreamingEncoder(StreamServiceId serviceId);
 	static void createSimpleAudioStreamingEncoder();
+	static void createAdvancedAudioStreamingEncoder();
 	static bool createVideoRecordingEncoder();
 	static obs_encoder_t *getStreamingEncoder(StreamServiceId serviceId);
 	static void setStreamingEncoder(obs_encoder_t *encoder, StreamServiceId serviceId);
@@ -190,8 +191,8 @@ public:
 	static void setAudioSimpleRecordingEncoder(obs_encoder_t *encoder);
 	static obs_encoder_t *getAudioAdvancedStreamingEncoder(void);
 	static void setAudioAdvancedStreamingEncoder(obs_encoder_t *encoder);
-	static void setupAudioEncoder(void);
-	static void clearAudioEncoder(void);
+	static void setupRecordingAudioEncoder(void);
+	static void clearRecordingAudioEncoder(void);
 	static obs_encoder_t *getArchiveEncoder(void);
 
 	// Outputs
@@ -220,7 +221,7 @@ public:
 	static void updateAudioStreamingEncoder(bool isSimpleMode, StreamServiceId serviceId);
 	static void updateAudioRecordingEncoder(bool isSimpleMode);
 	static void updateVideoRecordingEncoder(bool isSimpleMode);
-	static void updateAudioTracks(void);
+	static void updateRecordingAudioTracks(void);
 
 	// Update outputs
 	static void updateFfmpegOutput(bool isSimpleMode, obs_output_t *output);

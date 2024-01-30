@@ -134,6 +134,7 @@ void initBasicDefault(config_t *config)
 	config_set_default_string(config, "SimpleOutput", "Preset", "veryfast");
 	config_set_default_string(config, "SimpleOutput", "RecQuality", "Stream");
 	config_set_default_string(config, "SimpleOutput", "RecEncoder", SIMPLE_ENCODER_X264);
+	config_set_default_string(config, "SimpleOutput", "RecAEncoder", SIMPLE_AUDIO_ENCODER_AAC);
 
 	config_set_default_bool(config, "SimpleOutput", "RecRB", true);
 	config_set_default_int(config, "SimpleOutput", "RecRBTime", 20);
@@ -178,6 +179,7 @@ void initBasicDefault(config_t *config)
 	config_set_default_uint(config, "AdvOut", "RecSplitFileTime", 15);
 	config_set_default_uint(config, "AdvOut", "RecSplitFileSize", 2048);
 	config_set_default_bool(config, "AdvOut", "RecSplitFileResetTimestamps", true);
+	config_set_default_string(config, "AdvOut", "RecAEncoder", SIMPLE_AUDIO_ENCODER_AAC);
 
 	config_set_default_bool(config, "AdvOut", "RecRB", false);
 	config_set_default_uint(config, "AdvOut", "RecRBTime", 20);
