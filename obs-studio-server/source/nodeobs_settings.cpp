@@ -2056,16 +2056,16 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t *config, b
 	obs_output_t *recordOutput = OBS_service::getRecordingOutput();
 
 	/*
-		If the stream and recording outputs uses the same encoders, we need to check if both aren't active 
-		before recreating the stream encoder to prevent releasing it when it's still being used.
+		If the stream and recording outputs uses the same encoders, we need to check if both are ready
+		to update before recreating the stream encoder to prevent releasing it when it's still being used.
 		If they use differente encoders, just check for the stream output.
 	*/
-	bool streamOutputIsActive = obs_output_active(streamOutput);
-	bool recOutputIsActive = obs_output_active(recordOutput);
+	bool streamOutputIsReadyToUpdate = obs_output_is_ready_to_update(streamOutput);
+	bool recOutputIsReadyToUpdate = obs_output_is_ready_to_update(recordOutput);
 	bool recStreamUsesSameEncoder = streamingEncoder == recordEncoder;
-	bool recOutputBlockStreamOutput = !(!recStreamUsesSameEncoder || (recStreamUsesSameEncoder && !recOutputIsActive));
+	bool recOutputBlockStreamOutput = !(!recStreamUsesSameEncoder || (recStreamUsesSameEncoder && !recOutputIsReadyToUpdate));
 
-	if ((!streamOutputIsActive && !recOutputBlockStreamOutput) || streamingEncoder == nullptr) {
+	if ((!streamOutputIsReadyToUpdate && !recOutputBlockStreamOutput) || streamingEncoder == nullptr) {
 		if (!fileExist) {
 			streamingEncoder = obs_video_encoder_create(encoderID, "streaming_h264", nullptr, nullptr);
 			OBS_service::setStreamingEncoder(streamingEncoder, StreamServiceId::Main);
