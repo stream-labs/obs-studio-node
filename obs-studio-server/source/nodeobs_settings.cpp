@@ -39,6 +39,7 @@
 #endif
 
 #include <unordered_set>
+#include <unordered_map>
 
 std::vector<const char *> tabStreamTypes;
 const char *currentServiceName;
