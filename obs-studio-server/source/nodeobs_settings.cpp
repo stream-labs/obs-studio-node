@@ -2145,8 +2145,8 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t *config, b
 		to update before recreating the stream encoder to prevent releasing it when it's still being used.
 		If they use differente encoders, just check for the stream output.
 	*/
-	bool streamOutputIsReadyToUpdate = obs_output_is_ready_to_update(streamOutput);
-	bool recOutputIsReadyToUpdate = obs_output_is_ready_to_update(recordOutput);
+	bool streamOutputIsReadyToUpdate = streamOutput ? obs_output_is_ready_to_update(streamOutput) : false;
+	bool recOutputIsReadyToUpdate = recordOutput ? obs_output_is_ready_to_update(recordOutput) : false;
 	bool recStreamUsesSameEncoder = streamingEncoder == recordEncoder;
 	bool recOutputBlockStreamOutput = !(!recStreamUsesSameEncoder || (recStreamUsesSameEncoder && !recOutputIsReadyToUpdate));
 
