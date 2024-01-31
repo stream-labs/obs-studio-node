@@ -159,6 +159,7 @@ describe(testName, () => {
                     settings['allow_transparency'] = true;
                     settings['default_height'] = 1080;
                     settings['default_width'] = 1920;
+                    settings['compat_info_visible'] = false;
                     break;
                 }
                 case 'dshow_input': {

@@ -28,11 +28,10 @@
 #include "nodeobs_audio_encoders.h"
 
 static const std::string encoders[] = {
-	"ffmpeg_aac",
-	"mf_aac",
-	"libfdk_aac",
-	"CoreAudio_AAC",
+	"ffmpeg_aac", "ffmpeg_opus", "mf_aac", "libfdk_aac", "CoreAudio_AAC",
 };
+static const std::string aac_ = "aac";
+static const std::string opus_ = "opus";
 
 static const std::string &fallbackEncoder = encoders[0];
 
@@ -167,79 +166,87 @@ void LimitBitrate(std::map<int, const char *> &values, int maximumBitrate)
 		;
 }
 
-static const std::string aac_ = "AAC";
-static void PopulateBitrateMap()
+static void PopulateBitrateMap(const std::string codecType)
 {
-	// Get the current channel setup and check if it changed, if that is the case the bitrate map could need an update
-	auto currentChannelSetup = std::string(std::string(config_get_string(ConfigManager::getInstance().getBasic(), "Audio", "ChannelSetup")));
+	bitrateMap.clear();
 
-	if (currentChannelSetup != channelSetup) {
-		channelSetup = currentChannelSetup;
-		bitrateMap.clear();
+	HandleEncoderProperties(fallbackEncoder.c_str());
 
-		HandleEncoderProperties(fallbackEncoder.c_str());
+	const char *id = nullptr;
+	for (size_t i = 0; obs_enum_encoder_types(i, &id); i++) {
+		auto Compare = [=](const std::string &val) { return val.compare(NullToEmpty(id)) == 0; };
 
-		const char *id = nullptr;
-		for (size_t i = 0; obs_enum_encoder_types(i, &id); i++) {
-			auto Compare = [=](const std::string &val) { return val == NullToEmpty(id); };
+		if (find_if(begin(encoders), end(encoders), Compare) != end(encoders))
+			continue;
 
-			if (find_if(begin(encoders), end(encoders), Compare) != end(encoders))
-				continue;
+		if (codecType != GetCodec(NullToEmpty(id)))
+			continue;
 
-			if (aac_ != GetCodec(NullToEmpty(id)))
-				continue;
-
-			// A corrupted encoder dll will fail when requesting it's properties here by
-			// calling "obs_get_encoder_properties", this try-catch block will make sure
-			// that this encoder won't be used. A good solution would be checking this
-			// when starting obs (checking if every encoder/module is valid) and/or
-			// showing the user why the encoder why disabled (invalid version, need to
-			// update, etc)
-			try {
-				HandleEncoderProperties(id);
-			} catch (...) {
-				continue;
-			}
+		// A corrupted encoder dll will fail when requesting it's properties here by
+		// calling "obs_get_encoder_properties", this try-catch block will make sure
+		// that this encoder won't be used. A good solution would be checking this
+		// when starting obs (checking if every encoder/module is valid) and/or
+		// showing the user why the encoder why disabled (invalid version, need to
+		// update, etc)
+		try {
+			HandleEncoderProperties(id);
+		} catch (...) {
+			continue;
 		}
-
-		for (auto &encoder : encoders) {
-			if (encoder == fallbackEncoder)
-				continue;
-
-			if (aac_ != GetCodec(encoder.c_str()))
-				continue;
-
-			HandleEncoderProperties(encoder.c_str());
-		}
-
-		if (bitrateMap.empty()) {
-			blog(LOG_ERROR, "Could not enumerate any AAC encoder "
-					"bitrates");
-			return;
-		}
-
-		// Limit the bitrate to 320 if not surround
-		if (!IsSurround(channelSetup.c_str())) {
-			LimitBitrate(bitrateMap, 320);
-		}
-
-		std::ostringstream ss;
-		for (auto &entry : bitrateMap)
-			ss << "\n	" << std::setw(3) << entry.first << " kbit/s: '" << EncoderName(entry.second) << "' (" << entry.second << ')';
-
-		blog(LOG_DEBUG, "AAC encoder bitrate mapping:%s", ss.str().c_str());
 	}
+
+	for (auto &encoder : encoders) {
+		if (encoder == fallbackEncoder)
+			continue;
+
+		if (codecType != GetCodec(encoder.c_str()))
+			continue;
+
+		HandleEncoderProperties(encoder.c_str());
+	}
+
+	if (bitrateMap.empty()) {
+		blog(LOG_ERROR, "Could not enumerate any AAC encoder "
+				"bitrates");
+		return;
+	}
+
+	// Limit the bitrate to 320 if not surround
+	if (!IsSurround(channelSetup.c_str())) {
+		LimitBitrate(bitrateMap, 320);
+	}
+
+	std::ostringstream ss;
+	for (auto &entry : bitrateMap)
+		ss << "\n	" << std::setw(3) << entry.first << " kbit/s: '" << EncoderName(entry.second) << "' (" << entry.second << ')';
+
+	blog(LOG_INFO, "%s encoder bitrate mapping:%s", codecType.c_str(), ss.str().c_str());
 }
 
 const std::map<int, const char *> &GetAACEncoderBitrateMap()
 {
-	PopulateBitrateMap();
+	PopulateBitrateMap(aac_);
+	return bitrateMap;
+}
+
+const std::map<int, const char *> &GetOpusEncoderBitrateMap()
+{
+	PopulateBitrateMap(opus_);
 	return bitrateMap;
 }
 
 const char *GetAACEncoderForBitrate(int bitrate)
 {
 	auto &map_ = GetAACEncoderBitrateMap();
+	auto res = map_.find(bitrate);
+	if (res == end(map_))
+		return NULL;
+	return res->second;
+}
+
+const char *GetOpusEncoderForBitrate(int bitrate)
+{
+	auto &map_ = GetOpusEncoderBitrateMap();
 	auto res = map_.find(bitrate);
 	if (res == end(map_))
 		return NULL;

@@ -983,7 +983,7 @@ void OBS_API::OBS_API_initAPI(void *data, const int64_t id, const std::vector<ip
 
 	OBS_service::resetAudioContext();
 
-	OBS_service::setupAudioEncoder();
+	OBS_service::setupRecordingAudioEncoder();
 
 	setAudioDeviceMonitoring();
 
@@ -1614,6 +1614,12 @@ void OBS_API::destroyOBS_API(void)
 		audioRecordingEncoder = nullptr;
 	}
 
+	obs_encoder_t *audioAdvancedStreamingEncoder = OBS_service::getAudioAdvancedStreamingEncoder();
+	if (audioAdvancedStreamingEncoder != NULL) {
+		obs_encoder_release(audioAdvancedStreamingEncoder);
+		audioAdvancedStreamingEncoder = nullptr;
+	}
+
 	obs_encoder_t *archiveEncoder = OBS_service::getArchiveEncoder();
 	if (archiveEncoder != NULL) {
 		obs_encoder_release(archiveEncoder);
@@ -1667,7 +1673,7 @@ void OBS_API::destroyOBS_API(void)
 		service = nullptr;
 	}
 
-	OBS_service::clearAudioEncoder();
+	OBS_service::clearRecordingAudioEncoder();
 	osn::Volmeter::ClearVolmeters();
 	osn::Fader::ClearFaders();
 

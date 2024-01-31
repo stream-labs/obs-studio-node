@@ -155,7 +155,7 @@ describe(testName, function() {
                         break;
                     }
                     case 'RecFormat': {
-                        parameter.currentValue = 'm3u8';
+                        parameter.currentValue = 'mkv';
                         break;
                     }
                     case 'MuxerCustom': {
@@ -218,7 +218,7 @@ describe(testName, function() {
                         break;
                     }
                     case 'RecFormat': {
-                        parameter.currentValue = 'ts';
+                        parameter.currentValue = 'mkv';
                         break;
                     }
                     case 'RecEncoder': {
@@ -328,7 +328,7 @@ describe(testName, function() {
                         break;
                     }
                     case 'RecFormat': {
-                        parameter.currentValue = 'mov';
+                        parameter.currentValue = 'mkv';
                         break;
                     }
                 }
@@ -724,7 +724,7 @@ describe(testName, function() {
             obs.setSetting(EOBSSettingsCategories.Output, 'Recrate_control', 'AVBR');
 
             // Setting recording format
-            obs.setSetting(EOBSSettingsCategories.Output, 'RecFormat', 'ts');
+            obs.setSetting(EOBSSettingsCategories.Output, 'RecFormat', 'mpegts');
 
             // Getting advanced output settings container with AVBR parameters
             let avbrOutputSettings = obs.getSettingsContainer(EOBSSettingsCategories.Output);
@@ -759,7 +759,7 @@ describe(testName, function() {
                         }
                         // Recording
                         case 'RecFormat': {
-                            expect(parameter.currentValue).to.equal('ts', GetErrorMessage(ETestErrorMsg.SingleOutputSetting, parameter.name));
+                            expect(parameter.currentValue).to.equal('mpegts', GetErrorMessage(ETestErrorMsg.SingleOutputSetting, parameter.name));
                             break;
                         }
                         case 'RecEncoder': {

@@ -1628,7 +1628,7 @@ export const enum ERecordingFormat {
     FLV = 'flv',
     MOV = 'mov',
     MKV = 'mkv',
-    TS = 'ts',
+    TS = 'mpegts',
     M3M8 = 'm3m8'
 }
 
