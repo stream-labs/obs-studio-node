@@ -57,8 +57,7 @@ Napi::Value StartBandwidthTest(const Napi::CallbackInfo &info);
 Napi::Value StartStreamEncoderTest(const Napi::CallbackInfo &info);
 Napi::Value StartRecordingEncoderTest(const Napi::CallbackInfo &info);
 Napi::Value StartCheckSettings(const Napi::CallbackInfo &info);
-Napi::Value StartSetDefaultSettings(const Napi::CallbackInfo &info);
-Napi::Value StartSaveStreamSettings(const Napi::CallbackInfo &info);
-Napi::Value StartSaveSettings(const Napi::CallbackInfo &info);
+Napi::Value UseAutoConfigDefaultSettings(const Napi::CallbackInfo &info);
+Napi::Value GetNewSettings(const Napi::CallbackInfo &info);
 Napi::Value TerminateAutoConfig(const Napi::CallbackInfo &info);
 }

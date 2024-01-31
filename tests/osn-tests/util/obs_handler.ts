@@ -267,7 +267,7 @@ export class OBSHandler {
             }
         },
             {
-                service_name: 'Twitch',
+                service_name: 'Twitch', bind_ip: 'default',
             });
     }
 
