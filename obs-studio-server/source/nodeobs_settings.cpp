@@ -1169,7 +1169,7 @@ std::vector<EncoderSettings> encoders_set = {
 	// NVIDIA NVENC H.264 (new)
 	{"NVIDIA NVENC H.264 (new)", "jim_nvenc", "NVIDIA NVENC H.264 (new)", "jim_nvenc", "", true, true, true, false, true, false},
 	// NVIDIA NVENC HEVC (new)
-	{"NVIDIA NVENC HEVC (new)", "jim_hevc_nvenc", "Hardware (NVENC, HEVC)", "nvenc_hevc", "jim_hevc_nvenc", true, true, true, false, true, false},
+	{"NVIDIA NVENC HEVC (new)", "jim_hevc_nvenc", "Hardware (NVENC, HEVC)", "nvenc_hevc", "jim_hevc_nvenc", true, true, true, true, true, false},
 	// Apple VT H264 Software Encoder
 	{"Apple VT H264 Software Encoder", "com.apple.videotoolbox.videoencoder.h264", "Software (Apple, H.264)", "com.apple.videotoolbox.videoencoder.h264",
 	 "", true, true, true, false, true, false},
@@ -1182,7 +1182,7 @@ std::vector<EncoderSettings> encoders_set = {
 	// AMD HW H.264
 	{"AMD HW H.264", "h264_texture_amf", "Hardware (AMD, H.264)", "amd", "h264_texture_amf", true, true, true, false, true, false},
 	// AMD HW H.265 (HEVC)
-	{"AMD HW H.265 (HEVC)", "h265_texture_amf", "Hardware (AMD, HEVC)", "amd_hevc", "h265_texture_amf", true, true, true, false, true, false},
+	{"AMD HW H.265 (HEVC)", "h265_texture_amf", "Hardware (AMD, HEVC)", "amd_hevc", "h265_texture_amf", true, true, true, true, true, false},
 	// SVT-AV1
 	{"SVT-AV1", "ffmpeg_svt_av1", "", "", "", true, true, true, false, true, false},
 	// AOM AV1
@@ -1203,7 +1203,8 @@ void OBS_settings::getSimpleAvailableEncoders(std::vector<std::pair<std::string,
 		if (encoderSetting.check_availability && !EncoderAvailable(encoderSetting.getSimpleName()))
 			continue;
 
-		if (!recording && !isEncoderAvailableForStreaming(encoderSetting.getSimpleName().c_str(), OBS_service::getService(StreamServiceId::Main)))
+		if (!recording && encoderSetting.check_availability_streaming &&
+		    !isEncoderAvailableForStreaming(encoderSetting.getSimpleName().c_str(), OBS_service::getService(StreamServiceId::Main)))
 			continue;
 
 		if (encoderSetting.only_for_reuse_simple && !isNvencAvailableForSimpleMode())
@@ -1212,7 +1213,7 @@ void OBS_settings::getSimpleAvailableEncoders(std::vector<std::pair<std::string,
 		if (recording && encoderSetting.check_availability_format) {
 			const char *codec = obs_get_encoder_codec(encoderSetting.getSimpleName().c_str());
 			if (!codec) {
-				blog(LOG_DEBUG, "[SUPPORTED_CODECS] codec is null");
+				blog(LOG_DEBUG, "[ENCODER_SKIPPED] codec is null");
 				continue;
 			}
 			if (!ContainerSupportsCodec(container, codec))
@@ -1238,7 +1239,8 @@ void OBS_settings::getAdvancedAvailableEncoders(std::vector<std::pair<std::strin
 		if (encoderSetting.check_availability && !EncoderAvailable(encoderSetting.advanced_name))
 			continue;
 
-		if (!recording && !isEncoderAvailableForStreaming(encoderSetting.advanced_name.c_str(), OBS_service::getService(StreamServiceId::Main)))
+		if (!recording && encoderSetting.check_availability_streaming &&
+		    !isEncoderAvailableForStreaming(encoderSetting.advanced_name.c_str(), OBS_service::getService(StreamServiceId::Main)))
 			continue;
 
 		if (recording && encoderSetting.check_availability_format) {
