@@ -45,6 +45,9 @@ describe(testName, () => {
 
     it('Create all types of input', () => {
         // Create all input sources available
+        let expectedInputTypes = ["audio_line", "image_source", "color_source", "color_source_v2", "color_source_v3", "slideshow", "mediasoupconnector", "browser_source", "ffmpeg_source", "text_gdiplus", "text_gdiplus_v2", "text_ft2_source", "text_ft2_source_v2", "vlc_source", "monitor_capture", "window_capture", "game_capture", "screen_capture", "dshow_input", "openvr_capture", "spout_capture", "wasapi_input_capture", "wasapi_output_capture", "wasapi_process_output_capture"];
+        expect(obs.inputTypes).to.have.members(expectedInputTypes, GetErrorMessage(ETestErrorMsg.InputsChanged));
+
         obs.inputTypes.forEach(function(inputType) {
             if(obs.skipSource(inputType)) { return;}
             const input = osn.InputFactory.create(inputType, 'input');

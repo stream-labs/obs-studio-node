@@ -73,6 +73,7 @@ export const enum ETestErrorMsg {
     TotalFrames = 'Failed to get total frames value',
     Locale = 'Failed to update locale',
     // osn-input
+    InputsChanged = 'List of inputs has unexpected changes',
     CreateInput = 'Failed to create input %VALUE1%',
     InputId = 'Input %VALUE1% id value is wrong',
     InputName = 'Input %VALUE1% name value is wrong',
