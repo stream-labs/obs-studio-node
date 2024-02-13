@@ -179,7 +179,7 @@ public:
 	static bool createAudioEncoder(obs_encoder_t **audioEncoder, std::string &id, const std::string &requested_id, int bitrate, const char *name,
 				       size_t idx);
 	static bool createVideoStreamingEncoder(StreamServiceId serviceId);
-	static std::string GetVideoEncoderName(StreamServiceId serviceId, bool isSimpleMode, const char *encoder);
+	static std::string GetVideoEncoderName(StreamServiceId serviceId, bool isSimpleMode, bool recording, const char *encoder);
 	static void createSimpleAudioStreamingEncoder();
 	static void createAdvancedAudioStreamingEncoder();
 	static bool createVideoRecordingEncoder();

@@ -745,7 +745,7 @@ bool OBS_service::createAudioEncoder(obs_encoder_t **audioEncoder, std::string &
 	return false;
 }
 
-std::string OBS_service::GetVideoEncoderName(StreamServiceId serviceId, bool isSimpleMode, const char *encoder)
+std::string OBS_service::GetVideoEncoderName(StreamServiceId serviceId, bool isSimpleMode, bool recording, const char *encoder)
 {
 	const char *codec = obs_get_encoder_codec(encoder);
 
@@ -755,7 +755,7 @@ std::string OBS_service::GetVideoEncoderName(StreamServiceId serviceId, bool isS
 
 	std::string encoder_name;
 	encoder_name += isSimpleMode ? "simple_" : "adv_";
-	encoder_name += "streaming_";
+	encoder_name += recording ? "recording_" : "streaming_";
 	encoder_name += codec;
 	encoder_name += serviceId == StreamServiceId::Main ? "_main" : "";
 	encoder_name += serviceId == StreamServiceId::Second ? "_second" : "";
@@ -779,7 +779,7 @@ bool OBS_service::createVideoStreamingEncoder(StreamServiceId serviceId)
 		encoder = "obs_x264";
 	}
 
-	std::string encoder_name = GetVideoEncoderName(serviceId, isSimpleMode, encoder);
+	std::string encoder_name = GetVideoEncoderName(serviceId, isSimpleMode, false, encoder);
 
 	obs_encoder_t *new_encoder = obs_video_encoder_create(encoder, encoder_name.c_str(), nullptr, nullptr);
 	OBS_service::setStreamingEncoder(new_encoder, StreamServiceId::Main);
@@ -981,13 +981,11 @@ static void remove_reserved_file_characters(std::string &s)
 
 bool OBS_service::createVideoRecordingEncoder()
 {
-	const auto prev_encoder = videoRecordingEncoder;
-	videoRecordingEncoder = obs_video_encoder_create("obs_x264", "simple_h264_recording", nullptr, nullptr);
-	if (prev_encoder != NULL) {
-		obs_encoder_release(prev_encoder);
-	}
+	std::string encoderName = GetVideoEncoderName(StreamServiceId::Main, true, true, "obs_x264");
+	obs_encoder_t *newRecordingEncoder = obs_video_encoder_create("obs_x264", encoderName.c_str(), nullptr, nullptr);
+	OBS_service::setRecordingEncoder(newRecordingEncoder);
 
-	if (videoRecordingEncoder == nullptr) {
+	if (newRecordingEncoder == nullptr) {
 		return false;
 	}
 
@@ -1296,10 +1294,9 @@ void OBS_service::updateAudioRecordingEncoder(bool isSimpleMode)
 
 void LoadRecordingPreset_Lossy(const char *encoderId)
 {
-	const auto prev_encoder = videoRecordingEncoder;
-	videoRecordingEncoder = obs_video_encoder_create(encoderId, "simple_video_recording", nullptr, nullptr);
-	if (prev_encoder != NULL)
-		obs_encoder_release(prev_encoder);
+	std::string encoderName = OBS_service::GetVideoEncoderName(StreamServiceId::Main, true, true, encoderId);
+	obs_encoder_t *newRecordingEncoder = obs_video_encoder_create(encoderId, encoderName.c_str(), nullptr, nullptr);
+	OBS_service::setRecordingEncoder(newRecordingEncoder);
 
 	if (!videoRecordingEncoder)
 		throw "Failed to create video recording encoder (simple output)";
@@ -1791,7 +1788,7 @@ void OBS_service::updateVideoStreamingEncoder(bool isSimpleMode, StreamServiceId
 
 			// Here and in other places we repeat the same pattern.
 			// Avoiding case when to an output there might not be any attached video encoder which can lead to crash.
-			std::string encoder_name = GetVideoEncoderName(serviceId, true, encoderID);
+			std::string encoder_name = GetVideoEncoderName(serviceId, true, false, encoderID);
 			obs_encoder_t *streamingEncoder = obs_video_encoder_create(encoderID, encoder_name.c_str(), nullptr, nullptr);
 			setStreamingEncoder(streamingEncoder, serviceId);
 		}
@@ -2028,15 +2025,12 @@ void OBS_service::LoadRecordingPreset_Lossless()
 
 void OBS_service::LoadRecordingPreset_h264(const char *encoderId)
 {
-	const auto prev_encoder = videoRecordingEncoder;
-	videoRecordingEncoder = obs_video_encoder_create(encoderId, "simple_h264_recording", nullptr, nullptr);
-	if (prev_encoder != NULL) {
-		obs_encoder_release(prev_encoder);
-	}
+	std::string encoderName = GetVideoEncoderName(StreamServiceId::Main, true, true, encoderId);
+	obs_encoder_t *newRecordingEncoder = obs_video_encoder_create(encoderId, encoderName.c_str(), nullptr, nullptr);
+	OBS_service::setRecordingEncoder(newRecordingEncoder);
 
 	if (!videoRecordingEncoder)
 		throw "Failed to create h264 recording encoder (simple output)";
-	// obs_encoder_release(videoRecordingEncoder);
 }
 
 static bool update_ffmpeg_output(config_t *config)
