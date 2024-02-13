@@ -745,21 +745,46 @@ bool OBS_service::createAudioEncoder(obs_encoder_t **audioEncoder, std::string &
 	return false;
 }
 
+std::string OBS_service::GetVideoEncoderName(StreamServiceId serviceId, bool isSimpleMode, const char *encoder)
+{
+	const char *codec = obs_get_encoder_codec(encoder);
+
+	if (codec == nullptr) {
+		return "";
+	}
+
+	std::string encoder_name;
+	encoder_name += isSimpleMode ? "simple_" : "adv_";
+	encoder_name += "streaming_";
+	encoder_name += codec;
+	encoder_name += serviceId == StreamServiceId::Main ? "_main" : "";
+	encoder_name += serviceId == StreamServiceId::Second ? "_second" : "";
+
+	return encoder_name;
+}
+
 bool OBS_service::createVideoStreamingEncoder(StreamServiceId serviceId)
 {
-	const char *encoder = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "StreamEncoder");
+	std::string currentOutputMode = config_get_string(ConfigManager::getInstance().getBasic(), "Output", "Mode");
+	bool isSimpleMode = currentOutputMode.compare("Simple") == 0;
+	const char *encoder = nullptr;
+
+	if (isSimpleMode) {
+		encoder = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "StreamEncoder");
+	} else {
+		encoder = config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "Encoder");
+	}
 
 	if (encoder == NULL || !EncoderAvailable(encoder)) {
 		encoder = "obs_x264";
 	}
 
-	const auto prev_encoder = videoStreamingEncoder[serviceId];
-	videoStreamingEncoder[serviceId] = obs_video_encoder_create(encoder, "streaming_h264", nullptr, nullptr);
-	if (prev_encoder != NULL) {
-		obs_encoder_release(prev_encoder);
-	}
+	std::string encoder_name = GetVideoEncoderName(serviceId, isSimpleMode, encoder);
 
-	if (videoStreamingEncoder[serviceId] == nullptr) {
+	obs_encoder_t *new_encoder = obs_video_encoder_create(encoder, encoder_name.c_str(), nullptr, nullptr);
+	OBS_service::setStreamingEncoder(new_encoder, StreamServiceId::Main);
+
+	if (new_encoder == nullptr) {
 		return false;
 	}
 
@@ -1053,11 +1078,11 @@ std::string OBS_service::getStreamingOutputName(StreamServiceId serviceId)
 {
 	switch (serviceId) {
 	case StreamServiceId::Main:
-		return "simple_stream";
+		return "main_stream_first";
 	case StreamServiceId::Second:
-		return "simple_stream_second";
+		return "main_stream_second";
 	default:
-		return "simple_stream";
+		return "main_stream_unset";
 	}
 }
 
@@ -1766,11 +1791,9 @@ void OBS_service::updateVideoStreamingEncoder(bool isSimpleMode, StreamServiceId
 
 			// Here and in other places we repeat the same pattern.
 			// Avoiding case when to an output there might not be any attached video encoder which can lead to crash.
-			const auto prev_encoder = videoStreamingEncoder[serviceId];
-			videoStreamingEncoder[serviceId] = obs_video_encoder_create(encoderID, "streaming_h264", nullptr, nullptr);
-			if (prev_encoder != nullptr) {
-				obs_encoder_release(prev_encoder);
-			}
+			std::string encoder_name = GetVideoEncoderName(serviceId, true, encoderID);
+			obs_encoder_t *streamingEncoder = obs_video_encoder_create(encoderID, encoder_name.c_str(), nullptr, nullptr);
+			setStreamingEncoder(streamingEncoder, serviceId);
 		}
 
 		if (videoBitrate == 0) {

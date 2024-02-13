@@ -2155,8 +2155,9 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t *config, b
 	bool recOutputBlockStreamOutput = !(!recStreamUsesSameEncoder || (recStreamUsesSameEncoder && !recOutputIsReadyToUpdate));
 
 	if ((!streamOutputIsReadyToUpdate && !recOutputBlockStreamOutput) || streamingEncoder == nullptr) {
+		std::string encoder_name = OBS_service::GetVideoEncoderName(StreamServiceId::Main, false, encoderID);
 		if (!fileExist) {
-			streamingEncoder = obs_video_encoder_create(encoderID, "streaming_h264", nullptr, nullptr);
+			streamingEncoder = obs_video_encoder_create(encoderID, encoder_name.c_str(), nullptr, nullptr);
 			OBS_service::setStreamingEncoder(streamingEncoder, StreamServiceId::Main);
 
 			if (!obs_data_save_json_safe(settings, streamName.c_str(), "tmp", "bak")) {
@@ -2168,7 +2169,7 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t *config, b
 			update_nvenc_presets(data, encoderID);
 
 			obs_data_apply(settings, data);
-			streamingEncoder = obs_video_encoder_create(encoderID, "streaming_h264", settings, nullptr);
+			streamingEncoder = obs_video_encoder_create(encoderID, encoder_name.c_str(), settings, nullptr);
 			OBS_service::setStreamingEncoder(streamingEncoder, StreamServiceId::Main);
 		}
 
