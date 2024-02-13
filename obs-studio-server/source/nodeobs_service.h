@@ -230,7 +230,7 @@ public:
 	static void UpdateFFmpegCustomOutput(void);
 	static void updateReplayBufferOutput(bool isSimpleMode, bool useStreamEncoder);
 	static void stopConnectingOutputs();
-
+	static void LoadRecordingPreset_Lossy(const char *encoderId);
 	static std::string GetDefaultVideoSavePath(void);
 
 	static bool isStreamingOutputActive(StreamServiceId serviceId);

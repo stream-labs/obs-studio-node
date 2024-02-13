@@ -1292,9 +1292,9 @@ void OBS_service::updateAudioRecordingEncoder(bool isSimpleMode)
 	}
 }
 
-void LoadRecordingPreset_Lossy(const char *encoderId)
+void OBS_service::LoadRecordingPreset_Lossy(const char *encoderId)
 {
-	std::string encoderName = OBS_service::GetVideoEncoderName(StreamServiceId::Main, true, true, encoderId);
+	std::string encoderName = GetVideoEncoderName(StreamServiceId::Main, true, true, encoderId);
 	obs_encoder_t *newRecordingEncoder = obs_video_encoder_create(encoderId, encoderName.c_str(), nullptr, nullptr);
 	OBS_service::setRecordingEncoder(newRecordingEncoder);
 
