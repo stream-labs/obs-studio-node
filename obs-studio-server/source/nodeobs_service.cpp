@@ -1131,11 +1131,10 @@ void OBS_service::setupRecordingAudioEncoder(void)
 	for (int i = 0; i < MAX_AUDIO_MIXES; i++) {
 		std::ostringstream nameStream;
 		nameStream << "adv_audio_recording_" << codec << "_" << i;
-		std::string name = nameStream.str();
 
 		AdvancedRecordingAudioEncodersID[i] = "";
-		if (!createAudioEncoder(&(AdvancedRecordingAudioTracks[i]), AdvancedRecordingAudioEncodersID[i], id, GetAdvancedAudioBitrate(i), name.c_str(),
-					i))
+		if (!createAudioEncoder(&(AdvancedRecordingAudioTracks[i]), AdvancedRecordingAudioEncodersID[i], id, GetAdvancedAudioBitrate(i),
+					nameStream.str().c_str(), i))
 			throw std::runtime_error(
 				"Failed to create audio encoder (advanced output)"); // Changed to std::runtime_error for better exception handling
 		obs_encoder_set_audio(AdvancedRecordingAudioTracks[i], obs_get_audio());
