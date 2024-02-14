@@ -1129,12 +1129,15 @@ void OBS_service::setupRecordingAudioEncoder(void)
 	const char *codec = obs_get_encoder_codec(id.c_str());
 
 	for (int i = 0; i < MAX_AUDIO_MIXES; i++) {
-		char name[32];
-		sprintf(name, "adv_audio_recording_%s_%d", codec, i);
+		std::ostringstream nameStream;
+		nameStream << "adv_audio_recording_" << codec << "_" << i;
+		std::string name = nameStream.str();
 
 		AdvancedRecordingAudioEncodersID[i] = "";
-		if (!createAudioEncoder(&(AdvancedRecordingAudioTracks[i]), AdvancedRecordingAudioEncodersID[i], id, GetAdvancedAudioBitrate(i), name, i))
-			throw "Failed to create audio encoder (advanced output)";
+		if (!createAudioEncoder(&(AdvancedRecordingAudioTracks[i]), AdvancedRecordingAudioEncodersID[i], id, GetAdvancedAudioBitrate(i), name.c_str(),
+					i))
+			throw std::runtime_error(
+				"Failed to create audio encoder (advanced output)"); // Changed to std::runtime_error for better exception handling
 		obs_encoder_set_audio(AdvancedRecordingAudioTracks[i], obs_get_audio());
 	}
 }
@@ -1276,18 +1279,15 @@ void OBS_service::updateAudioRecordingEncoder(bool isSimpleMode)
 		return;
 
 	if (isSimpleMode) {
-		const char *audioEncoder = nullptr;
-
-		audioEncoder = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecAEncoder");
+		const char *audioEncoder = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecAEncoder");
 		if (audioEncoder)
 			audioSimpleRecEncID = "";
 
 		const char *codec = obs_get_encoder_codec(audioEncoder);
-		char name[32];
-		sprintf(name, "simple_audio_recording_%s", codec);
+		std::string name = "simple_audio_recording_" + std::string(codec);
 
-		if (!createAudioEncoder(&audioSimpleRecordingEncoder, audioSimpleRecEncID, std::string(audioEncoder), 192, name, 0))
-			throw "Failed to create audio simple recording encoder";
+		if (!createAudioEncoder(&audioSimpleRecordingEncoder, audioSimpleRecEncID, std::string(audioEncoder), 192, name.c_str(), 0))
+			throw std::runtime_error("Failed to create audio simple recording encoder"); // Using std::runtime_error for exception handling
 
 		obs_encoder_set_audio(audioSimpleRecordingEncoder, obs_get_audio());
 	} else {
