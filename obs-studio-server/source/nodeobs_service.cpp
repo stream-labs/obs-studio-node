@@ -1135,8 +1135,7 @@ void OBS_service::setupRecordingAudioEncoder(void)
 		AdvancedRecordingAudioEncodersID[i] = "";
 		if (!createAudioEncoder(&(AdvancedRecordingAudioTracks[i]), AdvancedRecordingAudioEncodersID[i], id, GetAdvancedAudioBitrate(i),
 					nameStream.str().c_str(), i))
-			throw std::runtime_error(
-				"Failed to create audio encoder (advanced output)"); // Changed to std::runtime_error for better exception handling
+			throw std::runtime_error("Failed to create audio encoder (advanced output)");
 		obs_encoder_set_audio(AdvancedRecordingAudioTracks[i], obs_get_audio());
 	}
 }
@@ -1286,7 +1285,7 @@ void OBS_service::updateAudioRecordingEncoder(bool isSimpleMode)
 		std::string name = "simple_audio_recording_" + std::string(codec);
 
 		if (!createAudioEncoder(&audioSimpleRecordingEncoder, audioSimpleRecEncID, std::string(audioEncoder), 192, name.c_str(), 0))
-			throw std::runtime_error("Failed to create audio simple recording encoder"); // Using std::runtime_error for exception handling
+			throw std::runtime_error("Failed to create audio simple recording encoder");
 
 		obs_encoder_set_audio(audioSimpleRecordingEncoder, obs_get_audio());
 	} else {
