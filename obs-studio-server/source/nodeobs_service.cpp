@@ -782,13 +782,13 @@ bool OBS_service::createVideoStreamingEncoder(StreamServiceId serviceId)
 	std::string encoder_name = GetVideoEncoderName(serviceId, isSimpleMode, false, encoder);
 
 	obs_encoder_t *new_encoder = obs_video_encoder_create(encoder, encoder_name.c_str(), nullptr, nullptr);
-	OBS_service::setStreamingEncoder(new_encoder, StreamServiceId::Main);
+	OBS_service::setStreamingEncoder(new_encoder, serviceId);
 
 	if (new_encoder == nullptr) {
 		return false;
 	}
 
-	updateVideoStreamingEncoder(true, serviceId);
+	updateVideoStreamingEncoder(isSimpleMode, serviceId);
 
 	return true;
 }
@@ -1072,7 +1072,7 @@ bool OBS_service::createService(StreamServiceId serviceId)
 	return true;
 }
 
-std::string OBS_service::getStreamingOutputName(StreamServiceId serviceId)
+std::string OBS_service::createStreamingOutputName(StreamServiceId serviceId)
 {
 	switch (serviceId) {
 	case StreamServiceId::Main:
@@ -1090,7 +1090,7 @@ bool OBS_service::createStreamingOutput(StreamServiceId serviceId)
 	if (!type)
 		type = "rtmp_output";
 
-	streamingOutput[serviceId] = obs_output_create(type, getStreamingOutputName(serviceId).c_str(), nullptr, nullptr);
+	streamingOutput[serviceId] = obs_output_create(type, createStreamingOutputName(serviceId).c_str(), nullptr, nullptr);
 	if (streamingOutput[serviceId] == nullptr) {
 		return false;
 	}
@@ -1102,7 +1102,7 @@ bool OBS_service::createStreamingOutput(StreamServiceId serviceId)
 
 bool OBS_service::createRecordingOutput(void)
 {
-	recordingOutput = obs_output_create("ffmpeg_muxer", "simple_file_output", nullptr, nullptr);
+	recordingOutput = obs_output_create("ffmpeg_muxer", "recording_file_output", nullptr, nullptr);
 	if (recordingOutput == nullptr) {
 		return false;
 	}
@@ -1114,7 +1114,7 @@ bool OBS_service::createRecordingOutput(void)
 
 void OBS_service::createReplayBufferOutput(void)
 {
-	replayBufferOutput = obs_output_create("replay_buffer", "ReplayBuffer", nullptr, nullptr);
+	replayBufferOutput = obs_output_create("replay_buffer", "replay_buffer_output", nullptr, nullptr);
 	connectOutputSignals(StreamServiceId::Main);
 }
 
@@ -1165,7 +1165,7 @@ bool OBS_service::startStreaming(StreamServiceId serviceId)
 	if (streamingOutput[serviceId])
 		obs_output_release(streamingOutput[serviceId]);
 
-	streamingOutput[serviceId] = obs_output_create(type, getStreamingOutputName(serviceId).c_str(), nullptr, nullptr);
+	streamingOutput[serviceId] = obs_output_create(type, createStreamingOutputName(serviceId).c_str(), nullptr, nullptr);
 	if (!streamingOutput[serviceId])
 		return false;
 
@@ -2322,6 +2322,9 @@ obs_encoder_t *OBS_service::getStreamingEncoder(StreamServiceId serviceId)
 
 void OBS_service::setStreamingEncoder(obs_encoder_t *encoder, StreamServiceId serviceId)
 {
+	const char *encoderName = obs_encoder_get_name(encoder);
+	blog(LOG_INFO, "Set streaming encoder. name: %s for service %s", encoderName, serviceId == StreamServiceId::Main ? "Main" : "Second");
+
 	if (videoStreamingEncoder[serviceId])
 		obs_encoder_release(videoStreamingEncoder[serviceId]);
 	videoStreamingEncoder[serviceId] = encoder;
