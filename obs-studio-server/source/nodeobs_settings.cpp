@@ -1171,7 +1171,7 @@ std::vector<EncoderSettings> encoders_set = {
 	// NVIDIA NVENC HEVC (new)
 	{"NVIDIA NVENC HEVC (new)", "jim_hevc_nvenc", "Hardware (NVENC, HEVC)", "nvenc_hevc", "jim_hevc_nvenc", true, true, true, true, true, false},
 	// NVIDIA NVENC AV1
-	{"NVIDIA NVENC AV1", "jim_av1_nvenc", "Hardware (NVENC, AV1)", "jim_av1_nvenc", "jim_av1_nvenc", true, true, true, true, true, false},
+	{"NVIDIA NVENC AV1", "jim_av1_nvenc", "Hardware (NVENC, AV1)", "jim_av1_nvenc", "jim_av1_nvenc", true, false, true, true, true, false},
 	// Apple VT H264 Software Encoder
 	{"Apple VT H264 Software Encoder", "com.apple.videotoolbox.videoencoder.h264", "Software (Apple, H.264)", "com.apple.videotoolbox.videoencoder.h264",
 	 "", true, true, true, false, true, false},
@@ -1186,9 +1186,9 @@ std::vector<EncoderSettings> encoders_set = {
 	// AMD HW H.265 (HEVC)
 	{"AMD HW H.265 (HEVC)", "h265_texture_amf", "Hardware (AMD, HEVC)", "amd_hevc", "h265_texture_amf", true, true, true, true, true, false},
 	// SVT-AV1
-	{"SVT-AV1", "ffmpeg_svt_av1", "", "", "", true, true, true, false, true, false},
+	{"SVT-AV1", "ffmpeg_svt_av1", "", "", "", true, false, true, false, true, false},
 	// AOM AV1
-	{"AOM AV1", "ffmpeg_aom_av1", "", "", "", true, true, true, false, true, false}};
+	{"AOM AV1", "ffmpeg_aom_av1", "", "", "", true, false, true, false, true, false}};
 
 void OBS_settings::getSimpleAvailableEncoders(std::vector<std::pair<std::string, ipc::value>> *list, bool recording, const std::string &container)
 {
