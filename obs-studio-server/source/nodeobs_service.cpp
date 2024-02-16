@@ -782,13 +782,13 @@ bool OBS_service::createVideoStreamingEncoder(StreamServiceId serviceId)
 	std::string encoder_name = GetVideoEncoderName(serviceId, isSimpleMode, false, encoder);
 
 	obs_encoder_t *new_encoder = obs_video_encoder_create(encoder, encoder_name.c_str(), nullptr, nullptr);
-	OBS_service::setStreamingEncoder(new_encoder, StreamServiceId::Main);
+	OBS_service::setStreamingEncoder(new_encoder, serviceId);
 
 	if (new_encoder == nullptr) {
 		return false;
 	}
 
-	updateVideoStreamingEncoder(true, serviceId);
+	updateVideoStreamingEncoder(isSimpleMode, serviceId);
 
 	return true;
 }
@@ -2322,6 +2322,9 @@ obs_encoder_t *OBS_service::getStreamingEncoder(StreamServiceId serviceId)
 
 void OBS_service::setStreamingEncoder(obs_encoder_t *encoder, StreamServiceId serviceId)
 {
+	const char *encoderName = obs_encoder_get_name(encoder);
+	blog(LOG_INFO, "Set streaming encoder. name: %s for service %s", encoderName, serviceId == StreamServiceId::Main ? "Main" : "Second");
+
 	if (videoStreamingEncoder[serviceId])
 		obs_encoder_release(videoStreamingEncoder[serviceId]);
 	videoStreamingEncoder[serviceId] = encoder;

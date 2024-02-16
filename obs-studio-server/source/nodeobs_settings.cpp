@@ -3047,7 +3047,7 @@ void OBS_settings::saveAdvancedOutputStreamingSettings(std::vector<SubCategory> 
 	obs_data_t *encoderSettings = obs_encoder_get_settings(encoder);
 	int indexEncoderSettings = 4;
 
-	obs_data_t *service_settings = obs_service_get_settings(OBS_service::getService(StreamServiceId::Main)); //todo DUALOUTPUT
+	obs_data_t *service_settings = obs_service_get_settings(OBS_service::getService(StreamServiceId::Main));
 	const char *serviceName = obs_data_get_string(service_settings, "service");
 	obs_data_release(service_settings);
 
@@ -3157,9 +3157,15 @@ void OBS_settings::saveAdvancedOutputStreamingSettings(std::vector<SubCategory> 
 
 	if (newEncoderType) {
 		encoderSettings = obs_encoder_defaults(config_get_string(ConfigManager::getInstance().getBasic(), section.c_str(), "Encoder"));
-	}
 
-	obs_encoder_update(encoder, encoderSettings);
+		OBS_service::createVideoStreamingEncoder(StreamServiceId::Main);
+		OBS_service::createVideoStreamingEncoder(StreamServiceId::Second);
+	} else {
+		obs_encoder_update(encoder, encoderSettings);
+
+		obs_encoder_t *second_encoder = OBS_service::getStreamingEncoder(StreamServiceId::Second);
+		obs_encoder_update(second_encoder, encoderSettings);
+	}
 
 	if (!obs_data_save_json_safe(encoderSettings, ConfigManager::getInstance().getStream().c_str(), "tmp", "bak")) {
 		blog(LOG_WARNING, "Failed to save encoder %s", ConfigManager::getInstance().getStream().c_str());
@@ -3302,10 +3308,12 @@ void OBS_settings::saveAdvancedOutputRecordingSettings(std::vector<SubCategory> 
 
 	int ret = config_save_safe(ConfigManager::getInstance().getBasic(), "tmp", nullptr);
 
-	if (newEncoderType)
+	if (newEncoderType) {
 		encoderSettings = obs_encoder_defaults(config_get_string(ConfigManager::getInstance().getBasic(), section.c_str(), "RecEncoder"));
-
-	obs_encoder_update(encoder, encoderSettings);
+		OBS_service::createVideoRecordingEncoder();
+	} else {
+		obs_encoder_update(encoder, encoderSettings);
+	}
 
 	if (resetAudioTracks) {
 		OBS_service::clearRecordingAudioEncoder();
@@ -3349,7 +3357,6 @@ void OBS_settings::saveAdvancedOutputSettings(std::vector<SubCategory> settings)
 
 void OBS_settings::saveOutputSettings(std::vector<SubCategory> settings)
 {
-	// Get selected output mode
 	Parameter outputMode = settings.at(0).params.at(0);
 	std::string value_outputMode(outputMode.currentValue.data(), outputMode.currentValue.size());
 	std::string current_outputMode = config_get_string(ConfigManager::getInstance().getBasic(), "Output", "Mode");
