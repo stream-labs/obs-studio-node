@@ -198,7 +198,7 @@ public:
 	static obs_encoder_t *getArchiveEncoder(void);
 
 	// Outputs
-	static std::string getStreamingOutputName(StreamServiceId serviceId);
+	static std::string createStreamingOutputName(StreamServiceId serviceId);
 	static bool createStreamingOutput(StreamServiceId serviceId);
 	static bool createRecordingOutput(void);
 	static void createReplayBufferOutput(void);

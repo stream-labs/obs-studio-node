@@ -1072,7 +1072,7 @@ bool OBS_service::createService(StreamServiceId serviceId)
 	return true;
 }
 
-std::string OBS_service::getStreamingOutputName(StreamServiceId serviceId)
+std::string OBS_service::createStreamingOutputName(StreamServiceId serviceId)
 {
 	switch (serviceId) {
 	case StreamServiceId::Main:
@@ -1090,7 +1090,7 @@ bool OBS_service::createStreamingOutput(StreamServiceId serviceId)
 	if (!type)
 		type = "rtmp_output";
 
-	streamingOutput[serviceId] = obs_output_create(type, getStreamingOutputName(serviceId).c_str(), nullptr, nullptr);
+	streamingOutput[serviceId] = obs_output_create(type, createStreamingOutputName(serviceId).c_str(), nullptr, nullptr);
 	if (streamingOutput[serviceId] == nullptr) {
 		return false;
 	}
@@ -1102,7 +1102,7 @@ bool OBS_service::createStreamingOutput(StreamServiceId serviceId)
 
 bool OBS_service::createRecordingOutput(void)
 {
-	recordingOutput = obs_output_create("ffmpeg_muxer", "simple_file_output", nullptr, nullptr);
+	recordingOutput = obs_output_create("ffmpeg_muxer", "recording_file_output", nullptr, nullptr);
 	if (recordingOutput == nullptr) {
 		return false;
 	}
@@ -1114,7 +1114,7 @@ bool OBS_service::createRecordingOutput(void)
 
 void OBS_service::createReplayBufferOutput(void)
 {
-	replayBufferOutput = obs_output_create("replay_buffer", "ReplayBuffer", nullptr, nullptr);
+	replayBufferOutput = obs_output_create("replay_buffer", "replay_buffer_output", nullptr, nullptr);
 	connectOutputSignals(StreamServiceId::Main);
 }
 
@@ -1165,7 +1165,7 @@ bool OBS_service::startStreaming(StreamServiceId serviceId)
 	if (streamingOutput[serviceId])
 		obs_output_release(streamingOutput[serviceId]);
 
-	streamingOutput[serviceId] = obs_output_create(type, getStreamingOutputName(serviceId).c_str(), nullptr, nullptr);
+	streamingOutput[serviceId] = obs_output_create(type, createStreamingOutputName(serviceId).c_str(), nullptr, nullptr);
 	if (!streamingOutput[serviceId])
 		return false;
 
