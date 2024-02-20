@@ -1163,7 +1163,7 @@ std::vector<EncoderSettings> encoders_set = {
 	// Software x264 low CPU (only for recording)
 	{"", "", "Software (x264 low CPU usage preset, increases file size)", "x264_lowcpu", "obs_x264", true, false, false, false, true, false},
 	// QuickSync H.264
-	{"QuickSync H.264", "obs_qsv11", "Hardware (QSV, H.264)", "qsv", "", true, true, true, false, true, false},
+	{"QuickSync H.264", "obs_qsv11", "Hardware (QSV, H.264)", "qsv", "obs_qsv11", true, true, true, false, true, false},
 	// NVIDIA NVENC H.264
 	{"NVIDIA NVENC H.264", "ffmpeg_nvenc", "NVIDIA NVENC H.264", "nvenc", "ffmpeg_nvenc", true, true, true, false, true, true},
 	// NVIDIA NVENC H.264 (new)
