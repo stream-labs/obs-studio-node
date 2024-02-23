@@ -1155,7 +1155,7 @@ void OBS_settings::getSimpleOutputSettings(std::vector<SubCategory> *outputSetti
 	//Video Bitrate
 	entries.push_back(createSettingEntry("VBitrate", "OBS_PROPERTY_INT", "Video Bitrate", "", 0, 1000000, 1));
 
-// Stream Encoder
+	// Stream Encoder
 	auto streamEncoder = createSettingEntry("StreamEncoder", "OBS_PROPERTY_LIST", "Encoder", "OBS_COMBO_FORMAT_STRING");
 
 	getSimpleAvailableEncoders(&streamEncoder, false, config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "RecFormat"));
