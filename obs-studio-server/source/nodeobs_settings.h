@@ -217,4 +217,5 @@ private:
 	static std::vector<std::pair<uint64_t, uint64_t>> getOutputResolutions(uint64_t base_cx, uint64_t base_cy);
 	static void getEncoderSettings(const obs_encoder_t *encoder, obs_data_t *settings, std::vector<Parameter> *subCategoryParameters, int index,
 				       bool isCategoryEnabled, bool recordEncoder);
+	static void UpdateAudioSettings(bool saveOnlyIfLimitApplied);
 };
