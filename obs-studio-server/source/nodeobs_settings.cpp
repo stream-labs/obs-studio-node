@@ -3157,6 +3157,13 @@ std::vector<SubCategory> OBS_settings::getVideoSettings()
 	uint64_t fpsTypeValue = config_get_uint(ConfigManager::getInstance().getBasic(), "Video", "FPSType");
 	auto fpsType = createSettingEntry("FPSType", "OBS_PROPERTY_LIST", "FPS Type", "OBS_COMBO_FORMAT_STRING");
 	// Dynamic FPS Type Options
+	if (fpsTypeValue == 0) {
+		fpsType.push_back({"currentValue", ipc::value("Common FPS Values")});
+	} else if (fpsTypeValue == 1) {
+		fpsType.push_back({"currentValue", ipc::value("Integer FPS Value")});
+	} else if (fpsTypeValue == 2) {
+		fpsType.push_back({"currentValue", ipc::value("Fractional FPS Value")});
+	}
 	fpsType.push_back({"Common FPS Values", ipc::value("Common FPS Values")});
 	fpsType.push_back({"Integer FPS Value", ipc::value("Integer FPS Value")});
 	fpsType.push_back({"Fractional FPS Value", ipc::value("Fractional FPS Value")});
