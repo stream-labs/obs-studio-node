@@ -767,21 +767,28 @@ bool OBS_service::createVideoStreamingEncoder(StreamServiceId serviceId)
 {
 	std::string currentOutputMode = config_get_string(ConfigManager::getInstance().getBasic(), "Output", "Mode");
 	bool isSimpleMode = currentOutputMode.compare("Simple") == 0;
-	const char *encoder = nullptr;
+	const char *encoderId = nullptr;
 
 	if (isSimpleMode) {
-		encoder = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "StreamEncoder");
+		encoderId = config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "StreamEncoder");
 	} else {
-		encoder = config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "Encoder");
+		encoderId = config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "Encoder");
 	}
 
-	if (encoder == NULL || !EncoderAvailable(encoder)) {
-		encoder = "obs_x264";
+	if (encoderId == NULL || !EncoderAvailable(encoderId)) {
+		encoderId = "obs_x264";
 	}
 
-	std::string encoder_name = GetVideoEncoderName(serviceId, isSimpleMode, false, encoder);
+	std::string encoder_name = GetVideoEncoderName(serviceId, isSimpleMode, false, encoderId);
 
-	obs_encoder_t *new_encoder = obs_video_encoder_create(encoder, encoder_name.c_str(), nullptr, nullptr);
+	struct stat buffer;
+	std::string streamConfigFile = ConfigManager::getInstance().getStream();
+	bool fileExist = (os_stat(streamConfigFile.c_str(), &buffer) == 0);
+	obs_data_t *data = obs_data_create_from_json_file_safe(streamConfigFile.c_str(), "bak");
+	obs_data_t *settings = obs_encoder_defaults(encoderId);
+	obs_data_apply(settings, data);
+
+	obs_encoder_t *new_encoder = obs_video_encoder_create(encoderId, encoder_name.c_str(), settings, nullptr);
 	OBS_service::setStreamingEncoder(new_encoder, serviceId);
 
 	if (new_encoder == nullptr) {
