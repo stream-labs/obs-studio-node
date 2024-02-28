@@ -1869,11 +1869,6 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t *config, b
 		config_save_safe(config, "tmp", nullptr);
 	}
 
-	struct stat buffer;
-
-	std::string streamName = ConfigManager::getInstance().getStream();
-	bool fileExist = (os_stat(streamName.c_str(), &buffer) == 0);
-
 	obs_data_t *settings = obs_encoder_defaults(encoderID);
 	obs_encoder_t *streamingEncoder = OBS_service::getStreamingEncoder(StreamServiceId::Main);
 	obs_encoder_t *recordEncoder = obs_output_get_video_encoder(OBS_service::getRecordingOutput());
@@ -1891,16 +1886,20 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t *config, b
 	bool recOutputBlockStreamOutput = !(!recStreamUsesSameEncoder || (recStreamUsesSameEncoder && !recOutputIsReadyToUpdate));
 
 	if ((!streamOutputIsReadyToUpdate && !recOutputBlockStreamOutput) || streamingEncoder == nullptr) {
+		struct stat buffer;
+		std::string streamConfigFile = ConfigManager::getInstance().getStream();
+		bool fileExist = (os_stat(streamConfigFile.c_str(), &buffer) == 0);
+
 		std::string encoder_name = OBS_service::GetVideoEncoderName(StreamServiceId::Main, false, false, encoderID);
 		if (!fileExist) {
 			streamingEncoder = obs_video_encoder_create(encoderID, encoder_name.c_str(), nullptr, nullptr);
 			OBS_service::setStreamingEncoder(streamingEncoder, StreamServiceId::Main);
 
-			if (!obs_data_save_json_safe(settings, streamName.c_str(), "tmp", "bak")) {
-				blog(LOG_WARNING, "Failed to save encoder %s", streamName.c_str());
+			if (!obs_data_save_json_safe(settings, streamConfigFile.c_str(), "tmp", "bak")) {
+				blog(LOG_WARNING, "Failed to save encoder %s", streamConfigFile.c_str());
 			}
 		} else {
-			obs_data_t *data = obs_data_create_from_json_file_safe(streamName.c_str(), "bak");
+			obs_data_t *data = obs_data_create_from_json_file_safe(streamConfigFile.c_str(), "bak");
 
 			update_nvenc_presets(data, encoderID);
 
