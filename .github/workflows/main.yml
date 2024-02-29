@@ -119,12 +119,10 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        ReleaseName: [release, debug]
+        ReleaseName: [release]
         include:
         - ReleaseName: release
           ReleaseConfig: RelWithDebInfo
-        - ReleaseName: debug
-          ReleaseConfig: Debug
     env:
       OS_TAG: "win64"
     steps:
@@ -168,12 +166,10 @@ jobs:
     needs: [win64]
     strategy:
       matrix:
-        ReleaseName: [release, debug]
+        ReleaseName: [release]
         include:
         - ReleaseName: release
           ReleaseConfig: RelWithDebInfo
-        - ReleaseName: debug
-          ReleaseConfig: Debug
     env:
       OS_TAG: "win64"
     steps:
