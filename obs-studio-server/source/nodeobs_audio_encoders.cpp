@@ -216,11 +216,13 @@ static void PopulateBitrateMap(const std::string codecType)
 		LimitBitrate(bitrateMap, 320);
 	}
 
+#ifdef EXTENDED_DEBUG_LOG
 	std::ostringstream ss;
 	for (auto &entry : bitrateMap)
 		ss << "\n	" << std::setw(3) << entry.first << " kbit/s: '" << EncoderName(entry.second) << "' (" << entry.second << ')';
 
 	blog(LOG_INFO, "%s encoder bitrate mapping:%s", codecType.c_str(), ss.str().c_str());
+#endif
 }
 
 const std::map<int, const char *> &GetAACEncoderBitrateMap()
