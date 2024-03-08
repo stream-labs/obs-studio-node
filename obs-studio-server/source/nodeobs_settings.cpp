@@ -1872,7 +1872,8 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t *config, b
 	obs_data_t *settings = obs_encoder_defaults(encoderID);
 	obs_encoder_t *streamingEncoder = OBS_service::getStreamingEncoder(StreamServiceId::Main);
 	obs_encoder_t *recordEncoder = obs_output_get_video_encoder(OBS_service::getRecordingOutput());
-	obs_output_t *streamOutput = OBS_service::getStreamingOutput(StreamServiceId::Main); //todo DUALOUTPUT
+	obs_output_t *streamOutputMain = OBS_service::getStreamingOutput(StreamServiceId::Main);
+	obs_output_t *streamOutputSecond = OBS_service::getStreamingOutput(StreamServiceId::Second);
 	obs_output_t *recordOutput = OBS_service::getRecordingOutput();
 
 	/*
@@ -1880,12 +1881,18 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t *config, b
 		to update before recreating the stream encoder to prevent releasing it when it's still being used.
 		If they use differente encoders, just check for the stream output.
 	*/
-	bool streamOutputIsReadyToUpdate = streamOutput ? obs_output_is_ready_to_update(streamOutput) : false;
-	bool recOutputIsReadyToUpdate = recordOutput ? obs_output_is_ready_to_update(recordOutput) : false;
-	bool recStreamUsesSameEncoder = streamingEncoder == recordEncoder;
-	bool recOutputBlockStreamOutput = !(!recStreamUsesSameEncoder || (recStreamUsesSameEncoder && !recOutputIsReadyToUpdate));
+	bool streamOutputIsReadyToUpdate = true;
+	streamOutputIsReadyToUpdate &= streamOutputMain ? obs_output_is_ready_to_update(streamOutputMain) : false;
+	streamOutputIsReadyToUpdate &= streamOutputSecond ? obs_output_is_ready_to_update(streamOutputSecond) : false;
 
-	if ((!streamOutputIsReadyToUpdate && !recOutputBlockStreamOutput) || streamingEncoder == nullptr) {
+	bool recOutputIsReadyToUpdate = recordOutput ? obs_output_is_ready_to_update(recordOutput) : false;
+
+	bool recOutputBlockStreamOutput = false;
+	if (streamingEncoder == recordEncoder) {
+		recOutputBlockStreamOutput = !recOutputIsReadyToUpdate;
+	}
+
+	if ((streamOutputIsReadyToUpdate && !recOutputBlockStreamOutput) || streamingEncoder == nullptr) {
 		struct stat buffer;
 		std::string streamConfigFile = ConfigManager::getInstance().getStream();
 		bool fileExist = (os_stat(streamConfigFile.c_str(), &buffer) == 0);
