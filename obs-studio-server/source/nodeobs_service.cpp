@@ -33,6 +33,8 @@
 #include "util-crashmanager.h"
 #endif
 
+std::string GetFormatExt(const std::string container);
+
 std::vector<obs_output_t *> streamingOutput = {nullptr, nullptr};
 
 obs_output_t *recordingOutput = nullptr;
@@ -1517,7 +1519,7 @@ void OBS_service::stopRecording(void)
 void OBS_service::updateReplayBufferOutput(bool isSimpleMode, bool useStreamEncoder)
 {
 	const char *path;
-	const char *format;
+	std::string format;
 	const char *mux;
 	bool noSpace;
 	const char *fileNameFormat;
@@ -1549,7 +1551,7 @@ void OBS_service::updateReplayBufferOutput(bool isSimpleMode, bool useStreamEnco
 		rbTime = config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "RecRBTime");
 		rbSize = config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "RecRBSize");
 	}
-
+	format = GetFormatExt(format);
 	std::string f;
 	if (rbPrefix && *rbPrefix) {
 		f += rbPrefix;
@@ -1567,7 +1569,7 @@ void OBS_service::updateReplayBufferOutput(bool isSimpleMode, bool useStreamEnco
 	obs_data_t *settings = obs_data_create();
 	obs_data_set_string(settings, "directory", path);
 	obs_data_set_string(settings, "format", f.c_str());
-	obs_data_set_string(settings, "extension", format);
+	obs_data_set_string(settings, "extension", format.c_str());
 	obs_data_set_bool(settings, "allow_spaces", !noSpace);
 	obs_data_set_int(settings, "max_time_sec", rbTime);
 	obs_data_set_int(settings, "max_size_mb", usingRecordingPreset ? rbSize : 0);
@@ -1912,7 +1914,7 @@ void OBS_service::updateService(StreamServiceId serviceId)
 void OBS_service::updateFfmpegOutput(bool isSimpleMode, obs_output_t *output)
 {
 	const char *path;
-	const char *format;
+	std::string format;
 	const char *mux;
 	bool noSpace;
 	const char *fileNameFormat;
@@ -1932,7 +1934,7 @@ void OBS_service::updateFfmpegOutput(bool isSimpleMode, obs_output_t *output)
 		overwriteIfExists = config_get_bool(ConfigManager::getInstance().getBasic(), "Output", "OverwriteIfExists");
 		noSpace = config_get_bool(ConfigManager::getInstance().getBasic(), "AdvOut", "RecFileNameWithoutSpace");
 	}
-
+	format = GetFormatExt(format);
 	std::string initialPath;
 	if (path != nullptr) {
 		initialPath = path;
@@ -1949,8 +1951,8 @@ void OBS_service::updateFfmpegOutput(bool isSimpleMode, obs_output_t *output)
 	if (lastChar != '/' && lastChar != '\\')
 		strPath += "/";
 
-	if (fileNameFormat != NULL && format != NULL)
-		strPath += GenerateSpecifiedFilename(ffmpegOutput ? "avi" : format, noSpace, fileNameFormat, 0, 0);
+	if (fileNameFormat != NULL && format.size())
+		strPath += GenerateSpecifiedFilename(ffmpegOutput ? "avi" : format.c_str(), noSpace, fileNameFormat, 0, 0);
 
 	if (!overwriteIfExists)
 		FindBestFilename(strPath, noSpace);
@@ -1958,6 +1960,11 @@ void OBS_service::updateFfmpegOutput(bool isSimpleMode, obs_output_t *output)
 	if (strPath.size() > 0) {
 		obs_data_t *settings = obs_data_create();
 		obs_data_set_string(settings, ffmpegOutput ? "url" : "path", strPath.c_str());
+		obs_data_set_string(settings, "extension", format.c_str());
+		obs_data_set_string(settings, "directory", path);
+		obs_data_set_string(settings, "format", fileNameFormat);
+		obs_data_set_bool(settings, "allow_spaces", !noSpace);
+		obs_data_set_bool(settings, "allow_overwrite", overwriteIfExists);
 
 		if (config_get_bool(ConfigManager::getInstance().getBasic(), "AdvOut", "RecSplitFile")) {
 			const char *splitFileType = config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "RecSplitFileType");
@@ -1968,15 +1975,12 @@ void OBS_service::updateFfmpegOutput(bool isSimpleMode, obs_output_t *output)
 				obs_data_set_int(settings, "max_size_mb",
 						 config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "RecSplitFileSize"));
 
-			obs_data_set_string(settings, "directory", path);
-			obs_data_set_string(settings, "format", fileNameFormat);
-			obs_data_set_string(settings, "extension", format);
-			obs_data_set_bool(settings, "allow_spaces", !noSpace);
-			obs_data_set_bool(settings, "allow_overwrite", overwriteIfExists);
 			obs_data_set_bool(settings, "split_file", true);
 
 			obs_data_set_bool(settings, "reset_timestamps",
 					  config_get_bool(ConfigManager::getInstance().getBasic(), "AdvOut", "RecSplitFileResetTimestamps"));
+		} else {
+			obs_data_set_bool(settings, "split_file", false);
 		}
 
 		obs_output_update(output, settings);
@@ -2985,4 +2989,19 @@ void OBS_service::setupVodTrack(bool isSimpleMode)
 			obs_output_set_audio_encoder(streamingOutput[0], streamArchiveEncVod, 1);
 		}
 	}
+}
+
+std::string GetFormatExt(const std::string container)
+{
+	std::string ext = container;
+	if (ext == "fragmented_mp4")
+		ext = "mp4";
+	else if (ext == "fragmented_mov")
+		ext = "mov";
+	else if (ext == "hls")
+		ext = "m3u8";
+	else if (ext == "mpegts")
+		ext = "ts";
+
+	return ext;
 }
