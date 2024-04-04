@@ -1966,19 +1966,24 @@ void OBS_service::updateFfmpegOutput(bool isSimpleMode, obs_output_t *output)
 		obs_data_set_bool(settings, "allow_spaces", !noSpace);
 		obs_data_set_bool(settings, "allow_overwrite", overwriteIfExists);
 
-		if (config_get_bool(ConfigManager::getInstance().getBasic(), "AdvOut", "RecSplitFile")) {
-			const char *splitFileType = config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "RecSplitFileType");
-			if (strcmp(splitFileType, "Time") == 0)
-				obs_data_set_int(settings, "max_time_sec",
-						 config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "RecSplitFileTime") * 60);
-			else if (strcmp(splitFileType, "Size") == 0)
-				obs_data_set_int(settings, "max_size_mb",
-						 config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "RecSplitFileSize"));
+		if (!isSimpleMode) {
+			if (config_get_bool(ConfigManager::getInstance().getBasic(), "AdvOut", "RecSplitFile")) {
+				const char *splitFileType = config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "RecSplitFileType");
+				if (strcmp(splitFileType, "Time") == 0) {
+					obs_data_set_int(settings, "max_time_sec",
+							 config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "RecSplitFileTime") * 60);
+				} else if (strcmp(splitFileType, "Size") == 0) {
+					obs_data_set_int(settings, "max_size_mb",
+							 config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "RecSplitFileSize"));
+				}
 
-			obs_data_set_bool(settings, "split_file", true);
+				obs_data_set_bool(settings, "reset_timestamps",
+						  config_get_bool(ConfigManager::getInstance().getBasic(), "AdvOut", "RecSplitFileResetTimestamps"));
 
-			obs_data_set_bool(settings, "reset_timestamps",
-					  config_get_bool(ConfigManager::getInstance().getBasic(), "AdvOut", "RecSplitFileResetTimestamps"));
+				obs_data_set_bool(settings, "split_file", true);
+			} else {
+				obs_data_set_bool(settings, "split_file", false);
+			}
 		} else {
 			obs_data_set_bool(settings, "split_file", false);
 		}
