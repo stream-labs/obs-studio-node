@@ -1109,10 +1109,12 @@ void OBS_settings::getSimpleAvailableEncoders(std::vector<std::pair<std::string,
 	if (isNvencAvailableForSimpleMode())
 		encoders->push_back(std::make_pair("NVIDIA NVENC H.264", ipc::value(SIMPLE_ENCODER_NVENC)));
 
+#ifndef __APPLE__
 	const char *hevcEnc = EncoderAvailable("jim_hevc_nvenc") ? "jim_hevc_nvenc" : "ffmpeg_hevc_nvenc";
 	if (recording || isEncoderAvailableForStreaming(hevcEnc, OBS_service::getService(StreamServiceId::Main))) { //todo DUALOUTPUT
 		encoders->push_back(std::make_pair("Hardware (NVENC, HEVC)", ipc::value(SIMPLE_ENCODER_NVENC_HEVC)));
 	}
+#endif
 
 	if (EncoderAvailable(APPLE_SOFTWARE_VIDEO_ENCODER))
 		encoders->push_back(std::make_pair("Software (Apple, H.264)", ipc::value(APPLE_SOFTWARE_VIDEO_ENCODER)));
