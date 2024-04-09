@@ -2998,6 +2998,11 @@ void OBS_settings::saveAdvancedOutputStreamingSettings(std::vector<SubCategory> 
 	if (dynamicBitrate && encoderID.compare(ENCODER_NEW_NVENC) == 0)
 		obs_data_set_bool(encoderSettings, "lookahead", false);
 #elif __APPLE__
+	// Streaming services wants CBR, but Apple encoders do not support it. So,
+	// we have the  "ApplyServiceSettings" option to solve the issue as much
+	// as possible. On the other hand, the following 4 lines should be commented
+	// to give users maximum freedom. 
+
 	//bool applyServiceSettings = config_get_bool(ConfigManager::getInstance().getBasic(), "Output", "ApplyServiceSettings");
 	//std::string encoderID = config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "Encoder");
 
