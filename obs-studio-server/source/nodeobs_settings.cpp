@@ -3000,7 +3000,7 @@ void OBS_settings::saveAdvancedOutputStreamingSettings(std::vector<SubCategory> 
 #elif __APPLE__
 	// Streaming services wants CBR, but Apple encoders do not support it. So,
 	// we have the  "ApplyServiceSettings" option to solve the issue as much
-	// as possible. On the other hand, we should allow users to have 
+	// as possible. On the other hand, we should allow users to have
 	// any configuration they want.
 	bool forceServiceSettingsForCBRMissingCodecs = false;
 	if (forceServiceSettingsForCBRMissingCodecs) {
