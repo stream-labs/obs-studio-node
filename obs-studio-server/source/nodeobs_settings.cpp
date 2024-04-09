@@ -3000,14 +3000,16 @@ void OBS_settings::saveAdvancedOutputStreamingSettings(std::vector<SubCategory> 
 #elif __APPLE__
 	// Streaming services wants CBR, but Apple encoders do not support it. So,
 	// we have the  "ApplyServiceSettings" option to solve the issue as much
-	// as possible. On the other hand, the following 4 lines should be commented
-	// to give users maximum freedom. 
+	// as possible. On the other hand, we should allow users to have 
+	// any configuration they want.
+	bool forceServiceSettingsForCBRMissingCodecs = false;
+	if (forceServiceSettingsForCBRMissingCodecs) {
+		bool applyServiceSettings = config_get_bool(ConfigManager::getInstance().getBasic(), "Output", "ApplyServiceSettings");
+		std::string encoderID = config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "Encoder");
 
-	//bool applyServiceSettings = config_get_bool(ConfigManager::getInstance().getBasic(), "Output", "ApplyServiceSettings");
-	//std::string encoderID = config_get_string(ConfigManager::getInstance().getBasic(), "AdvOut", "Encoder");
-
-	//if (!applyServiceSettings && (encoderID.compare(APPLE_HARDWARE_VIDEO_ENCODER) == 0 || encoderID.compare(APPLE_HARDWARE_VIDEO_ENCODER_M1) == 0))
-	//	config_set_bool(ConfigManager::getInstance().getBasic(), "AdvOut", "ApplyServiceSettings", true);
+		if (!applyServiceSettings && (encoderID.compare(APPLE_HARDWARE_VIDEO_ENCODER) == 0 || encoderID.compare(APPLE_HARDWARE_VIDEO_ENCODER_M1) == 0))
+			config_set_bool(ConfigManager::getInstance().getBasic(), "AdvOut", "ApplyServiceSettings", true);
+	}
 #endif
 
 	config_save_safe(ConfigManager::getInstance().getBasic(), "tmp", nullptr);
