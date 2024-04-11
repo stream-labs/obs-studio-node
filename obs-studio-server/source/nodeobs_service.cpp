@@ -1925,6 +1925,12 @@ void OBS_service::updateFfmpegOutput(bool isSimpleMode, obs_output_t *output)
 							 config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "RecSplitFileSize"));
 				}
 
+				obs_data_set_string(settings, "directory", path);
+				obs_data_set_string(settings, "format", fileNameFormat);
+				obs_data_set_string(settings, "extension", format);
+				obs_data_set_bool(settings, "allow_spaces", !noSpace);
+				obs_data_set_bool(settings, "allow_overwrite", overwriteIfExists);
+
 				obs_data_set_bool(settings, "reset_timestamps",
 						  config_get_bool(ConfigManager::getInstance().getBasic(), "AdvOut", "RecSplitFileResetTimestamps"));
 
