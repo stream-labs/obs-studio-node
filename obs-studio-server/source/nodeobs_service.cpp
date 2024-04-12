@@ -1913,6 +1913,11 @@ void OBS_service::updateFfmpegOutput(bool isSimpleMode, obs_output_t *output)
 	if (strPath.size() > 0) {
 		obs_data_t *settings = obs_data_create();
 		obs_data_set_string(settings, ffmpegOutput ? "url" : "path", strPath.c_str());
+		obs_data_set_string(settings, "directory", path);
+		obs_data_set_string(settings, "format", fileNameFormat);
+		obs_data_set_string(settings, "extension", format);
+		obs_data_set_bool(settings, "allow_spaces", !noSpace);
+		obs_data_set_bool(settings, "allow_overwrite", overwriteIfExists);
 
 		if (!isSimpleMode) {
 			if (config_get_bool(ConfigManager::getInstance().getBasic(), "AdvOut", "RecSplitFile")) {
@@ -1924,12 +1929,6 @@ void OBS_service::updateFfmpegOutput(bool isSimpleMode, obs_output_t *output)
 					obs_data_set_int(settings, "max_size_mb",
 							 config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "RecSplitFileSize"));
 				}
-
-				obs_data_set_string(settings, "directory", path);
-				obs_data_set_string(settings, "format", fileNameFormat);
-				obs_data_set_string(settings, "extension", format);
-				obs_data_set_bool(settings, "allow_spaces", !noSpace);
-				obs_data_set_bool(settings, "allow_overwrite", overwriteIfExists);
 
 				obs_data_set_bool(settings, "reset_timestamps",
 						  config_get_bool(ConfigManager::getInstance().getBasic(), "AdvOut", "RecSplitFileResetTimestamps"));
