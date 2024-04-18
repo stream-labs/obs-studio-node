@@ -1095,7 +1095,7 @@ std::string OBS_service::createStreamingOutputName(StreamServiceId serviceId)
 
 bool OBS_service::createStreamingOutput(StreamServiceId serviceId)
 {
-	const char *type = obs_service_get_output_type(services[serviceId]);
+	const char *type = getStreamOutputType(services[serviceId]);
 	if (!type)
 		type = "rtmp_output";
 
@@ -1165,9 +1165,67 @@ void OBS_service::updateStreamingEncoders(bool isSimpleMode, StreamServiceId ser
 	}
 }
 
+static bool can_use_output(const char *prot, const char *output, const char *prot_test1, const char *prot_test2 = nullptr)
+{
+	return (strcmp(prot, prot_test1) == 0 || (prot_test2 && strcmp(prot, prot_test2) == 0)) && (obs_get_output_flags(output) & OBS_OUTPUT_SERVICE) != 0;
+}
+
+static bool return_first_id(void *data, const char *id)
+{
+	const char **output = (const char **)data;
+
+	*output = id;
+	return false;
+}
+
+const char *OBS_service::getStreamOutputType(const obs_service_t *service)
+{
+	const char *protocol = obs_service_get_protocol(service);
+	const char *output = nullptr;
+
+	if (!protocol) {
+		blog(LOG_WARNING, "The service '%s' has no protocol set", obs_service_get_id(service));
+		return nullptr;
+	}
+
+	if (!obs_is_output_protocol_registered(protocol)) {
+		blog(LOG_WARNING, "The protocol '%s' is not registered", protocol);
+		return nullptr;
+	}
+
+	/* Check if the service has a preferred output type */
+	output = obs_service_get_preferred_output_type(service);
+	if (output) {
+		if ((obs_get_output_flags(output) & OBS_OUTPUT_SERVICE) != 0)
+			return output;
+
+		blog(LOG_WARNING, "The output '%s' is not registered, fallback to another one", output);
+	}
+
+	/* Otherwise, prefer first-party output types */
+	if (can_use_output(protocol, "rtmp_output", "RTMP", "RTMPS")) {
+		return "rtmp_output";
+	} else if (can_use_output(protocol, "ffmpeg_hls_muxer", "HLS")) {
+		return "ffmpeg_hls_muxer";
+	} else if (can_use_output(protocol, "ffmpeg_mpegts_muxer", "SRT", "RIST")) {
+		return "ffmpeg_mpegts_muxer";
+	}
+
+	/* If third-party protocol, use the first enumerated type */
+	obs_enum_output_types_with_protocol(protocol, &output, return_first_id);
+	if (output)
+		return output;
+
+	blog(LOG_WARNING, "No output compatible with the service '%s' is registered", obs_service_get_id(service));
+
+	return nullptr;
+}
+
 bool OBS_service::startStreaming(StreamServiceId serviceId)
 {
-	const char *type = obs_service_get_output_type(services[serviceId]);
+	const char *type = getStreamOutputType(services[serviceId]);
+	blog(LOG_INFO, "[HLS] startStreaming output for service %p, %s", services[serviceId], (type ? type : "null"));
+
 	if (!type)
 		type = "rtmp_output";
 
@@ -1229,7 +1287,7 @@ void OBS_service::updateAudioStreamingEncoder(bool isSimpleMode, StreamServiceId
 	if (streamingOutput[serviceId]) {
 		codec = obs_output_get_supported_audio_codecs(streamingOutput[serviceId]);
 	} else {
-		const char *type = obs_service_get_output_type(services[serviceId]);
+		const char *type = getStreamOutputType(services[serviceId]);
 		if (!type)
 			type = "rtmp_output";
 
