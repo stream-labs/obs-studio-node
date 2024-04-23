@@ -42,9 +42,8 @@ obs_output_t *replayBufferOutput = nullptr;
 
 obs_output_t *virtualWebcamOutput = nullptr;
 
-obs_encoder_t *audioSimpleStreamingEncoder = nullptr;
 obs_encoder_t *audioSimpleRecordingEncoder = nullptr;
-obs_encoder_t *audioAdvancedStreamingEncoder = nullptr;
+std::vector<obs_encoder_t *> audioStreamingEncoder = {nullptr, nullptr};
 std::vector<obs_encoder_t *> videoStreamingEncoder = {nullptr, nullptr};
 std::vector<obs_video_info_t *> videoInfo = {nullptr, nullptr};
 obs_encoder_t *videoRecordingEncoder = nullptr;
@@ -802,32 +801,23 @@ bool OBS_service::createVideoStreamingEncoder(StreamServiceId serviceId)
 	return true;
 }
 
-void OBS_service::createSimpleAudioStreamingEncoder()
+void OBS_service::createAudioStreamingEncoder(StreamServiceId serviceId, bool isSimpleMode)
 {
 	std::string id;
+	obs_encoder_t *audioStreamingEncoder = nullptr;
+	uint64_t trackIndex = 0;
+	std::string audio_encoder_name = isSimpleMode ? "simple_audio_streaming" : "adv_audio_streaming";
+	audio_encoder_name = audio_encoder_name + (serviceId == StreamServiceId::Main ? "_main" : "_second");
 
-	if (audioSimpleStreamingEncoder) {
-		obs_encoder_release(audioSimpleStreamingEncoder);
-		audioSimpleStreamingEncoder = nullptr;
+	if (!isSimpleMode) {
+		trackIndex = config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "TrackIndex") - 1;
 	}
 
-	if (!createAudioEncoder(&audioSimpleStreamingEncoder, id, ffmpeg_aac_id, GetSimpleAudioBitrate(), "simple_audio_streaming", 0)) {
-		throw "Failed to create audio simple recording encoder";
+	if (!createAudioEncoder(&audioStreamingEncoder, id, ffmpeg_aac_id, GetSimpleAudioBitrate(), audio_encoder_name.c_str(), trackIndex)) {
+		throw "Failed to create audio streaming encoder";
 	}
-}
 
-void OBS_service::createAdvancedAudioStreamingEncoder()
-{
-	std::string id;
-
-	if (audioAdvancedStreamingEncoder) {
-		obs_encoder_release(audioAdvancedStreamingEncoder);
-		audioAdvancedStreamingEncoder = nullptr;
-	}
-	uint64_t trackIndex = config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "TrackIndex") - 1;
-	if (!createAudioEncoder(&audioAdvancedStreamingEncoder, id, ffmpeg_aac_id, GetSimpleAudioBitrate(), "adv_audio_streaming", trackIndex)) {
-		throw "Failed to create audio advenced recording encoder";
-	}
+	setAudioStreamingEncoder(audioStreamingEncoder, serviceId);
 }
 
 static inline bool valid_string(const char *str)
@@ -1246,11 +1236,7 @@ bool OBS_service::startStreaming(StreamServiceId serviceId)
 	updateStreamingOutput(serviceId);
 
 	obs_output_set_video_encoder(streamingOutput[serviceId], videoStreamingEncoder[serviceId]);
-
-	if (isSimpleMode)
-		obs_output_set_audio_encoder(streamingOutput[serviceId], audioSimpleStreamingEncoder, 0);
-	else
-		obs_output_set_audio_encoder(streamingOutput[serviceId], audioAdvancedStreamingEncoder, 0);
+	obs_output_set_audio_encoder(streamingOutput[serviceId], audioStreamingEncoder[serviceId], 0);
 
 	twitchSoundtrackEnabled = startTwitchSoundtrackAudio();
 	if (!twitchSoundtrackEnabled)
@@ -1303,22 +1289,23 @@ void OBS_service::updateAudioStreamingEncoder(bool isSimpleMode, StreamServiceId
 		return;
 	}
 
-	obs_encoder_t **enc = isSimpleMode ? &audioSimpleStreamingEncoder : &audioAdvancedStreamingEncoder;
+	obs_encoder_t *enc = getAudioStreamingEncoder(serviceId);
 
-	if (*enc && obs_encoder_active(*enc))
+	if (enc && obs_encoder_active(enc))
 		return;
 
-	if (*enc) {
-		obs_encoder_release(*enc);
-		*enc = nullptr;
+	if (enc) {
+		obs_encoder_release(enc);
+		enc = nullptr;
+		setAudioStreamingEncoder(nullptr, serviceId);
 	}
 
 	if (strstr(codec, "aac") != NULL && isSimpleMode) {
-		createSimpleAudioStreamingEncoder();
-		*enc = audioSimpleStreamingEncoder;
+		createAudioStreamingEncoder(serviceId, isSimpleMode);
+		enc = audioStreamingEncoder[serviceId];
 	} else if (strstr(codec, "aac") != NULL && !isSimpleMode) {
-		createAdvancedAudioStreamingEncoder();
-		*enc = audioAdvancedStreamingEncoder;
+		createAudioStreamingEncoder(serviceId, isSimpleMode);
+		enc = audioStreamingEncoder[serviceId];
 	} else {
 		uint64_t trackIndex = config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "TrackIndex");
 		const char *id = FindAudioEncoderFromCodec(codec);
@@ -1326,14 +1313,14 @@ void OBS_service::updateAudioStreamingEncoder(bool isSimpleMode, StreamServiceId
 		obs_data_t *settings = obs_data_create();
 		obs_data_set_int(settings, "bitrate", audioBitrate);
 
-		*enc = obs_audio_encoder_create(id, "alt_audio_enc", nullptr, isSimpleMode ? 0 : trackIndex - 1, nullptr);
-		if (!(*enc))
+		enc = obs_audio_encoder_create(id, "alt_audio_enc", nullptr, isSimpleMode ? 0 : trackIndex - 1, nullptr);
+		if (!(enc))
 			return;
 
-		obs_encoder_update(*enc, settings);
+		obs_encoder_update(enc, settings);
 		obs_data_release(settings);
 	}
-	obs_encoder_set_audio(*enc, obs_get_audio());
+	obs_encoder_set_audio(enc, obs_get_audio());
 
 	return;
 }
@@ -1457,7 +1444,7 @@ bool OBS_service::updateRecordingEncoders(bool isSimpleMode, StreamServiceId ser
 			if (!obs_get_multiple_rendering())
 				useStreamEncoder = true;
 			else {
-				duplicate_encoder(&audioSimpleRecordingEncoder, audioSimpleStreamingEncoder, 0);
+				duplicate_encoder(&audioSimpleRecordingEncoder, audioStreamingEncoder[serviceId], 0);
 				obs_encoder_set_audio(audioSimpleRecordingEncoder, obs_get_audio());
 				useStreamEncoder = false;
 			}
@@ -1512,7 +1499,7 @@ bool OBS_service::startRecording(void)
 
 	obs_output_set_video_encoder(recordingOutput, useStreamEncoder ? videoStreamingEncoder[0] : videoRecordingEncoder);
 	if (isSimpleMode) {
-		obs_output_set_audio_encoder(recordingOutput, useStreamEncoder ? audioSimpleStreamingEncoder : audioSimpleRecordingEncoder, 0);
+		obs_output_set_audio_encoder(recordingOutput, useStreamEncoder ? audioStreamingEncoder[0] : audioSimpleRecordingEncoder, 0);
 	} else {
 		int tracks = int(config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "RecTracks"));
 		int idx = 0;
@@ -1682,7 +1669,7 @@ bool OBS_service::startReplayBuffer(void)
 
 	obs_output_set_video_encoder(replayBufferOutput, useStreamEncoder ? videoStreamingEncoder[0] : videoRecordingEncoder);
 	if (isSimpleMode) {
-		obs_output_set_audio_encoder(replayBufferOutput, useStreamEncoder ? audioSimpleStreamingEncoder : audioSimpleRecordingEncoder, 0);
+		obs_output_set_audio_encoder(replayBufferOutput, useStreamEncoder ? audioStreamingEncoder[0] : audioSimpleRecordingEncoder, 0);
 	} else {
 		int tracks = int(config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "RecTracks"));
 		int idx = 0;
@@ -1906,7 +1893,7 @@ void OBS_service::updateVideoStreamingEncoder(bool isSimpleMode, StreamServiceId
 		}
 
 		obs_encoder_update(videoStreamingEncoder[serviceId], h264Settings);
-		obs_encoder_update(audioSimpleStreamingEncoder, aacSettings);
+		obs_encoder_update(audioStreamingEncoder[serviceId], aacSettings);
 
 		obs_data_release(h264Settings);
 		obs_data_release(aacSettings);
@@ -2416,15 +2403,17 @@ void OBS_service::setRecordingEncoder(obs_encoder_t *encoder)
 	videoRecordingEncoder = encoder;
 }
 
-obs_encoder_t *OBS_service::getAudioSimpleStreamingEncoder(void)
+obs_encoder_t *OBS_service::getAudioStreamingEncoder(StreamServiceId serviceId)
 {
-	return audioSimpleStreamingEncoder;
+	return audioStreamingEncoder[serviceId];
 }
 
-void OBS_service::setAudioSimpleStreamingEncoder(obs_encoder_t *encoder)
+void OBS_service::setAudioStreamingEncoder(obs_encoder_t *encoder, StreamServiceId serviceId)
 {
-	obs_encoder_release(audioSimpleStreamingEncoder);
-	audioSimpleStreamingEncoder = encoder;
+	if (audioStreamingEncoder[serviceId]) {
+		obs_encoder_release(audioStreamingEncoder[serviceId]);
+	}
+	audioStreamingEncoder[serviceId] = encoder;
 }
 
 obs_encoder_t *OBS_service::getAudioSimpleRecordingEncoder(void)
@@ -2441,17 +2430,6 @@ void OBS_service::setAudioSimpleRecordingEncoder(obs_encoder_t *encoder)
 {
 	obs_encoder_release(audioSimpleRecordingEncoder);
 	audioSimpleRecordingEncoder = encoder;
-}
-
-obs_encoder_t *OBS_service::getAudioAdvancedStreamingEncoder(void)
-{
-	return audioAdvancedStreamingEncoder;
-}
-
-void OBS_service::setAudioAdvancedStreamingEncoder(obs_encoder_t *encoder)
-{
-	obs_encoder_release(audioAdvancedStreamingEncoder);
-	audioAdvancedStreamingEncoder = encoder;
 }
 
 obs_output_t *OBS_service::getStreamingOutput(StreamServiceId serviceId)
