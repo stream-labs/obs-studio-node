@@ -28,16 +28,17 @@ env:
 jobs:
   macos64:
     name: 'macOS'
-    runs-on: [macos-latest]
     strategy:
       matrix:
         BuildReleases: [Release-x86_64, Release-arm64]
         include:
           - BuildReleases: Release-x86_64
+            runs-on: macos-13
             BuildConfig: RelWithDebInfo
             ReleaseName: release
             Architecture: x86_64
           - BuildReleases: Release-arm64
+            runs-on: macos-14
             BuildConfig: RelWithDebInfo
             ReleaseName: release
             Architecture: arm64
