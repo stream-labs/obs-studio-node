@@ -1295,9 +1295,8 @@ void OBS_service::updateAudioStreamingEncoder(bool isSimpleMode, StreamServiceId
 		return;
 
 	if (enc) {
-		obs_encoder_release(enc);
-		enc = nullptr;
 		setAudioStreamingEncoder(nullptr, serviceId);
+		enc = nullptr;
 	}
 
 	if (strstr(codec, "aac") != NULL && isSimpleMode) {
