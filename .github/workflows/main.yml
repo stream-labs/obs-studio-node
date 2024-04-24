@@ -28,6 +28,7 @@ env:
 jobs:
   macos64:
     name: 'macOS'
+    runs-on: macos-12
     strategy:
       matrix:
         BuildReleases: [Release-x86_64, Release-arm64]
