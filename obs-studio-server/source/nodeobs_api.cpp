@@ -1602,22 +1602,13 @@ void OBS_API::destroyOBS_API(void)
 		recordingEncoder = nullptr;
 	}
 
-	obs_encoder_t *audioStreamingEncoder = OBS_service::getAudioSimpleStreamingEncoder();
-	if (audioStreamingEncoder != NULL) {
-		obs_encoder_release(audioStreamingEncoder);
-		audioStreamingEncoder = nullptr;
-	}
+	OBS_service::setAudioStreamingEncoder(nullptr, StreamServiceId::Main);
+	OBS_service::setAudioStreamingEncoder(nullptr, StreamServiceId::Second);
 
 	obs_encoder_t *audioRecordingEncoder = OBS_service::getAudioSimpleRecordingEncoder();
 	if (audioRecordingEncoder != NULL && (OBS_service::useRecordingPreset() || obs_get_multiple_rendering())) {
 		obs_encoder_release(audioRecordingEncoder);
 		audioRecordingEncoder = nullptr;
-	}
-
-	obs_encoder_t *audioAdvancedStreamingEncoder = OBS_service::getAudioAdvancedStreamingEncoder();
-	if (audioAdvancedStreamingEncoder != NULL) {
-		obs_encoder_release(audioAdvancedStreamingEncoder);
-		audioAdvancedStreamingEncoder = nullptr;
 	}
 
 	obs_encoder_t *archiveEncoder = OBS_service::getArchiveEncoder();
