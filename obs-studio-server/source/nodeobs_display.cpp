@@ -522,6 +522,9 @@ OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode,
 {
 	m_source = obs_get_source_by_name(sourceName.c_str());
 	obs_source_inc_showing(m_source);
+	if (m_source && obs_source_get_type(m_source) == OBS_SOURCE_TYPE_SCENE) {
+		obs_add_scene_to_backstage1(m_source);
+	}
 }
 
 OBS::Display::~Display()
@@ -532,6 +535,7 @@ OBS::Display::~Display()
 		obs_display_remove_draw_callback(m_display, DisplayCallback, this);
 
 		if (m_source) {
+			obs_remove_scene_from_backstage1(m_source);
 			obs_source_dec_showing(m_source);
 			obs_source_release(m_source);
 		}
@@ -1437,7 +1441,7 @@ void OBS::Display::DisplayCallback(void *displayPtr, uint32_t cx, uint32_t cy)
 	// Get a source and its scene for the UI effects
 	obs_source_t *source = dp->GetSourceForUIEffects();
 
-	/* This should work for both individual sources 
+	/* This should work for both individual sources
 	 * that are actually scenes and our main transition scene */
 	obs_scene_t *scene = (source) ? obs_scene_from_source(source) : nullptr;
 
@@ -1497,8 +1501,8 @@ void OBS::Display::DisplayCallback(void *displayPtr, uint32_t cx, uint32_t cy)
 
 	// Source Rendering
 	if (dp->m_source) {
-		/* If the source is a transition it means this display 
-		 * is for Studio Mode and that the scene it contains is a 
+		/* If the source is a transition it means this display
+		 * is for Studio Mode and that the scene it contains is a
 		 * duplicate of the current scene, apply selective recording
 		 * layer rendering if it is enabled */
 		if (obs_get_multiple_rendering() && obs_source_get_type(dp->m_source) == OBS_SOURCE_TYPE_TRANSITION)

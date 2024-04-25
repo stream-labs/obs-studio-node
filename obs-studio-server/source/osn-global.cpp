@@ -102,7 +102,7 @@ void osn::Global::AddSceneToBackstage(void *data, const int64_t id, const std::v
 		}
 	}
 
-	obs_add_scene_to_backstage(source);
+	obs_add_scene_to_backstage2(source);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
@@ -118,7 +118,7 @@ void osn::Global::RemoveSceneFromBackstage(void *data, const int64_t id, const s
 		}
 	}
 
-	obs_remove_scene_from_backstage(source);
+	obs_remove_scene_from_backstage2(source);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
