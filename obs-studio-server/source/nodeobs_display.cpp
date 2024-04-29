@@ -523,7 +523,7 @@ OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode,
 	m_source = obs_get_source_by_name(sourceName.c_str());
 	obs_source_inc_showing(m_source);
 	if (m_source && obs_source_get_type(m_source) == OBS_SOURCE_TYPE_SCENE) {
-		obs_add_scene_to_backstage1(m_source);
+		obs_activate_scene_on_backstage(m_source);
 	}
 }
 
@@ -535,7 +535,7 @@ OBS::Display::~Display()
 		obs_display_remove_draw_callback(m_display, DisplayCallback, this);
 
 		if (m_source) {
-			obs_remove_scene_from_backstage1(m_source);
+			obs_deactivate_scene_on_backstage(m_source);
 			obs_source_dec_showing(m_source);
 			obs_source_release(m_source);
 		}
