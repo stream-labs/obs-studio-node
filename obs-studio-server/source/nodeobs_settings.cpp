@@ -1336,8 +1336,6 @@ void OBS_settings::getEncoderSettings(const obs_encoder_t *encoder, obs_data_t *
 	obs_properties_t *encoderProperties = obs_encoder_properties(encoder);
 	obs_property_t *property = obs_properties_first(encoderProperties);
 
-	blog(LOG_INFO, "OBS_settings::getEncoderSettings - applyServiceSettings: %d", applyServiceSettings);
-
 	OBSData service_default_settings;
 	if (applyServiceSettings && obs_encoder_get_type(encoder) == OBS_ENCODER_VIDEO) {
 		service_default_settings = obs_data_create();
