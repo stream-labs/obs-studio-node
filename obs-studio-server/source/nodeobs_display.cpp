@@ -535,7 +535,9 @@ OBS::Display::~Display()
 		obs_display_remove_draw_callback(m_display, DisplayCallback, this);
 
 		if (m_source) {
-			obs_deactivate_scene_on_backstage(m_source);
+			if (obs_source_get_type(m_source) == OBS_SOURCE_TYPE_SCENE) {
+				obs_deactivate_scene_on_backstage(m_source);
+			}
 			obs_source_dec_showing(m_source);
 			obs_source_release(m_source);
 		}
