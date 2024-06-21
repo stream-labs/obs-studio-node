@@ -1331,10 +1331,18 @@ void OBS_settings::getSimpleOutputSettings(std::vector<SubCategory> *outputSetti
 }
 
 void OBS_settings::getEncoderSettings(const obs_encoder_t *encoder, obs_data_t *settings, std::vector<Parameter> *subCategoryParameters, int index,
-				      bool isCategoryEnabled, bool recordEncoder)
+				      bool isCategoryEnabled, bool applyServiceSettings, bool recordEncoder)
 {
 	obs_properties_t *encoderProperties = obs_encoder_properties(encoder);
 	obs_property_t *property = obs_properties_first(encoderProperties);
+
+	OBSData service_default_settings;
+	if (applyServiceSettings && obs_encoder_get_type(encoder) == OBS_ENCODER_VIDEO) {
+		service_default_settings = obs_data_create();
+		// INT_MAX value is needed to get actual upper bound of service-default bitrate
+		obs_data_set_int(service_default_settings, "bitrate", INT_MAX);
+		obs_service_apply_encoder_settings(OBS_service::getService(StreamServiceId::Main), service_default_settings, nullptr);
+	}
 
 	Parameter param;
 	while (property) {
@@ -1544,6 +1552,60 @@ void OBS_settings::getEncoderSettings(const obs_encoder_t *encoder, obs_data_t *
 		bool isEnabled = obs_property_enabled(property);
 		if (!isCategoryEnabled)
 			isEnabled = isCategoryEnabled;
+
+		if (applyServiceSettings) {
+			auto data_item = obs_data_first(service_default_settings);
+			while (data_item) {
+				if (param.name == obs_data_item_get_name(data_item)) {
+					isEnabled = false;
+
+					const auto obsType = obs_data_item_gettype(data_item);
+					if (obsType == OBS_DATA_STRING) {
+						const auto obs_val = obs_data_item_get_string(data_item);
+						const auto val_len = strlen(obs_val);
+						param.currentValue.resize(val_len);
+						memcpy(param.currentValue.data(), obs_val, val_len);
+						param.sizeOfCurrentValue = val_len;
+					} else if (obsType == OBS_DATA_NUMBER) {
+						const auto obs_val = obs_data_item_get_int(data_item);
+						if (param.name == "bitrate") {
+							param.visible = true;
+							int64_t cur_settings_value = obs_data_get_int(settings, param.name.c_str());
+
+							const auto vbitrate_abs_max = obs_data_get_int(settings, "vbitrate_abs_max");
+							if (!vbitrate_abs_max) {
+								// Contains value of '10000000' deeply hardcoded inside OBS
+								obs_data_set_int(settings, "vbitrate_abs_max", param.maxVal);
+							}
+
+							param.maxVal = obs_val;
+							if (cur_settings_value > obs_val) {
+								cur_settings_value = obs_val;
+								param.currentValue.resize(sizeof(cur_settings_value));
+								memcpy(param.currentValue.data(), &cur_settings_value, sizeof(cur_settings_value));
+								param.sizeOfCurrentValue = sizeof(cur_settings_value);
+							}
+							isEnabled = true;
+						} else {
+							param.currentValue.resize(sizeof(obs_val));
+							memcpy(param.currentValue.data(), &obs_val, sizeof(obs_val));
+							param.sizeOfCurrentValue = sizeof(obs_val);
+						}
+					}
+				} else if (param.name == "crf") {
+					param.visible = false;
+				}
+				obs_data_item_next(&data_item);
+			}
+
+		} else {
+			// Restoring back prev value if any
+			const auto vbitrate_abs_max = obs_data_get_int(settings, "vbitrate_abs_max");
+			obs_data_erase(settings, "vbitrate_abs_max");
+			if (param.name == "bitrate" && vbitrate_abs_max) {
+				param.maxVal = vbitrate_abs_max;
+			}
+		}
 
 		param.enabled = isEnabled;
 		param.masked = false;
@@ -1919,7 +1981,7 @@ SubCategory OBS_settings::getAdvancedOutputStreamingSettings(config_t *config, b
 		settings = obs_encoder_get_settings(streamingEncoder);
 	}
 
-	getEncoderSettings(streamingEncoder, settings, &(streamingSettings.params), index, isCategoryEnabled, false);
+	getEncoderSettings(streamingEncoder, settings, &(streamingSettings.params), index, isCategoryEnabled, applyServiceSettingsValue, false);
 	streamingSettings.paramsCount = streamingSettings.params.size();
 	return streamingSettings;
 }
@@ -2416,7 +2478,7 @@ void OBS_settings::getStandardRecordingSettings(SubCategory *subCategoryParamete
 	}
 
 	if (strcmp(recEncoderCurrentValue, "none")) {
-		getEncoderSettings(recordingEncoder, settings, &(subCategoryParameters->params), index, isCategoryEnabled, true);
+		getEncoderSettings(recordingEncoder, settings, &(subCategoryParameters->params), index, isCategoryEnabled, false, true);
 	}
 
 	subCategoryParameters->paramsCount = subCategoryParameters->params.size();
