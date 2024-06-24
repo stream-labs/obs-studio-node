@@ -24,6 +24,7 @@
 #include <ipc-function.hpp>
 #include <ipc-server.hpp>
 #include <memory>
+#include <string_view>
 #include <thread>
 #include <vector>
 #include "osn-error.hpp"
@@ -167,6 +168,8 @@ static void Shutdown(void *data, const int64_t id, const std::vector<ipc::value>
 int main(int argc, char *argv[])
 {
 #ifdef __APPLE__
+	std::string_view slobsStdOutPath("/tmp/slobs-stdout");
+	std::string_view slobsStdErrPath("/tmp/slobs-stderr");
 	// Reuse file discriptors 1 and 2 in case they not open at launch so output to stdout and stderr not redirected to unexpected file
 	struct stat sb;
 	bool override_std_fd = false;
@@ -174,8 +177,8 @@ int main(int argc, char *argv[])
 	int out_err = -1;
 	if (fstat(1, &sb) != 0) {
 		override_std_fd = true;
-		int out_pid = open("/tmp/slobs-stdout", O_WRONLY | O_CREAT | O_DSYNC);
-		int out_err = open("/tmp/slobs-stderr", O_WRONLY | O_CREAT | O_DSYNC);
+		int out_pid = open(slobsStdOutPath.data(), O_WRONLY | O_CREAT | O_DSYNC);
+		int out_err = open(slobsStdErrPath.data(), O_WRONLY | O_CREAT | O_DSYNC);
 	}
 
 	g_util_osx = new UtilInt();
@@ -327,6 +330,8 @@ int main(int argc, char *argv[])
 	if (override_std_fd) {
 		close(out_pid);
 		close(out_err);
+		unlink(slobsStdOutPath.data());
+		unlink(slobsStdErrPath.data());
 	}
 #endif
 	return 0;
