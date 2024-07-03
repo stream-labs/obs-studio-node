@@ -476,6 +476,14 @@ OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode,
 	SystemWorkerThread::CreateWindowMessageAnswer answer;
 
 	question.m_parentWindow = (HWND)windowHandle;
+
+	RECT parentWindowRect = {};
+	GetWindowRect((HWND)windowHandle, &parentWindowRect);
+
+	blog(LOG_INFO, ">> OBS::Display::Display() parent window x: %d; y: %d; width: %d; height: %d", parentWindowRect.left, parentWindowRect.top,
+	     parentWindowRect.right - parentWindowRect.left, parentWindowRect.bottom - parentWindowRect.top);
+	blog(LOG_INFO, ">> OBS::Display::Display() this window width: %u; height: %u", m_gsInitData.cx, m_gsInitData.cy);
+
 	question.m_width = m_gsInitData.cx;
 	question.m_height = m_gsInitData.cy;
 	while (!m_systemWorkerThread->PostMessage(question, &answer)) {
@@ -497,6 +505,11 @@ OBS::Display::Display(uint64_t windowHandle, enum obs_video_rendering_mode mode,
 	m_ourWindow = answer.m_windowHandle;
 	m_parentWindow = reinterpret_cast<HWND>(windowHandle);
 	m_gsInitData.window.hwnd = reinterpret_cast<void *>(m_ourWindow);
+
+	DPI_AWARENESS dpiAwareness = GetAwarenessFromDpiAwarenessContext(GetThreadDpiAwarenessContext());
+	blog(LOG_INFO, ">> OBS::Display::Display() dpiAwareness: %d", (int)dpiAwareness);
+	UINT dpi = GetDpiForWindow(m_ourWindow);
+	blog(LOG_INFO, ">> OBS::Display::Display() dpi: %u", dpi);
 #endif
 	{
 		std::lock_guard lock(m_displayMtx);
@@ -609,6 +622,9 @@ void OBS::Display::SetPosition(uint32_t x, uint32_t y)
 		blog(LOG_DEBUG, msg.c_str(), obs_source_get_name(m_source), x, y, m_ourWindow);
 	}
 
+	blog(LOG_INFO, ">> OBS::Display::SetPosition() x: %u; y: %u; width: %u; height: %u", m_position.first, m_position.second, m_gsInitData.cx,
+	     m_gsInitData.cy);
+
 	HWND insertAfter = (m_renderAtBottom) ? HWND_BOTTOM : NULL;
 	SetWindowPos(m_ourWindow, insertAfter, m_position.first, m_position.second, m_gsInitData.cx, m_gsInitData.cy,
 		     SWP_NOCOPYBITS | SWP_NOSIZE | SWP_NOACTIVATE);
@@ -678,6 +694,12 @@ void OBS::Display::setSizeCall(int step)
 		break;
 	}
 
+	blog(LOG_INFO, ">> OBS::Display::setSizeCall() A x: %u; y: %u; width: %u; height: %u", use_x, use_y, use_width, use_height);
+	DPI_AWARENESS dpiAwareness = GetAwarenessFromDpiAwarenessContext(GetThreadDpiAwarenessContext());
+	blog(LOG_INFO, ">> OBS::Display::setSizeCall() dpiAwareness: %d", (int)dpiAwareness);
+	UINT dpi = GetDpiForWindow(m_ourWindow);
+	blog(LOG_INFO, ">> OBS::Display::setSizeCall() dpi: %u", dpi);
+
 	// Resize Window
 	if (step > 0) {
 		ret = SetWindowPos(m_ourWindow, NULL, use_x, use_y, use_width, use_height, SWP_NOCOPYBITS | SWP_NOACTIVATE | SWP_NOZORDER | SWP_HIDEWINDOW);
@@ -704,6 +726,8 @@ void OBS::Display::SetSize(uint32_t width, uint32_t height)
 		blog(LOG_DEBUG, msg.c_str(), obs_source_get_name(m_source), width, height, m_ourWindow);
 	}
 
+	blog(LOG_INFO, ">> OBS::Display::SetSize() width: %u; height: %u", width, height);
+
 	m_gsInitData.cx = width;
 	m_gsInitData.cy = height;
 
@@ -723,6 +747,7 @@ void OBS::Display::SetSize(uint32_t width, uint32_t height)
 
 std::pair<uint32_t, uint32_t> OBS::Display::GetSize()
 {
+	blog(LOG_INFO, ">> OBS::Display::GetSize() width: %u; height: %u", m_gsInitData.cx, m_gsInitData.cy);
 	return std::make_pair(m_gsInitData.cx, m_gsInitData.cy);
 }
 
