@@ -389,8 +389,7 @@ void OBS_content::OBS_content_resizeDisplay(void *data, const int64_t id, const 
 
 	OBS::Display *display = value->second;
 
-	blog(LOG_INFO, ">> OBS_content::OBS_content_resizeDisplay() width: %u; height: %u",
-		args[1].value_union.ui32, args[2].value_union.ui32);
+	blog(LOG_INFO, ">> OBS_content::OBS_content_resizeDisplay() width: %u; height: %u", args[1].value_union.ui32, args[2].value_union.ui32);
 
 	display->m_gsInitData.cx = args[1].value_union.ui32;
 	display->m_gsInitData.cy = args[2].value_union.ui32;
