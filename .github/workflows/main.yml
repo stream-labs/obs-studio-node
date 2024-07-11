@@ -126,10 +126,15 @@ jobs:
     env:
       OS_TAG: "win64"
     steps:
+      - name: Download
+        run: |
+          echo ${{ runner.temp }}
+          $client = new-object System.Net.WebClient
+          $client.DownloadFile("https://aka.ms/vs/17/release/vs_buildtools.exe","${{ runner.temp }}\vs_buildtools.exe")
+        shell: powershell
       - name: Install build tools
         run: |
-          winget install -e --id Microsoft.VisualStudio.2022.BuildTools --override "--passive --wait --add Microsoft.VisualStudio.Workload.VCTools;includeRecommended"
-        shell: cmd
+          .\${{ runner.temp }}\vs_buildtools.exe --passive --wait --add Microsoft.VisualStudio.Workload.VCTools;includeRecommended
       - name: 'Add msbuild to PATH'
         uses: microsoft/setup-msbuild@v1
       - name: 'Checkout'
