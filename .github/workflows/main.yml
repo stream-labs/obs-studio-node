@@ -126,7 +126,7 @@ jobs:
     env:
       OS_TAG: "win64"
     steps:
-      - name: Download
+      - name: Download build tools
         run: |
           echo ${{ runner.temp }}
           $client = new-object System.Net.WebClient
@@ -134,7 +134,7 @@ jobs:
         shell: powershell
       - name: Install build tools
         run: |
-          .\${{ runner.temp }}\vs_buildtools.exe --passive --wait --add Microsoft.VisualStudio.Workload.VCTools;includeRecommended
+          ${{ runner.temp }}\vs_buildtools.exe --passive --wait --add "Microsoft.VisualStudio.Workload.VCTools;includeRecommended"
       - name: 'Add msbuild to PATH'
         uses: microsoft/setup-msbuild@v1
       - name: 'Checkout'
