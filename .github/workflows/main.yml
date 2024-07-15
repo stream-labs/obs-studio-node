@@ -129,6 +129,26 @@ jobs:
     steps:
       - name: 'Add msbuild to PATH'
         uses: microsoft/setup-msbuild@v1
+      - name: Install build components
+        run: |
+          Set-Location "C:\Program Files (x86)\Microsoft Visual Studio\Installer\"
+          $InstallPath = "C:\Program Files\Microsoft Visual Studio\2022\Enterprise"
+          $componentsToInstall= @(
+          "Microsoft.VisualStudio.Component.VC.v141.x86.x64"
+          "Microsoft.VisualStudio.Component.VC.v141.x86.x64.Spectre"
+          "Microsoft.VisualStudio.Component.VC.v141.MFC"
+          "Microsoft.VisualStudio.Component.VC.v141.MFC.Spectre"
+          "Microsoft.VisualStudio.Component.VC.14.39.17.9.x86.x64"
+          "Microsoft.VisualStudio.Component.VC.14.39.17.9.x86.x64.Spectre"
+          "Microsoft.VisualStudio.Component.VC.14.39.17.9.MFC"
+          "Microsoft.VisualStudio.Component.VC.14.39.17.9.ATL"
+          )
+          [string]$workloadArgs = $componentsToInstall | ForEach-Object {" --add " +  $_}
+          $Arguments = ('/c', "vs_installer.exe", 'modify', '--installPath', "`"$InstallPath`"",$workloadArgs, '--quiet', '--norestart', '--nocache')
+          # should be run twice
+          $process = Start-Process -FilePath cmd.exe -ArgumentList $Arguments -Wait -PassThru -WindowStyle Hidden
+          $process = Start-Process -FilePath cmd.exe -ArgumentList $Arguments -Wait -PassThru -WindowStyle Hidden
+        shell: powershell
       - name: 'Checkout'
         uses: actions/checkout@v3
         with:
@@ -139,7 +159,7 @@ jobs:
         shell: bash
       - name: Install dependencies
         run: |
-          yarn install --immutable --immutable-cache --check-cache 
+          yarn install --immutable --immutable-cache --check-cache
           yarn add electron@${{env.ElectronVersion}} -D
       - name: Configure obs-studio-node
         run: ./ci/configure-osn.cmd
@@ -186,7 +206,7 @@ jobs:
         shell: bash
       - name: Install dependencies
         run: |
-          yarn install --immutable --immutable-cache --check-cache 
+          yarn install --immutable --immutable-cache --check-cache
           yarn add electron@${{env.ElectronVersion}} -D
 
       - name: Get build from cache
@@ -207,7 +227,7 @@ jobs:
           OSN_ACCESS_KEY_ID: ${{secrets.AWS_RELEASE_ACCESS_KEY_ID}}
           OSN_SECRET_ACCESS_KEY: ${{secrets.AWS_RELEASE_SECRET_ACCESS_KEY}}
           RELEASE_NAME: ${{matrix.ReleaseName}}
-      - name: Get the version of aws cli 
+      - name: Get the version of aws cli
         run: aws --version
         shell: powershell
       - name: Install specific version of AWS CLI
