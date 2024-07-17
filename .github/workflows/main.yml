@@ -18,7 +18,7 @@ env:
   RELEASE_BUCKET: "obsstudionodes3.streamlabs.com"
   RuntimeURL: https://artifacts.electronjs.org/headers/dist
   RuntimeName: iojs
-  ElectronVersion: 25.8.4
+  ElectronVersion: 29.4.3
   SLGenerator: Visual Studio 17 2022
   SLDistributeDirectory: distribute
   SLFullDistributePath: "streamlabs-build.app/distribute" # The .app extension is required to run macOS tests correctly.
