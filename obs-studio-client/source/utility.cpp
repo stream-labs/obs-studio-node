@@ -21,6 +21,7 @@
 #include <locale>
 
 #include "nlohmann/json.hpp"
+#include <iomanip>
 #include <sstream>
 #include <fstream>
 
@@ -150,27 +151,21 @@ void limit_log_file_size(const std::string &log_file, size_t limit)
 	}
 }
 
-void ipc_freez_callback(bool freez_detected, std::string app_state_path, std::string call_name, int timeout)
+void ipc_freeze_callback(const std::string &app_state_dir, const std::string &call_name, int total_time, int obs_time)
 {
-	static int freez_counter = 0;
-	if (freez_detected) {
-		freez_counter++;
-		if (freez_counter > 1) {
-			return;
-		}
-	} else {
-		freez_counter--;
-		if (freez_counter > 0) {
-			return;
-		}
-	}
-	const std::string flag_value = "ipc_freez";
-	const std::string flag_name = "detected";
+	static const std::string flag_name = "detected";
+	static const std::string flag_value = "ipc_freeze";
 
-	static std::string call_log_path = app_state_path + "\\long_calls.txt";
-	app_state_path += "\\appState";
+	static const std::string call_log_path = app_state_dir + "\\long_calls.txt";
+	static const std::string app_state_path = app_state_dir + "\\appState";
+	static const auto pid = ::getpid();
+
+	const bool freeze_detected = obs_time < 0;
+
+	static std::mutex file_mutex;
+	std::unique_lock lock(file_mutex);
+
 	std::string current_status = read_app_state_data(app_state_path);
-
 	if (current_status.size() != 0) {
 		std::string updated_status = "";
 		std::string existing_flag_value = "";
@@ -182,7 +177,7 @@ void ipc_freez_callback(bool freez_detected, std::string app_state_path, std::st
 			} catch (...) {
 			}
 
-			if (freez_detected) {
+			if (freeze_detected) {
 				if (existing_flag_value.empty())
 					jsonEntry[flag_name] = flag_value;
 			} else {
@@ -196,17 +191,24 @@ void ipc_freez_callback(bool freez_detected, std::string app_state_path, std::st
 	}
 
 	try {
+		static bool limited = false;
+		if (!limited) {
+			limited = true;
+			limit_log_file_size(call_log_path, 1024 * 1024);
+		}
+
 		std::ofstream out_state_file;
-		limit_log_file_size(call_log_path, 1024 * 1024);
 		out_state_file.open(call_log_path, std::ios::app | std::ios::out);
 		if (out_state_file.is_open()) {
-			if (freez_detected) {
-				out_state_file << "[" << getpid() << "]" << call_name << ":" << timeout;
-			} else {
-				out_state_file << ":" << timeout << "ms\n";
-			}
-			out_state_file.flush();
-			out_state_file.close();
+			const auto now = std::chrono::system_clock::now();
+			const auto now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch());
+			char time_buf[256];
+			const auto time = std::chrono::system_clock::to_time_t(now);
+			::strftime(time_buf, 256, "%Y-%m-%d %H:%M:%S", std::localtime(&time));
+
+			out_state_file << "[" << time_buf << "." << std::setw(3) << std::setfill('0') << (now_ms.count() % 1000) << "] [pid:" << pid
+				       << ", tid:" << std::this_thread::get_id() << "] " << (freeze_detected ? "(freeze) " : "") << call_name
+				       << ", total:" << total_time << "ms, obs:" << obs_time << "ms" << std::endl;
 		}
 	} catch (...) {
 	}

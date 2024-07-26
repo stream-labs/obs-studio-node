@@ -47,7 +47,7 @@ Napi::Value api::OBS_API_initAPI(const Napi::CallbackInfo &info)
 	if (!conn)
 		return info.Env().Undefined();
 
-	conn->set_freez_callback(ipc_freez_callback, path);
+	conn->set_freeze_callback(ipc_freeze_callback, path);
 
 	std::vector<ipc::value> response = conn->call_synchronous_helper(
 		"API", "OBS_API_initAPI", {ipc::value(path), ipc::value(language), ipc::value(version), ipc::value(crashserverurl)});

@@ -171,5 +171,5 @@ void SetThreadName(const char *threadName);
 std::string from_utf16_wide_to_utf8(const wchar_t *from, size_t length = -1);
 std::wstring from_utf8_to_utf16_wide(const char *from, size_t length = -1);
 
-//write detected possible reason of abnormal app close to a file used to submit statistics
-void ipc_freez_callback(bool freez_detected, std::string app_state_path, std::string call_name, int tiemout);
+// write detected possible reason of abnormal app close to a file used to submit statistics
+void ipc_freeze_callback(const std::string &app_state_path, const std::string &call_name, int total_time, int obs_time);
