@@ -191,13 +191,14 @@ void ipc_freeze_callback(const std::string &app_state_dir, const std::string &ca
 	}
 
 	try {
-		static std::ofstream out_state_file;
-
-		if (!out_state_file.is_open()) {
+		static bool limited = false;
+		if (!limited) {
+			limited = true;
 			limit_log_file_size(call_log_path, 1024 * 1024);
-			out_state_file.open(call_log_path, std::ios::app | std::ios::out);
 		}
 
+		std::ofstream out_state_file;
+		out_state_file.open(call_log_path, std::ios::app | std::ios::out);
 		if (out_state_file.is_open()) {
 			const auto now = std::chrono::system_clock::now();
 			const auto now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch());
