@@ -36,7 +36,10 @@
 #define PRETTY_ERROR_RETURN(_error_code, _message)                                                           \
 	{                                                                                                    \
 		if (utility::osn_current_version() == "0.00.00-preview.0") {                                 \
-			rval.push_back((uint64_t)ErrorCode::Error);                                          \
+			rval.push_back(ipc::value((uint64_t)_error_code));                                   \
+			rval.push_back(ipc::value(_message));                                                \
+			auto error_message = std::string(__PRETTY_FUNCTION__) + " " + std::string(_message); \
+			blog(LOG_ERROR, "%s", error_message.c_str());                                        \
 			return;                                                                              \
 		} else {                                                                                     \
 			rval.push_back(ipc::value((uint64_t)_error_code));                                   \
