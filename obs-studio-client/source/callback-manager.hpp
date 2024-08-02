@@ -38,7 +38,7 @@ extern bool isWorkerRunning;
 extern bool worker_stop;
 extern uint32_t sleepIntervalMS;
 extern std::thread *worker_thread;
-extern Napi::ThreadSafeFunction js_thread;
+extern Napi::ThreadSafeFunction js_source_callback;
 extern bool m_all_workers_stop;
 
 extern std::mutex mtx_volmeters;
@@ -53,6 +53,6 @@ void remove_volmeter(uint64_t id);
 
 void Init(Napi::Env env, Napi::Object exports);
 
-Napi::Value RegisterGlobalCallback(const Napi::CallbackInfo &info);
-Napi::Value RemoveGlobalCallback(const Napi::CallbackInfo &info);
+Napi::Value RegisterSourceCallback(const Napi::CallbackInfo &info);
+Napi::Value RemoveSourceCallback(const Napi::CallbackInfo &info);
 }

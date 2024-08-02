@@ -32,18 +32,18 @@ bool globalCallback::isWorkerRunning = false;
 bool globalCallback::worker_stop = true;
 uint32_t globalCallback::sleepIntervalMS = 50;
 std::thread *globalCallback::worker_thread = nullptr;
-Napi::ThreadSafeFunction globalCallback::js_thread;
+Napi::ThreadSafeFunction globalCallback::js_source_callback;
 bool globalCallback::m_all_workers_stop = false;
 std::mutex globalCallback::mtx_volmeters;
 std::map<uint64_t, Napi::ThreadSafeFunction> globalCallback::volmeters;
 
 void globalCallback::Init(Napi::Env env, Napi::Object exports)
 {
-	exports.Set(Napi::String::New(env, "RegisterSourceCallback"), Napi::Function::New(env, globalCallback::RegisterGlobalCallback));
-	exports.Set(Napi::String::New(env, "RemoveSourceCallback"), Napi::Function::New(env, globalCallback::RemoveGlobalCallback));
+	exports.Set(Napi::String::New(env, "RegisterSourceCallback"), Napi::Function::New(env, globalCallback::RegisterSourceCallback));
+	exports.Set(Napi::String::New(env, "RemoveSourceCallback"), Napi::Function::New(env, globalCallback::RemoveSourceCallback));
 }
 
-Napi::Value globalCallback::RegisterGlobalCallback(const Napi::CallbackInfo &info)
+Napi::Value globalCallback::RegisterSourceCallback(const Napi::CallbackInfo &info)
 {
 	Napi::Function async_callback = info[0].As<Napi::Function>();
 
@@ -56,7 +56,7 @@ Napi::Value globalCallback::RegisterGlobalCallback(const Napi::CallbackInfo &inf
 	return Napi::Boolean::New(info.Env(), true);
 }
 
-Napi::Value globalCallback::RemoveGlobalCallback(const Napi::CallbackInfo &info)
+Napi::Value globalCallback::RemoveSourceCallback(const Napi::CallbackInfo &info)
 {
 	if (isWorkerRunning)
 		stop_worker();
@@ -69,7 +69,7 @@ void globalCallback::start_worker(napi_env env, Napi::Function async_callback)
 	if (!worker_stop)
 		return;
 
-	js_thread = Napi::ThreadSafeFunction::New(env, async_callback, "GlobalCallback", 0, 1, [](Napi::Env) {});
+	js_source_callback = Napi::ThreadSafeFunction::New(env, async_callback, "SourceCallback", 0, 1, [](Napi::Env) {});
 }
 
 void globalCallback::stop_worker(void)
@@ -81,7 +81,7 @@ void globalCallback::stop_worker(void)
 	if (worker_thread->joinable()) {
 		worker_thread->join();
 	}
-	js_thread.Release();
+	js_source_callback.Release();
 }
 
 void globalCallback::worker()
@@ -170,7 +170,7 @@ void globalCallback::worker()
 			}
 
 			if (data->items.size() > 0) {
-				napi_status status = js_thread.NonBlockingCall(data, sources_callback);
+				napi_status status = js_source_callback.NonBlockingCall(data, sources_callback);
 				if (status != napi_ok) {
 					delete data;
 				}
