@@ -22,9 +22,14 @@
 #include "utility-v8.hpp"
 
 struct VolmeterData {
+	std::string source_name;
 	std::vector<float> magnitude;
 	std::vector<float> peak;
 	std::vector<float> input_peak;
+};
+
+struct VolmeterDataArray {
+	std::vector<std::unique_ptr<VolmeterData>> items;
 };
 
 namespace osn {
@@ -41,7 +46,5 @@ public:
 	Napi::Value Destroy(const Napi::CallbackInfo &info);
 	Napi::Value Attach(const Napi::CallbackInfo &info);
 	Napi::Value Detach(const Napi::CallbackInfo &info);
-	Napi::Value AddCallback(const Napi::CallbackInfo &info);
-	Napi::Value RemoveCallback(const Napi::CallbackInfo &info);
 };
 }

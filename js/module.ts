@@ -1337,19 +1337,6 @@ export interface IFader {
      * Otherwise, is a no-op.
      */
     detach(): void;
-
-    /**
-     * Add a callback to the fader. Callback will be called
-     * each time volume associated with the attached source changes.
-     * @param cb - A callback that occurs when volume changes.
-     */
-    addCallback(cb: (db: number) => void): ICallbackData;
-
-    /**
-     * Remove a callback to prevent events from occuring immediately.
-     * @param cbData - Object passed back from a call to {@link ObsFader#addCallback}
-     */
-    removeCallback(cbData: ICallbackData): void;
 }
 
 export interface IVolmeterFactory {
@@ -1384,22 +1371,6 @@ export interface IVolmeter {
      * Detaches the currently attached source from the volmeter object
      */
     detach(): void;
-
-    /**
-     * Add a callback to the volmeter. Callback will be called
-     * each time volume associated with the attached source changes.
-     * @param cb - A callback that occurs when volume changes.
-     */
-    addCallback(
-        cb: (magnitude: number[],
-             peak: number[],
-             inputPeak: number[]) => void): ICallbackData;
-
-    /**
-     * Remove a callback to prevent events from occuring immediately.
-     * @param cbData - Object passed back from a call to {@link ObsVolmeter#addCallback}
-     */
-    removeCallback(cbData: ICallbackData): void;
 }
 
 /**

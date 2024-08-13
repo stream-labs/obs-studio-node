@@ -45,16 +45,17 @@ public:
 	};
 
 private:
-	obs_volmeter_t *self;
-	uint64_t id;
-	size_t callback_count = 0;
-	uint64_t *id2 = nullptr;
-	uint64_t uid_source = 0;
+	// TODO: this should be moved to utility::generic_object_manager and reused everywhere in the code
+	static constexpr auto INVALID_ID = std::numeric_limits<utility::unique_id::id_t>::max();
+
+	obs_volmeter_t *self = nullptr;
+	utility::unique_id::id_t id = INVALID_ID;
+	utility::unique_id::id_t uid_source = INVALID_ID;
 
 	struct AudioData {
-		std::array<float, MAX_AUDIO_CHANNELS> magnitude{0};
-		std::array<float, MAX_AUDIO_CHANNELS> peak{0};
-		std::array<float, MAX_AUDIO_CHANNELS> input_peak{0};
+		std::array<float, MAX_AUDIO_CHANNELS> magnitude{};
+		std::array<float, MAX_AUDIO_CHANNELS> peak{};
+		std::array<float, MAX_AUDIO_CHANNELS> input_peak{};
 		std::chrono::milliseconds lastUpdateTime = std::chrono::milliseconds(0);
 		int32_t ch = 0;
 
@@ -85,10 +86,7 @@ public:
 
 	static void Attach(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
 	static void Detach(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
-	static void AddCallback(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
-	static void RemoveCallback(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
 
-	static void Query(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
 	static void OBSCallback(void *param, const float magnitude[MAX_AUDIO_CHANNELS], const float peak[MAX_AUDIO_CHANNELS],
 				const float input_peak[MAX_AUDIO_CHANNELS]);
 
