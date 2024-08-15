@@ -378,6 +378,7 @@ void osn::ISimpleRecording::Start(void *data, const int64_t id, const std::vecto
 
 		obs_encoder_set_audio(recording->audioEncoder, obs_get_audio());
 		obs_output_set_audio_encoder(recording->output, recording->audioEncoder, 0);
+		obs_encoder_set_video_mix(recording->audioEncoder, obs_video_mix_get(recording->canvas, OBS_RECORDING_VIDEO_RENDERING));
 
 		obs_output_set_video_encoder(recording->output, recording->videoEncoder);
 	}

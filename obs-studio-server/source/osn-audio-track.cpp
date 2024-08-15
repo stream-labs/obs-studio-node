@@ -45,7 +45,9 @@ void osn::IAudioTrack::Register(ipc::server &srv)
 
 void osn::IAudioTrack::Create(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
-	uint64_t uid = osn::IAudioTrack::Manager::GetInstance().allocate(new AudioTrack());
+	uint32_t bitrate = args[0].value_union.ui32;
+	std::string name = args[1].value_str;
+	uint64_t uid = osn::IAudioTrack::Manager::GetInstance().allocate(new AudioTrack(bitrate, name));
 	if (uid == UINT64_MAX) {
 		PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Index list is full.");
 	}
@@ -189,7 +191,7 @@ void osn::IAudioTrack::ImportLegacySettings(void *data, const int64_t id, const 
 		bitrateParam += "Bitrate";
 		std::string nameParam = prefix;
 		nameParam += "Name";
-		auto track = new AudioTrack();
+		auto track = new AudioTrack(160, "");
 		auto uid = osn::IAudioTrack::Manager::GetInstance().allocate(track);
 		if (uid != UINT64_MAX) {
 			track->bitrate = config_get_uint(ConfigManager::getInstance().getBasic(), "AdvOut", bitrateParam.c_str());

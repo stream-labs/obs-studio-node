@@ -29,12 +29,8 @@
 namespace osn {
 class AudioTrack {
 public:
-	AudioTrack()
-	{
-		bitrate = 160;
-		name = "";
-		audioEnc = nullptr;
-	}
+	AudioTrack(uint32_t bitrate, std::string name) : bitrate(bitrate), name(name), audioEnc(nullptr) {}
+
 	~AudioTrack()
 	{
 		if (audioEnc && !obs_encoder_active(audioEnc)) {

@@ -1237,6 +1237,7 @@ bool OBS_service::startStreaming(StreamServiceId serviceId)
 
 	obs_output_set_video_encoder(streamingOutput[serviceId], videoStreamingEncoder[serviceId]);
 	obs_output_set_audio_encoder(streamingOutput[serviceId], audioStreamingEncoder[serviceId], 0);
+	obs_encoder_set_video_mix(audioStreamingEncoder[serviceId], obs_video_mix_get(videoInfo[serviceId], OBS_MAIN_VIDEO_RENDERING));
 
 	twitchSoundtrackEnabled = startTwitchSoundtrackAudio();
 	if (!twitchSoundtrackEnabled)
@@ -1320,7 +1321,7 @@ void OBS_service::updateAudioStreamingEncoder(bool isSimpleMode, StreamServiceId
 		obs_data_release(settings);
 	}
 	obs_encoder_set_audio(enc, obs_get_audio());
-
+	obs_encoder_set_video_mix(enc, obs_video_mix_get(videoInfo[serviceId], OBS_STREAMING_VIDEO_RENDERING));
 	return;
 }
 
@@ -1341,6 +1342,7 @@ void OBS_service::updateAudioRecordingEncoder(bool isSimpleMode)
 			throw std::runtime_error("Failed to create audio simple recording encoder");
 
 		obs_encoder_set_audio(audioSimpleRecordingEncoder, obs_get_audio());
+		obs_encoder_set_video_mix(audioSimpleRecordingEncoder, obs_video_mix_get(0, OBS_RECORDING_VIDEO_RENDERING));
 	} else {
 		updateRecordingAudioTracks();
 	}
@@ -2626,7 +2628,6 @@ void OBS_service::JSCallbackOutputSignal(void *data, calldata_t *params)
 
 void OBS_service::connectOutputSignals(StreamServiceId serviceId)
 {
-	blog(LOG_DEBUG, "connectOutputSignals ");
 	if (streamingOutput[serviceId]) {
 		signal_handler *streamingOutputSignalHandler = obs_output_get_signal_handler(streamingOutput[serviceId]);
 
@@ -2658,7 +2659,6 @@ void OBS_service::connectOutputSignals(StreamServiceId serviceId)
 					       &(replayBufferSignals.at(i)));
 		}
 	}
-	blog(LOG_DEBUG, "connectOutputSignals finished ");
 }
 
 struct HotkeyInfo {
@@ -2931,6 +2931,7 @@ bool OBS_service::startTwitchSoundtrackAudio(void)
 	}
 
 	obs_output_set_audio_encoder(streamingOutput[0], streamArchiveEncST, kSoundtrackArchiveEncoderIdx);
+	obs_encoder_set_video_mix(streamArchiveEncST, obs_video_mix_get(videoInfo[0], OBS_STREAMING_VIDEO_RENDERING));
 
 	std::string currentOutputMode = config_get_string(ConfigManager::getInstance().getBasic(), "Output", "Mode");
 	bool isSimpleMode = currentOutputMode.compare("Simple") == 0;
@@ -3027,6 +3028,7 @@ void OBS_service::setupVodTrack(bool isSimpleMode)
 				       ARCHIVE_NAME, vodTrackIndex)) {
 			obs_encoder_set_audio(streamArchiveEncVod, obs_get_audio());
 			obs_output_set_audio_encoder(streamingOutput[0], streamArchiveEncVod, 1);
+			obs_encoder_set_video_mix(streamArchiveEncVod, obs_video_mix_get(videoInfo[0], OBS_STREAMING_VIDEO_RENDERING));
 		}
 	}
 }
