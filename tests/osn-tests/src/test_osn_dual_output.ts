@@ -22,6 +22,8 @@ describe(testName, () => {
     let hasTestFailed: boolean = false;
     let newSceneName = 'scene_' + randomUUID();
     let newSourceName: string = 'image_source_' + randomUUID();
+    const media_path = path.join(path.normalize(__dirname), '..', 'media');
+    let secondContext;
 
     // Initialize OBS process
     before(async () => {
@@ -36,12 +38,30 @@ describe(testName, () => {
 
         // Connecting output signals
         obs.connectOutputSignals();
+
+        secondContext = osn.VideoFactory.create();
+        const secondVideoInfo: osn.IVideoInfo = {
+            fpsNum: 60,
+            fpsDen: 2,
+            baseWidth: 1080,
+            baseHeight: 1920,
+            outputWidth: 1080,
+            outputHeight: 1920,
+            outputFormat: osn.EVideoFormat.NV12,
+            colorspace: osn.EColorSpace.CS709,
+            range: osn.ERangeType.Full,
+            scaleType: osn.EScaleType.Lanczos,
+            fpsType: EFPSType.Fractional
+        };
+        secondContext.video = secondVideoInfo;
     });
 
     // Shutdown OBS process
     after(async function () {
         // Releasing user got from pool
         await obs.releaseUser();
+
+        secondContext.destroy();
 
         obs.shutdown();
 
@@ -86,24 +106,16 @@ describe(testName, () => {
         }
     });
 
+    async function handleStreamSignals(expectedType: EOBSOutputType, expectedSignal: EOBSOutputSignal, errorMessage: string): Promise<void> {
+        const signalInfo = await obs.getNextSignalInfo(expectedType, expectedSignal);
+        expect(signalInfo.type).to.equal(expectedType, GetErrorMessage(errorMessage));
+        expect(signalInfo.signal).to.equal(expectedSignal, GetErrorMessage(errorMessage));
+        if (signalInfo.signal === EOBSOutputSignal.Stop && signalInfo.code !== 0) {
+            throw Error(GetErrorMessage(ETestErrorMsg.StreamOutputStoppedWithError, signalInfo.code.toString(), signalInfo.error));
+        }
+    }
+
     it('Start Dual Output with advanced recording', async () => {
-        const secondContext = osn.VideoFactory.create();
-
-        const secondVideoInfo: osn.IVideoInfo = {
-            fpsNum: 60,
-            fpsDen: 2,
-            baseWidth: 1080,
-            baseHeight: 1920,
-            outputWidth: 1080,
-            outputHeight: 1920,
-            outputFormat: osn.EVideoFormat.NV12,
-            colorspace: osn.EColorSpace.CS709,
-            range: osn.ERangeType.Full,
-            scaleType: osn.EScaleType.Lanczos,
-            fpsType: EFPSType.Fractional
-        };
-        secondContext.video = secondVideoInfo;
-
         const recording = osn.AdvancedRecordingFactory.create();
         recording.path = path.join(path.normalize(__dirname), '..', 'osnData');
         recording.format = ERecordingFormat.MP4;
@@ -116,21 +128,6 @@ describe(testName, () => {
         osn.AudioTrackFactory.setAtIndex(track1, 1);
         recording.signalHandler = (signal) => { obs.signals.push(signal) };
 
-        recording.start();
-
-        let signalInfo = await obs.getNextSignalInfo(
-            EOBSOutputType.Recording, EOBSOutputSignal.Start);
-
-        if (signalInfo.signal == EOBSOutputSignal.Stop) {
-            throw Error(GetErrorMessage(
-                ETestErrorMsg.RecordOutputDidNotStart, signalInfo.code.toString(), signalInfo.error));
-        }
-
-        expect(signalInfo.type).to.equal(
-            EOBSOutputType.Recording, GetErrorMessage(ETestErrorMsg.RecordingOutput));
-        expect(signalInfo.signal).to.equal(
-            EOBSOutputSignal.Start, GetErrorMessage(ETestErrorMsg.RecordingOutput));
-
         const recording2 = osn.AdvancedRecordingFactory.create();
         recording2.path = path.join(path.normalize(__dirname), '..', 'osnData');
         recording2.format = ERecordingFormat.MP4;
@@ -140,120 +137,34 @@ describe(testName, () => {
         recording2.noSpace = false;
         recording2.video = secondContext;
         const track2 = osn.AudioTrackFactory.create(160, 'track2');
-        osn.AudioTrackFactory.setAtIndex(track2, 1);
+        osn.AudioTrackFactory.setAtIndex(track2, 2);
         recording2.signalHandler = (signal) => { obs.signals.push(signal) };
 
+        recording.start();
+        await handleStreamSignals(EOBSOutputType.Recording, EOBSOutputSignal.Start, ETestErrorMsg.RecordingOutput);
+
         recording2.start();
+        await handleStreamSignals(EOBSOutputType.Recording, EOBSOutputSignal.Start, ETestErrorMsg.RecordingOutput);
 
-        let signalInfo2 = await obs.getNextSignalInfo(
-            EOBSOutputType.Recording, EOBSOutputSignal.Start);
-
-        if (signalInfo2.signal == EOBSOutputSignal.Stop) {
-            throw Error(GetErrorMessage(
-                ETestErrorMsg.RecordOutputDidNotStart, signalInfo.code.toString(), signalInfo.error));
-        }
-
-        expect(signalInfo.type).to.equal(
-            EOBSOutputType.Recording, GetErrorMessage(ETestErrorMsg.RecordingOutput));
-        expect(signalInfo.signal).to.equal(
-            EOBSOutputSignal.Start, GetErrorMessage(ETestErrorMsg.RecordingOutput));
-
-        await sleep(500);
+        await sleep(1000);
 
         recording.stop();
-        signalInfo = await obs.getNextSignalInfo(
-            EOBSOutputType.Recording, EOBSOutputSignal.Stopping);
-        expect(signalInfo.type).to.equal(
-            EOBSOutputType.Recording, GetErrorMessage(ETestErrorMsg.RecordingOutput));
-        expect(signalInfo.signal).to.equal(
-            EOBSOutputSignal.Stopping, GetErrorMessage(ETestErrorMsg.RecordingOutput));
-
-        signalInfo = await obs.getNextSignalInfo(
-            EOBSOutputType.Recording, EOBSOutputSignal.Stop);
-
-        if (signalInfo.code != 0) {
-            throw Error(GetErrorMessage(
-                ETestErrorMsg.RecordOutputStoppedWithError, signalInfo.code.toString(), signalInfo.error));
-        }
-
-        expect(signalInfo.type).to.equal(
-            EOBSOutputType.Recording, GetErrorMessage(ETestErrorMsg.RecordingOutput));
-        expect(signalInfo.signal).to.equal(
-            EOBSOutputSignal.Stop, GetErrorMessage(ETestErrorMsg.RecordingOutput));
-
-        signalInfo = await obs.getNextSignalInfo(
-            EOBSOutputType.Recording, EOBSOutputSignal.Wrote);
-
-        if (signalInfo.code != 0) {
-            throw Error(GetErrorMessage(
-                ETestErrorMsg.RecordOutputStoppedWithError, signalInfo.code.toString(), signalInfo.error));
-        }
-
-        expect(signalInfo.type).to.equal(
-            EOBSOutputType.Recording, GetErrorMessage(ETestErrorMsg.RecordingOutput));
-        expect(signalInfo.signal).to.equal(
-            EOBSOutputSignal.Wrote, GetErrorMessage(ETestErrorMsg.RecordingOutput));
+        await handleStreamSignals(EOBSOutputType.Recording, EOBSOutputSignal.Stopping, ETestErrorMsg.RecordingOutput);
+        await handleStreamSignals(EOBSOutputType.Recording, EOBSOutputSignal.Stop, ETestErrorMsg.RecordingOutput);
+        await handleStreamSignals(EOBSOutputType.Recording, EOBSOutputSignal.Wrote, ETestErrorMsg.RecordingOutput);
 
         recording2.stop();
-
-        signalInfo = await obs.getNextSignalInfo(
-            EOBSOutputType.Recording, EOBSOutputSignal.Stopping);
-        expect(signalInfo.type).to.equal(
-            EOBSOutputType.Recording, GetErrorMessage(ETestErrorMsg.RecordingOutput));
-        expect(signalInfo.signal).to.equal(
-            EOBSOutputSignal.Stopping, GetErrorMessage(ETestErrorMsg.RecordingOutput));
-
-        signalInfo = await obs.getNextSignalInfo(
-            EOBSOutputType.Recording, EOBSOutputSignal.Stop);
-
-        if (signalInfo.code != 0) {
-            throw Error(GetErrorMessage(
-                ETestErrorMsg.RecordOutputStoppedWithError, signalInfo.code.toString(), signalInfo.error));
-        }
-
-        expect(signalInfo.type).to.equal(
-            EOBSOutputType.Recording, GetErrorMessage(ETestErrorMsg.RecordingOutput));
-        expect(signalInfo.signal).to.equal(
-            EOBSOutputSignal.Stop, GetErrorMessage(ETestErrorMsg.RecordingOutput));
-
-        signalInfo = await obs.getNextSignalInfo(
-            EOBSOutputType.Recording, EOBSOutputSignal.Wrote);
-
-        if (signalInfo.code != 0) {
-            throw Error(GetErrorMessage(
-                ETestErrorMsg.RecordOutputStoppedWithError, signalInfo.code.toString(), signalInfo.error));
-        }
-
-        expect(signalInfo.type).to.equal(
-            EOBSOutputType.Recording, GetErrorMessage(ETestErrorMsg.RecordingOutput));
-        expect(signalInfo.signal).to.equal(
-            EOBSOutputSignal.Wrote, GetErrorMessage(ETestErrorMsg.RecordingOutput));
+        await handleStreamSignals(EOBSOutputType.Recording, EOBSOutputSignal.Stopping, ETestErrorMsg.RecordingOutput);
+        await handleStreamSignals(EOBSOutputType.Recording, EOBSOutputSignal.Stop, ETestErrorMsg.RecordingOutput);
+        await handleStreamSignals(EOBSOutputType.Recording, EOBSOutputSignal.Wrote, ETestErrorMsg.RecordingOutput);
 
         osn.AdvancedRecordingFactory.destroy(recording);
 
         osn.AdvancedRecordingFactory.destroy(recording2);
-
-        secondContext.destroy();
     });
 
     it('Start Dual Output with recording and scene items', async () => {
         const returnSource = osn.Global.getOutputSource(0);
-        const secondContext = osn.VideoFactory.create();
-
-        const secondVideoInfo: osn.IVideoInfo = {
-            fpsNum: 60,
-            fpsDen: 2,
-            baseWidth: 1080,
-            baseHeight: 1920,
-            outputWidth: 1080,
-            outputHeight: 1920,
-            outputFormat: osn.EVideoFormat.NV12,
-            colorspace: osn.EColorSpace.CS709,
-            range: osn.ERangeType.Full,
-            scaleType: osn.EScaleType.Lanczos,
-            fpsType: EFPSType.Fractional
-        };
-        secondContext.video = secondVideoInfo;
 
         const recording = osn.AdvancedRecordingFactory.create();
         recording.path = path.join(path.normalize(__dirname), '..', 'osnData');
@@ -277,7 +188,7 @@ describe(testName, () => {
         settings = inputSettings.colorSource;
         settings['height'] = 500;
         settings['width'] = 200;
-        let secondSourceName = EOBSInputTypes.ColorSource.toString()+'_'+randomUUID();
+        let secondSourceName = EOBSInputTypes.ColorSource.toString() + '_' + randomUUID();
         const source = osn.InputFactory.create(EOBSInputTypes.ColorSource, secondSourceName, settings);
 
         // Adding input source to scene to create scene item
@@ -287,27 +198,11 @@ describe(testName, () => {
         let position1: IVec2 = { x: 1100, y: 200 };
         sceneItem1.position = position1;
 
-
         const sceneItem2 = scene.add(source);
         sceneItem2.video = secondContext;
         sceneItem2.visible = true;
         let position2: IVec2 = { x: 500, y: 1200 };
         sceneItem2.position = position2;
-
-        recording.start();
-
-        let signalInfo = await obs.getNextSignalInfo(
-            EOBSOutputType.Recording, EOBSOutputSignal.Start);
-
-        if (signalInfo.signal == EOBSOutputSignal.Stop) {
-            throw Error(GetErrorMessage(
-                ETestErrorMsg.RecordOutputDidNotStart, signalInfo.code.toString(), signalInfo.error));
-        }
-
-        expect(signalInfo.type).to.equal(
-            EOBSOutputType.Recording, GetErrorMessage(ETestErrorMsg.RecordingOutput));
-        expect(signalInfo.signal).to.equal(
-            EOBSOutputSignal.Start, GetErrorMessage(ETestErrorMsg.RecordingOutput));
 
         const recording2 = osn.AdvancedRecordingFactory.create();
         recording2.path = path.join(path.normalize(__dirname), '..', 'osnData');
@@ -318,94 +213,26 @@ describe(testName, () => {
         recording2.noSpace = false;
         recording2.video = secondContext;
         const track2 = osn.AudioTrackFactory.create(160, 'track2');
-        osn.AudioTrackFactory.setAtIndex(track2, 1);
+        osn.AudioTrackFactory.setAtIndex(track2, 2);
         recording2.signalHandler = (signal) => { obs.signals.push(signal) };
 
+        recording.start();
+        await handleStreamSignals(EOBSOutputType.Recording, EOBSOutputSignal.Start, ETestErrorMsg.RecordingOutput);
+
         recording2.start();
+        await handleStreamSignals(EOBSOutputType.Recording, EOBSOutputSignal.Start, ETestErrorMsg.RecordingOutput);
 
-        let signalInfo2 = await obs.getNextSignalInfo(
-            EOBSOutputType.Recording, EOBSOutputSignal.Start);
-
-        if (signalInfo2.signal == EOBSOutputSignal.Stop) {
-            throw Error(GetErrorMessage(
-                ETestErrorMsg.RecordOutputDidNotStart, signalInfo.code.toString(), signalInfo.error));
-        }
-
-        expect(signalInfo.type).to.equal(
-            EOBSOutputType.Recording, GetErrorMessage(ETestErrorMsg.RecordingOutput));
-        expect(signalInfo.signal).to.equal(
-            EOBSOutputSignal.Start, GetErrorMessage(ETestErrorMsg.RecordingOutput));
-
-        await sleep(500);
+        await sleep(1000);
 
         recording.stop();
-        signalInfo = await obs.getNextSignalInfo(
-            EOBSOutputType.Recording, EOBSOutputSignal.Stopping);
-        expect(signalInfo.type).to.equal(
-            EOBSOutputType.Recording, GetErrorMessage(ETestErrorMsg.RecordingOutput));
-        expect(signalInfo.signal).to.equal(
-            EOBSOutputSignal.Stopping, GetErrorMessage(ETestErrorMsg.RecordingOutput));
-
-        signalInfo = await obs.getNextSignalInfo(
-            EOBSOutputType.Recording, EOBSOutputSignal.Stop);
-
-        if (signalInfo.code != 0) {
-            throw Error(GetErrorMessage(
-                ETestErrorMsg.RecordOutputStoppedWithError, signalInfo.code.toString(), signalInfo.error));
-        }
-
-        expect(signalInfo.type).to.equal(
-            EOBSOutputType.Recording, GetErrorMessage(ETestErrorMsg.RecordingOutput));
-        expect(signalInfo.signal).to.equal(
-            EOBSOutputSignal.Stop, GetErrorMessage(ETestErrorMsg.RecordingOutput));
-
-        signalInfo = await obs.getNextSignalInfo(
-            EOBSOutputType.Recording, EOBSOutputSignal.Wrote);
-
-        if (signalInfo.code != 0) {
-            throw Error(GetErrorMessage(
-                ETestErrorMsg.RecordOutputStoppedWithError, signalInfo.code.toString(), signalInfo.error));
-        }
-
-        expect(signalInfo.type).to.equal(
-            EOBSOutputType.Recording, GetErrorMessage(ETestErrorMsg.RecordingOutput));
-        expect(signalInfo.signal).to.equal(
-            EOBSOutputSignal.Wrote, GetErrorMessage(ETestErrorMsg.RecordingOutput));
+        await handleStreamSignals(EOBSOutputType.Recording, EOBSOutputSignal.Stopping, ETestErrorMsg.RecordingOutput);
+        await handleStreamSignals(EOBSOutputType.Recording, EOBSOutputSignal.Stop, ETestErrorMsg.RecordingOutput);
+        await handleStreamSignals(EOBSOutputType.Recording, EOBSOutputSignal.Wrote, ETestErrorMsg.RecordingOutput);
 
         recording2.stop();
-
-        signalInfo = await obs.getNextSignalInfo(
-            EOBSOutputType.Recording, EOBSOutputSignal.Stopping);
-        expect(signalInfo.type).to.equal(
-            EOBSOutputType.Recording, GetErrorMessage(ETestErrorMsg.RecordingOutput));
-        expect(signalInfo.signal).to.equal(
-            EOBSOutputSignal.Stopping, GetErrorMessage(ETestErrorMsg.RecordingOutput));
-
-        signalInfo = await obs.getNextSignalInfo(
-            EOBSOutputType.Recording, EOBSOutputSignal.Stop);
-
-        if (signalInfo.code != 0) {
-            throw Error(GetErrorMessage(
-                ETestErrorMsg.RecordOutputStoppedWithError, signalInfo.code.toString(), signalInfo.error));
-        }
-
-        expect(signalInfo.type).to.equal(
-            EOBSOutputType.Recording, GetErrorMessage(ETestErrorMsg.RecordingOutput));
-        expect(signalInfo.signal).to.equal(
-            EOBSOutputSignal.Stop, GetErrorMessage(ETestErrorMsg.RecordingOutput));
-
-        signalInfo = await obs.getNextSignalInfo(
-            EOBSOutputType.Recording, EOBSOutputSignal.Wrote);
-
-        if (signalInfo.code != 0) {
-            throw Error(GetErrorMessage(
-                ETestErrorMsg.RecordOutputStoppedWithError, signalInfo.code.toString(), signalInfo.error));
-        }
-
-        expect(signalInfo.type).to.equal(
-            EOBSOutputType.Recording, GetErrorMessage(ETestErrorMsg.RecordingOutput));
-        expect(signalInfo.signal).to.equal(
-            EOBSOutputSignal.Wrote, GetErrorMessage(ETestErrorMsg.RecordingOutput));
+        await handleStreamSignals(EOBSOutputType.Recording, EOBSOutputSignal.Stopping, ETestErrorMsg.RecordingOutput);
+        await handleStreamSignals(EOBSOutputType.Recording, EOBSOutputSignal.Stop, ETestErrorMsg.RecordingOutput);
+        await handleStreamSignals(EOBSOutputType.Recording, EOBSOutputSignal.Wrote, ETestErrorMsg.RecordingOutput);
 
         osn.AdvancedRecordingFactory.destroy(recording);
 
@@ -417,10 +244,202 @@ describe(testName, () => {
         sceneItem1.remove();
         sceneItem2.remove();
         scene.release();
-
-        secondContext.destroy();
     });
 
+    it('Start Dual Output with advanced recording and audio scene items', async () => {
+        const returnSource = osn.Global.getOutputSource(0);
+
+        const recording = osn.AdvancedRecordingFactory.create();
+        recording.path = path.join(path.normalize(__dirname), '..', 'osnData');
+        recording.format = ERecordingFormat.MP4;
+        recording.useStreamEncoders = false;
+        recording.videoEncoder = osn.VideoEncoderFactory.create('obs_x264', 'video-encoder-test-recording-1');
+        recording.overwrite = false;
+        recording.noSpace = false;
+        recording.mixer = 1;
+        recording.video = obs.defaultVideoContext;
+        const track1 = osn.AudioTrackFactory.create(160, 'track1');
+        osn.AudioTrackFactory.setAtIndex(track1, 1);
+        recording.signalHandler = (signal) => { obs.signals.push(signal) };
+
+        const recording2 = osn.AdvancedRecordingFactory.create();
+        recording2.path = path.join(path.normalize(__dirname), '..', 'osnData');
+        recording2.format = ERecordingFormat.MP4;
+        recording2.useStreamEncoders = false;
+        recording2.videoEncoder = osn.VideoEncoderFactory.create('obs_x264', 'video-encoder-test-recording-2');
+        recording2.overwrite = false;
+        recording2.noSpace = false;
+        recording2.mixer = 2;
+        recording2.video = secondContext;
+        const track2 = osn.AudioTrackFactory.create(160, 'track2');
+        osn.AudioTrackFactory.setAtIndex(track2, 2);
+        recording2.signalHandler = (signal) => { obs.signals.push(signal) };
+
+        // Getting scene
+        let secondSceneName = 'scene_' + randomUUID();
+        const scene = osn.SceneFactory.create(secondSceneName);
+        osn.Global.setOutputSource(0, scene);
+
+        // Getting source
+        let settings: ISettings = {};
+        settings = inputSettings.ffmpegSource;
+        settings['volume'] = 100;
+        settings['local_file'] = path.join( media_path, "sleek.mp3" );
+        settings['looping'] = true;
+        let firstSourceName = EOBSInputTypes.FFMPEGSource.toString() + '_' + randomUUID();
+        const firstsource = osn.InputFactory.create(EOBSInputTypes.FFMPEGSource, firstSourceName, settings);
+
+        // Adding input source to scene to create scene item
+        const sceneItem1 = scene.add(firstsource);
+        sceneItem1.video = obs.defaultVideoContext;
+        sceneItem1.visible = true;
+        let position1: IVec2 = { x: 1100, y: 200 };
+        sceneItem1.position = position1;
+
+        settings['local_file'] = path.join( media_path, "echoes.mp3" );
+        let secondSourceName = EOBSInputTypes.FFMPEGSource.toString() + '_' + randomUUID();
+        const secondsource = osn.InputFactory.create(EOBSInputTypes.FFMPEGSource, secondSourceName, settings);
+
+        const sceneItem2 = scene.add(secondsource);
+        sceneItem2.video = secondContext;
+        sceneItem2.visible = true;
+        let position2: IVec2 = { x: 500, y: 1200 };
+        sceneItem2.position = position2;
+
+        await sleep(500);
+
+        recording.start();
+        await handleStreamSignals(EOBSOutputType.Recording, EOBSOutputSignal.Start, ETestErrorMsg.RecordingOutput);
+
+        recording2.start();
+        await handleStreamSignals(EOBSOutputType.Recording, EOBSOutputSignal.Start, ETestErrorMsg.RecordingOutput);
+
+        await sleep(1000);
+
+        recording.stop();
+        await handleStreamSignals(EOBSOutputType.Recording, EOBSOutputSignal.Stopping, ETestErrorMsg.RecordingOutput);
+        await handleStreamSignals(EOBSOutputType.Recording, EOBSOutputSignal.Stop, ETestErrorMsg.RecordingOutput);
+        await handleStreamSignals(EOBSOutputType.Recording, EOBSOutputSignal.Wrote, ETestErrorMsg.RecordingOutput);
+
+        recording2.stop();
+        await handleStreamSignals(EOBSOutputType.Recording, EOBSOutputSignal.Stopping, ETestErrorMsg.RecordingOutput);
+        await handleStreamSignals(EOBSOutputType.Recording, EOBSOutputSignal.Stop, ETestErrorMsg.RecordingOutput);
+        await handleStreamSignals(EOBSOutputType.Recording, EOBSOutputSignal.Wrote, ETestErrorMsg.RecordingOutput);
+
+        osn.AdvancedRecordingFactory.destroy(recording);
+
+        osn.AdvancedRecordingFactory.destroy(recording2);
+
+        osn.Global.setOutputSource(0, returnSource);
+
+        sceneItem1.source.release();
+        sceneItem1.remove();
+
+        sceneItem2.source.release();
+        sceneItem2.remove();
+
+        scene.release();
+    });
+
+
+    it('Start Dual Output with simple recording and audio scene items', async () => {
+        const returnSource = osn.Global.getOutputSource(0);
+
+        const recording = osn.SimpleRecordingFactory.create();
+        recording.path = path.join(path.normalize(__dirname), '..', 'osnData');
+        recording.format = ERecordingFormat.MP4;
+        recording.videoEncoder = osn.VideoEncoderFactory.create('obs_x264', 'video-encoder-test-recording-1');
+        recording.audioEncoder = osn.AudioEncoderFactory.create();
+        recording.audioEncoder.name = 'audio-encoder-test-recording-1';
+        recording.audioEncoder.bitrate = 160;
+        recording.overwrite = false;
+        recording.noSpace = false;
+        recording.quality = ERecordingQuality.HighQuality;
+        recording.video = obs.defaultVideoContext;
+        const track1 = osn.AudioTrackFactory.create(160, 'track1');
+        osn.AudioTrackFactory.setAtIndex(track1, 1);
+        recording.signalHandler = (signal) => { obs.signals.push(signal) };
+
+        const recording2 = osn.SimpleRecordingFactory.create();
+        recording2.path = path.join(path.normalize(__dirname), '..', 'osnData');
+        recording2.format = ERecordingFormat.MP4;
+        recording2.videoEncoder = osn.VideoEncoderFactory.create('obs_x264', 'video-encoder-test-recording-2');
+        recording2.audioEncoder = osn.AudioEncoderFactory.create();
+        recording2.audioEncoder.name = 'audio-encoder-test-recording-2';
+        recording2.audioEncoder.bitrate = 160;
+        recording2.overwrite = false;
+        recording2.noSpace = false;
+        recording2.quality = ERecordingQuality.HighQuality;
+        recording2.video = secondContext;
+        const track2 = osn.AudioTrackFactory.create(160, 'track2');
+        osn.AudioTrackFactory.setAtIndex(track2, 2);
+        recording2.signalHandler = (signal) => { obs.signals.push(signal) };
+
+        // Getting scene
+        let secondSceneName = 'scene_' + randomUUID();
+        const scene = osn.SceneFactory.create(secondSceneName);
+        osn.Global.setOutputSource(0, scene);
+
+        // Getting source
+        let settings: ISettings = {};
+        settings = inputSettings.ffmpegSource;
+        settings['volume'] = 100;
+        settings['local_file'] = path.join( media_path, "sleek.mp3" );
+        settings['looping'] = true;
+        let firstSourceName = EOBSInputTypes.FFMPEGSource.toString() + '_' + randomUUID();
+        const firstsource = osn.InputFactory.create(EOBSInputTypes.FFMPEGSource, firstSourceName, settings);
+
+        // Adding input source to scene to create scene item
+        const sceneItem1 = scene.add(firstsource);
+        sceneItem1.video = obs.defaultVideoContext;
+        sceneItem1.visible = true;
+        let position1: IVec2 = { x: 1100, y: 200 };
+        sceneItem1.position = position1;
+
+        settings['local_file'] = path.join( media_path, "echoes.mp3" );
+        let secondSourceName = EOBSInputTypes.FFMPEGSource.toString() + '_' + randomUUID();
+        const secondsource = osn.InputFactory.create(EOBSInputTypes.FFMPEGSource, secondSourceName, settings);
+
+        const sceneItem2 = scene.add(secondsource);
+        sceneItem2.video = secondContext;
+        sceneItem2.visible = true;
+        let position2: IVec2 = { x: 500, y: 1200 };
+        sceneItem2.position = position2;
+
+        await sleep(500);
+
+        recording.start();
+        await handleStreamSignals(EOBSOutputType.Recording, EOBSOutputSignal.Start, ETestErrorMsg.RecordingOutput);
+
+        recording2.start();
+        await handleStreamSignals(EOBSOutputType.Recording, EOBSOutputSignal.Start, ETestErrorMsg.RecordingOutput);
+
+        await sleep(1000);
+
+        recording.stop();
+        await handleStreamSignals(EOBSOutputType.Recording, EOBSOutputSignal.Stopping, ETestErrorMsg.RecordingOutput);
+        await handleStreamSignals(EOBSOutputType.Recording, EOBSOutputSignal.Stop, ETestErrorMsg.RecordingOutput);
+        await handleStreamSignals(EOBSOutputType.Recording, EOBSOutputSignal.Wrote, ETestErrorMsg.RecordingOutput);
+
+        recording2.stop();
+        await handleStreamSignals(EOBSOutputType.Recording, EOBSOutputSignal.Stopping, ETestErrorMsg.RecordingOutput);
+        await handleStreamSignals(EOBSOutputType.Recording, EOBSOutputSignal.Stop, ETestErrorMsg.RecordingOutput);
+        await handleStreamSignals(EOBSOutputType.Recording, EOBSOutputSignal.Wrote, ETestErrorMsg.RecordingOutput);
+
+        osn.SimpleRecordingFactory.destroy(recording);
+
+        osn.SimpleRecordingFactory.destroy(recording2);
+
+        osn.Global.setOutputSource(0, returnSource);
+
+        sceneItem1.source.release();
+        sceneItem1.remove();
+
+        sceneItem2.source.release();
+        sceneItem2.remove();
+
+        scene.release();
+    });
 
     it('Start Dual Output with legacy streaming to two services', async () => {
         // Preparing environment
@@ -433,22 +452,6 @@ describe(testName, () => {
         let userStreamKey = await secondStreamUserPoolHandler.getStreamKey();
         obs.setSetting(EOBSSettingsCategories.StreamSecond, 'key', userStreamKey);
 
-        const secondContext = osn.VideoFactory.create();
-        const secondVideoInfo: osn.IVideoInfo = {
-            fpsNum: 60,
-            fpsDen: 2,
-            baseWidth: 1080,
-            baseHeight: 1920,
-            outputWidth: 720,
-            outputHeight: 1280,
-            outputFormat: osn.EVideoFormat.NV12,
-            colorspace: osn.EColorSpace.CS709,
-            range: osn.ERangeType.Full,
-            scaleType: osn.EScaleType.Lanczos,
-            fpsType: EFPSType.Fractional
-        };
-        secondContext.video = secondVideoInfo;
-
         osn.NodeObs.OBS_service_setVideoInfo(obs.defaultVideoContext, "horizontal");
         osn.NodeObs.OBS_service_setVideoInfo(secondContext, "vertical");
 
@@ -456,94 +459,107 @@ describe(testName, () => {
 
         //start first stream
         osn.NodeObs.OBS_service_startStreaming("horizontal");
+        await handleStreamSignals(EOBSOutputType.Streaming, EOBSOutputSignal.Starting, ETestErrorMsg.StreamOutput);
+        await handleStreamSignals(EOBSOutputType.Streaming, EOBSOutputSignal.Activate, ETestErrorMsg.StreamOutput);
+        await handleStreamSignals(EOBSOutputType.Streaming, EOBSOutputSignal.Start, ETestErrorMsg.StreamOutput);
 
-        signalInfo = await obs.getNextSignalInfo(EOBSOutputType.Streaming, EOBSOutputSignal.Starting);
-        expect(signalInfo.type).to.equal(EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
-        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Starting, GetErrorMessage(ETestErrorMsg.StreamOutput));
-        expect(signalInfo.service).to.equal("default", GetErrorMessage(ETestErrorMsg.StreamOutput));
-
-        signalInfo = await obs.getNextSignalInfo(EOBSOutputType.Streaming, EOBSOutputSignal.Activate);
-
-        if (signalInfo.signal == EOBSOutputSignal.Stop) {
-            throw Error(GetErrorMessage(ETestErrorMsg.StreamOutputDidNotStart, signalInfo.code.toString(), signalInfo.error));
-        }
-
-        expect(signalInfo.type).to.equal(EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
-        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Activate, GetErrorMessage(ETestErrorMsg.StreamOutput));
-
-        signalInfo = await obs.getNextSignalInfo(EOBSOutputType.Streaming, EOBSOutputSignal.Start);
-        expect(signalInfo.type).to.equal(EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
-        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Start, GetErrorMessage(ETestErrorMsg.StreamOutput));
-
-        //start second stream
         osn.NodeObs.OBS_service_startStreaming("vertical");
+        await handleStreamSignals(EOBSOutputType.Streaming, EOBSOutputSignal.Starting, ETestErrorMsg.StreamOutput);
+        await handleStreamSignals(EOBSOutputType.Streaming, EOBSOutputSignal.Activate, ETestErrorMsg.StreamOutput);
+        await handleStreamSignals(EOBSOutputType.Streaming, EOBSOutputSignal.Start, ETestErrorMsg.StreamOutput);
 
-        signalInfo = await obs.getNextSignalInfo(EOBSOutputType.Streaming, EOBSOutputSignal.Starting);
-        expect(signalInfo.type).to.equal(EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
-        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Starting, GetErrorMessage(ETestErrorMsg.StreamOutput));
-        expect(signalInfo.service).to.equal("vertical", GetErrorMessage(ETestErrorMsg.StreamOutput));
-
-        signalInfo = await obs.getNextSignalInfo(EOBSOutputType.Streaming, EOBSOutputSignal.Activate);
-
-        if (signalInfo.signal == EOBSOutputSignal.Stop) {
-            throw Error(GetErrorMessage(ETestErrorMsg.StreamOutputDidNotStart, signalInfo.code.toString(), signalInfo.error));
-        }
-
-        expect(signalInfo.type).to.equal(EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
-        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Activate, GetErrorMessage(ETestErrorMsg.StreamOutput));
-
-        signalInfo = await obs.getNextSignalInfo(EOBSOutputType.Streaming, EOBSOutputSignal.Start);
-        expect(signalInfo.type).to.equal(EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
-        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Start, GetErrorMessage(ETestErrorMsg.StreamOutput));
-
-        //stream for 0.5s
         await sleep(500);
 
-        //stop first stream
-        osn.NodeObs.OBS_service_stopStreaming(false,"horizontal");
+        osn.NodeObs.OBS_service_stopStreaming(false, "horizontal");
+        await handleStreamSignals(EOBSOutputType.Streaming, EOBSOutputSignal.Stopping, ETestErrorMsg.StreamOutput);
+        await handleStreamSignals(EOBSOutputType.Streaming, EOBSOutputSignal.Stop, ETestErrorMsg.StreamOutput);
+        await handleStreamSignals(EOBSOutputType.Streaming, EOBSOutputSignal.Deactivate, ETestErrorMsg.StreamOutput);
 
-        signalInfo = await obs.getNextSignalInfo(EOBSOutputType.Streaming, EOBSOutputSignal.Stopping);
-
-        expect(signalInfo.type).to.equal(EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
-        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stopping, GetErrorMessage(ETestErrorMsg.StreamOutput));
-
-        signalInfo = await obs.getNextSignalInfo(EOBSOutputType.Streaming, EOBSOutputSignal.Stop);
-
-        if (signalInfo.code != 0) {
-            throw Error(GetErrorMessage(ETestErrorMsg.StreamOutputStoppedWithError, signalInfo.code.toString(), signalInfo.error));
-        }
-
-        expect(signalInfo.type).to.equal(EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
-        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stop, GetErrorMessage(ETestErrorMsg.StreamOutput));
-
-        signalInfo = await obs.getNextSignalInfo(EOBSOutputType.Streaming, EOBSOutputSignal.Deactivate);
-        expect(signalInfo.type).to.equal(EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
-        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Deactivate, GetErrorMessage(ETestErrorMsg.StreamOutput));
-
-        //stop second stream
-        osn.NodeObs.OBS_service_stopStreaming(false,"vertical");
-
-        signalInfo = await obs.getNextSignalInfo(EOBSOutputType.Streaming, EOBSOutputSignal.Stopping);
-
-        expect(signalInfo.type).to.equal(EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
-        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stopping, GetErrorMessage(ETestErrorMsg.StreamOutput));
-
-        signalInfo = await obs.getNextSignalInfo(EOBSOutputType.Streaming, EOBSOutputSignal.Stop);
-
-        if (signalInfo.code != 0) {
-            throw Error(GetErrorMessage(ETestErrorMsg.StreamOutputStoppedWithError, signalInfo.code.toString(), signalInfo.error));
-        }
-
-        expect(signalInfo.type).to.equal(EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
-        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Stop, GetErrorMessage(ETestErrorMsg.StreamOutput));
-
-        signalInfo = await obs.getNextSignalInfo(EOBSOutputType.Streaming, EOBSOutputSignal.Deactivate);
-        expect(signalInfo.type).to.equal(EOBSOutputType.Streaming, GetErrorMessage(ETestErrorMsg.StreamOutput));
-        expect(signalInfo.signal).to.equal(EOBSOutputSignal.Deactivate, GetErrorMessage(ETestErrorMsg.StreamOutput));
+        osn.NodeObs.OBS_service_stopStreaming(false, "vertical");
+        await handleStreamSignals(EOBSOutputType.Streaming, EOBSOutputSignal.Stopping, ETestErrorMsg.StreamOutput);
+        await handleStreamSignals(EOBSOutputType.Streaming, EOBSOutputSignal.Stop, ETestErrorMsg.StreamOutput);
+        await handleStreamSignals(EOBSOutputType.Streaming, EOBSOutputSignal.Deactivate, ETestErrorMsg.StreamOutput);
 
         await secondStreamUserPoolHandler.releaseUser();
-
-        secondContext.destroy();
     });
 
+    it('Start Dual Output with legacy streaming to two services and audio sources', async () => {
+        // Preparing environment
+        obs.setSetting(EOBSSettingsCategories.Output, 'Mode', 'Simple');
+        obs.setSetting(EOBSSettingsCategories.Output, 'StreamEncoder', obs.os === 'win32' ? 'x264' : 'obs_x264');
+        obs.setSetting(EOBSSettingsCategories.Output, 'FilePath', path.join(path.normalize(__dirname), '..', 'osnData'));
+
+        // reserve a user account of a second stream
+        let secondStreamUserPoolHandler = new UserPoolHandler(testName + "secondStream");
+        let userStreamKey = await secondStreamUserPoolHandler.getStreamKey();
+        obs.setSetting(EOBSSettingsCategories.StreamSecond, 'key', userStreamKey);
+
+        osn.NodeObs.OBS_service_setVideoInfo(obs.defaultVideoContext, "horizontal");
+        osn.NodeObs.OBS_service_setVideoInfo(secondContext, "vertical");
+
+        let signalInfo: IOBSOutputSignalInfo;
+        // Getting scene
+        let secondSceneName = 'scene_' + randomUUID();
+        const scene = osn.SceneFactory.create(secondSceneName);
+        osn.Global.setOutputSource(0, scene);
+
+        // Getting source
+        let settings: ISettings = {};
+        settings = inputSettings.ffmpegSource;
+        settings['volume'] = 100;
+        settings['local_file'] = path.join( media_path, "sleek.mp3" );
+        settings['looping'] = true;
+        let firstSourceName = EOBSInputTypes.FFMPEGSource.toString() + '_' + randomUUID();
+        const firstsource = osn.InputFactory.create(EOBSInputTypes.FFMPEGSource, firstSourceName, settings);
+
+        // Adding input source to scene to create scene item
+        const sceneItem1 = scene.add(firstsource);
+        sceneItem1.video = obs.defaultVideoContext;
+        sceneItem1.visible = true;
+        let position1: IVec2 = { x: 1100, y: 200 };
+        sceneItem1.position = position1;
+
+        settings['local_file'] = path.join( media_path, "echoes.mp3" );
+        let secondSourceName = EOBSInputTypes.FFMPEGSource.toString() + '_' + randomUUID();
+        const secondsource = osn.InputFactory.create(EOBSInputTypes.FFMPEGSource, secondSourceName, settings);
+
+        const sceneItem2 = scene.add(secondsource);
+        sceneItem2.video = secondContext;
+        sceneItem2.visible = true;
+        let position2: IVec2 = { x: 500, y: 1200 };
+        sceneItem2.position = position2;
+
+        // Start first stream
+        osn.NodeObs.OBS_service_startStreaming("horizontal");
+
+        await handleStreamSignals(EOBSOutputType.Streaming, EOBSOutputSignal.Starting, ETestErrorMsg.StreamOutput);
+        await handleStreamSignals(EOBSOutputType.Streaming, EOBSOutputSignal.Activate, ETestErrorMsg.StreamOutput);
+        await handleStreamSignals(EOBSOutputType.Streaming, EOBSOutputSignal.Start, ETestErrorMsg.StreamOutput);
+
+        // Start second stream
+        osn.NodeObs.OBS_service_startStreaming("vertical");
+
+        await handleStreamSignals(EOBSOutputType.Streaming, EOBSOutputSignal.Starting, ETestErrorMsg.StreamOutput);
+        await handleStreamSignals(EOBSOutputType.Streaming, EOBSOutputSignal.Activate, ETestErrorMsg.StreamOutput);
+        await handleStreamSignals(EOBSOutputType.Streaming, EOBSOutputSignal.Start, ETestErrorMsg.StreamOutput);
+
+        // Stream for 0.5s
+        await sleep(500);
+
+        // Stop first stream
+        osn.NodeObs.OBS_service_stopStreaming(false, "horizontal");
+
+        await handleStreamSignals(EOBSOutputType.Streaming, EOBSOutputSignal.Stopping, ETestErrorMsg.StreamOutput);
+        await handleStreamSignals(EOBSOutputType.Streaming, EOBSOutputSignal.Stop, ETestErrorMsg.StreamOutput);
+        await handleStreamSignals(EOBSOutputType.Streaming, EOBSOutputSignal.Deactivate, ETestErrorMsg.StreamOutput);
+
+        // Stop second stream
+        osn.NodeObs.OBS_service_stopStreaming(false, "vertical");
+
+        await handleStreamSignals(EOBSOutputType.Streaming, EOBSOutputSignal.Stopping, ETestErrorMsg.StreamOutput);
+        await handleStreamSignals(EOBSOutputType.Streaming, EOBSOutputSignal.Stop, ETestErrorMsg.StreamOutput);
+        await handleStreamSignals(EOBSOutputType.Streaming, EOBSOutputSignal.Deactivate, ETestErrorMsg.StreamOutput);
+
+        await secondStreamUserPoolHandler.releaseUser();
+    });
 });

@@ -62,7 +62,9 @@ Napi::Value osn::AudioTrack::Create(const Napi::CallbackInfo &info)
 	if (!conn)
 		return info.Env().Undefined();
 
-	std::vector<ipc::value> response = conn->call_synchronous_helper("AudioTrack", "Create", {});
+	uint32_t bitrate = info[0].ToNumber().Uint32Value();
+	std::string name = info[1].ToString().Utf8Value();
+	std::vector<ipc::value> response = conn->call_synchronous_helper("AudioTrack", "Create", {ipc::value(bitrate), ipc::value(name)});
 
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
