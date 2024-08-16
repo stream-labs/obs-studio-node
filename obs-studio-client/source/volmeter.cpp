@@ -40,8 +40,6 @@ Napi::Object osn::Volmeter::Init(Napi::Env env, Napi::Object exports)
 						  InstanceMethod("destroy", &osn::Volmeter::Destroy),
 						  InstanceMethod("attach", &osn::Volmeter::Attach),
 						  InstanceMethod("detach", &osn::Volmeter::Detach),
-						  InstanceMethod("addCallback", &osn::Volmeter::AddCallback),
-						  InstanceMethod("removeCallback", &osn::Volmeter::RemoveCallback),
 					  });
 	exports.Set("Volmeter", func);
 	osn::Volmeter::constructor = Napi::Persistent(func);
@@ -81,6 +79,9 @@ Napi::Value osn::Volmeter::Create(const Napi::CallbackInfo &info)
 
 	auto instance = osn::Volmeter::constructor.New(
 		{Napi::Number::New(info.Env(), response[1].value_union.ui64), Napi::Number::New(info.Env(), response[2].value_union.ui32)});
+
+	globalCallback::add_volmeter(response[1].value_union.ui64);
+
 	return instance;
 }
 
@@ -89,6 +90,8 @@ Napi::Value osn::Volmeter::Destroy(const Napi::CallbackInfo &info)
 	auto conn = GetConnection(info);
 	if (!conn)
 		return info.Env().Undefined();
+
+	globalCallback::remove_volmeter(this->m_uid);
 
 	conn->call("Volmeter", "Destroy", {ipc::value(this->m_uid)});
 
@@ -115,40 +118,4 @@ Napi::Value osn::Volmeter::Detach(const Napi::CallbackInfo &info)
 
 	conn->call("Volmeter", "Detach", {ipc::value(this->m_uid)});
 	return info.Env().Undefined();
-}
-
-Napi::Value osn::Volmeter::AddCallback(const Napi::CallbackInfo &info)
-{
-	std::unique_lock<std::mutex> lck(globalCallback::mtx_volmeters);
-	Napi::Function async_callback = info[0].As<Napi::Function>();
-
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Volmeter", "AddCallback", {ipc::value(this->m_uid)});
-
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
-
-	globalCallback::add_volmeter(info.Env(), this->m_uid, async_callback);
-
-	return Napi::Boolean::New(info.Env(), true);
-}
-
-Napi::Value osn::Volmeter::RemoveCallback(const Napi::CallbackInfo &info)
-{
-	std::unique_lock<std::mutex> lck(globalCallback::mtx_volmeters);
-	auto conn = GetConnection(info);
-	if (!conn)
-		return info.Env().Undefined();
-
-	std::vector<ipc::value> response = conn->call_synchronous_helper("Volmeter", "RemoveCallback", {ipc::value(this->m_uid)});
-
-	if (!ValidateResponse(info, response))
-		return info.Env().Undefined();
-
-	globalCallback::remove_volmeter(this->m_uid);
-
-	return Napi::Boolean::New(info.Env(), true);
 }

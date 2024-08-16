@@ -42,8 +42,6 @@ void osn::Fader::Register(ipc::server &srv)
 	cls->register_function(std::make_shared<ipc::function>("SetMultiplier", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::Float}, SetMultiplier));
 	cls->register_function(std::make_shared<ipc::function>("Attach", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::UInt64}, Attach));
 	cls->register_function(std::make_shared<ipc::function>("Detach", std::vector<ipc::type>{ipc::type::UInt64}, Detach));
-	cls->register_function(std::make_shared<ipc::function>("AddCallback", std::vector<ipc::type>{ipc::type::UInt64}, AddCallback));
-	cls->register_function(std::make_shared<ipc::function>("RemoveCallback", std::vector<ipc::type>{ipc::type::UInt64}, RemoveCallback));
 	srv.register_collection(cls);
 }
 
@@ -216,14 +214,4 @@ void osn::Fader::Detach(void *data, const int64_t id, const std::vector<ipc::val
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;
-}
-
-void osn::Fader::AddCallback(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
-{
-	//!FIXME!
-}
-
-void osn::Fader::RemoveCallback(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
-{
-	//!FIXME!
 }

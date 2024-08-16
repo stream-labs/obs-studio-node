@@ -37,8 +37,6 @@ Napi::Object osn::Fader::Init(Napi::Env env, Napi::Object exports)
 						  InstanceMethod("destroy", &osn::Fader::Destroy),
 						  InstanceMethod("attach", &osn::Fader::Attach),
 						  InstanceMethod("detach", &osn::Fader::Detach),
-						  InstanceMethod("addCallback", &osn::Fader::AddCallback),
-						  InstanceMethod("removeCallback", &osn::Fader::RemoveCallback),
 
 						  InstanceAccessor("db", &osn::Fader::GetDeziBel, &osn::Fader::SetDezibel),
 						  InstanceAccessor("deflection", &osn::Fader::GetDeflection, &osn::Fader::SetDeflection),
@@ -207,43 +205,5 @@ Napi::Value osn::Fader::Detach(const Napi::CallbackInfo &info)
 	if (!ValidateResponse(info, response))
 		return info.Env().Undefined();
 
-	return info.Env().Undefined();
-}
-
-Napi::Value osn::Fader::AddCallback(const Napi::CallbackInfo &info)
-{
-	//obs::fader &handle = Fader::Object::GetHandle(info.Holder());
-	//Fader* binding = Nan::ObjectWrap::Unwrap<Fader>(info.Holder());
-
-	//ASSERT_INFO_LENGTH(info, 1);
-
-	//v8::Local<v8::Function> callback;
-	//ASSERT_GET_VALUE(info[0], callback);
-
-	//FaderCallback *cb_binding =
-	//	new FaderCallback(binding, Fader::Callback, callback);
-
-	//handle.add_callback(fader_cb_wrapper, cb_binding);
-
-	//auto object = FaderCallback::Object::GenerateObject(cb_binding);
-	//cb_binding->obj_ref.Reset(object);
-	//info.GetReturnValue().Set(object);
-	return info.Env().Undefined();
-}
-
-Napi::Value osn::Fader::RemoveCallback(const Napi::CallbackInfo &info)
-{
-	//obs::fader &handle = Fader::Object::GetHandle(info.Holder());
-
-	//v8::Local<v8::Object> cb_object;
-	//ASSERT_GET_VALUE(info[0], cb_object);
-
-	//FaderCallback *cb_binding =
-	//	FaderCallback::Object::GetHandle(cb_object);
-
-	//cb_binding->stopped = true;
-
-	//handle.remove_callback(fader_cb_wrapper, cb_binding);
-	//cb_binding->obj_ref.Reset();
 	return info.Env().Undefined();
 }

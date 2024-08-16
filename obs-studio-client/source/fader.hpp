@@ -42,7 +42,5 @@ public:
 	Napi::Value Destroy(const Napi::CallbackInfo &info);
 	Napi::Value Attach(const Napi::CallbackInfo &info);
 	Napi::Value Detach(const Napi::CallbackInfo &info);
-	Napi::Value AddCallback(const Napi::CallbackInfo &info);
-	Napi::Value RemoveCallback(const Napi::CallbackInfo &info);
 };
 }

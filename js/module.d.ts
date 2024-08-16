@@ -612,8 +612,6 @@ export interface IFader {
     destroy(): void;
     attach(source: IInput): void;
     detach(): void;
-    addCallback(cb: (db: number) => void): ICallbackData;
-    removeCallback(cbData: ICallbackData): void;
 }
 export interface IVolmeterFactory {
     create(type: EFaderType): IVolmeter;
@@ -623,8 +621,6 @@ export interface IVolmeter {
     destroy(): void;
     attach(source: IInput): void;
     detach(): void;
-    addCallback(cb: (magnitude: number[], peak: number[], inputPeak: number[]) => void): ICallbackData;
-    removeCallback(cbData: ICallbackData): void;
 }
 export interface ICallbackData {
 }
