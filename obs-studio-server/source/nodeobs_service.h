@@ -186,7 +186,7 @@ public:
 				       size_t idx);
 	static bool createVideoStreamingEncoder(StreamServiceId serviceId);
 	static std::string GetVideoEncoderName(StreamServiceId serviceId, bool isSimpleMode, bool recording, const char *encoder);
-	static void createAudioStreamingEncoder(StreamServiceId serviceId, bool isSimpleMode);
+	static void createAudioStreamingEncoder(StreamServiceId serviceId, bool isSimpleMode, const std::string &encoder_id);
 	static bool createVideoRecordingEncoder();
 	static obs_encoder_t *getStreamingEncoder(StreamServiceId serviceId);
 	static void setStreamingEncoder(obs_encoder_t *encoder, StreamServiceId serviceId);

@@ -681,6 +681,17 @@ std::vector<SubCategory> OBS_settings::getStreamSettings(StreamServiceId service
 		param.countValues = count;
 
 		if (count == 0) {
+			if (strcmp(obs_property_name(property), "bearer_token") == 0) {
+				const char *bearer_token = obs_service_get_connect_info(currentService, OBS_SERVICE_CONNECT_INFO_BEARER_TOKEN);
+				formatString = "OBS_PROPERTY_EDIT_TEXT";
+
+				if (bearer_token == NULL)
+					bearer_token = "";
+
+				param.currentValue.resize(strlen(bearer_token));
+				memcpy(param.currentValue.data(), bearer_token, strlen(bearer_token));
+				param.sizeOfCurrentValue = strlen(bearer_token);
+			}
 			if (strcmp(obs_property_name(property), "key") == 0) {
 				const char *stream_key = obs_service_get_key(currentService);
 				formatString = "OBS_PROPERTY_EDIT_TEXT";

@@ -56,7 +56,9 @@ std::string AdvancedRecordingAudioEncodersID[MAX_AUDIO_MIXES];
 
 obs_video_info *base_canvas = nullptr;
 
+// Audio encoders
 const std::string ffmpeg_aac_id = "ffmpeg_aac";
+const std::string ffmpeg_opus_id = "ffmpeg_opus";
 std::string audioSimpleRecEncID;
 
 std::string videoEncoder;
@@ -801,7 +803,7 @@ bool OBS_service::createVideoStreamingEncoder(StreamServiceId serviceId)
 	return true;
 }
 
-void OBS_service::createAudioStreamingEncoder(StreamServiceId serviceId, bool isSimpleMode)
+void OBS_service::createAudioStreamingEncoder(StreamServiceId serviceId, bool isSimpleMode, const std::string &encoder_id)
 {
 	std::string id;
 	obs_encoder_t *audioStreamingEncoder = nullptr;
@@ -813,7 +815,7 @@ void OBS_service::createAudioStreamingEncoder(StreamServiceId serviceId, bool is
 		trackIndex = config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "TrackIndex") - 1;
 	}
 
-	if (!createAudioEncoder(&audioStreamingEncoder, id, ffmpeg_aac_id, GetSimpleAudioBitrate(), audio_encoder_name.c_str(), trackIndex)) {
+	if (!createAudioEncoder(&audioStreamingEncoder, id, encoder_id, GetSimpleAudioBitrate(), audio_encoder_name.c_str(), trackIndex)) {
 		throw "Failed to create audio streaming encoder";
 	}
 
@@ -1300,11 +1302,11 @@ void OBS_service::updateAudioStreamingEncoder(bool isSimpleMode, StreamServiceId
 		enc = nullptr;
 	}
 
-	if (strstr(codec, "aac") != NULL && isSimpleMode) {
-		createAudioStreamingEncoder(serviceId, isSimpleMode);
+	if (strstr(codec, "aac") != NULL) {
+		createAudioStreamingEncoder(serviceId, isSimpleMode, ffmpeg_aac_id);
 		enc = audioStreamingEncoder[serviceId];
-	} else if (strstr(codec, "aac") != NULL && !isSimpleMode) {
-		createAudioStreamingEncoder(serviceId, isSimpleMode);
+	} else if (strstr(codec, "opus") != NULL) {
+		createAudioStreamingEncoder(serviceId, isSimpleMode, ffmpeg_opus_id);
 		enc = audioStreamingEncoder[serviceId];
 	} else {
 		uint64_t trackIndex = config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "TrackIndex");
