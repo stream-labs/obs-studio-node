@@ -47,7 +47,6 @@ public:
 	~CallbackManager(){};
 
 	static void Register(ipc::server &);
-	static void QuerySourceSize(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
 	static void GlobalQuery(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval);
 
 	static void addSource(obs_source_t *source);

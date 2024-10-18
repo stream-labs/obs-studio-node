@@ -19,7 +19,7 @@
 #include <mutex>
 #include <napi.h>
 #include <thread>
-#include <map>
+#include <unordered_set>
 #include "utility-v8.hpp"
 
 struct SourceSizeInfo {
@@ -30,7 +30,7 @@ struct SourceSizeInfo {
 };
 
 struct SourceSizeInfoData {
-	std::vector<SourceSizeInfo *> items;
+	std::vector<std::unique_ptr<SourceSizeInfo>> items;
 };
 
 namespace globalCallback {
@@ -38,21 +38,25 @@ extern bool isWorkerRunning;
 extern bool worker_stop;
 extern uint32_t sleepIntervalMS;
 extern std::thread *worker_thread;
-extern Napi::ThreadSafeFunction js_thread;
+extern Napi::ThreadSafeFunction js_source_callback;
+extern Napi::ThreadSafeFunction js_volmeter_callback;
 extern bool m_all_workers_stop;
 
 extern std::mutex mtx_volmeters;
-extern std::map<uint64_t, Napi::ThreadSafeFunction> volmeters;
+extern std::unordered_set<uint64_t> volmeters;
 
 void worker(void);
 void start_worker(napi_env env, Napi::Function async_callback);
 void stop_worker(void);
 
-void add_volmeter(napi_env env, uint64_t id, Napi::Function cb);
+void add_volmeter(uint64_t id);
 void remove_volmeter(uint64_t id);
 
 void Init(Napi::Env env, Napi::Object exports);
 
-Napi::Value RegisterGlobalCallback(const Napi::CallbackInfo &info);
-Napi::Value RemoveGlobalCallback(const Napi::CallbackInfo &info);
+Napi::Value RegisterSourceCallback(const Napi::CallbackInfo &info);
+Napi::Value RemoveSourceCallback(const Napi::CallbackInfo &info);
+
+Napi::Value RegisterVolmeterCallback(const Napi::CallbackInfo &info);
+Napi::Value RemoveVolmeterCallback(const Napi::CallbackInfo &info);
 }
