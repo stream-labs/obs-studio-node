@@ -1391,30 +1391,6 @@ const char *get_simple_output_encoder(const char *encoder)
 	}
 
 	return "obs_x264";
-
-	// TODO: remove?????
-
-	/*
-	if (strcmp(encoder, SIMPLE_ENCODER_X264) == 0) {
-		return "obs_x264";
-	} else if (strcmp(encoder, SIMPLE_ENCODER_X264_LOWCPU) == 0) {
-		return "obs_x264";
-	} else if (strcmp(encoder, SIMPLE_ENCODER_QSV) == 0) {
-		return "obs_qsv11";
-	} else if (strcmp(encoder, SIMPLE_ENCODER_AMD) == 0) {
-		return "h264_texture_amf";
-	} else if (strcmp(encoder, SIMPLE_ENCODER_AMD_HEVC) == 0) {
-		return "h265_texture_amf";
-	} else if (strcmp(encoder, SIMPLE_ENCODER_NVENC) == 0 || strcmp(encoder, "jim_nvenc") == 0) {
-		return EncoderAvailable("jim_nvenc") ? "jim_nvenc" : "ffmpeg_nvenc";
-	} else if (strcmp(encoder, SIMPLE_ENCODER_NVENC_HEVC) == 0) {
-		return EncoderAvailable("jim_hevc_nvenc") ? "jim_hevc_nvenc" : "ffmpeg_hevc_nvenc";
-	} else if (strcmp(encoder, APPLE_HARDWARE_VIDEO_ENCODER_M1) == 0) {
-		return APPLE_HARDWARE_VIDEO_ENCODER_M1;
-	}
-
-	return "obs_x264";
-	*/
 }
 
 void OBS_service::updateVideoRecordingEncoder(bool isSimpleMode)
