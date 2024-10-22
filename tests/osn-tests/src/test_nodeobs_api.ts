@@ -12,7 +12,7 @@ const testName = 'nodeobs_api';
 describe(testName, function() {
     let obs: OBSHandler;
     let hasTestFailed: boolean = false;
-    
+
     // Initialize OBS process
     before(function() {
         logInfo(testName, 'Starting ' + testName + ' tests');
@@ -46,7 +46,7 @@ describe(testName, function() {
 
         // Getting performance statistics
         stats = osn.NodeObs.OBS_API_getPerformanceStatistics();
-        
+
         // Checking if performance statistics values returned correctly
         expect(stats.CPU).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.GetPerformanceStatistics, 'CPU'));
         expect(stats.numberDroppedFrames).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.GetPerformanceStatistics, 'numberDroppedFrames'));
@@ -66,7 +66,7 @@ describe(testName, function() {
 
         // Creating scene
         const sceneName = 'hotkeys_test_scene';
-        const scene = osn.SceneFactory.create(sceneName); 
+        const scene = osn.SceneFactory.create(sceneName);
 
         // Checking if scene was created correctly
         expect(scene).to.not.equal(undefined, GetErrorMessage(ETestErrorMsg.CreateScene, sceneName));
