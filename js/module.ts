@@ -1552,29 +1552,49 @@ export function createSources(sources: SourceInfo[]): IInput[] {
     const items: IInput[] = [];
     if (Array.isArray(sources)) {
         sources.forEach(function (source) {
-            const newSource = obs.Input.create(source.type, source.name, source.settings);
-            if (newSource.audioMixers) {
-                newSource.muted = (source.muted != null) ? source.muted : false;
-                newSource.volume = (source.volume != null) ? source.volume : 1;
-                newSource.syncOffset =
-                (source.syncOffset != null) ? source.syncOffset : {sec: 0, nsec: 0};
+            let newSource: IInput | null = null;
+            try {
+                newSource = obs.Input.create(source.type, source.name, source.settings);
+            } catch (error) {
+                console.error(`[OSN] Failed to create input: ${error}`);
             }
-            newSource.deinterlaceMode = source.deinterlaceMode;
-            newSource.deinterlaceFieldOrder = source.deinterlaceFieldOrder;
-            items.push(newSource);
-            const filters = source.filters;
-            if (Array.isArray(filters)) {
+
+            if (newSource) {
+                if (newSource.audioMixers) {
+                    newSource.muted = (source.muted != null) ? source.muted : false;
+                    newSource.volume = (source.volume != null) ? source.volume : 1;
+                    newSource.syncOffset =
+                    (source.syncOffset != null) ? source.syncOffset : {sec: 0, nsec: 0};
+                }
+                newSource.deinterlaceMode = source.deinterlaceMode;
+                newSource.deinterlaceFieldOrder = source.deinterlaceFieldOrder;
+                items.push(newSource);
+
+                const filters = source.filters;
+                if (Array.isArray(filters)) {
                     filters.forEach(function (filter) {
-                    const ObsFilter = obs.Filter.create(filter.type, filter.name, filter.settings);
-                    ObsFilter.enabled = (filter.enabled != null) ? filter.enabled : true;
-                    newSource.addFilter(ObsFilter);
-                    ObsFilter.release();
-                });
+                        let ObsFilter: IFilter | null = null;
+                        try {
+                            ObsFilter = obs.Filter.create(filter.type, filter.name, filter.settings);
+                        } catch (error) {
+                            console.error(`[OSN] Failed to create filter: ${error}`);
+                        }
+
+                        if (ObsFilter) {
+                            ObsFilter.enabled = (filter.enabled != null) ? filter.enabled : true;
+                            newSource.addFilter(ObsFilter);
+                            ObsFilter.release();
+                        }
+                    });
+                }
+            } else {
+                console.warn(`[OSN] Input creation failed for source: ${source.name}`);
             }
         });
     }
     return items;
 }
+
 export interface ISourceSize {
     name: string,
     width: number,
