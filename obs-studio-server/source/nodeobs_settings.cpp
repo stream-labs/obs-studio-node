@@ -681,6 +681,17 @@ std::vector<SubCategory> OBS_settings::getStreamSettings(StreamServiceId service
 		param.countValues = count;
 
 		if (count == 0) {
+			if (strcmp(obs_property_name(property), "bearer_token") == 0) {
+				const char *bearer_token = obs_service_get_connect_info(currentService, OBS_SERVICE_CONNECT_INFO_BEARER_TOKEN);
+				formatString = "OBS_PROPERTY_EDIT_TEXT";
+
+				if (bearer_token == NULL)
+					bearer_token = "";
+
+				param.currentValue.resize(strlen(bearer_token));
+				memcpy(param.currentValue.data(), bearer_token, strlen(bearer_token));
+				param.sizeOfCurrentValue = strlen(bearer_token);
+			}
 			if (strcmp(obs_property_name(property), "key") == 0) {
 				const char *stream_key = obs_service_get_key(currentService);
 				formatString = "OBS_PROPERTY_EDIT_TEXT";
@@ -1033,16 +1044,23 @@ std::vector<EncoderSettings> encoders_set = {
 	{"Software (x264)", "obs_x264", "Software (x264)", "x264", "obs_x264", true, true, false, false, true, false},
 	// Software x264 low CPU (only for recording)
 	{"", "", "Software (x264 low CPU usage preset, increases file size)", "x264_lowcpu", "obs_x264", true, false, false, false, true, false},
-	// QuickSync H.264
-	{"QuickSync H.264", "obs_qsv11", "Hardware (QSV, H.264)", "qsv", "obs_qsv11", true, true, true, false, true, false},
+	// QuickSync H.264 (v1, deprecated)
+	// This line left here for reference
+	// {"QuickSync H.264 (v1 deprecated)", "obs_qsv11", "(Deprecated v1) Hardware (QSV, H.264)", "qsv", "obs_qsv11", true, true, true, false, true, false},
+	// QuickSync H.264 (v2, new)
+	{"QuickSync H.264", "obs_qsv11_v2", "Hardware (QSV, H.264)", "qsv", "obs_qsv11_v2", true, true, true, false, true, false},
+	// QuickSync AV1
+	{"QuickSync AV1", "obs_qsv11_av1", "Hardware (QSV, AV1)", "obs_qsv11_av1", "", true, true, true, false, true, false},
+	// QuickSync HEVC
+	{"QuickSync HEVC", "obs_qsv11_hevc", "Hardware (QSV, HEVC)", "obs_qsv11_hevc", "", true, true, true, false, true, false},
 	// NVIDIA NVENC H.264
 	{"NVIDIA NVENC H.264", "ffmpeg_nvenc", "NVIDIA NVENC H.264", "nvenc", "ffmpeg_nvenc", true, true, true, false, true, true},
 	// NVIDIA NVENC H.264 (new)
 	{"NVIDIA NVENC H.264 (new)", "jim_nvenc", "NVIDIA NVENC H.264 (new)", "jim_nvenc", "", true, true, true, false, true, false},
-	// NVIDIA NVENC HEVC (new)
-	{"NVIDIA NVENC HEVC (new)", "jim_hevc_nvenc", "Hardware (NVENC, HEVC)", "nvenc_hevc", "jim_hevc_nvenc", true, true, true, true, true, false},
+	// NVIDIA NVENC HEVC
+	{"NVIDIA NVENC HEVC", "jim_hevc_nvenc", "Hardware (NVENC, HEVC)", "nvenc_hevc", "jim_hevc_nvenc", true, true, true, true, true, false},
 	// NVIDIA NVENC AV1
-	{"NVIDIA NVENC AV1", "jim_av1_nvenc", "Hardware (NVENC, AV1)", "jim_av1_nvenc", "jim_av1_nvenc", true, false, true, true, true, false},
+	{"NVIDIA NVENC AV1", "jim_av1_nvenc", "Hardware (NVENC, AV1)", "jim_av1_nvenc", "", true, true, true, true, true, false},
 	// Apple VT H264 Software Encoder
 	{"Apple VT H264 Software Encoder", "com.apple.videotoolbox.videoencoder.h264", "Software (Apple, H.264)", "com.apple.videotoolbox.videoencoder.h264",
 	 "", true, true, true, false, true, false},
@@ -1056,10 +1074,12 @@ std::vector<EncoderSettings> encoders_set = {
 	{"AMD HW H.264", "h264_texture_amf", "Hardware (AMD, H.264)", "amd", "h264_texture_amf", true, true, true, false, true, false},
 	// AMD HW H.265 (HEVC)
 	{"AMD HW H.265 (HEVC)", "h265_texture_amf", "Hardware (AMD, HEVC)", "amd_hevc", "h265_texture_amf", true, true, true, true, true, false},
-	// SVT-AV1
-	{"SVT-AV1", "ffmpeg_svt_av1", "", "", "", true, false, true, false, true, false},
+	// AMD HW AV1
+	{"AMD HW AV1", "amd_av1", "Hardware (AMD, AV1)", "av1", "amd_av1", true, true, true, true, true, false},
 	// AOM AV1
-	{"AOM AV1", "ffmpeg_aom_av1", "", "", "", true, false, true, false, true, false}};
+	{"AOM AV1", "ffmpeg_aom_av1", "AOM AV1", "ffmpeg_aom_av1", "", true, true, true, false, true, false},
+	// SVT-AV1
+	{"SVT-AV1", "ffmpeg_svt_av1", "SVT-AV1", "ffmpeg_svt_av1", "", true, true, true, false, true, false}};
 
 void OBS_settings::getSimpleAvailableEncoders(std::vector<std::pair<std::string, ipc::value>> *list, bool recording, const std::string &container)
 {

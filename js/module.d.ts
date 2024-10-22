@@ -110,9 +110,9 @@ export declare const enum ETextType {
     TextInfo = 3
 }
 export declare const enum ETextInfoType {
-	Normal = 0,
-	Warning = 1,
-	Error = 2,
+    Normal = 0,
+    Warning = 1,
+    Error = 2
 }
 export declare const enum ENumberType {
     Scroller = 0,
@@ -148,7 +148,7 @@ export declare const enum ESourceOutputFlags {
     DoNotDuplicate = 128,
     Deprecated = 256,
     DoNotSelfMonitor = 512,
-    ForceUiRefresh = 1073741824,
+    ForceUiRefresh = 1073741824
 }
 export declare const enum ESceneDupType {
     Refs = 0,
@@ -354,7 +354,7 @@ export interface IGlobal {
     getOutputFlagsFromId(id: string): number;
     setOutputSource(channel: number, input: ISource): void;
     getOutputSource(channel: number): ISource;
-    addSceneToBackstage(input: ISource) : void;
+    addSceneToBackstage(input: ISource): void;
     removeSceneFromBackstage(input: ISource): void;
     readonly totalFrames: number;
     readonly laggedFrames: number;
@@ -558,7 +558,7 @@ export interface ISceneItem {
     streamVisible: boolean;
     recordingVisible: boolean;
     video: IVideo;
-    readonly transformInfo: ITransformInfo;
+    transformInfo: ITransformInfo;
     crop: ICropInfo;
     moveUp(): void;
     moveDown(): void;
@@ -637,7 +637,6 @@ export interface IDisplay {
     getPreviewSize(x: number, y: number): void;
     shouldDrawUI: boolean;
     paddingSize: number;
-    video: IVideo;
     setPaddingColor(r: number, g: number, b: number, a: number): void;
     setBackgroundColor(r: number, g: number, b: number, a: number): void;
     setOutlineColor(r: number, g: number, b: number, a: number): void;
@@ -748,7 +747,7 @@ export declare const enum ERecordingFormat {
     FLV = "flv",
     MOV = "mov",
     MKV = "mkv",
-    TS = "ts",
+    TS = "mpegts",
     M3M8 = "m3m8"
 }
 export declare const enum ERecordingQuality {

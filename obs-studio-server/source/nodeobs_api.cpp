@@ -829,6 +829,31 @@ void addModulePaths()
 #endif
 }
 
+static void listEncoders(obs_encoder_type type)
+{
+	constexpr uint32_t hide_flags = OBS_ENCODER_CAP_DEPRECATED | OBS_ENCODER_CAP_INTERNAL;
+
+	size_t idx = 0;
+	const char *encoder_type;
+
+	while (obs_enum_encoder_types(idx++, &encoder_type)) {
+		if (obs_get_encoder_caps(encoder_type) & hide_flags || obs_get_encoder_type(encoder_type) != type) {
+			continue;
+		}
+
+		blog(LOG_INFO, "\t- %s (%s)", encoder_type, obs_encoder_get_display_name(encoder_type));
+	}
+};
+
+static void logEncoders()
+{
+	blog(LOG_INFO, "Available Encoders:");
+	blog(LOG_INFO, "  Video Encoders:");
+	listEncoders(OBS_ENCODER_VIDEO);
+	blog(LOG_INFO, "  Audio Encoders:");
+	listEncoders(OBS_ENCODER_AUDIO);
+}
+
 void OBS_API::OBS_API_initAPI(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
 	writeCrashHandler(registerProcess());
@@ -844,6 +869,43 @@ void OBS_API::OBS_API_initAPI(void *data, const int64_t id, const std::vector<ip
 	std::string locale = args[1].value_str;
 	currentVersion = args[2].value_str;
 	utility::osn_current_version(currentVersion);
+
+	/* Logging */
+	std::string filename = GenerateTimeDateFilename("txt");
+	std::string log_path = appdata;
+	log_path.append("/node-obs/logs/");
+
+	/* Make sure the path is created
+	before attempting to make a file there. */
+	if (os_mkdirs(log_path.c_str()) == MKDIR_ERROR) {
+		std::cerr << "Failed to open log file" << std::endl;
+#ifdef WIN32
+		util::CrashManager::AddWarning("Error on log file, failed to create path: " + log_path);
+#endif
+	}
+
+	/* Delete oldest file in the folder to imitate rotating */
+	DeleteOldestFile(log_path.c_str(), 3);
+	log_path.append(filename);
+
+	auto logParam = std::make_unique<NodeOBSLogParam>();
+	logParam->enableDebugLogs = checkIfDebugLogsEnabled(appdata);
+
+#if defined(_WIN32) && defined(UNICODE)
+	logParam->logStream = std::fstream(converter.from_bytes(log_path.c_str()).c_str(), std::ios_base::out | std::ios_base::trunc);
+#else
+	logParam->logStream = std::fstream(log_path, std::ios_base::out | std::ios_base::trunc);
+#endif
+	if (!logParam->logStream.is_open()) {
+		logParam.reset();
+		util::CrashManager::AddWarning("Error on log file, failed to open: " + log_path);
+		std::cerr << "Failed to open log file" << std::endl;
+	}
+	base_set_log_handler(node_obs_log, (logParam) ? logParam.release() : nullptr);
+#ifndef _DEBUG
+	// Redirect the ipc log callbacks to our log handler
+	ipc::register_log_callback([](void *data, const char *fmt, va_list args) { blogva(LOG_ERROR, fmt, args); }, nullptr);
+#endif
 
 #ifdef ENABLE_CRASHREPORT
 	util::CrashManager crashManager;
@@ -903,43 +965,6 @@ void OBS_API::OBS_API_initAPI(void *data, const int64_t id, const std::vector<ip
 		util::CrashManager::AddWarning("Failed to start OBS, locale: " + locale + " user data: " + userDataPath);
 #endif
 	}
-
-	/* Logging */
-	std::string filename = GenerateTimeDateFilename("txt");
-	std::string log_path = appdata;
-	log_path.append("/node-obs/logs/");
-
-	/* Make sure the path is created
-	before attempting to make a file there. */
-	if (os_mkdirs(log_path.c_str()) == MKDIR_ERROR) {
-		std::cerr << "Failed to open log file" << std::endl;
-#ifdef WIN32
-		util::CrashManager::AddWarning("Error on log file, failed to create path: " + log_path);
-#endif
-	}
-
-	/* Delete oldest file in the folder to imitate rotating */
-	DeleteOldestFile(log_path.c_str(), 3);
-	log_path.append(filename);
-
-	auto logParam = std::make_unique<NodeOBSLogParam>();
-	logParam->enableDebugLogs = checkIfDebugLogsEnabled(appdata);
-
-#if defined(_WIN32) && defined(UNICODE)
-	logParam->logStream = std::fstream(converter.from_bytes(log_path.c_str()).c_str(), std::ios_base::out | std::ios_base::trunc);
-#else
-	logParam->logStream = std::fstream(log_path, std::ios_base::out | std::ios_base::trunc);
-#endif
-	if (!logParam->logStream.is_open()) {
-		logParam.reset();
-		util::CrashManager::AddWarning("Error on log file, failed to open: " + log_path);
-		std::cerr << "Failed to open log file" << std::endl;
-	}
-	base_set_log_handler(node_obs_log, (logParam) ? logParam.release() : nullptr);
-#ifndef _DEBUG
-	// Redirect the ipc log callbacks to our log handler
-	ipc::register_log_callback([](void *data, const char *fmt, va_list args) { blogva(LOG_ERROR, fmt, args); }, nullptr);
-#endif
 
 #ifdef _WIN32
 	SetPrivilegeForGPUPriority();
@@ -1002,6 +1027,12 @@ void OBS_API::OBS_API_initAPI(void *data, const int64_t id, const std::vector<ip
 	obs_set_replay_buffer_rendering_mode(useStreamOutput ? OBS_STREAMING_REPLAY_BUFFER_RENDERING : OBS_RECORDING_REPLAY_BUFFER_RENDERING);
 
 	util::CrashManager::setAppState("idle");
+
+	blog(LOG_INFO, "---------------------------------");
+	obs_log_loaded_modules();
+	blog(LOG_INFO, "---------------------------------");
+	logEncoders();
+	blog(LOG_INFO, "---------------------------------");
 
 	// We are returning a video result here because the frontend needs to know if we sucessfully
 	// initialized the Dx11 API

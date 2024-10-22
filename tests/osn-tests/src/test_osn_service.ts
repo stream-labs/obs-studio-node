@@ -7,6 +7,10 @@ import { OBSHandler } from '../util/obs_handler'
 import { deleteConfigFiles } from '../util/general';
 import { EOBSInputTypes } from '../util/obs_enums';
 
+import chai = require('chai');
+import chaiSubset = require("chai-subset")
+chai.use(chaiSubset);
+
 const testName = 'osn-service';
 
 describe(testName, () => {
@@ -43,7 +47,7 @@ describe(testName, () => {
 
     it('Get service types', () => {
         const services = osn.ServiceFactory.types();
-        expect(services).to.eql(['rtmp_common', 'rtmp_custom'], 'Wrong services types returned');
+        expect(services).to.eql(['whip_custom', 'rtmp_common', 'rtmp_custom'], 'Wrong services types returned');
     });
 
     it('Create rtmp common', () => {
@@ -57,9 +61,9 @@ describe(testName, () => {
             key: 'test'
         });
 
-        expect(service.settings).to.eql(
-            {service: 'Twitch', server: 'auto', key: 'test'},
-            "Error while updating the service settings");
+        // Using containSubset here because starting from OBS 30 the resulting object is bloated with URLs and disclaimers about usage policy
+        expect(service.settings).to.containSubset(
+            {service: 'Twitch', server: 'auto', key: 'test'});
 
         const props = service.properties;
         let prop: any = props.first();

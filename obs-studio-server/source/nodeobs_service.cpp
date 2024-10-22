@@ -56,7 +56,9 @@ std::string AdvancedRecordingAudioEncodersID[MAX_AUDIO_MIXES];
 
 obs_video_info *base_canvas = nullptr;
 
+// Audio encoders
 const std::string ffmpeg_aac_id = "ffmpeg_aac";
+const std::string ffmpeg_opus_id = "ffmpeg_opus";
 std::string audioSimpleRecEncID;
 
 std::string videoEncoder;
@@ -801,7 +803,7 @@ bool OBS_service::createVideoStreamingEncoder(StreamServiceId serviceId)
 	return true;
 }
 
-void OBS_service::createAudioStreamingEncoder(StreamServiceId serviceId, bool isSimpleMode)
+void OBS_service::createAudioStreamingEncoder(StreamServiceId serviceId, bool isSimpleMode, const std::string &encoder_id)
 {
 	std::string id;
 	obs_encoder_t *audioStreamingEncoder = nullptr;
@@ -813,7 +815,7 @@ void OBS_service::createAudioStreamingEncoder(StreamServiceId serviceId, bool is
 		trackIndex = config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "TrackIndex") - 1;
 	}
 
-	if (!createAudioEncoder(&audioStreamingEncoder, id, ffmpeg_aac_id, GetSimpleAudioBitrate(), audio_encoder_name.c_str(), trackIndex)) {
+	if (!createAudioEncoder(&audioStreamingEncoder, id, encoder_id, GetSimpleAudioBitrate(), audio_encoder_name.c_str(), trackIndex)) {
 		throw "Failed to create audio streaming encoder";
 	}
 
@@ -1300,11 +1302,11 @@ void OBS_service::updateAudioStreamingEncoder(bool isSimpleMode, StreamServiceId
 		enc = nullptr;
 	}
 
-	if (strstr(codec, "aac") != NULL && isSimpleMode) {
-		createAudioStreamingEncoder(serviceId, isSimpleMode);
+	if (strstr(codec, "aac") != NULL) {
+		createAudioStreamingEncoder(serviceId, isSimpleMode, ffmpeg_aac_id);
 		enc = audioStreamingEncoder[serviceId];
-	} else if (strstr(codec, "aac") != NULL && !isSimpleMode) {
-		createAudioStreamingEncoder(serviceId, isSimpleMode);
+	} else if (strstr(codec, "opus") != NULL) {
+		createAudioStreamingEncoder(serviceId, isSimpleMode, ffmpeg_opus_id);
 		enc = audioStreamingEncoder[serviceId];
 	} else {
 		uint64_t trackIndex = config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "TrackIndex");
@@ -1365,17 +1367,25 @@ const char *get_simple_output_encoder(const char *encoder)
 	} else if (strcmp(encoder, SIMPLE_ENCODER_X264_LOWCPU) == 0) {
 		return "obs_x264";
 	} else if (strcmp(encoder, SIMPLE_ENCODER_QSV) == 0) {
-		return "obs_qsv11";
+		return "obs_qsv11_v2";
+	} else if (strcmp(encoder, SIMPLE_ENCODER_QSV_AV1) == 0) {
+		return "obs_qsv11_av1";
 	} else if (strcmp(encoder, SIMPLE_ENCODER_AMD) == 0) {
 		return "h264_texture_amf";
 	} else if (strcmp(encoder, SIMPLE_ENCODER_AMD_HEVC) == 0) {
 		return "h265_texture_amf";
-	} else if (strcmp(encoder, SIMPLE_ENCODER_NVENC) == 0 || strcmp(encoder, "jim_nvenc") == 0) {
+	} else if (strcmp(encoder, SIMPLE_ENCODER_AMD_AV1) == 0) {
+		return "av1_texture_amf";
+	} else if (strcmp(encoder, SIMPLE_ENCODER_NVENC) == 0) {
 		return EncoderAvailable("jim_nvenc") ? "jim_nvenc" : "ffmpeg_nvenc";
 	} else if (strcmp(encoder, SIMPLE_ENCODER_NVENC_HEVC) == 0) {
 		return EncoderAvailable("jim_hevc_nvenc") ? "jim_hevc_nvenc" : "ffmpeg_hevc_nvenc";
-	} else if (strcmp(encoder, APPLE_HARDWARE_VIDEO_ENCODER_M1) == 0) {
-		return APPLE_HARDWARE_VIDEO_ENCODER_M1;
+	} else if (strcmp(encoder, SIMPLE_ENCODER_NVENC_AV1) == 0) {
+		return "jim_av1_nvenc";
+	} else if (strcmp(encoder, SIMPLE_ENCODER_APPLE_H264) == 0) {
+		return "com.apple.videotoolbox.videoencoder.ave.avc";
+	} else if (strcmp(encoder, SIMPLE_ENCODER_APPLE_HEVC) == 0) {
+		return "com.apple.videotoolbox.videoencoder.ave.hevc";
 	}
 
 	return "obs_x264";

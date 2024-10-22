@@ -51,10 +51,15 @@
 #endif
 #define SIMPLE_ENCODER_X264_LOWCPU "x264_lowcpu"
 #define SIMPLE_ENCODER_QSV "qsv"
+#define SIMPLE_ENCODER_QSV_AV1 "qsv_av1"
 #define SIMPLE_ENCODER_NVENC "nvenc"
+#define SIMPLE_ENCODER_NVENC_AV1 "nvenc_av1"
 #define SIMPLE_ENCODER_NVENC_HEVC "nvenc_hevc"
 #define SIMPLE_ENCODER_AMD "amd"
 #define SIMPLE_ENCODER_AMD_HEVC "amd_hevc"
+#define SIMPLE_ENCODER_AMD_AV1 "amd_av1"
+#define SIMPLE_ENCODER_APPLE_H264 "apple_h264"
+#define SIMPLE_ENCODER_APPLE_HEVC "apple_hevc"
 
 #define ADVANCED_ENCODER_X264 "obs_x264"
 #define ADVANCED_ENCODER_QSV "obs_qsv11"
@@ -181,7 +186,7 @@ public:
 				       size_t idx);
 	static bool createVideoStreamingEncoder(StreamServiceId serviceId);
 	static std::string GetVideoEncoderName(StreamServiceId serviceId, bool isSimpleMode, bool recording, const char *encoder);
-	static void createAudioStreamingEncoder(StreamServiceId serviceId, bool isSimpleMode);
+	static void createAudioStreamingEncoder(StreamServiceId serviceId, bool isSimpleMode, const std::string &encoder_id);
 	static bool createVideoRecordingEncoder();
 	static obs_encoder_t *getStreamingEncoder(StreamServiceId serviceId);
 	static void setStreamingEncoder(obs_encoder_t *encoder, StreamServiceId serviceId);
