@@ -283,6 +283,7 @@ static bool setAudioEncoder(osn::AdvancedStreaming *streaming)
 			obs_data_t *settings = obs_data_create();
 			obs_data_set_int(settings, "bitrate", audioTrack->bitrate);
 			obs_encoder_update(streaming->audioEncoder, settings);
+			obs_encoder_set_name(streaming->audioEncoder, audioTrack->name.empty() ? "audio-encoder-streaming" : audioTrack->name.c_str());
 			obs_data_release(settings);
 		}
 	}

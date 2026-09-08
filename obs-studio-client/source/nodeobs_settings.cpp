@@ -133,6 +133,41 @@ std::vector<settings::SubCategory> serializeCategory(uint32_t subCategoriesCount
 	return category;
 }
 
+Napi::Value settings::OBS_settings_getEncoderSettings(const Napi::CallbackInfo &info)
+{
+	if (info.Length() != 3 || !info[0].IsString() || !info[1].IsString() || !info[2].IsString()) {
+		Napi::TypeError::New(info.Env(), "OBS_settings_getEncoderSettings expects encoder ID, output type, and mode strings")
+			.ThrowAsJavaScriptException();
+		return info.Env().Undefined();
+	}
+
+	std::string encoderId = info[0].As<Napi::String>().Utf8Value();
+	std::string outputType = info[1].As<Napi::String>().Utf8Value();
+	std::string mode = info[2].As<Napi::String>().Utf8Value();
+	if (encoderId.empty() || (outputType != "streaming" && outputType != "recording") || (mode != "Simple" && mode != "Advanced")) {
+		Napi::TypeError::New(info.Env(),
+				     "OBS_settings_getEncoderSettings requires a nonempty encoder ID, streaming or recording, and Simple or Advanced")
+			.ThrowAsJavaScriptException();
+		return info.Env().Undefined();
+	}
+
+	auto conn = GetConnection(info);
+	if (!conn)
+		return info.Env().Undefined();
+
+	auto response = conn->call_synchronous_helper("Settings", "OBS_settings_getEncoderSettings", {encoderId, outputType, mode});
+	if (!ValidateResponse(info, response))
+		return info.Env().Undefined();
+	if (response.size() != 2 || response[1].type != ipc::type::String) {
+		Napi::Error::New(info.Env(), "Invalid encoder settings response").ThrowAsJavaScriptException();
+		return info.Env().Undefined();
+	}
+
+	Napi::Object json = info.Env().Global().Get("JSON").As<Napi::Object>();
+	Napi::Function parse = json.Get("parse").As<Napi::Function>();
+	return parse.Call(json, {Napi::String::New(info.Env(), response[1].value_str)});
+}
+
 Napi::Value settings::OBS_settings_getSettings(const Napi::CallbackInfo &info)
 {
 	std::string category = info[0].ToString().Utf8Value();
@@ -539,6 +574,7 @@ void settings::OBS_settings_setEnhancedBroadcasting(const Napi::CallbackInfo &in
 void settings::Init(Napi::Env env, Napi::Object exports)
 {
 	exports.Set(Napi::String::New(env, "OBS_settings_getSettings"), Napi::Function::New(env, settings::OBS_settings_getSettings));
+	exports.Set(Napi::String::New(env, "OBS_settings_getEncoderSettings"), Napi::Function::New(env, settings::OBS_settings_getEncoderSettings));
 	exports.Set(Napi::String::New(env, "OBS_settings_saveSettings"), Napi::Function::New(env, settings::OBS_settings_saveSettings));
 	exports.Set(Napi::String::New(env, "OBS_settings_isValidEncoder"), Napi::Function::New(env, settings::OBS_settings_isValidEncoder));
 	exports.Set(Napi::String::New(env, "OBS_settings_getListCategories"), Napi::Function::New(env, settings::OBS_settings_getListCategories));

@@ -430,6 +430,39 @@ std::string osn::EncoderUtils::getPublicEncoderTitle(const char *encoder)
 	return {};
 }
 
+obs_data_t *osn::EncoderUtils::getSimpleStreamingEncoderSettings(const char *encoder)
+{
+	config_t *config = ConfigManager::getInstance().getBasic();
+	obs_data_t *settings = obs_data_create();
+	obs_data_set_string(settings, "rate_control", "CBR");
+	obs_data_set_int(settings, "bitrate", config_get_uint(config, "SimpleOutput", "VBitrate"));
+
+	if (config_get_bool(config, "SimpleOutput", "UseAdvanced")) {
+		std::string presetType = getEncoderPreset(encoder);
+		const char *preset = utility::GetSafeString(config_get_string(config, "SimpleOutput", presetType.c_str()));
+		if (presetType == PRESET_NVENC && strlen(preset) == 0) {
+			const char *oldPreset = utility::GetSafeString(config_get_string(config, "SimpleOutput", PRESET_NVENC_DEP));
+			if (strlen(oldPreset) != 0)
+				preset = convertNvencSimplePreset(oldPreset);
+		}
+
+		std::string encoderId = getInternalEncoderFromSimple(encoder);
+		const char *presetProperty = "preset";
+		if (presetType == PRESET_QSV)
+			presetProperty = "target_usage";
+		else if (presetType == PRESET_NVENC && encoderId.compare(0, 7, "ffmpeg_") == 0)
+			presetProperty = "preset2";
+		if (strlen(preset) != 0)
+			obs_data_set_string(settings, presetProperty, preset);
+		obs_data_set_string(settings, "x264opts", utility::GetSafeString(config_get_string(config, "SimpleOutput", "x264Settings")));
+	}
+
+	if (getEncoderFamily(encoder) == FAMILY_APPLE)
+		obs_data_set_string(settings, "profile", utility::GetSafeString(config_get_string(config, "SimpleOutput", "Profile")));
+
+	return settings;
+}
+
 bool osn::EncoderUtils::isOldJimNvencEncoder(const std::string &encoderId)
 {
 	return encoderId == ENCODER_JIM_NVENC || encoderId == ENCODER_JIM_HEVC_NVENC || encoderId == ENCODER_JIM_AV1_NVENC;

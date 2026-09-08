@@ -71,6 +71,9 @@ void OBS_settings::Register(ipc::server &srv)
 
 	cls->register_function(
 		std::make_shared<ipc::function>("OBS_settings_getSettings", std::vector<ipc::type>{ipc::type::String}, OBS_settings_getSettings));
+	cls->register_function(std::make_shared<ipc::function>("OBS_settings_getEncoderSettings",
+							       std::vector<ipc::type>{ipc::type::String, ipc::type::String, ipc::type::String},
+							       OBS_settings_getEncoderSettings));
 	cls->register_function(std::make_shared<ipc::function>(
 		"OBS_settings_saveSettings", std::vector<ipc::type>{ipc::type::String, ipc::type::UInt32, ipc::type::UInt32, ipc::type::Binary},
 		OBS_settings_saveSettings));
@@ -87,6 +90,83 @@ void OBS_settings::Register(ipc::server &srv)
 							       OBS_settings_setEnhancedBroadcasting));
 
 	srv.register_collection(cls);
+}
+
+void OBS_settings::OBS_settings_getEncoderSettings(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
+{
+	const std::string &encoderId = args[0].value_str;
+	const std::string &outputType = args[1].value_str;
+	const std::string &mode = args[2].value_str;
+	if (!obs_initialized()) {
+		PRETTY_ERROR_RETURN(ErrorCode::Error, "OBS must be initialized before reading encoder settings.");
+	}
+	if ((mode != "Simple" && mode != "Advanced") || (outputType != "streaming" && outputType != "recording")) {
+		PRETTY_ERROR_RETURN(ErrorCode::Error, "Invalid encoder settings mode or output type.");
+	}
+	if (!osn::EncoderUtils::isEncoderRegistered(encoderId) || obs_get_encoder_type(encoderId.c_str()) != OBS_ENCODER_VIDEO) {
+		PRETTY_ERROR_RETURN(ErrorCode::Error, "Encoder settings require a registered video encoder ID.");
+	}
+
+	config_t *config = ConfigManager::getInstance().getBasic();
+	if (mode != utility::GetSafeString(config_get_string(config, "Output", "Mode"))) {
+		PRETTY_ERROR_RETURN(ErrorCode::Error, "Requested encoder settings mode does not match the saved output mode.");
+	}
+	bool simple = mode == "Simple";
+	bool recording = outputType == "recording";
+	const char *section = simple ? "SimpleOutput" : "AdvOut";
+	std::string selected = utility::GetSafeString(config_get_string(config, section, recording ? "RecEncoder" : (simple ? "StreamEncoder" : "Encoder")));
+	if (recording &&
+	    ((simple && strcmp(utility::GetSafeString(config_get_string(config, section, "RecQuality")), "Stream") == 0) || (!simple && selected == "none"))) {
+		recording = false;
+		selected = utility::GetSafeString(config_get_string(config, section, simple ? "StreamEncoder" : "Encoder"));
+	}
+	// Match the existing JIM encoder migration without changing the saved selection during a read.
+	if (osn::EncoderUtils::isOldJimNvencEncoder(selected))
+		selected = ENCODER_NVENC_H264_TEX;
+
+	std::string selectedId = selected;
+	if (simple) {
+		bool found = false;
+		for (const auto &encoder : osn::EncoderUtils::videoEncoderOptions) {
+			if (!encoder.simple_name.empty() && encoder.simple_name == selected) {
+				found = true;
+				break;
+			}
+		}
+		if (!found) {
+			PRETTY_ERROR_RETURN(ErrorCode::Error, "Saved simple encoder selection is invalid.");
+		}
+		selectedId = osn::EncoderUtils::getInternalEncoderFromSimple(selected.c_str());
+	}
+	if (selectedId != encoderId) {
+		PRETTY_ERROR_RETURN(ErrorCode::Error, "Requested encoder does not match the saved output encoder.");
+	}
+
+	OBSDataAutoRelease settings = obs_encoder_defaults(encoderId.c_str());
+	if (simple) {
+		// Simple recording quality and service restrictions are applied by the output when it starts.
+		if (!recording) {
+			OBSDataAutoRelease simpleSettings = osn::EncoderUtils::getSimpleStreamingEncoderSettings(selected.c_str());
+			obs_data_apply(settings, simpleSettings);
+		}
+	} else {
+		std::string path = recording ? ConfigManager::getInstance().getRecord() : ConfigManager::getInstance().getStream();
+		OBSDataAutoRelease savedSettings = obs_data_create_from_json_file(path.c_str());
+		// The safe file loader restores the backup by renaming it. Read it directly to keep this API read-only.
+		if (!savedSettings)
+			savedSettings = obs_data_create_from_json_file((path + ".bak").c_str());
+		if (!savedSettings && (os_file_exists(path.c_str()) || os_file_exists((path + ".bak").c_str()))) {
+			PRETTY_ERROR_RETURN(ErrorCode::Error, "Cannot read saved encoder settings or their backup.");
+		}
+		if (savedSettings) {
+			osn::EncoderUtils::updateNvencPresets(savedSettings, encoderId.c_str());
+			obs_data_apply(settings, savedSettings);
+		}
+	}
+
+	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
+	rval.push_back(ipc::value(obs_data_get_json_with_defaults(settings)));
+	AUTO_DEBUG;
 }
 
 void OBS_settings::OBS_settings_getSettings(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)

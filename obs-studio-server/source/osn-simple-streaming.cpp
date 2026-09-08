@@ -252,10 +252,11 @@ static void StopTwitchSoundtrackAudio(osn::Streaming *streaming)
 	obs_source_release(desktopSource2);
 }
 
-void UpdateStreamingSettings_amd(obs_data_t *settings, int bitrate)
+void UpdateStreamingSettings_amd(obs_data_t *settings, int bitrate, bool useAdvanced)
 {
 	obs_data_set_string(settings, "profile", "high");
-	obs_data_set_string(settings, "preset", "quality");
+	if (!useAdvanced)
+		obs_data_set_string(settings, "preset", "quality");
 	obs_data_set_string(settings, "rate_control", "CBR");
 	obs_data_set_int(settings, "bitrate", bitrate);
 	obs_data_set_int(settings, "keyint_sec", 2);
@@ -281,7 +282,7 @@ void osn::SimpleStreaming::updateEncoders()
 
 	std::string id = obs_encoder_get_id(videoEncoder);
 	if (id.compare(ADVANCED_ENCODER_AMD) == 0)
-		UpdateStreamingSettings_amd(videoEncSettings, vBitrate);
+		UpdateStreamingSettings_amd(videoEncSettings, vBitrate, useAdvanced);
 
 	obs_data_set_string(videoEncSettings, "rate_control", "CBR");
 	obs_data_set_int(videoEncSettings, "bitrate", vBitrate);
@@ -458,47 +459,8 @@ obs_encoder_t *osn::ISimpleStreaming::CreateLegacyVideoEncoder()
 		config_save_safe(ConfigManager::getInstance().getBasic(), "tmp", nullptr);
 	}
 
-	obs_data_t *videoEncData = obs_data_create();
-	obs_data_set_string(videoEncData, "rate_control", "CBR");
-	obs_data_set_int(videoEncData, "bitrate", config_get_uint(ConfigManager::getInstance().getBasic(), "SimpleOutput", "VBitrate"));
-
-	bool advanced = config_get_bool(ConfigManager::getInstance().getBasic(), "SimpleOutput", "UseAdvanced");
-	const char *custom = utility::GetSafeString(config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "x264Settings"));
-
-	const char *preset = nullptr;
-
-	std::string presetType = osn::EncoderUtils::getEncoderPreset(encId);
+	obs_data_t *videoEncData = osn::EncoderUtils::getSimpleStreamingEncoderSettings(encId);
 	std::string encIdOBS = osn::EncoderUtils::getInternalEncoderFromSimple(encId);
-
-	preset = utility::GetSafeString(config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", presetType.c_str()));
-
-	if (presetType == PRESET_NVENC) {
-		if (strlen(preset) == 0) {
-			const char *oldParamName = PRESET_NVENC_DEP;
-			const char *oldValue = utility::GetSafeString(config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", oldParamName));
-			if (strlen(oldValue) != 0) {
-				preset = osn::EncoderUtils::convertNvencSimplePreset(oldValue);
-				blog(LOG_INFO, "NVENC preset converted from %s to %s", oldValue, preset);
-			}
-		}
-	}
-
-	if (advanced) {
-		obs_data_set_string(videoEncData, "preset", preset);
-		obs_data_set_string(videoEncData, "x264opts", custom);
-	}
-
-	bool enforceServiceBitrate = config_get_bool(ConfigManager::getInstance().getBasic(), "SimpleOutput", "EnforceBitrate");
-
-	if (advanced && !enforceServiceBitrate) {
-		obs_data_set_int(videoEncData, "bitrate", config_get_uint(ConfigManager::getInstance().getBasic(), "SimpleOutput", "VBitrate"));
-	}
-
-	if (osn::EncoderUtils::getEncoderFamily(encId) == FAMILY_APPLE) {
-		const char *profile = utility::GetSafeString(config_get_string(ConfigManager::getInstance().getBasic(), "SimpleOutput", "Profile"));
-		if (profile)
-			obs_data_set_string(videoEncData, "profile", profile);
-	}
 
 	obs_encoder_t *videoEncoder = obs_video_encoder_create(encIdOBS.c_str(), "video-encoder", videoEncData, nullptr);
 	obs_data_release(videoEncData);
