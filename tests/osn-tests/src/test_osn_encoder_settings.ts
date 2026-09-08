@@ -163,7 +163,7 @@ describe(testName, function () {
             .to.deep.equal(osn.NodeObs.OBS_settings_getEncoderSettings('obs_x264', 'streaming', 'Advanced'));
     });
 
-    it('Reads the complete backup without changing files and restores defaults when settings are absent', function () {
+    it('Reads the complete backup without changing files or making defaults explicit', function () {
         const filePath = path.join(configPath, 'recordEncoder.json');
         const backupPath = `${filePath}.bak`;
         const original = fs.readFileSync(filePath);
@@ -182,8 +182,14 @@ describe(testName, function () {
             fs.writeFileSync(filePath, '{invalid json');
             fs.writeFileSync(backupPath, backup);
             const settings = osn.NodeObs.OBS_settings_getEncoderSettings('obs_x264', 'recording', 'Advanced');
-            expect(settings).to.deep.include(JSON.parse(backup));
-            expect(settings).to.have.property('preset', 'veryfast');
+            expect(settings).to.deep.equal(JSON.parse(backup));
+            const encoder = osn.VideoEncoderFactory.create('obs_x264', 'backup-settings', settings);
+            try {
+                expect(encoder.settings).to.deep.equal(JSON.parse(backup));
+                expect(encoder.properties.get('preset').value).to.equal('veryfast');
+            } finally {
+                encoder.release();
+            }
             expect(fs.readFileSync(filePath, 'utf8')).to.equal('{invalid json');
             expect(fs.readFileSync(backupPath, 'utf8')).to.equal(backup);
 
@@ -195,8 +201,8 @@ describe(testName, function () {
 
             fs.unlinkSync(filePath);
             fs.unlinkSync(backupPath);
-            const defaults = osn.NodeObs.OBS_settings_getEncoderSettings('obs_x264', 'recording', 'Advanced');
-            expect(defaults).to.include({ keyint_sec: 0, preset: 'veryfast', crf: 23 });
+            const emptySettings = osn.NodeObs.OBS_settings_getEncoderSettings('obs_x264', 'recording', 'Advanced');
+            expect(emptySettings).to.deep.equal({});
             expect(() => fs.readFileSync(filePath)).to.throw(Error).with.property('code', 'ENOENT');
             expect(() => fs.readFileSync(backupPath)).to.throw(Error).with.property('code', 'ENOENT');
         } finally {
@@ -209,6 +215,33 @@ describe(testName, function () {
                     if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
                 }
             }
+        }
+    });
+
+    it('Replaces inactive user settings without changing defaults or normal update behavior', function () {
+        const encoder = osn.VideoEncoderFactory.create('obs_x264', 'replace-settings', {
+            preset: 'fast', keyint_sec: 1, x264opts: 'scenecut=0',
+        });
+        try {
+            encoder.update({ bitrate: 3100 });
+            const saved = encoder.settings;
+            expect(saved).to.deep.equal({ bitrate: 3100, preset: 'fast', keyint_sec: 1, x264opts: 'scenecut=0' });
+            for (const invalid of [null, [], 'invalid']) {
+                expect(() => encoder.update(invalid as any, true)).to.throw(TypeError);
+            }
+            expect(() => encoder.update({}, 'true' as any)).to.throw(TypeError);
+            expect(() => encoder.update({ toJSON: () => [] }, true)).to.throw(Error);
+            expect(encoder.settings).to.deep.equal(saved);
+
+            encoder.update({ bitrate: 3200 }, true);
+            expect(encoder.settings).to.deep.equal({ bitrate: 3200 });
+            expect(encoder.properties.get('preset').value).to.equal('veryfast');
+            expect(encoder.properties.get('keyint_sec').value).to.equal(0);
+            encoder.update({}, true);
+            expect(encoder.settings).to.deep.equal({});
+            expect(encoder.properties.get('bitrate').value).to.equal(4500);
+        } finally {
+            encoder.release();
         }
     });
 
@@ -227,11 +260,11 @@ describe(testName, function () {
         obs.setSetting(outputCategory, 'RecQuality', 'HQ');
         obs.setSetting(outputCategory, 'RecEncoder', 'x264');
         expect(osn.NodeObs.OBS_settings_getEncoderSettings('obs_x264', 'recording', 'Simple'))
-            .to.include({ keyint_sec: 0, preset: 'veryfast', crf: 23 });
+            .to.deep.equal({});
 
         obs.setSetting(outputCategory, 'UseAdvanced', false);
         expect(osn.NodeObs.OBS_settings_getEncoderSettings('obs_x264', 'streaming', 'Simple'))
-            .to.include({ bitrate: 3100, preset: 'veryfast', x264opts: '' });
+            .to.deep.equal({ bitrate: 3100, rate_control: 'CBR' });
     });
 
     it('Keeps the configured AMD preset when simple streaming encoders start', async function () {
@@ -332,6 +365,11 @@ describe(testName, function () {
                         const started = await obs.getNextSignalInfo(EOBSOutputType.Recording, EOBSOutputSignal.Start);
                         expect(started.signal, started.error).to.equal(EOBSOutputSignal.Start);
                         expect(started.code, started.error).to.equal(0);
+                        if (outputType === 'recording' && keyint === 1) {
+                            const activeSettings = encoder.settings;
+                            expect(() => encoder.update({ keyint_sec: 8 }, true)).to.throw(Error, /active/);
+                            expect(encoder.settings).to.deep.equal(activeSettings);
+                        }
                         await sleep(6200);
                         recording.stop();
                         const stopped = await obs.getNextSignalInfo(EOBSOutputType.Recording, EOBSOutputSignal.Stop);

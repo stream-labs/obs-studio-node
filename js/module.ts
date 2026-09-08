@@ -1768,6 +1768,19 @@ export interface IVideoEncoder extends IConfigurable, IReleasable {
     readonly active: boolean,
     readonly id: string,
     readonly lastError: string
+
+    /**
+     * Updates explicit encoder settings. Requires an initialized IPC connection.
+     * Native defaults remain defaults, including adjustments made by the encoder during initialization.
+     * Replacement retains the encoder object and its references held by outputs.
+     * Validation failures leave the existing settings unchanged.
+     * @param settings - User settings to apply; omitted properties retain their current values unless replace is true
+     * @param replace - When true, removes previous user settings before applying these settings; only allowed while inactive
+     * @returns No value
+     * @throws {TypeError} If settings is not an object or replace is not a boolean
+     * @throws {Error} If the encoder reference is invalid, replacement is requested while active, or the IPC update fails
+     */
+    update(settings: ISettings, replace?: boolean): void;
 }
 
 export interface IAudioEncoder extends IReleasable {
@@ -2442,10 +2455,11 @@ export interface INodeObs {
     OBS_API_initAPI(options: IOBSAPIInitializationOptions): EVideoCodes;
 
     /**
-     * Reads the saved video encoder settings for Factory encoder creation, including encoder defaults.
+     * Reads the saved video encoder settings for Factory encoder creation. Defaults are not included:
+     * Factory creation applies them natively so encoders can adjust them during initialization.
      * Advanced mode includes all saved encoder properties and uses the backup configuration when needed.
      * Simple streaming includes its bitrate, enabled advanced options, and encoder preset. Standalone simple
-     * recording returns encoder defaults; the recording output applies its quality preset when it starts.
+     * recording returns an empty object; the recording output applies its quality preset when it starts.
      * A recording configured to use the stream encoder reads the streaming settings instead.
      * Service restrictions remain the responsibility of the output when it starts.
      * Advanced selections must use registered OBS IDs after the normal settings migration; this read only
@@ -2453,12 +2467,13 @@ export interface INodeObs {
      *
      * This read does not create encoders or outputs, modify configuration files, or change running encoders.
      * The returned object is an independent copy with no native lifetime; modifying it does not save settings.
-     * Missing primary and backup encoder files use encoder defaults. Existing unreadable files cause an error
+     * Missing primary and backup encoder files return an empty object. Existing unreadable files cause an error
      * when neither the primary file nor its backup can be loaded.
      * @param encoderId - Registered OBS video encoder ID matching the saved selection after simple alias or legacy encoder conversion
      * @param outputType - Output whose saved video encoder settings to read
      * @param mode - Saved output mode, which must match the current configuration
      * @returns Settings ready to pass explicitly to VideoEncoderFactory.create
+     * or to an inactive encoder's update(settings, true) to replace its previous user settings
      * @throws {TypeError} If arguments are not exactly three strings, the ID is empty, or outputType or mode is unsupported
      * @throws {Error} If OBS is not initialized, the encoder is unavailable or does not match the saved selection,
      * the mode does not match the saved configuration, existing encoder files cannot be read, or IPC fails

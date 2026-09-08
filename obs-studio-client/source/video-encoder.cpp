@@ -239,6 +239,12 @@ void osn::VideoEncoder::Release(const Napi::CallbackInfo &info)
 
 void osn::VideoEncoder::Update(const Napi::CallbackInfo &info)
 {
+	if (info.Length() < 1 || !info[0].IsObject() || info[0].IsArray() || info[0].IsNull() ||
+	    (info.Length() > 1 && !info[1].IsUndefined() && !info[1].IsBoolean())) {
+		Napi::TypeError::New(info.Env(), "VideoEncoder.update expects a settings object and an optional replace boolean").ThrowAsJavaScriptException();
+		return;
+	}
+	const bool replace = info.Length() > 1 && info[1].IsBoolean() && info[1].As<Napi::Boolean>().Value();
 	Napi::Object jsonObj = info[0].ToObject();
 	Napi::Object json = info.Env().Global().Get("JSON").As<Napi::Object>();
 	Napi::Function stringify = json.Get("stringify").As<Napi::Function>();
@@ -249,7 +255,7 @@ void osn::VideoEncoder::Update(const Napi::CallbackInfo &info)
 	if (!conn)
 		return;
 
-	auto response = conn->call_synchronous_helper("VideoEncoder", "Update", {ipc::value(this->uid), ipc::value(jsondata)});
+	auto response = conn->call_synchronous_helper("VideoEncoder", "Update", {ipc::value(this->uid), ipc::value(jsondata), ipc::value(uint32_t(replace))});
 	ValidateResponse(info, response);
 }
 

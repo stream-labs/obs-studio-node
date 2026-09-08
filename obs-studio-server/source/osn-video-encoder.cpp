@@ -20,6 +20,7 @@
 #include "osn-error.hpp"
 #include "shared.hpp"
 #include "osn-encoders.hpp"
+#include <obs.hpp>
 
 void osn::VideoEncoder::Register(ipc::server &srv)
 {
@@ -35,7 +36,8 @@ void osn::VideoEncoder::Register(ipc::server &srv)
 	cls->register_function(std::make_shared<ipc::function>("GetLastError", std::vector<ipc::type>{ipc::type::UInt64}, GetLastError));
 	cls->register_function(std::make_shared<ipc::function>("Release", std::vector<ipc::type>{ipc::type::UInt64}, Release));
 	cls->register_function(std::make_shared<ipc::function>("Finalize", std::vector<ipc::type>{ipc::type::UInt64}, Finalize));
-	cls->register_function(std::make_shared<ipc::function>("Update", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String}, Update));
+	cls->register_function(
+		std::make_shared<ipc::function>("Update", std::vector<ipc::type>{ipc::type::UInt64, ipc::type::String, ipc::type::UInt32}, Update));
 	cls->register_function(std::make_shared<ipc::function>("GetProperties", std::vector<ipc::type>{ipc::type::UInt64}, GetProperties));
 	cls->register_function(std::make_shared<ipc::function>("GetSettings", std::vector<ipc::type>{ipc::type::UInt64}, GetSettings));
 	srv.register_collection(cls);
@@ -202,9 +204,24 @@ void osn::VideoEncoder::Update(void *data, const int64_t id, const std::vector<i
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Update. Video encoder reference is not valid.");
 	}
 
-	obs_data_t *settings = obs_data_create_from_json(args[1].value_str.c_str());
+	const std::string &settingsJson = args[1].value_str;
+	const auto start = settingsJson.find_first_not_of(" \t\r\n");
+	if (start == std::string::npos || settingsJson[start] != '{') {
+		PRETTY_ERROR_RETURN(ErrorCode::Error, "Video encoder settings must be a JSON object.");
+	}
+	OBSDataAutoRelease settings = obs_data_create_from_json(settingsJson.c_str());
+	if (!settings) {
+		PRETTY_ERROR_RETURN(ErrorCode::Error, "Invalid video encoder settings.");
+	}
+	if (args[2].value_union.ui32) {
+		if (obs_encoder_active(encoder)) {
+			PRETTY_ERROR_RETURN(ErrorCode::Error, "Cannot replace settings of an active video encoder.");
+		}
+		OBSDataAutoRelease currentSettings = obs_encoder_get_settings(encoder);
+		// Clear user values only; retain native defaults, including runtime adjustments.
+		obs_data_clear(currentSettings);
+	}
 	obs_encoder_update(encoder, settings);
-	obs_data_release(settings);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	AUTO_DEBUG;

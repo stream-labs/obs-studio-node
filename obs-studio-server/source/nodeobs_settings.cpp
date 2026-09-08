@@ -142,7 +142,7 @@ void OBS_settings::OBS_settings_getEncoderSettings(void *data, const int64_t id,
 		PRETTY_ERROR_RETURN(ErrorCode::Error, "Requested encoder does not match the saved output encoder.");
 	}
 
-	OBSDataAutoRelease settings = obs_encoder_defaults(encoderId.c_str());
+	OBSDataAutoRelease settings = obs_data_create();
 	if (simple) {
 		// Simple recording quality and service restrictions are applied by the output when it starts.
 		if (!recording) {
@@ -165,7 +165,8 @@ void OBS_settings::OBS_settings_getEncoderSettings(void *data, const int64_t id,
 	}
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
-	rval.push_back(ipc::value(obs_data_get_json_with_defaults(settings)));
+	// Keep defaults native so encoders can adjust them during initialization.
+	rval.push_back(ipc::value(obs_data_get_json(settings)));
 	AUTO_DEBUG;
 }
 

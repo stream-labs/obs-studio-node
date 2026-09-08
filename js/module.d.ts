@@ -791,6 +791,7 @@ export interface IVideoEncoder extends IConfigurable, IReleasable {
     readonly active: boolean;
     readonly id: string;
     readonly lastError: string;
+    update(settings: ISettings, replace?: boolean): void;
 }
 export interface IAudioEncoder extends IReleasable {
     name: string;
