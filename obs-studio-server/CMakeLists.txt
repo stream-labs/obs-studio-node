@@ -632,6 +632,7 @@ if(BUILD_TESTING)
         "tests/test-osn-video-mix-lifecycle.cpp"
         "tests/obs-setup.cpp"
         "tests/obs-setup.hpp"
+        "tests/scoped-helpers.hpp"
     )
 
     file(TO_CMAKE_PATH "${CMAKE_SOURCE_DIR}" OSN_SOURCE_DIR_PATH)
