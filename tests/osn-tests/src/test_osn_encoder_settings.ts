@@ -167,7 +167,12 @@ describe(testName, function () {
         const filePath = path.join(configPath, 'recordEncoder.json');
         const backupPath = `${filePath}.bak`;
         const original = fs.readFileSync(filePath);
-        const originalBackup = fs.existsSync(backupPath) ? fs.readFileSync(backupPath) : undefined;
+        let originalBackup: Buffer | undefined;
+        try {
+            originalBackup = fs.readFileSync(backupPath);
+        } catch (error) {
+            if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+        }
         const backup = JSON.stringify({
             keyint_sec: 3, custom_boolean: false, custom_integer: 0,
             custom_number: 2.5, custom_string: '', custom_object: { enabled: false },
@@ -192,12 +197,18 @@ describe(testName, function () {
             fs.unlinkSync(backupPath);
             const defaults = osn.NodeObs.OBS_settings_getEncoderSettings('obs_x264', 'recording', 'Advanced');
             expect(defaults).to.include({ keyint_sec: 0, preset: 'veryfast', crf: 23 });
-            expect(fs.existsSync(filePath)).to.equal(false);
-            expect(fs.existsSync(backupPath)).to.equal(false);
+            expect(() => fs.readFileSync(filePath)).to.throw(Error).with.property('code', 'ENOENT');
+            expect(() => fs.readFileSync(backupPath)).to.throw(Error).with.property('code', 'ENOENT');
         } finally {
             fs.writeFileSync(filePath, original);
             if (originalBackup) fs.writeFileSync(backupPath, originalBackup);
-            else if (fs.existsSync(backupPath)) fs.unlinkSync(backupPath);
+            else {
+                try {
+                    fs.unlinkSync(backupPath);
+                } catch (error) {
+                    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+                }
+            }
         }
     });
 
