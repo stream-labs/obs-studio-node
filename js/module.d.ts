@@ -1149,11 +1149,10 @@ interface IAutoOptimizerEventProbe {
 interface IAutoOptimizer {
     run(request: IAutoOptimizerRequest, onProgress: (event: IAutoOptimizerEvent) => void): IAutoOptimizerRun;
 }
-export interface INodeObs {
+interface INodeObs {
     [key: string]: any;
     readonly AutoOptimizer: IAutoOptimizer;
     OBS_API_initAPI(options: IOBSAPIInitializationOptions): EVideoCodes;
-    OBS_settings_getEncoderSettings(encoderId: string, outputType: 'streaming' | 'recording', mode: 'Simple' | 'Advanced'): ISettings;
 }
 export declare const enum VCamOutputType {
     Invalid = 0,
