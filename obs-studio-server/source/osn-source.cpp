@@ -250,8 +250,8 @@ void osn::Source::IsConfigurable(void *data, const int64_t id, const std::vector
 
 void osn::Source::GetProperties(void *data, const int64_t id, const std::vector<ipc::value> &args, std::vector<ipc::value> &rval)
 {
-	// Atomically find and acquire a strong reference under the manager lock,
-	// preventing the source from being destroyed between find() and obs_source_get_ref().
+	// Promote the manager's retained weak reference while its registration is
+	// locked, so the source remains alive for this call or is rejected as expired.
 	OBSSourceAutoRelease src = osn::Source::Manager::GetInstance().findAndRef(args[0].value_union.ui64);
 	if (!src) {
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Source reference is not valid.");

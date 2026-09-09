@@ -6,43 +6,107 @@
 #include "osn-source.hpp"
 #include <obs.h>
 #include "shared.hpp"
-#include <chrono>
+#include <condition_variable>
 #include <cstddef>
 #include <cstdint>
+#include <mutex>
 #include <string>
-#include "obs-setup.hpp"
-#include <thread>
-#include <utility>
 #include <vector>
 
-// Since we do not use C++ 20 (std::jthread), defining a scoped thread.
-struct joining_thread {
-	std::thread t;
-	explicit joining_thread(std::thread t_) : t(std::move(t_)) {}
-	joining_thread(joining_thread &&) = default;
-	joining_thread &operator=(joining_thread &&) = default;
-	joining_thread(const joining_thread &) = delete;
-	joining_thread &operator=(const joining_thread &) = delete;
-	~joining_thread()
+namespace {
+
+constexpr char TEST_SOURCE_ID[] = "source_manager_lifetime_test_source";
+
+const char *testSourceGetName(void *)
+{
+	return "Source Manager Lifetime Test Source";
+}
+
+void *testSourceCreate(obs_data_t *, obs_source_t *source)
+{
+	return source;
+}
+
+void testSourceDestroy(void *) {}
+
+obs_properties_t *testSourceGetProperties(void *)
+{
+	obs_properties_t *properties = obs_properties_create();
+	obs_properties_add_bool(properties, "enabled", "Enabled");
+	return properties;
+}
+
+obs_source_info makeTestSourceInfo()
+{
+	obs_source_info info{};
+	info.id = TEST_SOURCE_ID;
+	info.type = OBS_SOURCE_TYPE_INPUT;
+	info.get_name = testSourceGetName;
+	info.create = testSourceCreate;
+	info.destroy = testSourceDestroy;
+	info.get_properties = testSourceGetProperties;
+	return info;
+}
+
+class ObsCoreSetup {
+public:
+	ObsCoreSetup() { REQUIRE(obs_startup("en-US", nullptr, nullptr)); }
+	~ObsCoreSetup()
 	{
-		if (t.joinable())
-			t.join();
+		obs_wait_for_destroy_queue();
+		obs_shutdown();
 	}
+
+	ObsCoreSetup(const ObsCoreSetup &) = delete;
+	ObsCoreSetup &operator=(const ObsCoreSetup &) = delete;
 };
 
-static bool wait_for_source_manager_size(std::size_t expectedSize)
-{
-	for (int i = 0; i < 100; i++) {
-		obs_wait_for_destroy_queue();
-
-		if (osn::Source::Manager::GetInstance().size() == expectedSize)
-			return true;
-
-		std::this_thread::sleep_for(std::chrono::milliseconds(10));
+class DestroyQueueGate {
+public:
+	DestroyQueueGate()
+	{
+		obs_queue_task(OBS_TASK_DESTROY, waitForRelease, this, false);
+		std::unique_lock lock(mutex);
+		condition.wait(lock, [this] { return entered; });
 	}
 
-	return false;
-}
+	~DestroyQueueGate() { releaseAndWait(); }
+
+	void releaseAndWait()
+	{
+		{
+			std::lock_guard lock(mutex);
+			released = true;
+		}
+		condition.notify_all();
+
+		if (!drained) {
+			obs_wait_for_destroy_queue();
+			drained = true;
+		}
+	}
+
+	DestroyQueueGate(const DestroyQueueGate &) = delete;
+	DestroyQueueGate &operator=(const DestroyQueueGate &) = delete;
+
+private:
+	static void waitForRelease(void *data)
+	{
+		auto *gate = static_cast<DestroyQueueGate *>(data);
+		std::unique_lock lock(gate->mutex);
+		gate->entered = true;
+		gate->condition.notify_all();
+		gate->condition.wait(lock, [gate] { return gate->released; });
+	}
+
+	std::mutex mutex;
+	std::condition_variable condition;
+	bool entered = false;
+	bool released = false;
+	bool drained = false;
+};
+
+} // namespace
 
 TEST_CASE("Scene AddSource rejects malformed argument counts")
 {
@@ -60,59 +124,61 @@ TEST_CASE("Scene AddSource rejects malformed argument counts")
 	}
 }
 
-TEST_CASE("Run osn::source tests")
+TEST_CASE("Source manager safely promotes references during deferred destruction")
 {
-	osn::tests::ObsSetup setupOBS;
+	ObsCoreSetup setupOBS;
+	static const obs_source_info testSourceInfo = makeTestSourceInfo();
+	obs_register_source(&testSourceInfo);
+	auto &manager = osn::Source::Manager::GetInstance();
+	const auto sourceCount = manager.size();
 
-	SECTION("Get properties of browser source while releasing concurrently does not crash")
 	{
-		auto sourceCount = osn::Source::Manager::GetInstance().size();
-		const int iterations = 20;
-		std::vector<joining_thread> workers;
-		std::vector<uint8_t> releaseOk(iterations, 0);
-		std::vector<ErrorCode> getPropertiesCode(iterations, ErrorCode::Error);
+		INFO("The final source release wins the race");
+		DestroyQueueGate destroyQueue;
+		OBSSourceAutoRelease source = obs_source_create_private(TEST_SOURCE_ID, "released source", nullptr);
+		REQUIRE(source != nullptr);
 
-		for (int i = 0; i < iterations; i++) {
-			const std::string sourceName = "test-input-" + std::to_string(i);
-			std::vector<ipc::value> args = {ipc::value("browser_source"), ipc::value(sourceName)};
-			std::vector<ipc::value> response;
+		const uint64_t sourceId = manager.allocate(source);
+		osn::Source::attach_source_signals(source);
+		REQUIRE(sourceId != UINT64_MAX);
+		CHECK(manager.allocate(source) == sourceId);
+		CHECK(manager.size() == sourceCount + 1);
+		source = nullptr;
 
-			osn::Input::Create(nullptr, 0, args, response);
-			REQUIRE(response.size() >= 2);
-			ErrorCode error = (ErrorCode)response[0].value_union.ui64;
-			REQUIRE(error == ErrorCode::Ok);
+		CHECK(manager.size() == sourceCount + 1);
+		std::vector<ipc::value> args = {ipc::value(sourceId)};
+		std::vector<ipc::value> response;
+		osn::Source::GetProperties(nullptr, 0, args, response);
+		REQUIRE(!response.empty());
+		CHECK((ErrorCode)response[0].value_union.ui64 == ErrorCode::InvalidReference);
 
-			uint64_t sourceId = response[1].value_union.ui64;
+		destroyQueue.releaseAndWait();
+		CHECK(manager.size() == sourceCount);
+	}
 
-			workers.push_back(joining_thread(std::thread([sourceId, i, &getPropertiesCode]() {
-				std::vector<ipc::value> propArgs = {ipc::value(sourceId)};
-				std::vector<ipc::value> propResponse;
-				osn::Source::GetProperties(nullptr, 0, propArgs, propResponse);
-				if (propResponse.size() >= 1) {
-					getPropertiesCode[i] = (ErrorCode)propResponse[0].value_union.ui64;
-				}
-			})));
+	{
+		INFO("The source lookup wins the race");
+		DestroyQueueGate destroyQueue;
+		OBSSourceAutoRelease source = obs_source_create_private(TEST_SOURCE_ID, "retained source", nullptr);
+		REQUIRE(source != nullptr);
 
-			workers.push_back(joining_thread(std::thread([sourceId, i, &releaseOk]() {
-				std::vector<ipc::value> propArgs = {ipc::value(sourceId)};
-				std::vector<ipc::value> propResponse;
-				osn::Source::Release(nullptr, 0, propArgs, propResponse);
-				// Capture result for checking on the main thread after join.
-				if (propResponse.size() >= 1) {
-					releaseOk[i] = ((ErrorCode)propResponse[0].value_union.ui64 == ErrorCode::Ok);
-				}
-			})));
-		}
+		const uint64_t sourceId = manager.allocate(source);
+		osn::Source::attach_source_signals(source);
+		REQUIRE(sourceId != UINT64_MAX);
+		OBSSourceAutoRelease retainedSource = manager.findAndRef(sourceId);
+		REQUIRE(retainedSource != nullptr);
 
-		workers.clear();
-		// Check release results on the main thread where Catch2 is safe to use.
-		for (int i = 0; i < iterations; i++) {
-			CHECK(releaseOk[i]);
-			// ErrorCode::InvalidReference is possible if the source was deleted before we could acquire the source
-			bool expectedErrorCode = getPropertiesCode[i] == ErrorCode::Ok || getPropertiesCode[i] == ErrorCode::InvalidReference;
-			CHECK(expectedErrorCode);
-		}
+		source = nullptr;
+		CHECK(std::string(obs_source_get_name(retainedSource)) == "retained source");
+		OBSSourceAutoRelease secondReference = manager.findAndRef(sourceId);
+		CHECK(secondReference != nullptr);
 
-		CHECK(wait_for_source_manager_size(sourceCount)); // Check to see if all objects released.
+		secondReference = nullptr;
+		retainedSource = nullptr;
+		CHECK(manager.size() == sourceCount + 1);
+		CHECK(!manager.findAndRef(sourceId));
+
+		destroyQueue.releaseAndWait();
+		CHECK(manager.size() == sourceCount);
 	}
 }

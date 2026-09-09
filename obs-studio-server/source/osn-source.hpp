@@ -20,6 +20,7 @@
 #include <ipc-server.hpp>
 #include <obs.h>
 #include <obs.hpp>
+#include <utility>
 #include "utility.hpp"
 #undef strtoll
 #include "nlohmann/json.hpp"
@@ -32,7 +33,10 @@ public:
 
 	protected:
 		Manager() {}
-		~Manager() {}
+		~Manager() { clear(); }
+
+	private:
+		std::map<utility::unique_id::id_t, OBSWeakSourceAutoRelease> weak_sources;
 
 	public:
 		Manager(Manager const &) = delete;
@@ -41,16 +45,58 @@ public:
 	public:
 		static Manager &GetInstance();
 
-		// Atomically finds the source and acquires a strong reference under the
-		// manager lock, preventing destruction between find() and obs_source_get_ref().
-		// Returns null (as OBSSourceAutoRelease) if not found or already destroyed.
+		utility::unique_id::id_t allocate(obs_source_t *source)
+		{
+			std::lock_guard<std::recursive_mutex> lock(internal_mutex);
+			const auto existingUid = utility::unique_object_manager<obs_source_t>::find(source);
+			if (existingUid != std::numeric_limits<utility::unique_id::id_t>::max())
+				return existingUid;
+
+			OBSWeakSourceAutoRelease weakSource(obs_source_get_weak_source(source));
+			const auto uid = utility::unique_object_manager<obs_source_t>::allocate(source);
+			if (uid != std::numeric_limits<utility::unique_id::id_t>::max()) {
+				try {
+					weak_sources.emplace(uid, std::move(weakSource));
+				} catch (...) {
+					utility::unique_object_manager<obs_source_t>::free(uid);
+					throw;
+				}
+			}
+			return uid;
+		}
+
+		utility::unique_id::id_t free(obs_source_t *source)
+		{
+			std::lock_guard<std::recursive_mutex> lock(internal_mutex);
+			const auto uid = utility::unique_object_manager<obs_source_t>::free(source);
+			weak_sources.erase(uid);
+			return uid;
+		}
+
+		obs_source_t *free(utility::unique_id::id_t uid)
+		{
+			std::lock_guard<std::recursive_mutex> lock(internal_mutex);
+			obs_source_t *source = utility::unique_object_manager<obs_source_t>::free(uid);
+			weak_sources.erase(uid);
+			return source;
+		}
+
+		void clear()
+		{
+			std::lock_guard<std::recursive_mutex> lock(internal_mutex);
+			object_map.clear();
+			weak_sources.clear();
+		}
+
+		// Promote the retained weak reference instead of deriving a reference from
+		// the raw source pointer, whose control block may already be destroyed.
 		OBSSourceAutoRelease findAndRef(utility::unique_id::id_t id)
 		{
 			std::lock_guard<std::recursive_mutex> lock(internal_mutex);
-			auto iter = object_map.find(id);
-			if (iter == object_map.end())
+			auto iter = weak_sources.find(id);
+			if (iter == weak_sources.end())
 				return nullptr;
-			return obs_source_get_ref(iter->second);
+			return obs_weak_source_get_source(iter->second.Get());
 		}
 	};
 
