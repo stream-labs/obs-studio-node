@@ -625,12 +625,14 @@ if(BUILD_TESTING)
     add_executable(
         obs_studio_server_unit_tests
         "tests/test-osn-source.cpp"
+        "tests/test-osn-encoder-settings.cpp"
         "tests/test-osn-file-output.cpp"
         "tests/test-osn-multitrack-video-output.cpp"
         "tests/test-osn-scene-relative-coordinates.cpp"
         "tests/test-osn-video-mix-lifecycle.cpp"
         "tests/obs-setup.cpp"
         "tests/obs-setup.hpp"
+        "tests/scoped-helpers.hpp"
     )
 
     file(TO_CMAKE_PATH "${CMAKE_SOURCE_DIR}" OSN_SOURCE_DIR_PATH)

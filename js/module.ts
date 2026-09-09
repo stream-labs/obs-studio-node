@@ -1768,6 +1768,19 @@ export interface IVideoEncoder extends IConfigurable, IReleasable {
     readonly active: boolean,
     readonly id: string,
     readonly lastError: string
+
+    /**
+     * Updates explicit encoder settings. Requires an initialized IPC connection.
+     * Native defaults remain defaults, including adjustments made by the encoder during initialization.
+     * Replacement retains the encoder object and its references held by outputs.
+     * Validation failures leave the existing settings unchanged.
+     * @param settings - User settings to apply; omitted properties retain their current values unless replace is true
+     * @param replace - When true, removes previous user settings before applying these settings; only allowed while inactive
+     * @returns No value
+     * @throws {TypeError} If settings is not an object or replace is not a boolean
+     * @throws {Error} If the encoder reference is invalid, replacement is requested while active, or the IPC update fails
+     */
+    update(settings: ISettings, replace?: boolean): void;
 }
 
 export interface IAudioEncoder extends IReleasable {
@@ -2424,7 +2437,7 @@ interface IAutoOptimizer {
 }
 
 /**
- * Typed Auto Optimizer surface on the add-on's otherwise dynamic export.
+ * Typed methods on the add-on's otherwise dynamic export.
  */
 interface INodeObs {
     [key: string]: any;

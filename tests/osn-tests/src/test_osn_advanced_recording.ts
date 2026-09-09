@@ -8,51 +8,12 @@ import { deleteConfigFiles, sleep } from '../util/general';
 import { EOBSInputTypes, EOBSOutputSignal, EOBSOutputType } from '../util/obs_enums';
 import { ERecordingFormat, ERecordingQuality } from '../osn';
 import * as inputSettings from '../util/input_settings';
-import { getMeanVolumeDb } from '../util/media_probe';
+import { getAudioStreamTitles, getMeanVolumeDb } from '../util/media_probe';
 import * as path from 'path';
 const fs = require('fs');
-const childProcess = require('child_process');
 
 const testName = 'osn-advanced-recording';
 const customFilenamePattern = '%CCYY-%MM-%DD_%hh-%mm-%ss-%s-%%';
-
-function getFfprobePath() {
-    const executable = process.platform === 'win32' ? 'ffprobe.exe' : 'ffprobe';
-    const packagedFfprobe = path.join(path.normalize(osn.wd), executable);
-    const bundledFfprobe = path.join(
-        path.normalize(__dirname),
-        '..',
-        '..',
-        '..',
-        'build',
-        'libobs-src',
-        'bin',
-        process.arch === 'x64' ? '64bit' : '32bit',
-        executable,
-    );
-
-    return [packagedFfprobe, bundledFfprobe].find(ffprobePath => fs.existsSync(ffprobePath)) || executable;
-}
-
-function getAudioStreamTitles(filePath: string): string[] {
-    const output = childProcess.execFileSync(
-        getFfprobePath(),
-        [
-            '-v',
-            'error',
-            '-select_streams',
-            'a',
-            '-show_entries',
-            'stream_tags=title',
-            '-of',
-            'json',
-            filePath,
-        ],
-        { encoding: 'utf8' },
-    );
-    const probe = JSON.parse(output);
-    return (probe.streams || []).map((stream: { tags?: { title?: string } }) => stream.tags?.title || '');
-}
 
 describe(testName, () => {
     let obs: OBSHandler;
@@ -462,7 +423,7 @@ describe(testName, () => {
         }
     });
 
-    it('Audio track uses configured bitrate after binding to an OBS encoder', function () {
+    it('Audio track retains its configured bitrate in the track registry', function () {
         if (obs.isDarwin()) {
             this.skip();
         }
@@ -474,7 +435,7 @@ describe(testName, () => {
 
         expect(osn.AudioTrackFactory.getAtIndex(1).bitrate).to.equal(
             audioTrackBitrate,
-            'Audio track encoder did not use the configured bitrate',
+            'Audio track registry did not retain the configured bitrate',
         );
     });
 

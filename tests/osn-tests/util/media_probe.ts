@@ -1,5 +1,56 @@
-import { spawnSync } from 'child_process';
+import { execFileSync, spawnSync } from 'child_process';
 import * as fs from 'fs';
+import * as path from 'path';
+import * as osn from '../osn';
+
+function probeMedia(mediaFile: string, args: string[]): any {
+    const executable = process.platform === 'win32' ? 'ffprobe.exe' : 'ffprobe';
+    const ffprobe = [
+        process.env.FFPROBE_PATH,
+        path.join(path.normalize(osn.wd), executable),
+        path.join(path.normalize(osn.wd), 'Frameworks', executable),
+        path.join(__dirname, '..', '..', '..', 'build', 'libobs-src', 'bin',
+            process.arch === 'x64' ? '64bit' : '32bit', executable),
+    ].find(candidate => candidate && fs.existsSync(candidate)) || executable;
+
+    return JSON.parse(execFileSync(ffprobe, ['-v', 'error', ...args, '-of', 'json', mediaFile], {
+        encoding: 'utf8',
+        timeout: 30000,
+    }));
+}
+
+export function getAudioStreamTitles(mediaFile: string): string[] {
+    const probe = probeMedia(mediaFile, ['-select_streams', 'a', '-show_entries', 'stream_tags=title']);
+    return (probe.streams || []).map((stream: { tags?: { title?: string } }) => stream.tags?.title || '');
+}
+
+export function getAudioStreamBitrates(mediaFile: string): { codec: string, bitrate: number }[] {
+    const probe = probeMedia(mediaFile, ['-select_streams', 'a', '-show_entries', 'stream=codec_name,bit_rate']);
+    return (probe.streams || []).map((stream: { codec_name: string, bit_rate: string }) => ({
+        codec: stream.codec_name,
+        bitrate: Number(stream.bit_rate),
+    }));
+}
+
+export function getVideoKeyframes(mediaFile: string): {
+    frameCount: number,
+    frameRate: number,
+    duration: number,
+    times: number[],
+} {
+    const probe = probeMedia(mediaFile, [
+        '-select_streams', 'v:0', '-skip_frame', 'nokey', '-show_entries',
+        'frame=pts_time:stream=nb_frames,r_frame_rate,duration',
+    ]);
+    const stream = probe.streams[0];
+    const [numerator, denominator] = stream.r_frame_rate.split('/').map(Number);
+    return {
+        frameCount: Number(stream.nb_frames),
+        frameRate: numerator / denominator,
+        duration: Number(stream.duration),
+        times: probe.frames.map((frame: { pts_time: string }) => Number(frame.pts_time)),
+    };
+}
 
 // Resolves an ffmpeg executable. Honours FFMPEG_PATH (point it at OBS's bundled
 // ffmpeg when ffmpeg is not on PATH), otherwise relies on `ffmpeg` from PATH.
