@@ -7,6 +7,7 @@
 #include "nodeobs_configManager.hpp"
 #include "nodeobs_settings.h"
 #include "obs-setup.hpp"
+#include "osn-encoders.hpp"
 #include "osn-error.hpp"
 #include "osn-video-encoder.hpp"
 #include "scoped-helpers.hpp"
@@ -30,7 +31,7 @@ TEST_CASE("Encoder settings preserve native defaults during creation and replace
 	osn::tests::ObsSetup setupOBS;
 	config_t *config = ConfigManager::getInstance().getBasic();
 	osn::tests::ScopedConfigValue mode(config, "Output", "Mode", "Simple");
-	osn::tests::ScopedConfigValue selectedEncoder(config, "SimpleOutput", "StreamEncoder", "x264");
+	osn::tests::ScopedConfigValue selectedEncoder(config, "SimpleOutput", "StreamEncoder", SIMPLE_ENCODER_X264);
 	osn::tests::ScopedConfigValue advanced(config, "SimpleOutput", "UseAdvanced", "false");
 	osn::tests::ScopedConfigValue preset(config, "SimpleOutput", "Preset", "fast");
 	osn::tests::ScopedConfigValue customSettings(config, "SimpleOutput", "x264Settings", "scenecut=0");

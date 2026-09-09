@@ -246,8 +246,9 @@ describe(testName, function () {
     });
 
     it('Maps simple streaming settings and leaves standalone recording quality to the output', function () {
+        const simpleEncoder = obs.os === 'win32' ? 'x264' : 'obs_x264';
         obs.setSetting(outputCategory, 'Mode', 'Simple');
-        obs.setSetting(outputCategory, 'StreamEncoder', 'x264');
+        obs.setSetting(outputCategory, 'StreamEncoder', simpleEncoder);
         obs.setSetting(outputCategory, 'UseAdvanced', true);
         saveSettings({ VBitrate: 3100, Preset: 'faster', x264Settings: 'scenecut=0' });
         expect(osn.NodeObs.OBS_settings_getEncoderSettings('obs_x264', 'streaming', 'Simple'))
@@ -258,7 +259,7 @@ describe(testName, function () {
             .to.deep.equal(osn.NodeObs.OBS_settings_getEncoderSettings('obs_x264', 'streaming', 'Simple'));
 
         obs.setSetting(outputCategory, 'RecQuality', 'HQ');
-        obs.setSetting(outputCategory, 'RecEncoder', 'x264');
+        obs.setSetting(outputCategory, 'RecEncoder', simpleEncoder);
         expect(osn.NodeObs.OBS_settings_getEncoderSettings('obs_x264', 'recording', 'Simple'))
             .to.deep.equal({});
 
