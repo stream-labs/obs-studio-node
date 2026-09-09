@@ -8,6 +8,7 @@ function probeMedia(mediaFile: string, args: string[]): any {
     const ffprobe = [
         process.env.FFPROBE_PATH,
         path.join(path.normalize(osn.wd), executable),
+        path.join(path.normalize(osn.wd), 'Frameworks', executable),
         path.join(__dirname, '..', '..', '..', 'build', 'libobs-src', 'bin',
             process.arch === 'x64' ? '64bit' : '32bit', executable),
     ].find(candidate => candidate && fs.existsSync(candidate)) || executable;
