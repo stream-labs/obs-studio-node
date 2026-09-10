@@ -96,13 +96,16 @@ void osn::Scene::CreatePrivate(void *data, const int64_t id, const std::vector<i
 
 	obs_source_t *source = obs_scene_get_source(scene);
 	if (!source) {
+		obs_scene_release(scene);
 		PRETTY_ERROR_RETURN(ErrorCode::Error, "Failed to get source from scene.");
 	}
 
 	uint64_t uid = osn::Source::Manager::GetInstance().allocate(source);
 	if (uid == UINT64_MAX) {
+		obs_scene_release(scene);
 		PRETTY_ERROR_RETURN(ErrorCode::CriticalError, "Index list is full.");
 	}
+	osn::Source::attach_source_signals(source);
 
 	rval.push_back(ipc::value((uint64_t)ErrorCode::Ok));
 	rval.push_back(ipc::value(uid));
