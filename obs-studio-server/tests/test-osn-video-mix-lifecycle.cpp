@@ -1,6 +1,13 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include <obs.h>
+#include <media-io/video-frame.h>
+#include <util/platform.h>
+
+#include <atomic>
+#include <chrono>
+#include <cstring>
+#include <thread>
 
 #include "auto-optimizer-video-mix.hpp"
 #include "obs-setup.hpp"
@@ -15,6 +22,9 @@ TEST_CASE("Auto Optimizer selects the active video rendering mode")
 
 constexpr char TEST_ENCODER_ID[] = "osn_test_texture_encoder";
 constexpr char TEST_OUTPUT_ID[] = "osn_test_video_output";
+constexpr char TEST_RAW_VIDEO_ENCODER_ID[] = "osn_test_raw_video_encoder";
+constexpr char TEST_AUDIO_ENCODER_ID[] = "osn_test_audio_encoder";
+constexpr char TEST_AV_OUTPUT_ID[] = "osn_test_av_output";
 constexpr uint32_t SOURCE_WIDTH = 1280;
 constexpr uint32_t SOURCE_HEIGHT = 720;
 constexpr uint32_t SCALED_WIDTH = 960;
@@ -40,6 +50,8 @@ bool testEncoderEncodeTexture(void *, encoder_texture *, int64_t, uint64_t, uint
 
 struct TestOutputContext {
 	obs_output_t *output = nullptr;
+	std::atomic<uint32_t> videoPackets{0};
+	std::atomic<uint32_t> audioPackets{0};
 };
 
 const char *testOutputName(void *)
@@ -72,7 +84,42 @@ void testOutputStop(void *data, uint64_t)
 		obs_output_end_data_capture(context->output);
 }
 
-void testOutputPacket(void *, encoder_packet *) {}
+void testOutputPacket(void *data, encoder_packet *packet)
+{
+	auto *context = static_cast<TestOutputContext *>(data);
+	if (!packet)
+		return;
+	if (packet->type == OBS_ENCODER_VIDEO)
+		context->videoPackets.fetch_add(1);
+	else if (packet->type == OBS_ENCODER_AUDIO)
+		context->audioPackets.fetch_add(1);
+}
+
+bool testEncoderEncode(void *data, encoder_frame *frame, encoder_packet *packet, bool *receivedPacket)
+{
+	// Only packet delivery and A/V synchronization matter here; no codec or
+	// network dependency is needed to exercise libobs's encoded output path.
+	static uint8_t payload[] = {0, 0, 0, 1};
+	packet->data = payload;
+	packet->size = sizeof(payload);
+	packet->pts = frame->pts;
+	packet->dts = frame->pts;
+	packet->type = obs_encoder_get_type(static_cast<obs_encoder_t *>(data));
+	packet->keyframe = true;
+	*receivedPacket = true;
+	return true;
+}
+
+size_t testAudioFrameSize(void *)
+{
+	return AUDIO_OUTPUT_FRAMES;
+}
+
+bool testAudioInput(void *, uint64_t startTimestamp, uint64_t, uint64_t *outputTimestamp, uint32_t, audio_data_mixes_outputs *)
+{
+	*outputTimestamp = startTimestamp;
+	return true;
+}
 
 void registerTestTypes()
 {
@@ -96,6 +143,22 @@ void registerTestTypes()
 	outputInfo.start = testOutputStart;
 	outputInfo.stop = testOutputStop;
 	outputInfo.encoded_packet = testOutputPacket;
+	obs_register_output(&outputInfo);
+
+	encoderInfo.id = TEST_RAW_VIDEO_ENCODER_ID;
+	encoderInfo.caps = 0;
+	encoderInfo.encode_texture2 = nullptr;
+	encoderInfo.encode = testEncoderEncode;
+	obs_register_encoder(&encoderInfo);
+
+	encoderInfo.id = TEST_AUDIO_ENCODER_ID;
+	encoderInfo.type = OBS_ENCODER_AUDIO;
+	encoderInfo.codec = "aac";
+	encoderInfo.get_frame_size = testAudioFrameSize;
+	obs_register_encoder(&encoderInfo);
+
+	outputInfo.id = TEST_AV_OUTPUT_ID;
+	outputInfo.flags |= OBS_OUTPUT_AUDIO;
 	obs_register_output(&outputInfo);
 }
 
@@ -216,7 +279,178 @@ private:
 	bool cleaned = false;
 };
 
+class AudioVideoResources {
+public:
+	~AudioVideoResources() { cleanup(); }
+
+	bool initialize(bool standaloneVideo = true)
+	{
+		obs_video_info info = makeVideoInfo();
+		if (obs_reset_video(&info) != OBS_VIDEO_SUCCESS)
+			return false;
+		canvas = obs_get_video_info_by_index2(0);
+		if (!canvas)
+			return false;
+
+		if (standaloneVideo) {
+			video_output_info videoInfo{};
+			videoInfo.name = "osn standalone A/V input";
+			videoInfo.format = VIDEO_FORMAT_NV12;
+			videoInfo.fps_num = 30;
+			videoInfo.fps_den = 1;
+			videoInfo.width = 64;
+			videoInfo.height = 64;
+			videoInfo.cache_size = 3;
+			videoInfo.colorspace = VIDEO_CS_709;
+			videoInfo.range = VIDEO_RANGE_PARTIAL;
+			if (video_output_open(&ownedVideo, &videoInfo) != VIDEO_OUTPUT_SUCCESS)
+				return false;
+		}
+
+		audio_output_info audioInfo{};
+		audioInfo.name = "osn standalone A/V audio";
+		audioInfo.samples_per_sec = 48000;
+		audioInfo.format = AUDIO_FORMAT_FLOAT_PLANAR;
+		audioInfo.speakers = SPEAKERS_STEREO;
+		audioInfo.input_callback = testAudioInput;
+		if (audio_output_open(&audio, &audioInfo) != AUDIO_OUTPUT_SUCCESS)
+			return false;
+
+		videoEncoder = obs_video_encoder_create(TEST_RAW_VIDEO_ENCODER_ID, "osn A/V video encoder", nullptr, nullptr);
+		audioEncoder = obs_audio_encoder_create(TEST_AUDIO_ENCODER_ID, "osn A/V audio encoder", nullptr, 0, nullptr);
+		if (!videoEncoder || !audioEncoder)
+			return false;
+		if (ownedVideo) {
+			obs_encoder_set_video(videoEncoder, ownedVideo);
+		} else {
+			// obs_get_video() belongs to the core main canvas, which survives a
+			// partial video reset. Bind the registered canvas removed by this test.
+			obs_core_video_mix_t *mix = obs_video_mix_get(canvas, OBS_MAIN_VIDEO_RENDERING);
+			if (!mix)
+				return false;
+			obs_encoder_set_video_mix(videoEncoder, mix);
+		}
+		obs_encoder_set_audio(audioEncoder, audio);
+
+		output = obs_output_create(TEST_AV_OUTPUT_ID, "osn A/V output", nullptr, nullptr);
+		if (!output)
+			return false;
+		obs_output_set_video_encoder(output, videoEncoder);
+		obs_output_set_audio_encoder(output, audioEncoder, 0);
+		return true;
+	}
+
+	bool initializeEncoders() { return obs_output_initialize_encoders(output, 0); }
+	bool start() { return obs_output_start(output); }
+	bool hasVideoInput() const { return obs_encoder_video(videoEncoder) != nullptr; }
+
+	bool waitForAudioVideoPackets()
+	{
+		auto *context = static_cast<TestOutputContext *>(obs_obj_get_data(output));
+		const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(3);
+		while (std::chrono::steady_clock::now() < deadline) {
+			if (context->videoPackets.load() >= 3 && context->audioPackets.load() >= 3)
+				return true;
+
+			video_frame frame{};
+			if (video_output_lock_frame(ownedVideo, &frame, 1, os_gettime_ns())) {
+				for (size_t row = 0; row < 64; row++)
+					std::memset(frame.data[0] + row * frame.linesize[0], 16, 64);
+				for (size_t row = 0; row < 32; row++)
+					std::memset(frame.data[1] + row * frame.linesize[1], 128, 64);
+				video_output_unlock_frame(ownedVideo);
+			}
+			// Feed on this bounded test loop, avoiding a worker that could outlive
+			// an assertion failure and retain the standalone video input.
+			std::this_thread::sleep_for(std::chrono::milliseconds(33));
+		}
+		return false;
+	}
+
+	int removeCanvas()
+	{
+		if (!canvas)
+			return OBS_VIDEO_SUCCESS;
+		const int result = obs_remove_video_info(canvas);
+		if (result == OBS_VIDEO_SUCCESS)
+			canvas = nullptr;
+		return result;
+	}
+
+	int cleanup()
+	{
+		if (output) {
+			if (obs_output_active(output))
+				obs_output_force_stop(output);
+			// Releasing the output joins its data-capture shutdown before the
+			// encoders and their privately owned inputs are destroyed.
+			obs_output_release(output);
+			output = nullptr;
+		}
+		if (videoEncoder) {
+			obs_encoder_release(videoEncoder);
+			videoEncoder = nullptr;
+		}
+		if (audioEncoder) {
+			obs_encoder_release(audioEncoder);
+			audioEncoder = nullptr;
+		}
+		obs_wait_for_destroy_queue();
+		if (ownedVideo) {
+			video_output_close(ownedVideo);
+			ownedVideo = nullptr;
+		}
+		if (audio) {
+			audio_output_close(audio);
+			audio = nullptr;
+		}
+		return removeCanvas();
+	}
+
+private:
+	obs_video_info *canvas = nullptr;
+	video_t *ownedVideo = nullptr;
+	audio_t *audio = nullptr;
+	obs_encoder_t *videoEncoder = nullptr;
+	obs_encoder_t *audioEncoder = nullptr;
+	obs_output_t *output = nullptr;
+};
+
 } // namespace
+
+TEST_CASE("Standalone video and audio inputs deliver encoded A/V packets", "[video-mix][standalone-av]")
+{
+	osn::tests::ObsSetup setup;
+	registerTestTypes();
+
+	// Recreate the inputs and output to catch pairing state retained by cleanup.
+	for (int iteration = 0; iteration < 2; iteration++) {
+		INFO("lifecycle iteration " << iteration);
+		AudioVideoResources resources;
+		REQUIRE(resources.initialize());
+		REQUIRE(resources.start());
+		CHECK(resources.waitForAudioVideoPackets());
+		const auto cleanupStart = std::chrono::steady_clock::now();
+		CHECK(resources.cleanup() == OBS_VIDEO_SUCCESS);
+		CHECK(std::chrono::steady_clock::now() - cleanupStart < std::chrono::seconds(3));
+		CHECK(obs_get_video_info_by_index2(0) == nullptr);
+	}
+}
+
+TEST_CASE("Encoded A/V output cannot start after its canvas input is removed", "[video-mix][canvas-identity][standalone-av]")
+{
+	osn::tests::ObsSetup setup;
+	registerTestTypes();
+
+	AudioVideoResources resources;
+	REQUIRE(resources.initialize(false));
+	REQUIRE(resources.initializeEncoders());
+	REQUIRE(resources.hasVideoInput());
+	REQUIRE(resources.removeCanvas() == OBS_VIDEO_SUCCESS);
+	REQUIRE_FALSE(resources.hasVideoInput());
+	CHECK_FALSE(resources.start());
+	CHECK(resources.cleanup() == OBS_VIDEO_SUCCESS);
+}
 
 TEST_CASE("Encoder GPU rescale supports a canvas-owned identity across reinitialization", "[video-mix][canvas-identity]")
 {
