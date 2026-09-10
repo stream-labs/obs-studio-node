@@ -117,6 +117,18 @@ private:
 	bool drained = false;
 };
 
+// The production manager deliberately hides its storage. This test-only
+// subclass exposes one narrow operation so a stale raw-pointer entry can be
+// made to look as if its address were reused by a different OBS source.
+class AddressReuseSourceManager : public osn::Source::Manager {
+public:
+	void simulateAddressReuse(uint64_t sourceId, obs_source_t *replacement)
+	{
+		std::lock_guard<std::recursive_mutex> lock(internal_mutex);
+		object_map.at(sourceId) = replacement;
+	}
+};
+
 } // namespace
 
 TEST_CASE("Scene AddSource rejects malformed argument counts")
@@ -133,6 +145,93 @@ TEST_CASE("Scene AddSource rejects malformed argument counts")
 		CHECK((ErrorCode)response[0].value_union.ui64 == ErrorCode::Error);
 		CHECK(response[1].value_str == "Invalid number of arguments to add a source to a scene.");
 	}
+}
+
+TEST_CASE("Private scene registrations are removed after release")
+{
+	ObsCoreSetup setupOBS;
+	auto &manager = osn::Source::Manager::GetInstance();
+	const auto sourceCount = manager.size();
+
+	auto createPrivateScene = [](const char *name) {
+		std::vector<ipc::value> response;
+		osn::Scene::CreatePrivate(nullptr, 0, {ipc::value(name)}, response);
+
+		REQUIRE(response.size() >= 2);
+		REQUIRE((ErrorCode)response[0].value_union.ui64 == ErrorCode::Ok);
+		return response[1].value_union.ui64;
+	};
+	auto checkProperties = [](uint64_t sourceId) {
+		std::vector<ipc::value> response;
+		osn::Source::GetProperties(nullptr, 0, {ipc::value(sourceId)}, response);
+
+		REQUIRE(!response.empty());
+		CHECK((ErrorCode)response[0].value_union.ui64 == ErrorCode::Ok);
+	};
+	auto releasePrivateScene = [](uint64_t sourceId) {
+		std::vector<ipc::value> response;
+		osn::Scene::Release(nullptr, 0, {ipc::value(sourceId)}, response);
+
+		REQUIRE(!response.empty());
+		CHECK((ErrorCode)response[0].value_union.ui64 == ErrorCode::Ok);
+		// Source destruction may run on OBS_TASK_DESTROY. Wait for its destroy
+		// signal to remove the manager registration before inspecting the map.
+		obs_wait_for_destroy_queue();
+	};
+
+	// Exercise the same handlers used by SceneFactory.createPrivate and the
+	// scene properties accessor. Private sources skip OBS's global source-create
+	// signal, so CreatePrivate itself must attach the destroy callback.
+	const uint64_t firstSceneId = createPrivateScene("first private scene");
+	CHECK(manager.size() == sourceCount + 1);
+	checkProperties(firstSceneId);
+	releasePrivateScene(firstSceneId);
+	CHECK(manager.size() == sourceCount);
+
+	// Recreating the scene verifies that no stale registration can capture the
+	// new source if OBS's allocator gives it a recently released address.
+	const uint64_t secondSceneId = createPrivateScene("second private scene");
+	CHECK(manager.size() == sourceCount + 1);
+	checkProperties(secondSceneId);
+	releasePrivateScene(secondSceneId);
+	CHECK(manager.size() == sourceCount);
+}
+
+TEST_CASE("Source manager rejects an expired identity after address reuse")
+{
+	ObsCoreSetup setupOBS;
+	static const obs_source_info testSourceInfo = makeTestSourceInfo();
+	obs_register_source(&testSourceInfo);
+	AddressReuseSourceManager manager;
+
+	OBSSourceAutoRelease firstSource = obs_source_create_private(TEST_SOURCE_ID, "first source", nullptr);
+	REQUIRE(firstSource != nullptr);
+	const uint64_t firstSourceId = manager.allocate(firstSource);
+	REQUIRE(firstSourceId != UINT64_MAX);
+
+	// Leave the raw pointer and weak reference registered while destroying the
+	// source, matching the stale state that existed without a destroy callback.
+	firstSource = nullptr;
+	obs_wait_for_destroy_queue();
+	CHECK(!manager.findAndRef(firstSourceId));
+
+	OBSSourceAutoRelease secondSource = obs_source_create_private(TEST_SOURCE_ID, "second source", nullptr);
+	REQUIRE(secondSource != nullptr);
+	// ASan and different allocators do not reliably reuse an address on demand.
+	// Rewrite only the stored raw pointer to model that reuse deterministically;
+	// the entry's weak control block still belongs to the expired first source.
+	manager.simulateAddressReuse(firstSourceId, secondSource);
+
+	const uint64_t secondSourceId = manager.allocate(secondSource);
+	REQUIRE(secondSourceId != UINT64_MAX);
+	CHECK(secondSourceId != firstSourceId);
+	CHECK(manager.size() == 1);
+
+	// allocate() must replace the stale identity with the second source's weak
+	// reference, so production lookups retain and return the live source.
+	OBSSourceAutoRelease retainedSource = manager.findAndRef(secondSourceId);
+	REQUIRE(retainedSource != nullptr);
+	CHECK(retainedSource.Get() == secondSource.Get());
 }
 
 TEST_CASE("Source manager safely promotes references during deferred destruction")

@@ -48,11 +48,26 @@ public:
 		utility::unique_id::id_t allocate(obs_source_t *source)
 		{
 			std::lock_guard<std::recursive_mutex> lock(internal_mutex);
-			const auto existingUid = utility::unique_object_manager<obs_source_t>::find(source);
-			if (existingUid != std::numeric_limits<utility::unique_id::id_t>::max())
-				return existingUid;
-
 			OBSWeakSourceAutoRelease weakSource(obs_source_get_weak_source(source));
+
+			// A destroyed source's address can be reused while a stale manager
+			// entry still retains its expired weak control block. Only deduplicate
+			// when both the source address and weak control block identify the same
+			// live source; otherwise discard the stale registration.
+			for (auto iter = object_map.begin(); iter != object_map.end();) {
+				if (iter->second != source) {
+					++iter;
+					continue;
+				}
+
+				const auto weakIter = weak_sources.find(iter->first);
+				if (weakIter != weak_sources.end() && weakIter->second.Get() == weakSource.Get())
+					return iter->first;
+
+				weak_sources.erase(iter->first);
+				iter = object_map.erase(iter);
+			}
+
 			const auto uid = utility::unique_object_manager<obs_source_t>::allocate(source);
 			if (uid != std::numeric_limits<utility::unique_id::id_t>::max()) {
 				try {
