@@ -677,6 +677,40 @@ TEST_CASE("Auto Optimizer client requires exact measured proof for independently
 			 });
 }
 
+TEST_CASE("Auto Optimizer client caps custom Dual Format validation to Twitch limits")
+{
+	struct Example {
+		int width, height, maxWidth, maxHeight, expectedWidth, expectedHeight;
+	};
+	const auto example = GENERATE(Example{1200, 1600, 1200, 1600, 1080, 1440}, Example{1000, 2400, 1000, 2400, 800, 1920},
+				      Example{1200, 1600, 720, 1280, 720, 960}, Example{1200, 1600, 1080, 1920, 1080, 1440},
+				      Example{1200, 1600, 0, 0, 1080, 1440});
+	CAPTURE(example.width, example.height, example.maxWidth, example.maxHeight);
+	json output = enhancedBroadcastingOutput();
+	output["additionalVideo"]["current"] = current(example.width, example.height, 6000, 2);
+	if (example.maxWidth)
+		output["additionalVideo"]["limits"] = {{"maxWidth", example.maxWidth}, {"maxHeight", example.maxHeight}};
+	const auto prepared = prepare({{"streamSetup", "enhanced-broadcasting"}, {"outputs", json::array({output})}});
+	json returned = returnedEnhancedBroadcastingOutput();
+	auto &additional = returned["recommendation"]["additionalVideo"];
+	additional["width"] = example.expectedWidth;
+	additional["height"] = example.expectedHeight;
+	returned["measurement"]["probes"][0]["testedAdditionalVideo"] = additional;
+	ResultFixture fixture{prepared, {{"schemaVersion", 1}, {"sessionId", "run"}, {"status", "complete"}, {"legs", json::array({returned})}}};
+	const auto projected = contract::projectResult(fixture.result.dump(), "run", prepared.context);
+	REQUIRE(projected.valid);
+	CHECK(json::parse(projected.json)["outputs"][0]["videos"][1] == additional);
+	checkInvalidResultMutations(fixture, {{"mismatched measured vertical dimensions",
+					       [](json &value) { value["legs"][0]["measurement"]["probes"][0]["testedAdditionalVideo"]["width"] = 2; }},
+					      {"uncapped vertical result despite matching proof", [&](json &value) {
+						       auto &leg = value["legs"][0];
+						       auto &video = leg["recommendation"]["additionalVideo"];
+						       video["width"] = example.width;
+						       video["height"] = example.height;
+						       leg["measurement"]["probes"][0]["testedAdditionalVideo"] = video;
+					       }}});
+}
+
 TEST_CASE("Auto Optimizer client accepts bounded ultrawide results but rejects oversized active and estimated tuples")
 {
 	const int width = GENERATE(3340, 3440);
