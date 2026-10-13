@@ -56,6 +56,8 @@ describe('RTMP test receiver', () => {
         expect(decode('af010102')).to.include({ trackId: 0, packetType: 1, sequenceHeader: false });
         expect(decode('95006d703461011210')).to.include({ codec: 'mp4a', trackId: 1, sequenceHeader: true });
         expect(decode('95016d703461010102')).to.include({ trackId: 1, packetType: 1, timestamp: 42, sequenceHeader: false });
+        expect(decode('af001210').audioData).to.deep.equal(Buffer.from('1210', 'hex'));
+        expect(decode('95016d703461010102').audioData).to.deep.equal(Buffer.from('0102', 'hex'));
         expect(decode('170000000001', 9)).to.include({ kind: 'video', codec: 'avc1', trackId: 0, sequenceHeader: true });
         expect(() => decode('95006d')).to.throw('Truncated enhanced');
         expect(() => decode('95216d70346101')).to.throw('one-track-per-message');

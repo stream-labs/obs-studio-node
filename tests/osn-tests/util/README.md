@@ -51,6 +51,11 @@ audio tracks (native defaults: main track 1, VOD track 2). Service bitrate
 enforcement, delay and reconnect are disabled. VOD keeps its native disabled
 default; enable it explicitly when the scenario requires it.
 
+Simple VOD reads source audio track 2 and preserves source mixer flags. Advanced
+VOD reads the caller-selected `twitchTrack`. `getAacAudioTrack()` in
+`rtmp-assertions.ts` returns received AAC-LC with ADTS framing; write it to a
+test-owned file and use `getMeanVolumeDb()` to check audible audio and exclusions.
+
 Configure the exposed `stream` while stopped, including replacing its borrowed
 service. Use the fixture's `start()`, `stop()` and `destroy()` methods and retain
 its signal callback. `start()` waits for Starting, Activate and Start;
@@ -133,3 +138,7 @@ filter excludes the Simple suite's remaining provider-account tests:
 ```text
 yarn electron-mocha -t 30000 -r ts-node/register tests/osn-tests/src/test_rtmp_test_server.ts tests/osn-tests/src/test_osn_streaming_vod.ts tests/osn-tests/src/test_osn_simple_streaming.ts --grep "RTMP test receiver|osn-streaming-vod|osn-simple-streaming \(local\)"
 ```
+
+`src/test_nodeobs_simple_vod_settings.ts` separately verifies Simple VOD settings
+visibility, persistence, and independence from Advanced track selections without
+using a provider account.

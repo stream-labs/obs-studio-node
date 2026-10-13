@@ -119,9 +119,11 @@ void osn::IEnhancedBroadcastingSimpleStreaming::Start(void *data, const int64_t 
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Invalid service.");
 	}
 
-	// Note: unlike advanced mode, there is no Twitch VOD track for simple mode
+	streaming->twitchVODSupported = streaming->isTwitchVODSupported();
+	const auto vodTrackMixer = streaming->enableTwitchVOD && streaming->twitchVODSupported ? std::optional<size_t>{SimpleStreaming::VodTrackMixerIndex}
+											       : std::nullopt;
 	try {
-		streaming->StartEnhancedBroadcastingStream();
+		streaming->StartEnhancedBroadcastingStream(vodTrackMixer);
 	} catch (const std::exception &error) {
 		PRETTY_ERROR_RETURN(ErrorCode::Error, error.what());
 	} catch (...) {
