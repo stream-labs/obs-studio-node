@@ -151,4 +151,30 @@ describe('osn-auto-optimizer-configuration', function() {
             await run.cancel();
         }
     });
+
+    for (const [width, height, expectedWidth, expectedHeight] of [
+        [3440, 1440, 1920, 802], [3340, 1440, 1920, 826],
+        [2560, 1600, 1728, 1080], [1600, 1200, 1440, 1080],
+    ]) {
+        it(`requests and retains the configured ${width}x${height} aspect when Twitch configuration is unavailable`, async function() {
+            stall = false;
+            const before = { ...obs.defaultVideoContext.video };
+            const custom = request(1920, 1080);
+            Object.assign(custom.outputs[0].current, { width, height });
+            const events: IAutoOptimizerEvent[] = [];
+            const run = osn.NodeObs.AutoOptimizer.run(custom, event => events.push(event));
+            try {
+                const result = await run.result;
+                expect(result.status).to.equal('complete');
+                expect(result.outputs[0].measurement.mode).to.equal('estimated');
+                expect(result.outputs[0].videos[0]).to.include({ width: expectedWidth, height: expectedHeight });
+                expect(events.filter(event => event.code === 'enhanced_broadcasting_requesting_ladder' && event.width)
+                    .map(event => [event.width, event.height])).to.deep.equal([[expectedWidth, expectedHeight]]);
+                expect(requests).to.equal(1);
+                expect(obs.defaultVideoContext.video).to.deep.equal(before);
+            } finally {
+                await run.cancel();
+            }
+        });
+    }
 });

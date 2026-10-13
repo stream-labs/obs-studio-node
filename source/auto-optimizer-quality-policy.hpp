@@ -24,7 +24,7 @@ inline constexpr size_t kMaximumUploadLegs = 2;
 inline constexpr size_t kMaximumEnhancedBroadcastingDualOutputLegs = 3;
 inline constexpr int kDefaultEstimatedBitrateKbps = 2500;
 inline constexpr int kMaximumRecommendedBitrateKbps = 8000;
-inline constexpr int kExperimentalTwitch1440pBitrateKbps = 8000;
+inline constexpr int kExperimentalTwitch1440pBitrateKbps = 7500;
 inline constexpr int kMultistreamVideoBitrateLimitKbps = 6000;
 
 inline bool isTwitchOnlyStream(const std::vector<std::string> &platforms)
@@ -367,30 +367,32 @@ inline VideoTuple fitTier(const VideoTuple &ceiling, int longEdge, int shortEdge
 	return result;
 }
 
-// When the caller supplies a complete smaller resolution limit, lower the
-// current resolution to a supported tier. benchmarkCeiling handles promotion
-// separately without changing application settings. Missing dimensions, a
-// changed orientation, or a custom aspect ratio leave the current resolution
-// unchanged, so OSN never assumes permission to resize.
+// Bound every aspect ratio, including estimated/failed-probe fallbacks. Custom
+// outputs keep their configured aspect (apart from even-pixel rounding), not
+// the base canvas aspect or a forced 16:9 tier.
 inline VideoTuple boundCurrentToSupportedTier(const VideoTuple &current, int maxWidth, int maxHeight)
 {
 	if (maxWidth <= 0 || maxHeight <= 0)
 		return current;
-	if (!hasSupportedTierAspectRatio(current) || (current.width >= current.height) != (maxWidth >= maxHeight))
-		return current;
-	if (current.width <= maxWidth && current.height <= maxHeight)
-		return current;
+	VideoTuple bounded = current;
+	if (bounded.width <= maxWidth && bounded.height <= maxHeight)
+		return bounded;
 
 	const int tiers[][2] = {{2560, 1440}, {1920, 1080}, {1280, 720}, {960, 540}};
-	for (const auto &tier : tiers) {
-		VideoTuple candidate = fitTier(current, tier[0], tier[1], false);
-		if (candidate.width <= maxWidth && candidate.height <= maxHeight) {
-			candidate.fpsNum = current.fpsNum;
-			candidate.fpsDen = current.fpsDen;
-			return candidate;
+	if (hasSupportedTierAspectRatio(bounded)) {
+		for (const auto &tier : tiers) {
+			VideoTuple candidate = fitTier(bounded, tier[0], tier[1], false);
+			if (candidate.width <= maxWidth && candidate.height <= maxHeight) {
+				candidate.fpsNum = current.fpsNum;
+				candidate.fpsDen = current.fpsDen;
+				return candidate;
+			}
 		}
 	}
-	return current;
+	const double scale = std::min({1.0, (double)maxWidth / bounded.width, (double)maxHeight / bounded.height});
+	bounded.width = std::max(2, (int)(bounded.width * scale / 2) * 2);
+	bounded.height = std::max(2, (int)(bounded.height * scale / 2) * 2);
+	return bounded;
 }
 
 // Promote only inside a complete, orientation-compatible bound for a supported
@@ -403,21 +405,19 @@ inline VideoTuple benchmarkCeiling(const VideoTuple &current, int maxWidth, int 
 	if (maxWidth <= 0 || maxHeight <= 0)
 		return current;
 
-	if (!hasSupportedTierAspectRatio(current) || (current.width >= current.height) != (maxWidth >= maxHeight))
-		return current;
+	if (!hasSupportedTierAspectRatio(bounded) || (bounded.width >= bounded.height) != (maxWidth >= maxHeight))
+		return bounded;
 
 	VideoTuple result = bounded;
 	const bool landscape = current.width >= current.height;
-	if (sameVideo(bounded, current)) {
-		const int tiers[][2] = {{2560, 1440}, {1920, 1080}, {1280, 720}, {960, 540}};
-		for (const auto &tier : tiers) {
-			const int width = landscape ? tier[0] : tier[1];
-			const int height = landscape ? tier[1] : tier[0];
-			if (width <= maxWidth && height <= maxHeight && width > current.width && height > current.height) {
-				result.width = width;
-				result.height = height;
-				break;
-			}
+	const int tiers[][2] = {{2560, 1440}, {1920, 1080}, {1280, 720}, {960, 540}};
+	for (const auto &tier : tiers) {
+		const int width = landscape ? tier[0] : tier[1];
+		const int height = landscape ? tier[1] : tier[0];
+		if (width <= maxWidth && height <= maxHeight && width > bounded.width && height > bounded.height) {
+			result.width = width;
+			result.height = height;
+			break;
 		}
 	}
 
@@ -499,7 +499,7 @@ inline int twitchMinimumBitrateKbps(const VideoTuple &video)
 	const int shortEdge = std::min(video.width, video.height);
 	const bool highFps = fpsGreaterThan(video, 30);
 	// Experimental ordinary-Twitch 1440p policy, gated by Twitch-only request
-	// limits and a successful 8 Mbps probe. Do not raise multistream bitrates.
+	// limits and a successful 7.5 Mbps probe. Do not raise multistream bitrates.
 	if (longEdge == 2560 && shortEdge == 1440)
 		return kExperimentalTwitch1440pBitrateKbps;
 	if (longEdge == 1920 && shortEdge == 1080)

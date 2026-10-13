@@ -3739,11 +3739,21 @@ static ProbeResult runEnhancedBroadcastingProbe(const std::shared_ptr<Session> &
 	const bool fractionalCadenceFamily =
 		leg.current.fpsDen == 1001 || leg.limits.maxFpsDen == 1001 ||
 		(leg.additionalVideo && (leg.additionalVideo->current.fpsDen == 1001 || leg.additionalVideo->limits.maxFpsDen == 1001));
-	auto candidates = enhancedBroadcastingPolicy::candidates(maxWidth, maxHeight, maxFpsNum, maxFpsDen, fractionalCadenceFamily ? 1001U : 1U);
+	const qualityPolicy::VideoTuple current{leg.current.width, leg.current.height, leg.current.fpsNum, leg.current.fpsDen};
+	auto candidates =
+		enhancedBroadcastingPolicy::candidatesForOutput(current, maxWidth, maxHeight, maxFpsNum, maxFpsDen, fractionalCadenceFamily ? 1001U : 1U);
+	const auto pairedVertical = [&](const enhancedBroadcastingPolicy::VideoCandidate &candidate) {
+		if (!leg.additionalVideo)
+			return enhancedBroadcastingPolicy::pairedVerticalCandidate(candidate);
+		const auto &additional = *leg.additionalVideo;
+		return enhancedBroadcastingPolicy::pairedVerticalCandidate(
+			candidate, current, {additional.current.width, additional.current.height, additional.current.fpsNum, additional.current.fpsDen},
+			additional.limits.maxWidth, additional.limits.maxHeight);
+	};
 	if (leg.additionalVideo) {
 		const Limits &additionalLimits = leg.additionalVideo->limits;
 		std::erase_if(candidates, [&](const enhancedBroadcastingPolicy::VideoCandidate &candidate) {
-			const auto vertical = enhancedBroadcastingPolicy::pairedVerticalCandidate(candidate);
+			const auto vertical = pairedVertical(candidate);
 			return !enhancedBroadcastingPolicy::candidateFitsLimits(vertical, (uint32_t)std::max(0, additionalLimits.maxWidth),
 										(uint32_t)std::max(0, additionalLimits.maxHeight),
 										(uint32_t)std::max(0, additionalLimits.maxFpsNum),
@@ -3752,7 +3762,7 @@ static ProbeResult runEnhancedBroadcastingProbe(const std::shared_ptr<Session> &
 	}
 	if (!provisionalCompanions.empty()) {
 		std::erase_if(candidates, [&](const enhancedBroadcastingPolicy::VideoCandidate &candidate) {
-			const auto vertical = enhancedBroadcastingPolicy::pairedVerticalCandidate(candidate);
+			const auto vertical = pairedVertical(candidate);
 			return std::any_of(provisionalCompanions.begin(), provisionalCompanions.end(), [&](const CompanionWorkload &companion) {
 				const auto &displayCandidate = companion.display == "horizontal" ? candidate : vertical;
 				return !enhancedCandidateFitsCompanion(displayCandidate, companion);
@@ -3778,7 +3788,7 @@ static ProbeResult runEnhancedBroadcastingProbe(const std::shared_ptr<Session> &
 		CurrentSettings eventAdditionalVideo;
 		const CurrentSettings *eventAdditionalVideoPtr = nullptr;
 		if (leg.additionalVideo) {
-			const auto vertical = enhancedBroadcastingPolicy::pairedVerticalCandidate(candidate);
+			const auto vertical = pairedVertical(candidate);
 			eventAdditionalVideo = leg.additionalVideo->current;
 			eventAdditionalVideo.width = (int)vertical.width;
 			eventAdditionalVideo.height = (int)vertical.height;
@@ -3793,7 +3803,7 @@ static ProbeResult runEnhancedBroadcastingProbe(const std::shared_ptr<Session> &
 
 		std::vector<enhancedBroadcastingPolicy::VideoCandidate> candidateCanvases{candidate};
 		if (leg.additionalVideo)
-			candidateCanvases.push_back(enhancedBroadcastingPolicy::pairedVerticalCandidate(candidate));
+			candidateCanvases.push_back(pairedVertical(candidate));
 		std::vector<CompanionWorkload> candidateCompanions = provisionalCompanions;
 		for (auto &companion : candidateCompanions) {
 			const auto &displayCandidate = companion.display == "horizontal" ? candidateCanvases[0] : candidateCanvases[1];
@@ -4941,8 +4951,17 @@ static void runSession(const std::shared_ptr<Session> &session)
 		recommendation.destinations = leg.destinations;
 		recommendation.limits = leg.limits;
 		recommendation.value = estimateRecommendation(leg, hardware);
-		if (leg.additionalVideo)
+		if (leg.additionalVideo) {
 			recommendation.additionalVideo = leg.additionalVideo->current;
+			const auto &limits = leg.additionalVideo->limits;
+			auto &additional = *recommendation.additionalVideo;
+			const auto bounded = qualityPolicy::boundCurrentToSupportedTier(
+				{additional.width, additional.height, additional.fpsNum, additional.fpsDen}, limits.maxWidth, limits.maxHeight);
+			additional.width = bounded.width;
+			additional.height = bounded.height;
+			if (limits.maxFpsNum > 0)
+				capFps(additional, limits.maxFpsNum, limits.maxFpsDen);
+		}
 		recommendation.reason = defaultEstimateReason(session->topology, leg);
 		if (hardware.attempted && (!hardware.passed || hardware.constrained)) {
 			recommendation.confidence = hardware.passed ? "medium" : "low";

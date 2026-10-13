@@ -2160,17 +2160,18 @@ interface IAutoOptimizerLimits {
     maxBitrateKbps?: number;
     /**
      * Maximum resolution OSN may test for this run without changing persistent
-     * video settings. Supply `maxWidth` and `maxHeight` together. OSN tests only
-     * the supported 2560x1440, 1920x1080, 1280x720, and 960x540 tiers, or their portrait
-     * equivalents, up to this limit. It promotes only 16:9 or 9:16 output; a
-     * custom aspect ratio keeps its current resolution and frame rate. The
-     * caller remains responsible for applying a recommended Base Canvas resize
-     * safely.
+     * video settings. Supply `maxWidth` and `maxHeight` together as a bounding
+     * box. Standard-aspect outputs use the 2560x1440, 1920x1080, 1280x720, and
+     * 960x540 tiers, or their portrait equivalents. Custom outputs, including
+     * ultrawide, preserve their configured output aspect, reduced to fit the
+     * limits with even-pixel rounding. The base canvas aspect is not substituted.
+     * Estimated results never increase saved dimensions or frame rate. The
+     * caller remains responsible for applying any Base Canvas resize safely.
      * Horizontal 1440p testing is available only when every destination in the
      * request is Twitch. Other streams are limited to 1080p. Vertical testing
      * remains limited to 1080x1920, including Twitch Enhanced Broadcasting's
      * paired 1440p horizontal / 1080p vertical workload. Ordinary Twitch 1440p
-     * requests use an experimental 8000 Kbps limit instead of the service's
+     * requests use an experimental 7500 Kbps limit instead of the service's
      * 6000 Kbps default; the caller must apply that tested bitrate without
      * reapplying the lower service bitrate limit.
      */
