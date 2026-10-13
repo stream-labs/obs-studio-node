@@ -30,6 +30,7 @@
 #include "osn-vcam.hpp"
 #include "osn-encoders.hpp"
 #include "osn-streaming-helpers.hpp"
+#include "osn-simple-streaming.hpp"
 
 #include "osn-multitrack-video.hpp"
 
@@ -1255,12 +1256,13 @@ static inline bool ServiceSupportsVodTrack(const char *service)
 	return false;
 }
 
-static bool IsVodTrackEnabled(obs_service_t *service)
+static bool IsVodTrackEnabled(obs_service_t *service, bool isSimpleMode)
 {
 	const bool advanced = config_get_bool(ConfigManager::getInstance().getBasic(), "SimpleOutput", "UseAdvanced");
-	const bool vodTrackEnabledAdv = config_get_bool(ConfigManager::getInstance().getBasic(), "AdvOut", "VodTrackEnabled");
-	const bool enable = config_get_bool(ConfigManager::getInstance().getBasic(), "SimpleOutput", "VodTrackEnabled");
+	const bool enable = config_get_bool(ConfigManager::getInstance().getBasic(), isSimpleMode ? "SimpleOutput" : "AdvOut", "VodTrackEnabled");
 	const bool enableForCustomServer = config_get_bool(ConfigManager::getInstance().getGlobal(), "General", "EnableCustomServerVodTrack");
+	if (isSimpleMode && !advanced)
+		return false;
 
 	OBSDataAutoRelease settings = obs_service_get_settings(service);
 	const char *name = obs_data_get_string(settings, "service");
@@ -1269,7 +1271,7 @@ static bool IsVodTrackEnabled(obs_service_t *service)
 	if (strcmp(id, "rtmp_custom") == 0)
 		return enableForCustomServer ? enable : false;
 	else
-		return vodTrackEnabledAdv && ServiceSupportsVodTrack(name);
+		return enable && ServiceSupportsVodTrack(name);
 }
 
 bool OBS_service::startSingleTrackStreaming(StreamServiceId serviceId)
@@ -1356,10 +1358,12 @@ bool OBS_service::startMultiTrackStreaming(StreamServiceId serviceId, bool dualS
 	auto auto_config_url = osn::MultitrackVideoAutoConfigURL(services[serviceId]);
 	blog(LOG_INFO, "Auto config URL: %s", auto_config_url.c_str());
 
-	const auto vodTrackIndex = int(config_get_int(ConfigManager::getInstance().getBasic(), "AdvOut", "VodTrackIndex")) - 1;
+	config_t *config = ConfigManager::getInstance().getBasic();
+	const bool isSimpleMode = strcmp(config_get_string(config, "Output", "Mode"), "Simple") == 0;
+	const auto vodTrackIndex = isSimpleMode ? int(osn::SimpleStreaming::VodTrackMixerIndex) : int(config_get_int(config, "AdvOut", "VodTrackIndex")) - 1;
 	blog(LOG_INFO, "vodTrackIndex: %d", vodTrackIndex);
 
-	auto vod_track_mixer = IsVodTrackEnabled(services[serviceId]) ? std::optional{vodTrackIndex} : std::nullopt;
+	auto vod_track_mixer = IsVodTrackEnabled(services[serviceId], isSimpleMode) ? std::optional{vodTrackIndex} : std::nullopt;
 
 	std::vector<obs_video_info *> canvases;
 	canvases.push_back(videoInfo[serviceId]);

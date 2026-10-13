@@ -142,3 +142,14 @@ yarn electron-mocha -t 30000 -r ts-node/register tests/osn-tests/src/test_rtmp_t
 `src/test_nodeobs_simple_vod_settings.ts` separately verifies Simple VOD settings
 visibility, persistence, and independence from Advanced track selections without
 using a provider account.
+
+The native `test-nodeobs-enhanced-broadcasting-vod.cpp` tests call the older
+NodeObs start handler with a local Enhanced Broadcasting configuration file and
+inspect its live/VOD audio encoders. They cover conflicting Simple/Advanced VOD
+preferences, Simple's fixed track 2 and advanced encoder settings requirement,
+and Advanced's selected track 6. The ingest endpoint is loopback; these tests do
+not contact Twitch or check media delivery. After building OSN, run them with:
+
+```text
+ctest --test-dir build -C RelWithDebInfo -R "NodeObs.*Enhanced Broadcasting" --output-on-failure --no-tests=error
+```
