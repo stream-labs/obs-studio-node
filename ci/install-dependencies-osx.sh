@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+# Fix GitHub's servers or CI runners sometimes drop HTTP/2 connections mid-transfer. Force Git to use HTTP/1.1 instead.
+git config --global http.version HTTP/1.1
+
 # Remove preinstalled deprecated/disabled formulae and casks
 brew uninstall --ignore-dependencies openssl@1.1 2>/dev/null || true
 brew uninstall --cask session-manager-plugin 2>/dev/null || true
