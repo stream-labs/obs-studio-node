@@ -388,12 +388,55 @@ describe(testName, function() {
         expect(response.result.outputs[0].videos.map(video => video.display)).to.deep.equal(['horizontal', 'vertical']);
     });
 
+    for (const width of [3340, 3440]) {
+        for (const maxWidth of [1920, 2560]) {
+            const expectedHeight = Math.floor((1440 * maxWidth / width) / 2) * 2;
+            it(`starts an aspect-preserving hardware test for ${width}x1440 at the ${maxWidth} ceiling without changing video`, async function() {
+                const before = { ...obs.defaultVideoContext.video };
+                const events: IAutoOptimizerEvent[] = [];
+                const nativeRun = await startSessionAtHardwareAttempt({
+                    streamSetup: 'direct-single',
+                    outputs: [output({
+                        destinations: ['twitch'],
+                        current: { ...output().current, width, height: 1440 },
+                        limits: { maxWidth, maxHeight: maxWidth === 2560 ? 1440 : 1080, maxBitrateKbps: 7500 },
+                    })],
+                }, event => events.push(event));
+                await nativeRun.cancel();
+                expect((await nativeRun.result).status).to.equal('cancelled');
+                const attempted = events.filter(event => event.width && event.height);
+                expect(attempted.length).to.be.greaterThan(0);
+                expect(attempted.every(event => event.width === maxWidth && event.height === expectedHeight)).to.equal(true);
+                expect(Math.max(...attempted.map(event => event.width!))).to.equal(maxWidth);
+                expect(obs.defaultVideoContext.video).to.deep.equal(before);
+            });
+
+            it(`returns an aspect-preserving estimate for ${width}x1440 at the ${maxWidth} ceiling without changing video`, async function() {
+                const before = { ...obs.defaultVideoContext.video };
+                const response = await run({
+                    streamSetup: 'enhanced-broadcasting',
+                    outputs: [output({
+                        outputKind: 'twitch-enhanced-broadcasting',
+                        destinations: ['twitch'],
+                        current: { ...output().current, width, height: 1440 },
+                        limits: { maxWidth, maxHeight: maxWidth === 2560 ? 1440 : 1080 },
+                        estimateReason: 'enhanced_broadcasting',
+                    })],
+                });
+                expect(response.result.status).to.equal('complete');
+                expect(response.result.outputs[0].measurement.mode).to.equal('estimated');
+                expect(response.result.outputs[0].videos[0]).to.include({ width: maxWidth, height: expectedHeight });
+                expect(obs.defaultVideoContext.video).to.deep.equal(before);
+            });
+        }
+    }
+
     for (const [width, height, verticalWidth, verticalHeight] of [
         [1280, 720, 720, 1280],
         [2560, 1440, 1440, 2560],
         [2560, 1440, 1080, 1920],
     ]) {
-        it(`preserves saved Dual Format settings when estimate-only (${width}x${height} / ${verticalWidth}x${verticalHeight})`, async function() {
+        it(`bounds estimate-only Dual Format recommendations (${width}x${height} / ${verticalWidth}x${verticalHeight})`, async function() {
             const response = await run({
                 streamSetup: 'enhanced-broadcasting',
                 outputs: [output({
@@ -432,8 +475,8 @@ describe(testName, function() {
                 },
                 {
                     display: 'vertical',
-                    width: verticalWidth,
-                    height: verticalHeight,
+                    width: Math.min(1080, verticalWidth),
+                    height: Math.min(1920, verticalHeight),
                     fpsNum: 60,
                     fpsDen: 1,
                 },

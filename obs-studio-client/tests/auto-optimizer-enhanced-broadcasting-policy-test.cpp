@@ -4,6 +4,36 @@
 
 namespace policy = autoOptimizer::enhancedBroadcastingPolicy;
 
+TEST_CASE("Enhanced Broadcasting tests the configured custom output aspect, not a 16:9 replacement")
+{
+	for (const auto current :
+	     std::vector<autoOptimizer::qualityPolicy::VideoTuple>{{3440, 1440, 60, 1}, {3340, 1440, 30, 1}, {2560, 1600, 30, 1}, {1600, 1200, 30, 1}}) {
+		const auto expected = autoOptimizer::qualityPolicy::boundCurrentToSupportedTier(current, 1920, 1080);
+		const auto result = policy::candidatesForOutput(current, 1920, 1080, 60, 1);
+		REQUIRE(result.size() == 1);
+		CHECK(result[0].width == expected.width);
+		CHECK(result[0].height == expected.height);
+		CHECK(result[0].fpsNum == current.fpsNum);
+	}
+	const auto capped = policy::candidatesForOutput({3440, 1440, 60, 1}, 1920, 1080, 30, 1);
+	CHECK(capped[0].fpsNum == 30);
+	CHECK(policy::candidatesForOutput({1920, 1080, 30, 1}, 2560, 1440, 60, 1).size() == 7);
+}
+
+TEST_CASE("Enhanced Broadcasting keeps independently configured custom Dual Format aspects")
+{
+	const auto vertical = policy::pairedVerticalCandidate({1920, 802, 60, 1}, {3440, 1440, 60, 1}, {1080, 1920, 60, 1}, 1080, 1920);
+	CHECK(vertical.width == 1080);
+	CHECK(vertical.height == 1920);
+	const auto customVertical = policy::pairedVerticalCandidate({1920, 1080, 60, 1}, {1920, 1080, 60, 1}, {1200, 1600, 60, 1}, 1080, 1920);
+	CHECK(customVertical.width == 1080);
+	CHECK(customVertical.height == 1440);
+	CHECK(customVertical.fpsNum == 60);
+	const auto canonical = policy::pairedVerticalCandidate({2560, 1440, 60, 1}, {1920, 1080, 60, 1}, {720, 1280, 60, 1}, 1080, 1920);
+	CHECK(canonical.width == 1080);
+	CHECK(canonical.height == 1920);
+}
+
 TEST_CASE("Enhanced Broadcasting probes preserve discovered H.264 and HEVC independently of resolution")
 {
 	std::unordered_set<std::string> codecs{"h264", "h265", "av1", "vp9"};

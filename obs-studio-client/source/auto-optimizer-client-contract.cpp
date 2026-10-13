@@ -664,19 +664,25 @@ bool parseRecommendation(const json &value, const OutputContext &output, const s
 		const auto &additionalContext = *output.additionalVideo;
 		if (!tupleWithinLimits(additional["width"], additional["height"], additional["fpsNum"], additional["fpsDen"], additionalContext.limits))
 			return false;
-		// Only measured results must match Twitch's tested pair. Estimates retain
-		// the saved vertical settings, which may differ in resolution or cadence.
+		// Only measured results must match Twitch's tested pair. Estimates may
+		// reduce saved vertical settings to caller/platform limits, but not promote.
 		if (measurementMode == "active") {
+			// Mirror the server's vertical platform caps while preserving tighter caller limits.
 			const auto paired = enhancedBroadcastingPolicy::pairedVerticalCandidate(
-				{(uint32_t)result.width, (uint32_t)result.height, (uint32_t)result.fpsNum, (uint32_t)result.fpsDen});
+				{(uint32_t)result.width, (uint32_t)result.height, (uint32_t)result.fpsNum, (uint32_t)result.fpsDen},
+				{output.current.width, output.current.height, output.current.fpsNum, output.current.fpsDen},
+				{additionalContext.current.width, additionalContext.current.height, additionalContext.current.fpsNum,
+				 additionalContext.current.fpsDen},
+				std::min(additionalContext.limits.maxWidth.value_or(1080), 1080),
+				std::min(additionalContext.limits.maxHeight.value_or(1920), 1920));
 			if (additional["width"] != paired.width || additional["height"] != paired.height ||
 			    static_cast<int64_t>(additional["fpsNum"].get<int>()) * result.fpsDen !=
 				    static_cast<int64_t>(result.fpsNum) * additional["fpsDen"].get<int>())
 				return false;
 		}
 		if (measurementMode == "estimated" &&
-		    (additional["width"] != additionalContext.current.width || additional["height"] != additionalContext.current.height ||
-		     static_cast<int64_t>(additional["fpsNum"].get<int>()) * additionalContext.current.fpsDen !=
+		    (additional["width"] > additionalContext.current.width || additional["height"] > additionalContext.current.height ||
+		     static_cast<int64_t>(additional["fpsNum"].get<int>()) * additionalContext.current.fpsDen >
 			     static_cast<int64_t>(additionalContext.current.fpsNum) * additional["fpsDen"].get<int>()))
 			return false;
 	}

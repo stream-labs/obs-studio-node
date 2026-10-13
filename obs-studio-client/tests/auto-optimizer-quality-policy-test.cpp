@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/generators/catch_generators.hpp>
 
 #include <initializer_list>
 #include <limits>
@@ -265,15 +266,15 @@ TEST_CASE("Auto Optimizer hardware tests high frame rates in product-priority or
 	CHECK(result[1].fpsNum == 30);
 }
 
-TEST_CASE("Auto Optimizer permits Twitch-only 1440p with an experimental measured 8 Mbps budget")
+TEST_CASE("Auto Optimizer permits Twitch-only 1440p with an experimental measured 7.5 Mbps budget")
 {
 	CHECK(policy::isTwitchOnlyStream({"twitch", "twitch"}));
 	CHECK_FALSE(policy::isTwitchOnlyStream({"twitch", "youtube"}));
 	CHECK_FALSE(policy::isTwitchOnlyStream({"twitch", "custom"}));
 	CHECK_FALSE(policy::isTwitchOnlyStream({}));
 	const policy::VideoTuple ceiling{2560, 1440, 60, 1};
-	CHECK(policy::select(ceiling, 8000, "nvenc", policy::QualityProfile::Twitch).video.width == 2560);
-	CHECK(policy::select(ceiling, 7950, "nvenc", policy::QualityProfile::Twitch).video.width == 1920);
+	CHECK(policy::select(ceiling, 7500, "nvenc", policy::QualityProfile::Twitch).video.width == 2560);
+	CHECK(policy::select(ceiling, 7499, "nvenc", policy::QualityProfile::Twitch).video.width == 1920);
 	CHECK(policy::select(ceiling, 6000, "nvenc", policy::QualityProfile::Twitch).video.width == 1920);
 	CHECK(policy::benchmarkCeiling({1280, 720, 30, 1}, 2560, 1440, 60, 1).width == 2560);
 }
@@ -525,16 +526,41 @@ TEST_CASE("Auto Optimizer benchmark ceiling preserves portrait orientation")
 	CHECK(policy::select(promoted, 6000, "obs_nvenc_h264_tex").video.height == 1920);
 }
 
-TEST_CASE("Auto Optimizer promotes only supported 16:9 and 9:16 aspect ratios")
+TEST_CASE("Auto Optimizer preserves ultrawide outputs within active and estimated limits")
+{
+	const int width = GENERATE(3340, 3440);
+	const policy::VideoTuple current{width, 1440, 60, 1};
+	for (const auto maximum : {policy::VideoTuple{2560, 1440, 60, 1}, policy::VideoTuple{1920, 1080, 60, 1}}) {
+		const policy::VideoTuple expected{maximum.width, (1440 * maximum.width / width / 2) * 2, 60, 1};
+		const auto bounded = policy::boundCurrentToSupportedTier(current, maximum.width, maximum.height);
+		CHECK(policy::sameVideo(bounded, expected));
+		const auto tested = policy::benchmarkCeiling(current, maximum.width, maximum.height, 60, 1);
+		CHECK(policy::sameVideo(tested, expected));
+		CHECK(policy::sameVideo(policy::select(tested, maximum.height == 1440 ? 7500 : 6000, "nvenc", policy::QualityProfile::Twitch).video, expected));
+		for (const auto &candidate : policy::candidates(tested)) {
+			CHECK(candidate.width <= maximum.width);
+			CHECK(candidate.height <= maximum.height);
+			CHECK(policy::sameVideo(candidate, expected));
+		}
+		CHECK(policy::sameVideo(policy::recommendationCeiling(tested, bounded, false), expected));
+	}
+	const auto preScaled = policy::boundCurrentToSupportedTier({1920, 802, 30, 1}, 2560, 1440);
+	CHECK(policy::sameVideo(preScaled, {1920, 802, 30, 1}));
+	CHECK(policy::sameVideo(policy::benchmarkCeiling({1920, 802, 30, 1}, 2560, 1440, 60, 1), preScaled));
+}
+
+TEST_CASE("Auto Optimizer preserves other custom aspects within caller limits")
 {
 	const std::vector<policy::VideoTuple> custom = {
 		{1600, 1000, 30, 1}, // 16:10
 		{1024, 768, 30, 1},  // 4:3
-		{2560, 1080, 30, 1}, // ultrawide
 	};
 	for (const auto &current : custom) {
 		CAPTURE(current.width, current.height);
-		CHECK(policy::sameVideo(policy::boundCurrentToSupportedTier(current, 640, 360), current));
+		const auto bounded = policy::boundCurrentToSupportedTier(current, 640, 360);
+		CHECK(bounded.width <= 640);
+		CHECK(bounded.height <= 360);
+		CHECK(bounded.fpsNum == current.fpsNum);
 		const auto ceiling = policy::benchmarkCeiling(current, 1920, 1080, 60, 1);
 		CHECK(policy::sameVideo(ceiling, current));
 		const auto options = policy::candidates(ceiling);

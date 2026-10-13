@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "osn-common.hpp"
+#include "auto-optimizer-quality-policy.hpp"
 
 namespace autoOptimizer::enhancedBroadcastingPolicy {
 
@@ -41,6 +42,17 @@ inline VideoCandidate pairedVerticalCandidate(const VideoCandidate &primary)
 	if (primary.width == 2560 && primary.height == 1440)
 		return {1080, 1920, primary.fpsNum, primary.fpsDen};
 	return {primary.height, primary.width, primary.fpsNum, primary.fpsDen};
+}
+
+// Custom outputs are independent authored choices, not rotated copies of the
+// other canvas. Keep their bounded geometry while testing the shared cadence.
+inline VideoCandidate pairedVerticalCandidate(const VideoCandidate &primary, const qualityPolicy::VideoTuple &primaryCurrent,
+					      const qualityPolicy::VideoTuple &verticalCurrent, int maxWidth, int maxHeight)
+{
+	if (qualityPolicy::hasSupportedTierAspectRatio(primaryCurrent) && qualityPolicy::hasSupportedTierAspectRatio(verticalCurrent))
+		return pairedVerticalCandidate(primary);
+	const auto bounded = qualityPolicy::boundCurrentToSupportedTier(verticalCurrent, maxWidth, maxHeight);
+	return {(uint32_t)bounded.width, (uint32_t)bounded.height, primary.fpsNum, primary.fpsDen};
 }
 
 inline bool candidateFitsLimits(const VideoCandidate &candidate, uint32_t maxWidth, uint32_t maxHeight, uint32_t maxFpsNum, uint32_t maxFpsDen)
@@ -111,6 +123,20 @@ inline std::vector<VideoCandidate> candidates(uint32_t maxWidth, uint32_t maxHei
 		result.push_back(candidate);
 	}
 	return result;
+}
+
+inline std::vector<VideoCandidate> candidatesForOutput(const qualityPolicy::VideoTuple &current, uint32_t maxWidth, uint32_t maxHeight, uint32_t maxFpsNum,
+						       uint32_t maxFpsDen, uint32_t cadenceFamilyDen = 1)
+{
+	if (qualityPolicy::hasSupportedTierAspectRatio(current))
+		return candidates(maxWidth, maxHeight, maxFpsNum, maxFpsDen, cadenceFamilyDen);
+	const auto bounded = qualityPolicy::boundCurrentToSupportedTier(current, (int)maxWidth, (int)maxHeight);
+	VideoCandidate candidate{(uint32_t)bounded.width, (uint32_t)bounded.height, (uint32_t)bounded.fpsNum, (uint32_t)bounded.fpsDen};
+	if (!fpsAtMost(candidate, maxFpsNum, maxFpsDen)) {
+		candidate.fpsNum = maxFpsNum;
+		candidate.fpsDen = std::max(1U, maxFpsDen);
+	}
+	return {candidate};
 }
 
 inline bool cadenceCanBeProvenByPrivateMix(const VideoCandidate &candidate, uint32_t sourceFpsNum, uint32_t sourceFpsDen)

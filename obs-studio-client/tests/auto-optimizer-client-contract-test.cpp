@@ -642,17 +642,90 @@ TEST_CASE("Auto Optimizer client preserves saved Dual Format estimates without m
 	CHECK(projected["videos"][1] == vertical);
 	CHECK_FALSE(projected.contains("encoding"));
 	checkInvalidResultMutations(
-		fixture, {{"changed saved vertical size",
-			   [](json &value) {
-				   value["legs"][0]["recommendation"]["additionalVideo"]["width"] = 1080;
-				   value["legs"][0]["recommendation"]["additionalVideo"]["height"] = 1920;
-			   }},
+		fixture, {{"unmeasured vertical promotion", [](json &value) { value["legs"][0]["recommendation"]["additionalVideo"]["width"] = 1442; }},
 			  {"changed saved vertical cadence", [](json &value) { value["legs"][0]["recommendation"]["additionalVideo"]["fpsNum"] = 60; }},
 			  {"unmeasured primary promotion", [](json &value) { value["legs"][0]["recommendation"]["fpsNum"] = 120; }}});
 	auto limited = prepared.context;
 	limited.outputs[0].additionalVideo->limits.maxWidth = 1080;
 	limited.outputs[0].additionalVideo->limits.maxHeight = 1920;
 	CHECK_FALSE(contract::projectResult(fixture.result.dump(), "run", limited).valid);
+	fixture.result["legs"][0]["recommendation"]["additionalVideo"]["width"] = 1080;
+	fixture.result["legs"][0]["recommendation"]["additionalVideo"]["height"] = 1920;
+	CHECK(contract::projectResult(fixture.result.dump(), "run", limited).valid);
+}
+
+TEST_CASE("Auto Optimizer client requires exact measured proof for independently shaped Dual Format outputs")
+{
+	json output = enhancedBroadcastingOutput();
+	output["current"] = current(3440, 1440, 6000, 1);
+	output["limits"] = {{"maxWidth", 1920}, {"maxHeight", 1080}};
+	const auto prepared = prepare({{"streamSetup", "enhanced-broadcasting"}, {"outputs", json::array({output})}});
+	json returned = returnedEnhancedBroadcastingOutput();
+	returned["recommendation"]["height"] = 802;
+	returned["measurement"]["probes"][0]["testedHeight"] = 802;
+	ResultFixture fixture{prepared, {{"schemaVersion", 1}, {"sessionId", "run"}, {"status", "complete"}, {"legs", json::array({returned})}}};
+	REQUIRE(contract::projectResult(fixture.result.dump(), "run", prepared.context).valid);
+	checkInvalidResultMutations(
+		fixture, {
+				 {"unproven custom primary", [](json &value) { value["legs"][0]["measurement"]["probes"][0]["testedHeight"] = 1080; }},
+				 {"rotated ultrawide must not replace vertical output",
+				  [](json &value) {
+					  auto &leg = value["legs"][0];
+					  leg["recommendation"]["additionalVideo"]["width"] = 802;
+					  leg["measurement"]["probes"][0]["testedAdditionalVideo"] = leg["recommendation"]["additionalVideo"];
+				  }},
+			 });
+}
+
+TEST_CASE("Auto Optimizer client caps custom Dual Format validation to Twitch limits")
+{
+	struct Example {
+		int width, height, maxWidth, maxHeight, expectedWidth, expectedHeight;
+	};
+	const auto example = GENERATE(Example{1200, 1600, 1200, 1600, 1080, 1440}, Example{1000, 2400, 1000, 2400, 800, 1920},
+				      Example{1200, 1600, 720, 1280, 720, 960}, Example{1200, 1600, 1080, 1920, 1080, 1440},
+				      Example{1200, 1600, 0, 0, 1080, 1440});
+	CAPTURE(example.width, example.height, example.maxWidth, example.maxHeight);
+	json output = enhancedBroadcastingOutput();
+	output["additionalVideo"]["current"] = current(example.width, example.height, 6000, 2);
+	if (example.maxWidth)
+		output["additionalVideo"]["limits"] = {{"maxWidth", example.maxWidth}, {"maxHeight", example.maxHeight}};
+	const auto prepared = prepare({{"streamSetup", "enhanced-broadcasting"}, {"outputs", json::array({output})}});
+	json returned = returnedEnhancedBroadcastingOutput();
+	auto &additional = returned["recommendation"]["additionalVideo"];
+	additional["width"] = example.expectedWidth;
+	additional["height"] = example.expectedHeight;
+	returned["measurement"]["probes"][0]["testedAdditionalVideo"] = additional;
+	ResultFixture fixture{prepared, {{"schemaVersion", 1}, {"sessionId", "run"}, {"status", "complete"}, {"legs", json::array({returned})}}};
+	const auto projected = contract::projectResult(fixture.result.dump(), "run", prepared.context);
+	REQUIRE(projected.valid);
+	CHECK(json::parse(projected.json)["outputs"][0]["videos"][1] == additional);
+	checkInvalidResultMutations(fixture, {{"mismatched measured vertical dimensions",
+					       [](json &value) { value["legs"][0]["measurement"]["probes"][0]["testedAdditionalVideo"]["width"] = 2; }},
+					      {"uncapped vertical result despite matching proof", [&](json &value) {
+						       auto &leg = value["legs"][0];
+						       auto &video = leg["recommendation"]["additionalVideo"];
+						       video["width"] = example.width;
+						       video["height"] = example.height;
+						       leg["measurement"]["probes"][0]["testedAdditionalVideo"] = video;
+					       }}});
+}
+
+TEST_CASE("Auto Optimizer client accepts bounded ultrawide results but rejects oversized active and estimated tuples")
+{
+	const int width = GENERATE(3340, 3440);
+	const bool measured = GENERATE(false, true);
+	json output = standardOutput("primary", "horizontal", "twitch", twitchProbe());
+	output["current"] = current(width, 1440, 6000);
+	const auto prepared = prepare({{"streamSetup", "direct-single"}, {"outputs", json::array({output})}});
+	json returned = returnedStandardOutput("primary", "horizontal", "twitch", "twitch", "twitch-bandwidth-test", 6000, 6000);
+	returned["recommendation"] = recommendation(1920, width == 3440 ? 802 : 826, 6000);
+	returned["measurement"]["mode"] = measured ? "active" : "estimated";
+	returned["measurement"]["probes"][0]["success"] = measured;
+	json result = {{"schemaVersion", 1}, {"sessionId", "run"}, {"status", "complete"}, {"legs", json::array({returned})}};
+	CHECK(contract::projectResult(result.dump(), "run", prepared.context).valid);
+	result["legs"][0]["recommendation"] = recommendation(width, 1440, 6000);
+	CHECK_FALSE(contract::projectResult(result.dump(), "run", prepared.context).valid);
 }
 
 TEST_CASE("Auto Optimizer client preserves measured Enhanced Broadcasting fallback explanations")
