@@ -1166,7 +1166,7 @@ void OBS_settings::getSimpleOutputSettings(std::vector<SubCategory> *outputSetti
 			const bool isTwitch = strcmp(obs_data_get_string(settings, "service"), "Twitch") == 0;
 			obs_data_release(settings);
 			if (isTwitch)
-				entries.push_back(createSettingEntry("VodTrackEnabled", "OBS_PROPERTY_BOOL", "Twitch VOD"));
+				entries.push_back(createSettingEntry("VodTrackEnabled", "OBS_PROPERTY_BOOL", "Twitch VOD Track (Uses Track 2)"));
 		}
 
 		//Encoder Preset
