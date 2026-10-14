@@ -685,6 +685,7 @@ if(BUILD_TESTING)
         "tests/test-osn-encoder-settings.cpp"
         "tests/test-osn-file-output.cpp"
         "tests/test-osn-multitrack-video-output.cpp"
+        "tests/test-nodeobs-enhanced-broadcasting-vod.cpp"
         "tests/test-osn-scene-relative-coordinates.cpp"
         "tests/test-osn-video-mix-lifecycle.cpp"
         "tests/obs-setup.cpp"

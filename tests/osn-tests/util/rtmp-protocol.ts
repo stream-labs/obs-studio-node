@@ -178,6 +178,8 @@ export interface IRtmpMediaPacket {
     sequenceHeader: boolean;
     timestamp: number;
     size: number;
+    /** AAC AudioSpecificConfig or encoded frame bytes, without the RTMP header. */
+    audioData?: Buffer;
 }
 
 export function decodeMediaPacket(message: IRtmpMessage): IRtmpMediaPacket {
@@ -189,6 +191,7 @@ export function decodeMediaPacket(message: IRtmpMessage): IRtmpMediaPacket {
     let codec: string;
     let trackId = 0;
     let packetType = payload[1];
+    let audioHeaderSize = 2;
     if (extended) {
         packetType = payload[0] & 15;
         const multitrack = packetType === (audio ? 5 : 6);
@@ -199,10 +202,13 @@ export function decodeMediaPacket(message: IRtmpMessage): IRtmpMediaPacket {
             trackId = payload[6];
         }
         codec = payload.toString('ascii', multitrack ? 2 : 1, multitrack ? 6 : 5);
+        audioHeaderSize = multitrack ? 7 : 5;
     } else {
         const codecId = audio ? payload[0] >> 4 : payload[0] & 15;
         if (codecId !== (audio ? 10 : 7)) throw new Error(`Unsupported legacy RTMP codec: ${codecId}`);
         codec = audio ? 'mp4a' : 'avc1';
     }
-    return { kind: audio ? 'audio' : 'video', codec, trackId, packetType, sequenceHeader: packetType === 0, timestamp, size: payload.length };
+    const packet: IRtmpMediaPacket = { kind: audio ? 'audio' : 'video', codec, trackId, packetType, sequenceHeader: packetType === 0, timestamp, size: payload.length };
+    if (audio) packet.audioData = payload.subarray(audioHeaderSize);
+    return packet;
 }

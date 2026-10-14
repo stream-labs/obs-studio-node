@@ -1160,9 +1160,14 @@ void OBS_settings::getSimpleOutputSettings(std::vector<SubCategory> *outputSetti
 		//Enforce streaming service bitrate limits
 		entries.push_back(createSettingEntry("EnforceBitrate", "OBS_PROPERTY_BOOL", "Enforce streaming service bitrate limits"));
 
-		obs_data_t *settings = obs_service_get_settings(OBS_service::getService(StreamServiceId::Main)); //todo DUALOUTPUT
-		const char *serviceName = obs_data_get_string(settings, "service");
-		obs_data_release(settings);
+		obs_service_t *service = OBS_service::getService(StreamServiceId::Main);
+		if (service && strcmp(obs_service_get_id(service), "rtmp_common") == 0) {
+			obs_data_t *settings = obs_service_get_settings(service);
+			const bool isTwitch = strcmp(obs_data_get_string(settings, "service"), "Twitch") == 0;
+			obs_data_release(settings);
+			if (isTwitch)
+				entries.push_back(createSettingEntry("VodTrackEnabled", "OBS_PROPERTY_BOOL", "Twitch VOD Track (Uses Track 2)"));
+		}
 
 		//Encoder Preset
 		const char *defaultPreset;

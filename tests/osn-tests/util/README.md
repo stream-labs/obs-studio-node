@@ -11,6 +11,36 @@ expected results in the test.
 | `RtmpTestServer` (`rtmp-test-server.ts`) | Owns the loopback listener, connections and per-attempt media captures. Independent of OSN. |
 | `expectAudioTracks`, `expectVideoFrames` (`rtmp-assertions.ts`) | Assert received media. They neither start outputs nor wait for packets. |
 | `media_probe.ts` | Uses ffprobe/ffmpeg for recorded-file inspection. |
+| `expectRegionColor` (`media_assertions.ts`) | Asserts the mean RGB color of a region in a decoded frame. No runtime or output ownership. |
+
+## Selective recording
+
+`src/test_osn_selective_recording.ts` records generated color sources without a
+provider account, streaming output or replay buffer. It checks decoded RGB frames
+for stream-only, recording-only, both-visible and neither-visible scene items.
+An always-visible background also rejects empty or black recordings. Both Simple
+quality presets, disabled selective recording and an Advanced dedicated encoder
+are covered. The suite is discovered by the existing integration/CI scripts.
+
+`getVideoFrameRgb()` in `media_probe.ts` decodes one unscaled frame and rejects
+missing frames or unexpected dimensions. FFmpeg emits binary PPM so the decoded
+width and height are checked independently, followed by the RGB payload length.
+`src/test_media_probe.ts` covers equal-pixel-count dimension mismatches, exact RGB
+bytes and missing frames without starting OBS. FFmpeg lookup honors `FFMPEG_PATH`, then
+checks the OSN package root and macOS `Frameworks` directory, then PATH. Color
+checks sample inside the blocks and tolerate compression differences.
+
+`expectRegionColor()` accepts `{ data, width, height }` for an RGB24 frame and a
+region `{ x, y, width?, height? }` measured from its top-left pixel. Region size
+defaults to 8x8 and the per-channel tolerance defaults to 25; both are configurable.
+It rejects invalid frame dimensions, buffer lengths, region bounds and tolerances.
+Keep expected colors and the choice of interior regions in each test.
+
+After building and installing OSN, run both suites with:
+
+```text
+yarn electron-mocha -t 30000 -r ts-node/register tests/osn-tests/src/test_osn_selective_recording.ts tests/osn-tests/src/test_media_probe.ts
+```
 
 ## Output setup and lifetime
 
@@ -20,6 +50,11 @@ Simple mode gets a 160 Kbps AAC encoder. Advanced mode uses caller-registered
 audio tracks (native defaults: main track 1, VOD track 2). Service bitrate
 enforcement, delay and reconnect are disabled. VOD keeps its native disabled
 default; enable it explicitly when the scenario requires it.
+
+Simple VOD reads source audio track 2 and preserves source mixer flags. Advanced
+VOD reads the caller-selected `twitchTrack`. `getAacAudioTrack()` in
+`rtmp-assertions.ts` returns received AAC-LC with ADTS framing; write it to a
+test-owned file and use `getMeanVolumeDb()` to check audible audio and exclusions.
 
 Configure the exposed `stream` while stopped, including replacing its borrowed
 service. Use the fixture's `start()`, `stop()` and `destroy()` methods and retain
@@ -102,4 +137,19 @@ filter excludes the Simple suite's remaining provider-account tests:
 
 ```text
 yarn electron-mocha -t 30000 -r ts-node/register tests/osn-tests/src/test_rtmp_test_server.ts tests/osn-tests/src/test_osn_streaming_vod.ts tests/osn-tests/src/test_osn_simple_streaming.ts --grep "RTMP test receiver|osn-streaming-vod|osn-simple-streaming \(local\)"
+```
+
+`src/test_nodeobs_simple_vod_settings.ts` separately verifies Simple VOD settings
+visibility, persistence, and independence from Advanced track selections without
+using a provider account.
+
+The native `test-nodeobs-enhanced-broadcasting-vod.cpp` tests call the older
+NodeObs start handler with a local Enhanced Broadcasting configuration file and
+inspect its live/VOD audio encoders. They cover conflicting Simple/Advanced VOD
+preferences, Simple's fixed track 2 and advanced encoder settings requirement,
+and Advanced's selected track 6. The ingest endpoint is loopback; these tests do
+not contact Twitch or check media delivery. After building OSN, run them with:
+
+```text
+ctest --test-dir build -C RelWithDebInfo -R "NodeObs.*Enhanced Broadcasting" --output-on-failure --no-tests=error
 ```

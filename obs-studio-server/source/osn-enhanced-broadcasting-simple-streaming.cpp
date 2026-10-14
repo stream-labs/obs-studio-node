@@ -63,6 +63,7 @@ void osn::IEnhancedBroadcastingSimpleStreaming::Register(ipc::server &srv)
 	cls->register_function(std::make_shared<ipc::function>("Query", std::vector<ipc::type>{ipc::type::UInt64}, Query));
 	cls->register_function(std::make_shared<ipc::function>("GetLegacySettings", std::vector<ipc::type>{}, GetLegacySettings));
 	cls->register_function(std::make_shared<ipc::function>("SetLegacySettings", std::vector<ipc::type>{ipc::type::UInt64}, SetLegacySettings));
+	cls->register_function(std::make_shared<ipc::function>("GetAvailableEncoders", std::vector<ipc::type>{ipc::type::UInt64}, GetAvailableEncoders));
 	cls->register_function(std::make_shared<ipc::function>("GetDroppedFrames", std::vector<ipc::type>{ipc::type::UInt64}, GetDroppedFrames));
 	cls->register_function(std::make_shared<ipc::function>("GetTotalFrames", std::vector<ipc::type>{ipc::type::UInt64}, GetTotalFrames));
 	cls->register_function(std::make_shared<ipc::function>("GetKBitsPerSec", std::vector<ipc::type>{ipc::type::UInt64}, GetKBitsPerSec));
@@ -118,9 +119,11 @@ void osn::IEnhancedBroadcastingSimpleStreaming::Start(void *data, const int64_t 
 		PRETTY_ERROR_RETURN(ErrorCode::InvalidReference, "Invalid service.");
 	}
 
-	// Note: unlike advanced mode, there is no Twitch VOD track for simple mode
+	streaming->twitchVODSupported = streaming->isTwitchVODSupported();
+	const auto vodTrackMixer = streaming->enableTwitchVOD && streaming->twitchVODSupported ? std::optional<size_t>{SimpleStreaming::VodTrackMixerIndex}
+											       : std::nullopt;
 	try {
-		streaming->StartEnhancedBroadcastingStream();
+		streaming->StartEnhancedBroadcastingStream(vodTrackMixer);
 	} catch (const std::exception &error) {
 		PRETTY_ERROR_RETURN(ErrorCode::Error, error.what());
 	} catch (...) {

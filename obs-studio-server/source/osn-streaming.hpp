@@ -42,8 +42,6 @@ public:
 		enforceServiceBitrate = true;
 		enableTwitchVOD = false;
 		twitchVODSupported = false;
-		oldMixer_desktopSource1 = 0;
-		oldMixer_desktopSource2 = 0;
 		delay = new Delay();
 		reconnect = new Reconnect();
 		network = new Network();
@@ -62,8 +60,6 @@ public:
 	bool enforceServiceBitrate;
 	bool enableTwitchVOD;
 	bool twitchVODSupported;
-	uint32_t oldMixer_desktopSource1;
-	uint32_t oldMixer_desktopSource2;
 	Delay *delay;
 	Reconnect *reconnect;
 	Network *network;
