@@ -144,7 +144,32 @@ jobs:
         # https://docs.github.com/en/actions/reference/workflows-and-actions/contexts#steps-context
         id: run_tests
         timeout-minutes: 30
+        # TEMP: browser-source probe branch (test:ci runs only test_browser_source_load)
         run: 'yarn run test:ci'
+        env:
+          SLOBS_BE_STREAMKEY: ${{secrets.testsStreamKey}}
+          SLOBS_TEST_USER_POOL_TOKEN:  ${{secrets.testsUserPoolToken}}
+          OSN_ACCESS_KEY_ID: ${{secrets.AWS_RELEASE_ACCESS_KEY_ID}}
+          OSN_SECRET_ACCESS_KEY: ${{secrets.AWS_RELEASE_SECRET_ACCESS_KEY}}
+          RELEASE_NAME: ${{matrix.ReleaseName}}
+          CI: true
+      # TEMP: browser-source probe branch
+      - name: 'Run tests (unbundled layout)'
+        if: ${{ always() }}
+        timeout-minutes: 30
+        shell: bash
+        run: |
+          set -euo pipefail
+          UNBUNDLED_ROOT="$RUNNER_TEMP/osn-unbundled"
+          rm -rf "$UNBUNDLED_ROOT"
+          mkdir -p "$UNBUNDLED_ROOT"
+          # ditto preserves symlinks and permissions; the destination has no .app component.
+          ditto "${{env.SLFullDistributePath}}" "$UNBUNDLED_ROOT/distribute"
+          OSN_DIR="$UNBUNDLED_ROOT/distribute/${{env.InstallPath}}"
+          # Point the tests at the copy instead of the install prefix baked in by CMake.
+          printf "export * from '%s/index';\n\nconst wd: string = \"%s\";\nexport {wd};\n" "$OSN_DIR" "$OSN_DIR" > tests/osn-tests/osn/index.ts
+          cat tests/osn-tests/osn/index.ts
+          yarn run test:ci
         env:
           SLOBS_BE_STREAMKEY: ${{secrets.testsStreamKey}}
           SLOBS_TEST_USER_POOL_TOKEN:  ${{secrets.testsUserPoolToken}}
@@ -349,6 +374,7 @@ jobs:
         id: run_tests
         timeout-minutes: 20
         continue-on-error: false
+        # TEMP: browser-source probe branch (test:ci runs only test_browser_source_load)
         run: 'yarn run test:ci'
         env:
           SLOBS_BE_STREAMKEY: ${{secrets.testsStreamKey}}
