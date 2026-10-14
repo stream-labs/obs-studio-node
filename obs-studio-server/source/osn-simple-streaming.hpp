@@ -28,6 +28,8 @@
 namespace osn {
 class SimpleStreaming : public Streaming {
 public:
+	static constexpr size_t VodTrackMixerIndex = 1;
+
 	SimpleStreaming() : Streaming()
 	{
 		audioEncoder = nullptr;

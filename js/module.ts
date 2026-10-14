@@ -1829,6 +1829,9 @@ export interface IStreaming {
      * services are ineligible even if their settings contain a Twitch label.
      * Standard streaming reconciles this track on each explicit start, including
      * retained instances. Change the preference and service only while stopped.
+     * Simple streaming uses source audio track 2 without changing source mixer
+     * assignments; Advanced streaming uses the selected twitchTrack. Enhanced
+     * Broadcasting requests the same VOD mixer from Twitch's encoding configuration.
      */
     enableTwitchVOD: boolean,
     delay: IDelay,
