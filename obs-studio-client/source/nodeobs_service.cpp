@@ -383,17 +383,11 @@ Napi::Value service::OBS_service_startVirtualCam(const Napi::CallbackInfo &info)
 	if (!conn)
 		return info.Env().Undefined();
 
-#if defined(__APPLE__)
-	// On macOS, we will wait for a response. Our situation is more complicated due to the vcam SystemExtension
-	// which will return errors that we need to display to the user.
 	std::vector<ipc::value> response = conn->call_synchronous_helper("NodeOBS_Service", "OBS_service_startVirtualCam", {});
 	if (response.size() > 1) {
 		// We encountered an error setting up the vcam
 		Napi::Error::New(info.Env(), response[1].value_str).ThrowAsJavaScriptException();
 	}
-#else
-	conn->call("NodeOBS_Service", "OBS_service_startVirtualCam", {});
-#endif
 	return info.Env().Undefined();
 }
 
