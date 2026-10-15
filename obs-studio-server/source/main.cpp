@@ -89,6 +89,10 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <limits.h>
+#include <stdlib.h>
+#include <mach-o/dyld.h>
+#include <string>
 #endif
 
 #define BUFFSIZE 512
@@ -130,6 +134,57 @@ static void Shutdown(void *data, const int64_t id, const std::vector<ipc::value>
 }
 } // namespace System
 
+#ifdef __APPLE__
+static bool HasAppBundleAncestor(const std::string &path)
+{
+	size_t start = 0;
+	while (start < path.size()) {
+		size_t end = path.find('/', start);
+		if (end == std::string::npos)
+			end = path.size();
+		std::string_view component(path.data() + start, end - start);
+		if (component.size() > 4 && component.substr(component.size() - 4) == ".app")
+			return true;
+		start = end + 1;
+	}
+	return false;
+}
+
+static void SetCefMainBundlePath(const char *argv0)
+{
+	// TEMP: probe-only gate
+	if (getenv("OSN_PROBE_DISABLE_MAIN_BUNDLE_FIX"))
+		return;
+
+	uint32_t size = 0;
+	_NSGetExecutablePath(nullptr, &size);
+	std::string exePath(size, '\0');
+	if (_NSGetExecutablePath(exePath.data(), &size) != 0)
+		return;
+
+	char realExe[PATH_MAX];
+	if (!realpath(exePath.c_str(), realExe))
+		return;
+	std::string exeDir(realExe);
+	if (HasAppBundleAncestor(exeDir))
+		return;
+	exeDir.erase(exeDir.rfind('/'));
+
+	char realHelper[PATH_MAX];
+	std::string helperPath = exeDir + "/../Frameworks/obs64 Helper.app";
+	if (!realpath(helperPath.c_str(), realHelper))
+		return;
+	struct stat sb;
+	if (stat(realHelper, &sb) != 0 || !S_ISDIR(sb.st_mode))
+		return;
+
+	// CEF children rendezvous only if they resolve the same outer bundle as obs64.
+	std::string bundleArg = std::string("--main-bundle-path=") + realHelper;
+	const char *args[] = {argv0, bundleArg.c_str()};
+	obs_set_cmdline_args(2, args);
+}
+#endif
+
 int main(int argc, char *argv[])
 {
 #ifdef _WIN32
@@ -149,6 +204,8 @@ int main(int argc, char *argv[])
 		int out_pid = open(slobsStdOutPath.data(), O_WRONLY | O_CREAT | O_DSYNC);
 		int out_err = open(slobsStdErrPath.data(), O_WRONLY | O_CREAT | O_DSYNC);
 	}
+
+	SetCefMainBundlePath(argv[0]);
 
 	g_util_osx = new UtilInt();
 	g_util_osx->init();

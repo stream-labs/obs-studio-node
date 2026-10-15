@@ -2,6 +2,7 @@ import 'mocha';
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as http from 'http';
+import * as os from 'os';
 import * as path from 'path';
 import { execSync } from 'child_process';
 import { AddressInfo } from 'net';
@@ -77,6 +78,14 @@ describe(testName, () => {
             } else {
                 logInfo(testName, `${resolved} does not exist`);
             }
+        }
+
+        const reportsDir = path.join(os.homedir(), 'Library', 'Logs', 'DiagnosticReports');
+        if (fs.existsSync(reportsDir)) {
+            const reports = fs.readdirSync(reportsDir).filter((name) => name.includes('obs64'));
+            logInfo(testName, `${reportsDir} obs64 reports:\n` + (reports.join('\n') || '(none)'));
+        } else {
+            logInfo(testName, `${reportsDir} does not exist`);
         }
     }
 
@@ -170,6 +179,7 @@ describe(testName, () => {
         osn.Global.setOutputSource(0, scene);
 
         await expectLoadSequence(1);
+        runDiagnostics();
     });
 
     it('Browser source reloads on refresh', async function () {
