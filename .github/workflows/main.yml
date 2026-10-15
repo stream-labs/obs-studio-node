@@ -99,6 +99,8 @@ jobs:
     needs: build-macos
     runs-on: ${{ matrix.image }}
     strategy:
+      # TEMP: browser-source probe branch (the unbundled control step fails by design)
+      fail-fast: false
       matrix:
         BuildReleases: [Release-x86_64, Release-arm64]
         include:
