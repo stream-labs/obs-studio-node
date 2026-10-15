@@ -124,25 +124,29 @@ describe(testName, () => {
     });
 
     after(async function () {
-        if (source) {
-            source.release();
-            source = null;
-        }
-        if (scene) {
-            scene.getItems().forEach((item) => item.remove());
-            osn.Global.setOutputSource(0, null as any);
-            scene.release();
-            scene = null;
-        }
+        try {
+            if (source) {
+                source.release();
+                source = null;
+            }
+            if (scene) {
+                scene.getItems().forEach((item) => item.remove());
+                osn.Global.setOutputSource(0, null as any);
+                scene.release();
+                scene = null;
+            }
 
-        obs.shutdown();
+            if (obs) {
+                obs.shutdown();
 
-        if (hasTestFailed === true) {
-            logInfo(testName, 'One or more test cases failed. Uploading cache');
-            await obs.uploadTestCache();
+                if (hasTestFailed === true) {
+                    logInfo(testName, 'One or more test cases failed. Uploading cache');
+                    await obs.uploadTestCache();
+                }
+            }
+        } finally {
+            await new Promise<void>((resolve) => server.close(() => resolve()));
         }
-
-        await new Promise<void>((resolve) => server.close(() => resolve()));
 
         obs = null;
         deleteConfigFiles();
