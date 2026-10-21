@@ -506,6 +506,10 @@ osn_target_uses_static_msvc_runtime(${PROJECT_NAME})
 osn_verify_msvc_runtime(${PROJECT_NAME} "MultiThreaded")
 
 if(WIN32)
+    # fix CEF sandboxing issues on Windows by using a custom entry point
+    set_target_properties(${PROJECT_NAME} PROPERTIES WIN32_EXECUTABLE TRUE)
+    target_link_options(${PROJECT_NAME} PRIVATE /ENTRY:mainCRTStartup)
+
     if(NOT TARGET OBS::cef-sandbox)
         message(FATAL_ERROR "The libobs development package does not provide required target OBS::cef-sandbox")
     endif()
