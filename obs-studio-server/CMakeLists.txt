@@ -527,6 +527,15 @@ if(WIN32)
     # with /MT. Link it into obs64.exe itself, where the CEF sandbox contract
     # requires cef_sandbox_info_create/destroy to reside.
     target_link_libraries(${PROJECT_NAME} PRIVATE crashpad-bridge OBS::cef-sandbox)
+
+    if(MSVC)
+        # CEF relaunches obs64.exe for renderer, utility, GPU, and Crashpad
+        # processes without the main server's CREATE_NO_WINDOW launch flags.
+        # A GUI subsystem prevents Windows from opening a console for each child;
+        # mainCRTStartup preserves the existing main(argc, argv) entry point.
+        set_target_properties(${PROJECT_NAME} PROPERTIES WIN32_EXECUTABLE TRUE)
+        target_link_options(${PROJECT_NAME} PRIVATE "/ENTRY:mainCRTStartup")
+    endif()
 endif()
 
 if(MSVC)
